@@ -1,0 +1,272 @@
+﻿@model CMS.ViewModel.ViewModel.TaskManagementViewModel
+
+@{
+    ViewBag.Title = "TaskSettingList";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+
+<!-- ================== BEGIN PAGE LEVEL STYLE ================== -->
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<!-- ================== END PAGE LEVEL STYLE ================== -->
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="content" id="content">
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li class="active">List Task Setting </li>
+        </ol>
+        <h1 class="page-header">List Task Setting</h1>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">List Task Setting</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    <div class="">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        @{ int count = 0;}
+                        <div class="form-group col-md-12">
+                            @*<div class="form-group">
+
+                                </div>*@
+                            <a href="#TaskSetting-dialog" class="btn btn-sm btn-success pull-right" data-toggle="modal"><i class="fa fa-plus"></i> ADD </a>
+                        </div>
+                        <div class="form-group col-md-12 table-responsive">
+                            <table class="table table-hover table-bordered" id="TaskSettingList">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Task Name</th>
+                                        <th>Last Date</th>
+                                        <th>AcademicYear</th>
+                                        <th>SemesterType</th>
+                                        <th>Component</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.liTaskSetting != null)
+                                    {
+                                        foreach (var item in Model.liTaskSetting)
+                                        {
+                                            <tr>
+                                                <td>@{ count++;} @count </td>
+                                                <td>@item.TASK_NAME</td>
+                                                <td>@item.LAST_DATE</td>
+                                                <td>@item.ACADEMIC_YEAR</td>
+                                                <td>@item.SEMESTER</td>
+                                                <td>@item.COMPONENT_ID</td>
+                                                <td>
+                                                    <a href="#TaskSetting-dialog" data-toggle="modal" onclick="EditTaskSetting(@item.TASK_ID)"><i class="fa fa-edit text-primary" title="Update"></i></a>
+                                                    <a onclick="GetConfirmation(@item.TASK_ID)"><i class="fa fa-trash text-danger" title="Delete"></i></a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+<div class="modal fade" id="TaskSetting-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit Task Setting</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.TaskSetting.TASK_NAME, "Task Name", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.EditorFor(model => model.TaskSetting.TASK_NAME, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Enter Event Name" } })
+                                        @Html.ValidationMessageFor(model => model.TaskSetting.TASK_NAME, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.TaskSetting.LAST_DATE, "Last Date", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        <div class="input-group date" id="datetimepicker1">
+                                            @Html.EditorFor(model => model.TaskSetting.LAST_DATE, new { htmlAttributes = new { @class = "form-control", placeholder = "Pick Last Date" } })
+                                            @Html.ValidationMessageFor(model => model.TaskSetting.LAST_DATE, "", new { @class = "text-danger" })
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.SemesterType, "Semester Type", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.SemesterType, (Model.SemesterType != null) ? Model.SemesterType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                        @Html.ValidationMessageFor(model => model.SemesterType, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Component, "Component", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Component, (Model.Component != null) ? Model.Component : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                        @Html.ValidationMessageFor(model => model.Component, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden filed -->
+@Html.HiddenFor(model => model.TaskSetting.TASK_ID)
+<!-- Hidden filed -->
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    function ContentLoad() {
+        $('#TaskSettingList').DataTable();
+        handleDatepicker = function () {
+            "use strict";
+            $("#TaskSetting_LAST_DATE").datepicker({
+                todayHighlight: !0,
+                autoclose: !0,
+                startDate: new Date(),
+                format: "dd/mm/yyyy",
+                orientation: "right bottom",
+                zIndexOffset: '15',
+                defaultDate: new Date()
+                // 'top': top,
+                // 'left': left
+            });
+        }
+        handleDatepicker();
+        $('.selectpicker').selectpicker('refresh');
+    }
+
+</script>
+
+<script>
+        function EditTaskSetting(TaskId)
+        {
+            $.ajax({
+                url:"@Url.Action("FetchTaskSettingById", "TaskManagement")",
+                method:"POST",
+                datatype: "json",
+                data: { sTaskSettingId: TaskId },
+                success:function(data)
+                {
+                    if (data.Message != null && data.Message != '')
+                    {
+                        alert(data.Message);
+                    } else
+                    {
+                       // $('#TaskSetting-dialog').modal();
+                        $('#TaskSetting_TASK_ID').val(data[0].TASK_ID);
+                        $('#TaskSetting_TASK_NAME').val(data[0].TASK_NAME);
+                        $('#TaskSetting_LAST_DATE').val(data[0].LAST_DATE);
+                        $('#SemesterType option:selected').text(data[0].SEMESTER);
+                        $('#Component').val(data[0].COMPONENT_ID);
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                },error:function(error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+
+
+        // Delete Task Setting ..
+        function GetConfirmation(ID)
+        {
+            if (!confirm('Are you sure to delete ?'))
+            {
+                return false;
+            } else
+            {
+                $.ajax({
+                    url:"@Url.Action("DeleteTaskSetting", "TaskManagement")",
+                    method:"POST",
+                    datatype: "json",
+                    data: { sTaskSettingId: ID },
+                    success:function(data)
+                    {
+                        alert(data.Message);
+                        loadContent('/TaskSettingList/TaskManagement');
+                        $('.modal-backdrop').removeClass('modal-backdrop');
+                    }, error: function (error)
+                    {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+        }
+
+
+        // Save / Update Task ManageMent ...
+        $('#btnSubmit').on('click', function ()
+        {
+            var JsonData = null;
+            JsonData = '{"TASK_ID":"' + $('#TaskSetting_TASK_ID').val() + '","TASK_NAME":"' + $('#TaskSetting_TASK_NAME').val() + '","LAST_DATE":"' + $('#TaskSetting_LAST_DATE').val() + '","SEMESTER":"' + $('#SemesterType option:selected').text() + '","COMPONENT_ID":"' + $('#Component').val() + '"}';
+            $.ajax({
+                url:"@Url.Action("SaveTaskSetting", "TaskManagement")",
+                method:"POST",
+                datatype: "json",
+                data: { sTaskSetting: JsonData },
+                success:function(data)
+                {
+                    alert(data.Message);
+                    loadContent('/TaskManagement/TaskSettingList');
+                    $('.modal-backdrop').removeClass('modal-backdrop');
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+</script>
+
+

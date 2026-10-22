@@ -1,0 +1,193 @@
+@model IEnumerable<CMS.Models.ALUMNI_DATA_COLLECTION>
+
+@{
+    ViewBag.Title = "Pending Alumni Data Collection";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Alumnae</a></li>
+        <li class="active">Pending Alumni Data Collection</li>
+    </ol>
+    <h1 class="page-header">Pending Alumni Data Collection List</h1>
+
+    <div class="mb-3" style="margin-bottom: 15px;">
+        <button type="button" id="btnImportSelected" class="btn btn-success">
+            <i class="fa fa-save"></i> Save / Import Selected to Alumni Data Collection
+        </button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <h4 class="panel-title"><b>Pending Alumni Data Collection (Not Collected)</b></h4>
+        </div>
+        <div class="panel-body">
+            <table id="tblPendingAlumniData" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 40px; vertical-align: middle;">
+                            <input type="checkbox" id="chkSelectAll" />
+                        </th>
+                        <th>#</th>
+                        <th>Register No</th>
+                        <th>Name</th>
+                        <th>Batch</th>
+                        <th>Programme</th>
+                        <th>Email ID</th>
+                        <th>Mobile No</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Count() > 0)
+                    {
+                        int sno = 1;
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-center" style="vertical-align: middle;">
+                                    <input type="checkbox" class="chk-select" value="@item.ROLL_NO" />
+                                </td>
+                                <td>@sno</td>
+                                <td>@item.ROLL_NO</td>
+                                <td>@item.NAME</td>
+                                <td>@item.BATCH</td>
+                                <td>@item.PROGRAMME</td>
+                                <td>@item.EMAIL_ID</td>
+                                <td>@item.MOBILE_NO</td>
+                            </tr>
+                            sno++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        if ($.fn.DataTable.isDataTable('#tblPendingAlumniData')) {
+            $('#tblPendingAlumniData').DataTable().destroy();
+        }
+        var table = $('#tblPendingAlumniData').DataTable({
+            responsive: true,
+            columnDefs: [
+                { targets: 0, orderable: false, searchable: false }
+            ]
+        });
+
+        // Select / Deselect All (toggles across all paginated rows in the DataTable)
+        $('#chkSelectAll').on('change', function () {
+            var rows = table.rows({ 'search': 'applied' }).nodes();
+            $('input[type="checkbox"].chk-select', rows).prop('checked', this.checked);
+        });
+
+        // Individual checkbox change event listener
+        $(document).on('change', '.chk-select', function () {
+            var allCheckboxes = table.rows({ 'search': 'applied' }).nodes().to$().find('.chk-select');
+            var checkedCheckboxes = allCheckboxes.filter(':checked');
+
+            if (checkedCheckboxes.length === allCheckboxes.length && allCheckboxes.length > 0) {
+                $('#chkSelectAll').prop('checked', true);
+            } else {
+                $('#chkSelectAll').prop('checked', false);
+            }
+        });
+
+        // Bulk Save / Import Selected
+        $('#btnImportSelected').off('click').on('click', function () {
+            var selectedRollNos = [];
+            var checkedBoxes = table.rows({ 'search': 'applied' }).nodes().to$().find('.chk-select:checked');
+            
+            checkedBoxes.each(function () {
+                selectedRollNos.push($(this).val());
+            });
+
+            if (selectedRollNos.length === 0) {
+                swal({ title: "Warning", text: "Please select at least one student", type: "warning" });
+                return;
+            }
+
+            swal({
+                title: "Are you sure?",
+                text: "Do you want to import the selected students into the Alumni Data Collection?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                confirmButtonText: "Yes, import!",
+                closeOnConfirm: true
+            }, function () {
+                $('#page-loader').removeClass('fade in hide').addClass('fade in');
+                $.ajax({
+                    url: '@Url.Action("ImportSelectedToAlumniDataCollection", "Alumnae")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ rollNos: selectedRollNos }),
+                    success: function (response) {
+                        $('#page-loader').removeClass('fade in').addClass('fade in hide');
+                        
+                        console.log("Import response:", response);
+                        
+                        var parsedResponse = response;
+                        if (typeof response === 'string') {
+                            try {
+                                parsedResponse = JSON.parse(response);
+                            } catch (e) {
+                                console.error("Failed to parse response JSON string:", e);
+                            }
+                        }
+
+                        var errorCode = parsedResponse ? (parsedResponse.ErrorCode || parsedResponse.errorCode) : null;
+                        var message = parsedResponse ? (parsedResponse.Message || parsedResponse.message) : null;
+
+                        if (errorCode == '200' || errorCode == '202' || errorCode == 200 || errorCode == 202) {
+                            swal({
+                                title: "Success",
+                                text: message || "Import completed successfully.",
+                                type: "success"
+                            }, function() {
+                                loadContent('/Alumnae/ListPendingAlumniDataCollection');
+                            });
+                        } else {
+                            var errorDetails = "Status Code: " + (errorCode || "None") + "\nMessage: " + (message || "No message returned.");
+                            if (typeof response === 'string' && (response.indexOf('<html') > -1 || response.indexOf('401') > -1 || response.indexOf('Unauthorized') > -1 || response.trim().startsWith('<'))) {
+                                errorDetails = "Session expired or unauthorized request. Please log in again.";
+                            } else if (!errorCode && !message) {
+                                errorDetails = "Unexpected response format: " + JSON.stringify(response);
+                            }
+                            swal({
+                                title: "Error",
+                                text: errorDetails,
+                                type: "error"
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $('#page-loader').removeClass('fade in').addClass('fade in hide');
+                        console.error("AJAX Error:", status, error, xhr);
+                        var errMsg = "Status: " + xhr.status + " (" + xhr.statusText + ")";
+                        if (error) {
+                            errMsg += "\nDetails: " + error;
+                        }
+                        if (xhr.responseText && (xhr.responseText.indexOf('<html') > -1 || xhr.responseText.indexOf('401') > -1 || xhr.responseText.indexOf('Unauthorized') > -1 || xhr.responseText.trim().startsWith('<'))) {
+                            errMsg = "Session expired or unauthorized request. Please reload and log in again.";
+                        }
+                        swal({
+                            title: "Error",
+                            text: errMsg,
+                            type: "error"
+                        });
+                    }
+                });
+            });
+        });
+    });
+</script>

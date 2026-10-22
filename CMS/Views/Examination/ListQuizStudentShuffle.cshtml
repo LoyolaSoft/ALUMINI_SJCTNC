@@ -1,0 +1,430 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "ListQuizStudentShuffle";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li> 
+        <li class="active">List Quiz Shuffle Student</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">List Quiz Shuffle Student<small></small></h1>
+    <!-- end page-header -->
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <div class="form-horizontal">
+            <div class="panel panel-primary">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h4 class="panel-title">List Quiz Shuffle Student</h4>
+                </div>
+                <div class="panel-body">
+                    <div class="col-md-12 form-horizontal">
+                        <!-- Class -->
+                        <div class="col-md-4 form-group">
+                            @Html.Label("Class", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                            </div>
+                        </div>
+
+                        <!-- Course -->
+                        <div class="col-md-4 form-group">
+                            @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-horizontal col-md-12">
+                        <div id="dvQuizStudentShuffle"></div>
+                    </div>
+
+                    <div class="col-md-12 form-horizontal">
+                        <a href="javascript:;" id="btnSubmit" class="btn btn-primary">Submit</a>
+                    </div>
+                    @*<div class="col-md-12 form-horizontal">
+                        @{ 
+                            if (!string.IsNullOrEmpty(Model.sErrorMessage))
+                            {
+                                <div class="alert alert-warning">@Model.sErrorMessage</div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <div class="col-md-12">
+                                        <a href="#QuizSetting-dialog" class="btn btn-success pull-right" data-toggle="modal"><i class="fa fa-plus"> Add</i></a>
+                                    </div>
+                                    <br /><br />
+                                    @{int No = 0; int nCount = 5;}
+                                    <table class="table table-hover table-bordered" id="tblQuizStudentShuffle">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Roll No</th>
+                                                <th>Register No</th>
+                                                <th>Name</th>
+                                                <th>Class</th>
+                                                <th>Course</th>
+                                                <th>Set</th>
+                                                <th>Semester</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.liQuizStudentShuffle != null && Model.liQuizStudentShuffle.Count > 0)
+                                            {
+                                                foreach (var item in Model.liQuizStudentShuffle)
+                                                {
+                                                    if (nCount == 0)
+                                                    {
+                                                        nCount = 5;
+                                                    }
+                                                    nCount--;
+                                                    <tr>
+                                                        <td>@{No++; } @No</td>
+                                                        <td>@item.ROLL_NO</td>
+                                                        <td>@item.REGISTER_NO</td>
+                                                        <td>@item.FIRST_NAME</td>
+                                                        <td>@item.CLASS_NAME</td>
+                                                        <td>@item.COURSE_CODE - @item.COURSE_TITLE</td>
+                                                        <td>
+                                                            @Html.DropDownListFor(model => model.Batch, (Model.Batch != null) ? Model.Batch : Enumerable.Empty<SelectListItem>(), nCount.ToString(), new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                                        </td>
+                                                        <td>@item.SEMESTER_NAME</td>
+                                                        <td>
+                                                            <a href="#QuizSetting-dialog" onclick="FetchQuizInfo(@item.QUIZ_SHUFFLE_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+                                                            <a href="javascrip:;" onclick="GetConfirm(@item.QUIZ_SHUFFLE_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+                                                        </td>
+                                                    </tr>
+                                                 }
+                                             }
+                                        </tbody>
+                                    </table>
+                                    <br />
+                                </div>
+                            }
+                        }
+                    </div>*@
+                </div>
+            </div>
+        </div>
+     }
+</div>
+
+
+@*<!-- Begin Modal -->
+
+<div class="modal" id="QuizSetting-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit Quiz Shuffle Student</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+
+                                <!-- Class -->
+                                <div class="col-md-12 form-group">
+                                    @Html.Label("Class", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    </div>
+                                </div>
+
+                                <!-- Course -->
+                                <div class="col-md-12 form-group">
+                                    @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    </div>
+                                </div>
+
+                                <!-- Batch -->
+                                <div class="col-md-12 form-group">
+                                    @Html.Label("Batch", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Batch, (Model.Batch != null) ? Model.Batch : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    </div>
+                                </div>
+
+                                <!-- Student -->
+                                <div class="col-md-12 form-group">
+                                    @Html.Label("Student", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.StudentList, (Model.StudentList != null) ? Model.StudentList : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true",@data_actions_box="true",multiple="multiple" })
+                                    </div>
+                                </div>
+
+                                
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- End Modal -->*@
+
+<!-- Hidden Filed -->
+<input type="text" id="hdQuizShuffleId" class="hidden" />
+<!-- Hidden Filed -->
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<script>
+
+    $('.selectpicker').selectpicker({
+        size: 5
+    });
+    $('.selectpicker').selectpicker('refresh');
+
+    function ContentLoad()
+    {
+        // Document Ready Function .
+    }
+
+    
+
+    // Class List Change ..
+    $("#ClassList").on("change", function ()
+    {
+        GetCourseByClass();
+    });
+
+    function GetCourseByClass()
+    {
+        $("#CourseList").empty();
+        $.ajax({
+            url: "@Url.Action("FethCourseByClassId", "Examination")",
+            method: "POST",
+            datatype: "json",
+            data: { Class_Id: $("#ClassList").val() },
+            success: function (data)
+            {
+                $("#CourseList").append('<option value=""> -- Select -- </option>' + data);
+                $("#CourseList").val();
+                $('#CourseList').selectpicker('refresh');
+            }, error: function (error)
+            {
+                alert('Internal Server Error .....!');
+            }
+        });
+    }
+
+
+    $('#CourseList').on('change', function ()
+    {
+        GetStudent();
+    });
+
+    function GetStudent() 
+    {
+        if ($("#ClassList").val() && $("#CourseList").val())
+        {
+            $.ajax({
+                url: "@Url.Action("ListPartialQuizStudentShuffle", "Examination")",
+                method: "POST",
+                datatype: "json",
+                data: { sClassId: $("#ClassList").val(), sCourseId: $("#CourseList").val() },
+                success: function (data)
+                {
+                    $('#dvQuizStudentShuffle').empty();
+                    if (data.Message != null && data.Message != '')
+                    {
+                        alert(data.Message);
+                    } else
+                    {
+                        $('#dvQuizStudentShuffle').append(data); 
+                        $('#tblQuizStudentShuffle').DataTable({ "bPaginate": false });
+                        $('.selectpicker').selectpicker('refresh');
+                       // $("#StudentList").append('<option value="0"> -- Select -- </option>' + data.sResult);
+                       //// $("#StudentList").val(sStudentId);
+                       // $('.selectpicker').selectpicker('refresh');
+                    }
+                }, error: function (error)
+                {
+                    alert('Internal Server Error .....!');
+                }
+            });
+        } else
+        {
+            alert('Please Select All Filed To Continue !');
+            return false;
+        }
+    }
+
+    // On Submit Setting ...
+    $('#btnSubmit').on('click', function ()
+    {
+        if ($('#ClassList').val() && $('#CourseList').val())
+        {
+            var sClassId = $('#ClassList').val();
+            var sCourseId = $('#CourseList').val();
+            var sSetId = '';
+            var sStudentId = '';
+            var sRollNo = '';
+            var sQuizShuffleId = null;
+            var nJsonCount = 0;
+            var sJsonData = '{"liQuizStudentShuffle":[';
+            $('#tblQuizStudentShuffle tbody tr').each(function ()
+            {
+                sSetId = $(this).find('select Option:selected').val();
+                sStudentId = $(this).attr('cms-sStudentId');
+                sRollNo = $(this).attr('cms-sRollNo');
+                sQuizShuffleId = $(this).attr('cms-QuizShuffleId');
+                
+               
+                if (sSetId!='' & sSetId!=null) 
+                {
+                    sJsonData += '{"CLASS_ID":"' + sClassId + '","COURSE_ID":"' + sCourseId + '","STUDENT_ID":"' + sStudentId + '","ROLL_NO":"' + sRollNo + '","SET_ID":"' + sSetId + '","QUIZ_SHUFFLE_ID":"' + sQuizShuffleId + '"},';
+                    nJsonCount++;
+                } 
+            });
+            //var JsonData = null;
+            //JsonData = '{"QUIZ_SHUFFLE_ID":"' + $('#hdQuizShuffleId').val() + '",\
+            //             "CLASS_ID":"' + $('#ClassList').val() + '",\
+            //             "COURSE_ID":"' + $('#CourseList').val() + '",\
+            //             "STUDENT_ID":"' + String($('#StudentList').val()) + '",\
+            //             "SET_ID":"' + $('#Batch').val() + '"}';
+
+            if (nJsonCount != 0)
+            {
+                sJsonData = sJsonData.slice(0, -1);
+                sJsonData += ']}';
+            } else
+            {
+                alert('Please Choose All Options To Continue !');
+                return false;
+            }
+            $.ajax({
+                url:'@Url.Action("SaveQuizStudentShuffle", "Examination")',
+                method:'POST',
+                datatype:'json',
+                data: { sSaveQuizStudentShuffle: sJsonData, sCourseId: $('#CourseList').val(), sClassId: $('#ClassList').val() },
+                success: function (data)
+                {
+                    alert(data.Message);
+                    // loadContent('/Examination/ListQuizStudentShuffle');
+                    GetStudent();
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        } else
+        {
+            alert('Please Fill All Values To Continue !');
+        }
+    });
+</script>
+
+@*<script>
+    // Delete Setting ...
+    function GetConfirm(ID)
+    {
+        if (!confirm('Are you sure to delete ?'))
+        {
+            return false;
+        }
+        else
+        {
+            $.ajax({
+                url:"@Url.Action("DeleteQuizStudentShuffle", "Examination")",
+                method: "POST",
+                datatype:"json",
+                data: { sQuizShuffleId: ID },
+                success:function(data)
+                {
+                    alert(data.Message);
+                    loadContent('/Examination/ListQuizStudentShuffle');
+                },error:function(error)
+                {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+    }
+
+    // Fetch Quiz Shuffle Info ...
+    function FetchQuizInfo(ID)
+    {
+        $.ajax({
+            url:"@Url.Action("FetchQuizStudentShuffleInfo", "Examination")",
+            method: "POST",
+            datatype:"json",
+            data: { sQuizShuffleId: ID },
+            success:function(data)
+            {
+                if (data.Message != null && data.Message != '')
+                {
+                    alert(data.Message);
+                } else
+                {
+                    $('#hdQuizShuffleId').val(data[0].QUIZ_SHUFFLE_ID);
+                    $('#ClassList').val(data[0].CLASS_ID);
+                    $('#ClassList').selectpicker('refresh');
+                    GetCourseByClass(data[0].COURSE_ID);
+                    $('#Batch').val(data[0].SET_ID);
+                    $('#Batch').selectpicker('refresh');
+                    //alert(data[0].COURSE_ID);
+                    //$('#CourseList').val(data[0].COURSE_ID);
+                    //$('#CourseList').selectpicker('refresh');
+                    setTimeout(function () {
+                        GetStudent(data[0].STUDENT_ID);
+                    }, 1000);
+                }
+            },error:function(error)
+            {
+                alert('Internal Server Error ! ');
+            }
+        });
+    }
+
+    $(function ()
+    {
+        $('#QuizSetting-dialog').on('hidden.bs.modal', function (e) {
+            $('#hdQuizShuffleId').val('');
+            $('#ClassList').val('');
+            $('#CourseList').val('');
+            $('#StudentList').val('');
+            $('#Batch').val('');
+            $('.selectpicker').selectpicker('refresh');
+        });
+    });
+</script>*@

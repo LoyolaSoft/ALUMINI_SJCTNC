@@ -1,0 +1,296 @@
+﻿@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    Layout = null;
+    ViewBag.Title = "OBEQuestionPaperPattern";
+    string sSelected = string.Empty;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">OBE QuestionPaperPattern</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">OBE QuestionPaperPattern</h1>
+    <!-- end page-header -->
+    <!-- begin row -->
+    <div class="row">
+        <!-- begin col-12 -->
+        <div class="col-md-12">
+            <!-- begin panel -->
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h4 class="panel-title">OBE QuestionPaperPattern</h4>
+                </div>
+                <div class="panel-body">
+                    <div class="form-horizontal">
+                        <div class="col-md-12">
+                            <div class="col-md-4 form-group">
+                                @Html.Label("Setting", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.ExamSetting, (Model.ExamSetting != null) ? Model.ExamSetting : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(model => model.ExamSetting, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-1 form-group">
+                                <a class="btn btn-primary" id="btnGet" onclick="GetQuestions()">Get</a>
+                            </div>
+                            <div class="col-md-1 form-group pull-right">
+                                <a class="btn btn-success" href="#Edit-dialog" id="btnAdd" data-toggle="modal">Add</a>
+                            </div>
+                        </div>
+                        <div class="col-md-12" id="DvOBEQuestionPaperpattern">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- end panel -->
+        </div>
+        <!-- end col-6 -->
+    </div>
+    <!-- end row -->
+</div>
+
+<div class="modal" id="Edit-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit OBEQuestionPaperPattern</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <input type="hidden" id="hdQuestionId" value="">
+                            <div class="form-group">
+                                <label class="control-label col-md-3">OBE Pattern</label>
+                                <div class="col-md-9">
+                                    <input type="text" name="name" value="" class="form-control" id="txtobeQuestionPaperPattern" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Application Type</label>
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.ApplicationType, (Model.ApplicationType != null) ? Model.ApplicationType : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(model => model.ApplicationType, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Department</label>
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.DepartmentList, (Model.DepartmentList != null) ? Model.DepartmentList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true" })
+                                    @Html.ValidationMessageFor(model => model.DepartmentList, "", new { @class = "text-danger" })
+                                    @*<select id="DepartmentList" data-live-search="true" class="selectpicker show-menu-arrow show-tick">
+                                            <option value="0"> -- Select --</option>
+                                            @if (Model.liExamUGCTypeCost != null && Model.liExamUGCTypeCost.Count > 0)
+                                            {
+                                                foreach (var UGCTypeitem in Model.liExamUGCTypeCost)
+                                                {
+                                                    sSelected = string.Empty;
+                                                    <option value="@UGCTypeitem.UGC_TYPE_COST_ID"
+                                                            @if (!string.IsNullOrEmpty(item.UGC_TYPE_COST_ID)) { if (item.UGC_TYPE_COST_ID == UGCTypeitem.UGC_TYPE_COST_ID) { sSelected = "SELECTED"; } } else if (item.SUBJECT_TYPE == UGCTypeitem.UGC_COURSE_TYPE_ID && item.PROGRAMME_TYPE_ID == UGCTypeitem.PROGRAMME_TYPE_ID) { sSelected = "SELECTED"; }
+                                                            @sSelected>
+                                                        @UGCTypeitem.TITLE
+                                                    </option>
+                                                }
+                                            }
+                                        </select>*@
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Total Hour</label>
+                                <div class="col-md-9">
+                                    <input type="number" name="name" min="0" value="" class="form-control" id="txtobeTotalHour" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Total Question</label>
+                                <div class="col-md-9">
+                                    <input type="number" name="name" min="0" value="" class="form-control" id="txtobeTotalQuestion" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Total Mark</label>
+                                <div class="col-md-9">
+                                    <input type="number" min="0" name="name" value="" class="form-control" id="txtobeTotalMark" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnEditSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+    function ContentLoad() {
+        // handleSummernote();
+    }
+
+    $('.selectpicker').selectpicker('refresh');
+    $('.selectpicker').selectpicker({
+        size: 5
+    });
+
+    function GetQuestions() {
+        if ($('#ExamSetting').val()) {
+            $.ajax({
+                url: "@Url.Action("BindOBEQuestionPaperPattern", "OBE")",
+                method: "POST",
+                datatype: "json",
+                data: { sExamSettingId: $('#ExamSetting').val() },
+                success: function (data) {
+                    $('#DvOBEQuestionPaperpattern').empty();
+                    $('#DvOBEQuestionPaperpattern').append(data);
+                    $('#tblDvOBEQuestionPaperpattern').DataTable({ "bPaginate": false });
+                    $('.selectpicker').selectpicker('refresh');
+                }, error: function (error) {
+                    alert('Internal Server Error .....!');
+                }
+            });
+        }
+        else {
+            alert('Please Choose All Fields .....!');
+        }
+    };
+
+    function FetchOBEPatternById(id) {
+        $('#hdQuestionId').val(id);
+        if ( (id != null && id != "")) {
+            $.ajax({
+                url: "@Url.Action("FetchOBEQuestionPaperPatternbyId", "OBE")",
+                method: "POST",
+                datatype: "json",
+                data: { sOBEQuestionPaperPatternId: id },
+                success: function (data) {
+
+                    $('#txtobeQuestionPaperPattern').val(data[0].OBE_QUESTIONPAPERPATTERN);
+                    $('#txtobeTotalHour').val(data[0].TOTAL_HOUR);
+                    $('#txtobeTotalQuestion').val(data[0].TOTAL_QUESTION);
+                    $('#txtobeTotalMark').val(data[0].TOTAL_MARK);
+                    $('#DepartmentList').val(data[0].DEPARTMENT.split(',')).change();
+                    $('#ApplicationType').val(data[0].APPLICATION_TYPE_ID);
+                    $('.selectpicker').selectpicker('refresh');
+
+                }, error: function (error) {
+                    alert('Internal Server Error .....!');
+                }
+            });
+        }
+        else {
+            alert('Please Choose All Fields .....!');
+        }
+    };
+
+    function GetConfirm(ID) {
+
+        swal({
+            title: "Info !",
+            text: "Are you sure want to Delete ?",
+            type: "info",
+            showCancelButton: true,
+            confirmButtonClass: "btn-success",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                url: "@Url.Action("DeleteOBEQuestionPaperPattern", "OBE")",
+                method: "POST",
+                datatype: "json",
+                data: { sOBEQuestionPaperPatternId: ID },
+                success: function (data) {
+                    if (data.ErrorCode != null && data.ErrorCode != "") {
+                        if (data.ErrorCode == "202") {
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'success', animation: true });
+                            GetQuestions();
+                        }
+                        else {
+                            swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                        }
+                    }
+                    else {
+                        if (data.Message != null && data.Message != "") {
+                            swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 5000, type: 'info', animation: true });
+                        }
+                    }
+
+                }, error: function (error) {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        })
+    }
+
+    $('#btnEditSubmit').on('click', function () {
+        var jsonObject;
+        var Department;
+        if ($('#DepartmentList').val() != null && $('#DepartmentList').val() !="") {
+            Department = $('#DepartmentList').val();
+        }
+        else {
+            Department = "0";
+        }
+        jsonObject = '{"OBE_QUESTIONPAPERPATTERN_ID":"' + $('#hdQuestionId').val() + '","OBE_QUESTIONPAPERPATTERN":"' + $('#txtobeQuestionPaperPattern').val() + '","EXAM_SETTING_ID":"' + $('#ExamSetting').val() + '","TOTAL_HOUR":"' + $('#txtobeTotalHour').val() + '","TOTAL_QUESTION":"' + $('#txtobeTotalQuestion').val() + '","TOTAL_MARK":"' + $('#txtobeTotalMark').val() + '","DEPARTMENT":"' + Department.toString() + '","APPLICATION_TYPE_ID":"' + $('#ApplicationType').val() + '"}'
+        if (jsonObject != null) {
+            $.ajax({
+                url: "@Url.Action("SaveOBEQuestionPaperPattern", "OBE")",
+                method: "post",
+                content: "application/json; charset=utf-8",
+                data: { sJsonData: jsonObject },
+                success: function (data) {
+                    if (data.ErrorCode != null && data.ErrorCode != "") {
+                        if (data.ErrorCode == "202") {
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'success', animation: true });
+                            GetQuestions();
+                        }
+                        else {
+                            swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                        }
+                    }
+                    else {
+                        if (data.Message != null && data.Message != "") {
+                            swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'info', animation: true });
+                        }
+                    }
+                }, error: function (e) {
+                    swal({ title: "Error !", text: "Internal Server Error !", showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                }
+            });
+        }
+
+    });
+
+    $('#Edit-dialog').on('hidden.bs.modal', function () {
+        $(".modal-body input").val("");
+        $('#DepartmentList').val("0");
+        $("#ApplicationType").val("0");
+        $('.selectpicker').selectpicker('refresh');
+    });
+</script>
+

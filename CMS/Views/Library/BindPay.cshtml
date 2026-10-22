@@ -1,0 +1,93 @@
+﻿
+@model CMS.ViewModel.ViewModel.LibraryViewModel
+@{
+    ViewBag.Title = "BindPay";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    //Layout = null;
+
+}
+
+<input type="text" class="form-control input-sm hidden" id="txtDuesId" hidden value="@Model.liIssueDues.FirstOrDefault().DUES_ID" />
+<input type="number" placeholder="0000" value="@Model.liIssueDues.FirstOrDefault().BALANCE" class="form-control input-sm hidden" id="txtAmount" />
+<div class="form-horizontal ">
+    <h4 class="lead"><img src="~/Content/assets/img/hcc-img/hcclogo.jpg" width="70px;" style="box-shadow:1px 1px #eee;" class="img-circle img" alt="HCC Logo" /> @Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME</h4>
+
+    <hr />
+    <div class="alert-info alert "><span class="label label-inverse m-r-5">NOTE!</span> Please do not press back button or refresh when you make payment.</div>
+    <table class="table table-bordered table-hover" width="100%">
+        @if (Model.liIssueDues != null && Model.liIssueDues.Count > 0)
+        {
+            foreach (var item in Model.liIssueDues)
+            {
+                if (item.BALANCE != "0")
+                {
+                    <tr><td>Due Fine </td><td><i class="fa fa-rupee"></i> @item.DUE_FINE_AMOUNT</td></tr>
+                    <tr><td>Revised Due Fine </td><td><i class="fa fa-rupee"></i> @item.REVISED_DUE_FINE_AMOUNT</td></tr>
+                    <tr><td>Damaged Due Fine </td><td><i class="fa fa-rupee"></i> @item.DAMAGE_FINE_AMOUNT</td></tr>
+                    <tr><td>Missing Due Fine </td><td><i class="fa fa-rupee"></i> @item.MISSING_FINE_AMOUNT</td></tr>
+                }
+            }
+            <tr><td>Total </td><td><b><i class="fa fa-rupee"></i>@Model.liIssueDues.FirstOrDefault().BALANCE</b></td></tr>
+
+
+        }
+        else
+        {
+            <tr><td>Erorr Message</td><td>Your Account is not available,Please use help line to get more details. </td></tr>
+        }
+    </table>
+
+</div>
+<div class="col-md-12 form-group">
+    <a href="#" id="btnPayNow" data-dismiss="modal" class="btn btn-success pull-right">Pay Now</a>
+</div>
+
+<script>
+
+
+    $('#btnPayNow').on('click', function () {
+
+        if($('#txtAmount').val())
+        {
+            $.ajax({
+                url: '@Url.Action("PayFineByDuesId", "Library")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sDuesId: $('#txtDuesId').val(), sFineAmount: $('#txtAmount').val() },
+                success: function (data) {
+                    if (data.Message != null && data.Message != '') {
+                        if (data.ErrorCode == "406") {
+                            swal({ title: "Info!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                        if (data.ErrorCode == "200") {
+                            swal({ title: "Success!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+
+                            var text = $('#txtScanId').val();
+                           // loadContent('/Library/DuesList');
+
+                            $('#txtScanId').val(text);
+                            var e = $.Event("keypress", { which: 13 });
+
+                            $('#txtScanId').trigger(e);
+
+                        }
+                        if (data.ErrorCode == "417") {
+                            swal({ title: "Failed!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                        }
+                    }
+                    else {
+
+
+                    }
+                }, error: function (error) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+        else
+        {
+            swal({ title: "Info!", text: "Please enter the amount to continue!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+        }
+    });
+
+</script>

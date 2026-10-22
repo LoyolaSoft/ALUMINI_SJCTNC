@@ -1,0 +1,169 @@
+﻿@model CMS.ViewModel.ViewModel.DashboardViewModel
+@{
+    ViewBag.Title = "Notice Board Report";
+    Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+}
+
+<div id="content" class="content">
+
+    <h1 class="page-header">Notice Board Report</h1>
+
+    <div class="row">
+        <div class="col-lg-12">
+
+            <!-- NOTICE DISPLAY -->
+            @if (Model.liNoticeBoard != null && Model.liNoticeBoard.Count > 0)
+            {
+                var notice = Model.liNoticeBoard.FirstOrDefault();
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <strong>@notice.NOTICEBOARD</strong>
+                        <span class="pull-right">Due: @notice.DUE_DATE</span>
+                    </div>
+
+                    <div class="panel-body">
+                        <div>@Html.Raw(notice.DESCRIPTION)</div>
+                        <br />
+
+                        @if (!string.IsNullOrEmpty(notice.FILE_NAME))
+                        {
+                            <a href="@notice.FILE_NAME" target="_blank" class="btn btn-danger btn-sm">
+                                View Attachment
+                            </a>
+                        }
+
+                        @if (!string.IsNullOrEmpty(notice.LINK_UPLOAD))
+                        {
+                            <a href="@notice.LINK_UPLOAD" target="_blank" class="btn btn-info btn-sm">
+                                Open Link
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- REPORT SECTION -->
+            <div class="panel panel-inverse">
+                <div class="panel-heading">
+                    <h4 class="panel-title">Response Details</h4>
+                </div>
+
+                <div class="panel-body">
+                    <div class="row m-b-15">
+
+                        <!-- ROLE -->
+                        <div class="col-md-4">
+                            <label>Select Role</label>
+                            @Html.DropDownListFor(
+                                model => model.SupRoleList,
+                                Model.SupRoleList ?? new SelectList(Enumerable.Empty<SelectListItem>()),
+                                "--select--",
+                                new { @class = "form-control", id = "ddlrole"})
+                        </div>
+
+                        <!-- TITLE -->
+                        @*<div class="col-md-4">
+                            <label>Select Title</label>
+                            @Html.DropDownListFor(
+                                model => model.Title,
+                                Model.Title ?? new SelectList(Enumerable.Empty<SelectListItem>()),
+                                "--select--",
+                                new { @class = "form-control", id = "Title" })
+                        </div>*@
+
+                        <!-- BUTTON -->
+                        <div class="col-md-2" style="margin-top:25px;">
+                            <button type="button" class="btn btn-primary" onclick="GetReport()">
+                                Get Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- REPORT DATA -->
+                    <div id="divReportData">
+                        <div class="alert alert-info">
+                            Please select role to view report.
+                        </div>
+                    </div>
+
+                </div>
+                <input type="hidden" id="hdnNoticeId" value="@(Model.liNoticeBoard != null && Model.liNoticeBoard.Count > 0 ? Model.liNoticeBoard.FirstOrDefault().NOTICEBOARD_ID : "")" />
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/jquery/jquery-1.9.1.min.js"></script>
+
+<script>
+    // ✅ FIX FOR ContentLoad ERROR
+    function ContentLoad() {
+        console.log("Content loaded successfully");
+    }
+
+    // Load titles based on role
+    function GetTitle() {
+
+        var sRoleId = $('#ddlrole').val();
+
+        if (!sRoleId) {
+            $('#Role').html('<option value="">--select--</option>');
+            return;
+        }
+
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("GetNoticeBoardTitleByRole", "DashBoard")',
+            data: { sRoleId: sRoleId },
+            success: function (result) {
+
+                var items = '<option value="">--select--</option>';
+
+                $.each(result, function (i, item) {
+                    items += "<option value='" + item.NOTICEBOARD_ID + "'>"
+                        + item.NOTICEBOARD +
+                        "</option>";
+                });
+
+                $('#ddlrole').html(items);
+            },
+            error: function () {
+                alert("Error loading titles.");
+            }
+        });
+    }
+
+    // Load report
+    function GetReport() {
+
+        var sRoleId = $('#ddlrole').val();
+        var sTitle = $('#hdnNoticeId').val();
+
+        if (!sRoleId) {
+            alert("Please select role.");
+            return;
+        }
+
+
+        $('#divReportData').html('<div style="padding:20px;">Loading...</div>');
+
+        $.ajax({
+            url: '@Url.Action("BindNoticeBoardReportLog", "DashBoard")',
+            type: 'GET',
+            data: {
+                sNoticeBoardId: sTitle,
+                sRoleId: sRoleId
+            },
+            success: function (data) {
+                $('#divReportData').html(data);
+            },
+            error: function () {
+                $('#divReportData').html('<div class="alert alert-danger">Error loading report.</div>');
+            }
+        });
+    }
+
+
+</script>

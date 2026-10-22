@@ -1,0 +1,161 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+}
+
+<div class="form-container mt-3" id="dvFamilyDetails">
+    <h4 class="text-center mb-4"><b><i class="fa fa-users"></i> Student Family Details</b></h4>
+
+    <div class="row mb-3">
+        <div class="col-md-6 form-group">
+            <label for="FAMILY_TYPE_SELECT">Family Type</label>
+            <select id="FAMILY_TYPE_SELECT" class="form-control">
+                <option value="">-- Select --</option>
+                <option value="1">Joint</option>
+                <option value="2">Grand Family</option>
+                <option value="3">Rural Family</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover" id="tblFamilyDetails">
+            <thead class="bg-silver">
+                <tr>
+                    <th>Relation</th>
+                    <th>Name</th>
+                    <th>Qualification</th>
+                    <th>Occupation</th>
+                    <th>Annual Income</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.listudentFamList != null && Model.listudentFamList.Count > 0)
+                {
+                    var item = Model.listudentFamList.First();
+                    <tr>
+                        <td><b>Father</b></td>
+                        <td><input type="text" class="form-control" id="FAMILY_FR_NAME" value="@item.FR_NAME" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_FR_EDU" value="@item.FR_EDUCATION" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_FR_OCC" value="@item.FR_OCCUPATION" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_FR_INC" value="@item.FR_INCOME" /></td>
+                    </tr>
+                    <tr>
+                        <td><b>Mother</b></td>
+                        <td><input type="text" class="form-control" id="FAMILY_MO_NAME" value="@item.MOTHER_NAME" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_MO_EDU" value="@item.MOTHER_EDUCATION" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_MO_OCC" value="@item.MOTHER_OCCUPATION" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_MO_INC" value="@item.MOTHER_INCOME" /></td>
+                    </tr>
+                    <tr>
+                        <td><b>Guardian</b></td>
+                        <td><input type="text" class="form-control" id="FAMILY_GD_NAME" value="@item.GUARDIAN_NAME" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_GD_EDU" value="@item.GUARDIAN_EDUCATION" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_GD_OCC" value="@item.GUARDIAN_OCCUPATION" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_GD_INC" value="@item.GUARDIAN_INCOME" /></td>
+                    </tr>
+                    <input type="hidden" id="FAMILY_RECORD_ID" value="@item.MENTORS_FAMILY_ID" />
+                }
+                else
+                {
+                    <tr>
+                        <td><b>Father</b></td>
+                        <td><input type="text" class="form-control" id="FAMILY_FR_NAME" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_FR_EDU" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_FR_OCC" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_FR_INC" /></td>
+                    </tr>
+                    <tr>
+                        <td><b>Mother</b></td>
+                        <td><input type="text" class="form-control" id="FAMILY_MO_NAME" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_MO_EDU" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_MO_OCC" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_MO_INC" /></td>
+                    </tr>
+                    <tr>
+                        <td><b>Guardian</b></td>
+                        <td><input type="text" class="form-control" id="FAMILY_GD_NAME" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_GD_EDU" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_GD_OCC" /></td>
+                        <td><input type="text" class="form-control" id="FAMILY_GD_INC" /></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-6 form-group">
+            <label>No. of Brothers</label>
+            <input type="number" class="form-control" id="FAMILY_BROS" value="@(Model.listudentFamList != null && Model.listudentFamList.Any() ? Model.listudentFamList.First().NO_OFBROTHERS : "0")" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>No. of Sisters</label>
+            <input type="number" class="form-control" id="FAMILY_SISTERS" value="@(Model.listudentFamList != null && Model.listudentFamList.Any() ? Model.listudentFamList.First().NO_OFSISTERS : "0")" />
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button class="btn btn-success" id="btnSaveFamilyDetails">
+            <i class="fa fa-save"></i> Save Family Info
+        </button>
+    </div>
+</div>
+
+<script>
+$(document).ready(function () {
+    var familySaveBusy = false;
+
+    $("#btnSaveFamilyDetails").on("click", function (e) {
+        if (familySaveBusy) return;
+        familySaveBusy = true;
+
+        var studentId = typeof selectedStudentId !== 'undefined' ? selectedStudentId : $('#RECORD_STUDENT_ID').val();
+
+        if (!studentId) {
+            swal('Error', 'Student identification failed', 'error');
+            familySaveBusy = false;
+            return;
+        }
+
+        var formData = {
+            STUDENT_ID: studentId,
+            FAMILY_TYPE: $("#FAMILY_TYPE_SELECT").val(),
+            FR_NAME: $("#FAMILY_FR_NAME").val(),
+            FR_EDUCATION: $("#FAMILY_FR_EDU").val(),
+            FR_OCCUPATION: $("#FAMILY_FR_OCC").val(),
+            FR_INCOME: $("#FAMILY_FR_INC").val(),
+            MOTHER_NAME: $("#FAMILY_MO_NAME").val(),
+            MOTHER_EDUCATION: $("#FAMILY_MO_EDU").val(),
+            MOTHER_OCCUPATION: $("#FAMILY_MO_OCC").val(),
+            MOTHER_INCOME: $("#FAMILY_MO_INC").val(),
+            GUARDIAN_NAME: $("#FAMILY_GD_NAME").val(),
+            GUARDIAN_EDUCATION: $("#FAMILY_GD_EDU").val(),
+            GUARDIAN_OCCUPATION: $("#FAMILY_GD_OCC").val(),
+            GUARDIAN_INCOME: $("#FAMILY_GD_INC").val(),
+            NO_OFBROTHERS: $("#FAMILY_BROS").val(),
+            NO_OFSISTERS: $("#FAMILY_SISTERS").val(),
+            MENTORS_FAMILY_ID: $('#FAMILY_RECORD_ID').val()
+        };
+
+        $(this).prop('disabled', true);
+
+        $.ajax({
+            url: '@Url.Action("SaveFamilyDetails", "Mentoring")',
+            type: 'POST',
+            data: formData,
+            success: function (res) {
+                swal('Success', 'Family details saved successfully', 'success');
+            },
+            error: function (xhr, status, error) {
+                swal('Error', 'Failed to save family details', 'error');
+            },
+            complete: function() {
+                $("#btnSaveFamilyDetails").prop('disabled', false);
+                familySaveBusy = false;
+            }
+        });
+    });
+});
+</script>
+

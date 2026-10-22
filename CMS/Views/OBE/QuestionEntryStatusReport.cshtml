@@ -1,0 +1,476 @@
+@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    ViewBag.Title = "Question Entry Status Report";
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<style>
+    .modal-preview-xl {
+        width: 90%;
+        max-width: 1100px;
+        margin: 30px auto;
+    }
+    .report-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 1px solid rgba(200, 210, 230, 0.5);
+        padding: 25px;
+        margin-bottom: 25px;
+    }
+
+    .report-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 22px 28px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 20px rgba(42, 82, 152, 0.3);
+    }
+
+    .report-header h2 {
+        margin: 0;
+        font-size: 1.5em;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .report-header p {
+        margin: 5px 0 0;
+        opacity: 0.8;
+        font-size: 0.9em;
+    }
+
+    .filter-section {
+        background: #f1f4f9;
+        padding: 20px 22px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        border-left: 4px solid #2a5298;
+    }
+
+    .filter-section label {
+        color: #2a5298;
+        font-weight: 600;
+        font-size: 0.9em;
+        margin-bottom: 5px;
+    }
+
+    .summary-cards {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+
+    .summary-card {
+        flex: 1;
+        min-width: 150px;
+        background: #fff;
+        border-radius: 12px;
+        padding: 18px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        border-top: 4px solid;
+    }
+
+    .summary-card.card-total { border-color: #2a5298; }
+    .summary-card.card-entered { border-color: #43a047; }
+
+    .summary-card .count {
+        font-size: 2em;
+        font-weight: 700;
+        display: block;
+        line-height: 1;
+        margin-bottom: 5px;
+    }
+
+    .summary-card.card-total .count { color: #2a5298; }
+    .summary-card.card-entered .count { color: #43a047; }
+
+    .summary-card .label {
+        font-size: 0.8em;
+        color: #777;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .custom-table thead th {
+        background: #f1f4f9;
+        color: #2a5298;
+        font-weight: 700;
+        border-bottom: 2px solid #2a5298 !important;
+        text-transform: uppercase;
+        font-size: 0.82em;
+        white-space: nowrap;
+    }
+
+    .count-cell {
+        font-size: 1.1em;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .count-entered { color: #43a047; }
+
+    #reportSection { display: none; }
+
+    .btn-search {
+        border-radius: 8px;
+        height: 44px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        border: none;
+        letter-spacing: 0.5px;
+        transition: all 0.3s;
+    }
+
+    .btn-search:hover {
+        box-shadow: 0 4px 15px rgba(42, 82, 152, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .no-data-msg {
+        text-align: center;
+        padding: 40px;
+        color: #9e9e9e;
+        font-size: 1em;
+    }
+</style>
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">OBE</a></li>
+        <li class="active">Staff-wise Question Entry Report</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Staff-wise Question Entry Report</h1>
+    <!-- end page-header -->
+
+    <div class="report-card">
+        <!-- Header -->
+        <div class="report-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2><i class="fa fa-users mr-2"></i> Staff-wise Entry Count</h2>
+                    <p>Total questions entered per staff member and course</p>
+                </div>
+                <div class="col-md-4 text-right">
+                    <button type="button" class="btn btn-outline-light btn-sm" id="btnExport" style="display:none; border-radius:6px;">
+                        <i class="fa fa-file-excel-o mr-1"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-section">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group mb-0">
+                        <label><i class="fa fa-graduation-cap mr-1"></i> Academic Year</label>
+                        @Html.DropDownList("ddlAcademicYear", Model.AcademicYearList, "-- Select Year --", new { @class = "form-control selectpicker", data_live_search = "true", id = "ddlAcademicYear" })
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-0">
+                        <label><i class="fa fa-calendar mr-1"></i> Exam Setting</label>
+                        @Html.DropDownList("ddlExamSetting", Model.ExamSetting, "-- Select Exam --", new { @class = "form-control selectpicker", data_live_search = "true", id = "ddlExamSetting" })
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="button" id="btnSearch" class="btn btn-primary btn-search btn-block text-white">
+                        <i class="fa fa-search mr-2"></i> Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards" id="summaryCards" style="display:none;">
+            <div class="summary-card card-total">
+                <span class="count" id="cardTotal">0</span>
+                <span class="label">Total Courses</span>
+            </div>
+            <div class="summary-card card-entered">
+                <span class="count" id="cardQuestions">0</span>
+                <span class="label">Total Questions Entered</span>
+            </div>
+        </div>
+
+        <!-- Report Table -->
+        <div id="reportSection">
+            <table id="tblSummary" class="table table-hover custom-table dt-responsive" width="100%">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Staff Name</th>
+                        <th>Course Title</th>
+                        <th class="text-center">Total Count</th>
+                        <th class="text-center" style="width:110px;">Preview</th>
+                    </tr>
+                </thead>
+                <tbody id="tblBody">
+                    <tr>
+                        <td colspan="5" class="no-data-msg">
+                            <i class="fa fa-info-circle mr-2"></i>Select Exam Setting and click Generate Report
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Question Paper Preview Modal (identical to ExamQuestionEntry.cshtml) -->
+<div class="modal fade" id="previewQPModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-preview-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color:#fff;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:1;"><span>&times;</span></button>
+                <h4 class="modal-title"><i class="fa fa-file-text-o m-r-5"></i> Question Paper Preview</h4>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <div class="no-print" style="padding: 10px 15px; background:#f8f9fa; border-bottom: 1px solid #ddd;">
+                    <button class="btn btn-primary btn-sm" onclick="PrintPreview()"><i class="fa fa-print"></i> Print</button>
+                    &nbsp;
+                    <button class="btn btn-info btn-sm" onclick="DownloadWord()"><i class="fa fa-file-word-o"></i> Download Word (.doc)</button>
+                </div>
+                <div id="previewModalContent" style="padding: 15px; min-height: 300px; max-height: 75vh; overflow-y: auto;">
+                    <div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading preview...</div>
+                </div>
+            </div>
+            <div class="modal-footer no-print">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+
+<script>
+    var reportTable = null;
+    var currentExamSettingId = null;
+
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker('refresh');
+
+        $('#btnSearch').on('click', function () {
+            var examSettingId = $('#ddlExamSetting').val();
+            if (!examSettingId) {
+                swal("Required", "Please select an Exam Setting to generate the report.", "warning");
+                return;
+            }
+            currentExamSettingId = examSettingId;
+            loadReportData(examSettingId);
+        });
+
+        $('#btnExport').on('click', function () {
+            if (reportTable) {
+                var rows = [];
+                rows.push(['#', 'Staff Name', 'Course Title', 'Total Count']);
+                reportTable.rows().every(function () {
+                    var d = this.data();
+                    rows.push([d[0], $(d[1]).text().trim(), d[2], d[3]]);
+                });
+                var csv = rows.map(r => r.map(c => '"' + c + '"').join(',')).join('\n');
+                var blob = new Blob([csv], { type: 'text/csv' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'StaffQuestionEntryReport.csv';
+                a.click();
+            }
+        });
+    });
+
+    function loadReportData(examSettingId) {
+        $('#btnSearch').html('<i class="fa fa-spinner fa-spin mr-2"></i> Loading...').prop('disabled', true);
+        $('#summaryCards').hide();
+        $('#btnExport').hide();
+
+        if (reportTable !== null) {
+            reportTable.destroy();
+            reportTable = null;
+        }
+
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("GetQuestionEntryStatusSummary", "OBE")',
+            data: { examSettingId: examSettingId },
+            success: function (response) {
+                $('#btnSearch').html('<i class="fa fa-search mr-2"></i> Generate Report').prop('disabled', false);
+                $('#reportSection').show();
+
+                var tbody = $('#tblBody');
+                tbody.empty();
+
+                if (response.ErrorCode === '1' && response.oResult && response.oResult.length > 0) {
+                    var totalCourses = response.oResult.length;
+                    var totalEntered = 0;
+
+                    $.each(response.oResult, function (i, item) {
+                        var entered = parseInt(item.ENTERED_COUNT) || 0;
+                        totalEntered += entered;
+
+                        var previewBtn = '<button class="btn btn-sm btn-info btn-preview-qp" '
+                            + 'data-course-id="' + item.COURSE_ID + '" '
+                            + 'data-exam-id="' + examSettingId + '" '
+                            + 'title="Preview Questions" style="border-radius:6px;">'
+                            + '<i class="fa fa-eye"></i> Preview</button>';
+
+                        var row = '<tr>' +
+                            '<td>' + (i + 1) + '</td>' +
+                            '<td><span class="text-primary font-weight-bold">' + (item.STAFF_NAME || '---') + '</span></td>' +
+                            '<td>' + item.COURSE_TITLE + '</td>' +
+                            '<td class="count-cell count-entered">' + entered + '</td>' +
+                            '<td class="text-center">' + previewBtn + '</td>' +
+                            '</tr>';
+
+                        tbody.append(row);
+                    });
+
+                    $('#cardTotal').text(totalCourses);
+                    $('#cardQuestions').text(totalEntered);
+                    $('#summaryCards').show();
+                    $('#btnExport').show();
+
+                    reportTable = $('#tblSummary').DataTable({
+                        responsive: true,
+                        pageLength: 25,
+                        order: [[1, 'asc']],
+                        columnDefs: [{ orderable: false, targets: [4] }]
+                    });
+
+                    // Bind preview button click (event delegation for DataTable pagination)
+                    $('#tblBody').off('click', '.btn-preview-qp').on('click', '.btn-preview-qp', function () {
+                        var courseId = $(this).data('course-id');
+                        var examId   = $(this).data('exam-id');
+                        PreviewQuestionPaper(courseId, examId);
+                    });
+
+                } else if (response.ErrorCode === '1' && (!response.oResult || response.oResult.length === 0)) {
+                    tbody.html('<tr><td colspan="5" class="no-data-msg"><i class="fa fa-inbox fa-2x mb-2 d-block"></i>No question entry data found for the selected exam setting.</td></tr>');
+                    reportTable = $('#tblSummary').DataTable({ responsive: true });
+                } else if (response.ErrorCode !== '1') {
+                    swal("Error", response.Message || "Failed to load report data.", "error");
+                }
+            },
+            error: function () {
+                $('#btnSearch').html('<i class="fa fa-search mr-2"></i> Generate Report').prop('disabled', false);
+                swal("Error", "A server error occurred while fetching the report.", "error");
+            }
+        });
+    }
+
+    // ---- Preview functions (show questions from OBE_QUESTIONS table) ----
+
+    function PreviewQuestionPaper(courseId, examId) {
+        if (!courseId) {
+            swal('Warning', 'Invalid course. Cannot preview questions.', 'warning');
+            return;
+        }
+        $('#previewModalContent').html(
+            '<div class="text-center" style="padding:40px 0;">' +
+            '<i class="fa fa-spinner fa-spin fa-3x"></i><br/><br/>Loading questions...</div>'
+        );
+        $('#previewQPModal').modal('show');
+
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("GetQuestionsForPreview", "OBE")',
+            data: { courseId: courseId, examSettingId: examId },
+            success: function (response) {
+                if (response.ErrorCode === '1' && response.oResult && response.oResult.length > 0) {
+                    var html = '<table class="table table-bordered table-striped" style="font-size:13px; margin:0;">' +
+                        '<thead style="background:#1a1a2e; color:#fff;">' +
+                        '<tr>' +
+                        '<th style="width:50px;text-align:center;">#</th>' +
+                        '<th>Q.No</th>' +
+                        '<th>Question</th>' +
+                        '<th style="width:100px;text-align:center;">Level ID</th>' +
+                        '<th style="width:100px;text-align:center;">Unit ID</th>' +
+                        '<th style="width:120px;text-align:center;">Status</th>' +
+                        '</tr></thead><tbody>';
+
+                    $.each(response.oResult, function (i, q) {
+                        var statusBadge = q.SUBMISSION_STATUS === 'FINAL_SUBMITTED'
+                            ? '<span style="background:#2e7d32;color:#fff;padding:3px 8px;border-radius:4px;font-size:11px;">Final</span>'
+                            : '<span style="background:#e65100;color:#fff;padding:3px 8px;border-radius:4px;font-size:11px;">Draft</span>';
+
+                        html += '<tr>' +
+                            '<td style="text-align:center;">' + (i + 1) + '</td>' +
+                            '<td style="font-weight:bold;text-align:center;">' + (q.FORMULA_EQUATION || '-') + '</td>' +
+                            '<td>' + (q.QUESTION || '-') + '</td>' +
+                            '<td style="text-align:center;">' + (q.QUESTION_LEVEL_ID || '-') + '</td>' +
+                            '<td style="text-align:center;">' + (q.OBE_UNIT_ID || '-') + '</td>' +
+                            '<td style="text-align:center;">' + statusBadge + '</td>' +
+                            '</tr>';
+                    });
+
+                    html += '</tbody></table>';
+                    $('#previewModalContent').html(html);
+
+                    // Re-render MathJax if available
+                    if (typeof MathJax !== 'undefined') {
+                        MathJax.Hub.Queue(['Typeset', MathJax.Hub, 'previewModalContent']);
+                    }
+                } else {
+                    $('#previewModalContent').html(
+                        '<div class="alert alert-warning m-3"><i class="fa fa-info-circle mr-2"></i>' +
+                        (response.Message || 'No questions found for this course.') + '</div>'
+                    );
+                }
+            },
+            error: function () {
+                $('#previewModalContent').html(
+                    '<div class="alert alert-danger m-3"><i class="fa fa-exclamation-circle mr-2"></i>' +
+                    'Failed to load questions. Please try again.</div>'
+                );
+            }
+        });
+    }
+
+    function PrintPreview() {
+        var content = document.getElementById('previewModalContent').innerHTML;
+        var printWin = window.open('', '_blank', 'width=900,height=700');
+        printWin.document.write('<html><head><title>Question Paper</title>');
+        printWin.document.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">');
+        printWin.document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML"><\/script>');
+        printWin.document.write('<style>body{font-family:"Times New Roman",Times,serif;font-size:13px;margin:20px;} .no-print{display:none;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #999;padding:5px 8px;} th{background:#e8e8e8;}</style>');
+        printWin.document.write('</head><body>');
+        printWin.document.write(content);
+        printWin.document.write('</body></html>');
+        printWin.document.close();
+        printWin.focus();
+        setTimeout(function () { printWin.print(); }, 1000);
+    }
+
+    function DownloadWord() {
+        var content = document.getElementById('previewModalContent').innerHTML;
+        var header = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Question Paper</title>' +
+            '<style>body{font-family:"Times New Roman",Times,serif;font-size:12pt;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #999;padding:5px 8px;} th{background:#e8e8e8;} .no-print{display:none;}</style></head><body>';
+        var footer = '</body></html>';
+        var blob = new Blob([header + content + footer], { type: 'application/msword' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'QuestionPaper.doc';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+</script>

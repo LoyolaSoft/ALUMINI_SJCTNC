@@ -1,0 +1,117 @@
+@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+@using System.Globalization;
+@{
+    ViewBag.Title = "BindFeeDueWithAttPercenReport";
+    Layout = null;
+    int count = 0;
+
+    var currentDate = DateTime.Now.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+}
+
+@if (Model.liFeeDueReport != null && Model.liFeeDueReport.Count > 0)
+{
+    var liGroupClass = Model.liFeeDueReport.GroupBy(x => x.CLASS_ID).OrderBy(o=> o.Key ).ToList();
+    foreach (var Classitem in liGroupClass)
+    {
+        count = 0;
+        var liDue = Model.liFeeDueReport.Where(x => x.CLASS_ID == Classitem.FirstOrDefault().CLASS_ID).ToList();
+        if (liDue != null && liDue.Count > 0)
+        {
+            <div style="page-break-after:always !important;">
+                <table class="table table-hover table-bordered" width="100%" id="StudentList">
+                    <thead>
+                        <tr>
+                            <th class="text-center" colspan="12">ST.JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS), CUDDALORE</th>
+                        </tr>
+                        <tr>
+                            <th>
+                            </th>
+                            <th colspan="10" class="text-center">
+                                <b> @liDue.FirstOrDefault().CLASS_NAME  - @currentDate  (Attendance Cum Fee Report)</b>
+                            </th>
+                            <th>
+
+                            </th>
+                        </tr>
+                        <tr>
+                            <th><b>#</b></th>
+                            <th><b>Roll No</b></th>
+                            <th><b>First Name</b></th>
+                            <th><b>No of Days Absent</b></th>
+                            <th><b>Att Percentage</b></th>
+                            <th><b>Term Fee</b></th>
+                            <th><b>Exam Fee</b></th>
+                            <th><b>Bus Fee</b> </th>
+                            <th><b>Hostel Fee</b></th>
+                            <th><b>Old Balance</b></th>
+                            <th><b>Total Due</b></th>
+                            <th><b>Parent's_Sign</b></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (liDue != null)
+                        {
+
+                            foreach (var item in liDue)
+                            {
+                                var sPercentage = 0.0;
+                                var absentCount = 0;
+                                if (Model.liAttendanceReport != null)
+                                {
+                                    var findStuId = Model.liAttendanceReport.Where(o => o.STUDENT_ID == item.STUDENT_ID).OrderBy(o => o.STUDENT_ID);
+                                    if (findStuId != null)
+                                    {
+                                        var sAbseentCount = Convert.ToInt32(findStuId.FirstOrDefault().DAYS_COUNT) - Convert.ToInt32(findStuId.FirstOrDefault().ABSENT_COUNT);
+                                        sPercentage = Convert.ToDouble(sAbseentCount) / Convert.ToDouble(findStuId.FirstOrDefault().DAYS_COUNT) * 100;
+                                        absentCount = Convert.ToInt32(findStuId.FirstOrDefault().ABSENT_COUNT);
+                                    }
+                                }
+                                <tr>
+                                    <td>
+                                        @{ count++;} <b>@count</b>
+                                    </td>
+
+                                    <td>
+                                        @item.ROLL_NO
+                                    </td>
+                                    <td>
+                                        @item.FIRST_NAME
+                                    </td>
+                                    <td>
+                                        <b> @absentCount </b>
+
+                                    </td>
+                                    <td>
+                                        <b> @Math.Round(sPercentage, 2) % </b>
+
+                                    </td>
+
+                                    <td>@item.TERMFEE1DUE</td>
+                                    <td>@item.EXAMFEEDUE</td>
+                                    <td>@item.BUSFEEDUE</td>
+                                    <td>@item.HOSTELFEEDUE</td>
+                                    @if (item.PREVIOUS_YEAR_TERM_DUE == "0" || string.IsNullOrEmpty(item.PREVIOUS_YEAR_TERM_DUE))
+                                    {
+                                        <td><b>-</b></td>
+                                    }
+                                    else
+                                    {
+                                        <td>@item.PREVIOUS_YEAR_TERM_DUE</td>
+                                    }
+
+                                    <td>
+                                        @item.TOTAL_DUE_AMOUNT
+                                    </td>
+
+                                    <td>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        }
+    }
+}

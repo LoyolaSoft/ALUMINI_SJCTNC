@@ -1,0 +1,542 @@
+
+
+@{
+    ViewBag.Title = "StudentDetailsExcelExport";
+}
+
+@model CMS.ViewModel.ViewModel.StudentViewModel
+
+@{
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<style>
+    #selectedFieldsList .list-group-item.over {
+        border-top: 2px solid #348fe2 !important;
+        background-color: #f0f4f8 !important;
+    }
+</style>
+
+<div id="content" class="content">
+    <!-- HTML for loader (hidden initially) -->
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Student</a></li>
+        <li class="active">Student Details</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Student Details<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Student Details</h4>
+        </div>
+
+        <div class="panel-body">
+            <div id="loader" style="display:none; position:fixed; top:70%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+                <img src="~/Content/assets/img/loading-7528_128.gif" alt="Loading..." />
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="col-md-4 form-group">
+                        @Html.Label("AcYear", htmlAttributes: new { @class = "control-label col-md-3" })
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        @Html.Label("Shift", htmlAttributes: new { @class = "control-label col-md-3" })
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model => model.Shift, (Model.Shift != null) ? Model.Shift : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true", @data_parsley_required = "true" })
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        @Html.Label("Programme Level", htmlAttributes: new { @class = "control-label col-md-3" })
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model => model.ClassLevel, (Model.ClassLevel != null) ? Model.ClassLevel : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true", @data_parsley_required = "true" })
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        @Html.Label("Class Year", htmlAttributes: new { @class = "control-label col-md-3" })
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model => model.ClassYear, (Model.ClassYear != null) ? Model.ClassYear : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true", @data_parsley_required = "true" })
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-3" })
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model => model.DepartmentList, (Model.DepartmentList != null) ? Model.DepartmentList : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true", @data_parsley_required = "true" })
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 form-group">
+                        @Html.LabelFor(model => model.ClassList, htmlAttributes: new { @class = "control-label col-md-3" })
+                        <div class="col-md-9">
+
+                            @Html.DropDownListFor(m => m.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control  selectpicker ", @data_live_search = "true", @data_actions_box = "true", @multiple = "multiple", @data_parsley_required = "true" })
+                            @Html.ValidationMessageFor(m => m.ClassList, "", new { @class = "text-danger" })
+
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-1">
+                        <button class="btn btn-primary" id="btnGet" onclick="BindStudentList()"> Get </button>
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-success btnPrint hidden" onclick="printDiv('dvStudentList')"> Print </button>
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-primary btnExport hidden" onclick="ExportStudentDetails()"> Export </button>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-info btnExport hidden" onclick="OpenClassWiseExportModal()"> Class Wise Export </button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-md-12">
+                <br />
+                <div id="dvStudentList">
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+
+<script>
+    $(document).ready(function () {
+
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+    });
+    $("#Shift").on("change", function () {
+        FetchClassList()
+    });
+    $("#DepartmentList").on("change", function () {
+        FetchClassList()
+    });
+    $("#ClassYear").on("change", function () {
+        FetchClassList()
+    });
+    $("#ClassLevel").on("change", function () {
+        FetchClassList()
+    });
+    function FetchClassList()
+    {
+        var Shift = String($("#Shift").val());
+        var Department = String($("#DepartmentList").val());
+        var classYear = String($("#ClassYear").val());
+        var classLevel = String($("#ClassLevel").val());
+        if ($("#ClassLevel").val() && $("#ClassYear").val() && $("#DepartmentList").val() && $("#Shift").val()) {
+            $.ajax({
+                url: "@Url.Action("FetchClassListByshiftandDeptId", "Student")",
+                method: "POST",
+                datatype: "html",
+                data: { shift: Shift, sdepart: Department, classYear: classYear, classLevel: classLevel },
+                success: function (data) {
+                    var select = $("#ClassList");
+                    select.empty();
+                    if (data.sResult != null && data.sResult != '') {
+                        select.append(data.sResult);
+                    } else {
+                        alert(data.Message);
+                    }
+                    $('#ClassList').selectpicker('refresh');
+                }, error: function (error) {
+                    alert('Internal Server Error ...!');
+                }
+            });
+        }
+}
+    function BindStudentList()
+    {
+        if ($('#AcademicYearList').val() && $('#ClassList').val())
+        {
+            $('#loader').show();
+            $.ajax({
+                url:'@Url.Action("BindStudentDetailsForExport", "Student")',
+                method:'POST',
+                datatype:'json',
+                data: { sAcYear: $('#AcademicYearList Option:selected').text(), sClassID: String($("#ClassList").val()) },
+                success: function (data)
+                {
+                    $('#loader').hide();
+                if (data.Message!=null && data.Message!='')
+                {
+                swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                }else
+                {
+                $('.btnPrint').removeClass('hidden');
+                $('.btnExport').removeClass('hidden');
+                $('#dvStudentList').empty();
+                    $('#dvStudentList').append(data);
+                }
+                }, eror: function (error)
+                {
+                swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                }
+                });
+           }
+        else
+        {
+            swal({ title: "Error !", text: "Please Select All Field's", showConfirmButton: false, timer: 1000, type: 'error', animation: true });
+
+        }
+
+    }
+    function ExportStudentDetails() {
+    var acYear = $('#AcademicYearList option:selected').text();
+    var classID = String($("#ClassList").val());
+
+    if (acYear && classID) {
+        // Redirect to the controller action to download the CSV file
+        window.location.href = `@Url.Action("ExportStudentDetails", "Student")?sAcYear=${acYear}&sClassID=${classID}`;
+    } else {
+        alert("Please select Academic Year and Class to export data.");
+    }
+}
+
+   
+    function printDiv(divName) {
+        var table = $('#StudentList').DataTable();
+        table.destroy();
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+
+        loadContent('/Student/StudentDetailsExcelExport');
+    }
+</script>
+
+<!-- Modal for Class-Wise Excel Export field selection -->
+<div class="modal fade" id="modalClassWiseExport" tabindex="-1" role="dialog" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <button type="button" class="close text-white" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title text-white" id="exportModalLabel">Class-Wise Dynamic Excel Export</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">Available Fields (Click to Select)</h4>
+                            </div>
+                            <div class="panel-body">
+                                <div style="display:flex; gap:10px; margin-bottom: 10px;">
+                                    <input type="text" id="searchFields" class="form-control" placeholder="Search fields..." style="flex:1;" />
+                                    <button type="button" class="btn btn-success btn-sm" onclick="AddEmptyColumn()"><i class="fa fa-plus"></i> Empty Column</button>
+                                </div>
+                                <div id="availableFieldsList" style="max-height: 350px; overflow-y: auto; border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                                    <!-- List of fields -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">Selected Columns Order</h4>
+                            </div>
+                            <div class="panel-body">
+                                <div id="selectedFieldsList" style="max-height: 395px; overflow-y: auto; border: 1px solid #ddd; padding: 5px; border-radius: 4px; min-height: 100px;">
+                                    <div class="text-muted text-center p-t-20" id="emptySelectionMsg">No fields selected yet. Click fields on the left to add them in your desired column order.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="SubmitClassWiseExport()">Export Class-Wise</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var availableFields = [
+        { id: "ROLL_NO", name: "Roll No" },
+        { id: "FIRST_NAME", name: "First Name" },
+        { id: "UMIS_NO", name: "UMIS No" },
+        { id: "ENROLLMENT_NO", name: "Enrollment No" },
+        { id: "DATE_OF_BIRTH", name: "Date Of Birth" },
+        { id: "DEPARTMENT", name: "Department" },
+        { id: "CLASS_NAME", name: "Class Name" },
+        { id: "CLASS_LEVEL", name: "Class Level" },
+        { id: "PROGRAMME_NAME", name: "Programme Name" },
+        { id: "ADMISSION_NO", name: "Admission No" },
+        { id: "ADMISSION_DATE", name: "Admission Date" },
+        { id: "BATCH", name: "Batch" },
+        { id: "AADHAR_NUMBER", name: "Aadhar Number" },
+        { id: "FR_MOBILE", name: "Father Mobile" },
+        { id: "STU_MOBILENO", name: "Student Mobile No" },
+        { id: "GENDER", name: "Gender" },
+        { id: "RELIGION", name: "Religion" },
+        { id: "COMMUNITY", name: "Community" },
+        { id: "CASTE", name: "Caste" },
+        { id: "BLOOD_GROUP", name: "Blood Group" },
+        { id: "SPECIALLY_ABLED", name: "Specially Abled" },
+        { id: "FATHER_NAME", name: "Father Name" },
+        { id: "MOTHER_NAME", name: "Mother Name" },
+        { id: "FR_OCCUPATION", name: "Father Occupation" },
+        { id: "MO_OCCUPATION", name: "Mother Occupation" },
+        { id: "FR_INCOME", name: "Father Income" },
+        { id: "MO_INCOME", name: "Mother Income" },
+        { id: "ANNUAL_INCOME", name: "Annual Income" },
+        { id: "IDENTIFICATION_MARK1", name: "Identification Mark 1" },
+        { id: "IDENTIFICATION_MARK2", name: "Identification Mark 2" },
+        { id: "STATE_NAME", name: "State Name" },
+        { id: "DISTRICT", name: "District" },
+        { id: "CITY", name: "City" },
+        { id: "PINCODE", name: "Pincode" },
+        { id: "ADDRESS_LINE1", name: "Address" },
+        { id: "HSS_NO", name: "HSS No" },
+        { id: "EX_SERVICE_MAN", name: "Ex Service Man" },
+        { id: "HSS_GROUP_CODE", name: "HSS Group Code" },
+        { id: "EMIS_NO", name: "EMIS No" },
+        { id: "STUDY_BOARD", name: "Study Board" },
+        { id: "HSS_TOTAL", name: "HSS Total" },
+        { id: "LAST_SCHOOL_OR_COLLEGE", name: "Last School/College" },
+        { id: "MEDIUM_STUDY", name: "Medium of Study" },
+        { id: "EXTRA_CURRRICULAR", name: "Extra Curricular" },
+        { id: "SPORTS", name: "Sports" },
+        { id: "FIRSTGRADUATE", name: "First Graduate" },
+        { id: "PART_1_LANGUAGE", name: "Part 1 Language" },
+        { id: "LAST_STUDIED_UNIVERSITY", name: "Last Studied University" },
+        { id: "YEAR_OF_PASSING", name: "Year of Passing" },
+        { id: "PERCENTAGE", name: "Percentage" },
+        { id: "ALLIED_1", name: "Allied 1" },
+        { id: "ALLIED_2", name: "Allied 2" },
+        { id: "MAIN_SUBJECT", name: "Main Subject" },
+        { id: "ACCOUNT_NO", name: "Account No" },
+        { id: "BANK_NAME", name: "Bank Name" },
+        { id: "BRANCH_NAME", name: "Branch Name" },
+        { id: "IFSC_CODE", name: "IFSC Code" },
+        { id: "GSUITE_MAIL_ID", name: "College Email" },
+        { id: "STU_EMAILID", name: "Student Email" }
+    ];
+    var selectedFields = [];
+
+    function AddEmptyColumn() {
+        var id = "EMPTY_COLUMN_" + Math.random().toString(36).substr(2, 9);
+        selectedFields.push({ id: id, header: "Empty Column" });
+        RenderSelectedFields();
+    }
+
+    function OpenClassWiseExportModal() {
+        selectedFields = [];
+        $('#searchFields').val('');
+        RenderAvailableFields();
+        RenderSelectedFields();
+        $('#modalClassWiseExport').modal('show');
+    }
+
+    function RenderAvailableFields() {
+        var searchVal = $('#searchFields').val().toLowerCase();
+        var list = $('#availableFieldsList');
+        list.empty();
+        
+        $.each(availableFields, function(i, field) {
+            var isSelected = selectedFields.findIndex(f => f.id === field.id) !== -1;
+            if (!isSelected) {
+                if (!searchVal || field.name.toLowerCase().indexOf(searchVal) !== -1) {
+                    var item = $('<div class="list-group-item" style="cursor:pointer; padding: 8px 12px; margin-bottom: 4px; border: 1px solid #eee; border-radius: 4px; background:#fafafa;">' + field.name + '</div>');
+                    item.click(function() {
+                        selectedFields.push({ id: field.id, header: field.name });
+                        RenderAvailableFields();
+                        RenderSelectedFields();
+                    });
+                    list.append(item);
+                }
+            }
+        });
+    }
+
+    function RenderSelectedFields() {
+        var list = $('#selectedFieldsList');
+        list.empty();
+        
+        if (selectedFields.length === 0) {
+            list.append('<div class="text-muted text-center p-t-20" id="emptySelectionMsg">No fields selected yet. Click fields on the left to add them in your desired column order.</div>');
+            return;
+        }
+        
+        $.each(selectedFields, function(index, itemObj) {
+            var labelText = itemObj.id.indexOf("EMPTY_COLUMN_") === 0 ? "Empty Column" : itemObj.id;
+            var item = $('<div class="list-group-item" data-index="' + index + '" style="padding: 6px 12px; margin-bottom: 4px; border: 1px solid #ddd; border-radius: 4px; background:#fff; display: flex; justify-content: space-between; align-items: center; cursor: move;">' +
+                '<span><i class="fa fa-bars text-muted m-r-10"></i> <b>' + (index + 1) + '.</b> ' +
+                '  <input type="text" class="form-control col-header-input" data-index="' + index + '" value="' + itemObj.header + '" placeholder="Column Header" style="width: 160px; display: inline-block; height: 26px; padding: 2px 6px; font-size: 11px; margin-left: 5px; font-weight: bold; border-color: #348fe2;" />' +
+                '  <small class="text-muted m-l-5">(' + labelText + ')</small>' +
+                '</span>' +
+                '<div>' +
+                '  <button type="button" class="btn btn-xs btn-default" onclick="MoveField(' + index + ', -1)" style="margin-right:2px; padding: 2px 5px;"><i class="fa fa-arrow-up"></i></button>' +
+                '  <button type="button" class="btn btn-xs btn-default" onclick="MoveField(' + index + ', 1)" style="margin-right:4px; padding: 2px 5px;"><i class="fa fa-arrow-down"></i></button>' +
+                '  <button type="button" class="btn btn-xs btn-danger" onclick="RemoveField(' + index + ')" style="padding: 2px 5px;"><i class="fa fa-times"></i></button>' +
+                '</div>' +
+                '</div>');
+            
+            // Bind input change
+            item.find('.col-header-input').on('change keyup', function() {
+                selectedFields[index].header = $(this).val();
+            });
+            
+            list.append(item);
+        });
+        AddDragAndDropHandlers();
+    }
+
+    function AddDragAndDropHandlers() {
+        var items = document.querySelectorAll('#selectedFieldsList .list-group-item');
+        var dragSrcEl = null;
+
+        items.forEach(function(item) {
+            item.setAttribute('draggable', 'true');
+            
+            item.addEventListener('dragstart', function(e) {
+                dragSrcEl = this;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', this.innerHTML);
+                this.style.opacity = '0.4';
+            });
+
+            item.addEventListener('dragover', function(e) {
+                if (e.preventDefault) {
+                    e.preventDefault();
+                }
+                e.dataTransfer.dropEffect = 'move';
+                return false;
+            });
+
+            item.addEventListener('dragenter', function(e) {
+                this.classList.add('over');
+            });
+
+            item.addEventListener('dragleave', function(e) {
+                this.classList.remove('over');
+            });
+
+            item.addEventListener('drop', function(e) {
+                if (e.stopPropagation) {
+                    e.stopPropagation();
+                }
+                if (dragSrcEl !== this) {
+                    var srcIndex = parseInt(dragSrcEl.getAttribute('data-index'));
+                    var destIndex = parseInt(this.getAttribute('data-index'));
+                    
+                    var temp = selectedFields[srcIndex];
+                    selectedFields.splice(srcIndex, 1);
+                    selectedFields.splice(destIndex, 0, temp);
+                    
+                    RenderSelectedFields();
+                }
+                return false;
+            });
+
+            item.addEventListener('dragend', function(e) {
+                this.style.opacity = '1.0';
+                items.forEach(function(item) {
+                    item.classList.remove('over');
+                });
+            });
+        });
+    }
+
+    function MoveField(index, direction) {
+        var targetIndex = index + direction;
+        if (targetIndex >= 0 && targetIndex < selectedFields.length) {
+            var temp = selectedFields[index];
+            selectedFields[index] = selectedFields[targetIndex];
+            selectedFields[targetIndex] = temp;
+            RenderSelectedFields();
+        }
+    }
+
+    function RemoveField(index) {
+        selectedFields.splice(index, 1);
+        RenderAvailableFields();
+        RenderSelectedFields();
+    }
+
+    $('#searchFields').on('keyup', function() {
+        RenderAvailableFields();
+    });
+
+    function SubmitClassWiseExport() {
+        var acYear = $('#AcademicYearList option:selected').text();
+        var classID = String($("#ClassList").val());
+        
+        if (!acYear || !classID || classID == "null" || classID == "") {
+            swal({ title: "Error !", text: "Please select Academic Year and at least one Class.", showConfirmButton: true, type: 'error', animation: true });
+            return;
+        }
+        
+        if (selectedFields.length === 0) {
+            swal({ title: "Error !", text: "Please select at least one field to export.", showConfirmButton: true, type: 'error', animation: true });
+            return;
+        }
+        
+        var fieldsArray = selectedFields.map(f => f.id).join(',');
+        var headersArray = selectedFields.map(f => f.header).join('|');
+
+        $('#modalClassWiseExport').modal('hide');
+        $('#loader').show();
+        
+        $.ajax({
+            url: '@Url.Action("ExportClassWiseDetails", "Student")',
+            method: 'POST',
+            data: { sAcYear: acYear, sClassIDs: classID, sFields: fieldsArray, sHeaders: headersArray },
+            success: function(data) {
+                $('#loader').hide();
+                if (data.ErrorCode == 200 || data.ErrorCode == 'Ok') {
+                    swal({ title: "Success !", text: data.Message, type: 'success', confirmButtonText: 'OK' });
+                } else {
+                    swal({ title: "Error !", text: data.Message, type: 'error', confirmButtonText: 'OK' });
+                }
+            },
+            error: function(error) {
+                $('#loader').hide();
+                swal({ title: "Error !", text: "Internal Server Error occurred during export.", type: 'error', confirmButtonText: 'OK' });
+            }
+        });
+    }
+</script>

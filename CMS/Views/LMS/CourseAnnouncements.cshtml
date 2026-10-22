@@ -1,0 +1,2421 @@
+@using CMS.Utility;
+@using System.Data;
+@using CMS.ViewModel.Model;
+@model CMS.ViewModel.ViewModel.LMSViewModel
+
+@{
+    ViewBag.Title = "Course Details";
+    Layout = null;
+
+    if (Session["USER_ID"] == null)
+    {
+        Response.Redirect("/Account/Index");
+    }
+
+    string sCollegeCode = string.Empty;
+    string sCollegeLogo = string.Empty;
+    string sCollegeName = string.Empty;
+
+    if (Session[Common.SESSION_VARIABLES.COLLEGE_DETAILS] != null)
+    {
+        var liCollegeDetails = (List<CollegeDetails>)Session[Common.SESSION_VARIABLES.COLLEGE_DETAILS];
+        if (liCollegeDetails != null && liCollegeDetails.Any())
+        {
+            sCollegeCode = liCollegeDetails.FirstOrDefault().COLLEGE_CODE;
+            sCollegeLogo = liCollegeDetails.FirstOrDefault().COLLEGE_LOGO;
+            sCollegeName = liCollegeDetails.FirstOrDefault().COLLEGE_NAME;
+        }
+    }
+
+    var courseInfo = Model.liCoursesinfo != null ? Model.liCoursesinfo.FirstOrDefault() : null;
+    var courseCode = courseInfo != null ? courseInfo.COURSE_CODE : (ViewBag.CourseCode ?? "");
+    var courseTitle = courseInfo != null ? courseInfo.COURSE_TITLE : (ViewBag.CourseTitle ?? "Course Dashboard");
+    var classId = ViewBag.classId != null ? ViewBag.classId.ToString() : "";
+    var courseId = ViewBag.CourseId != null ? ViewBag.CourseId.ToString() : "";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>@sCollegeCode | @courseCode - @courseTitle</title>
+
+    <!-- CSS Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <style>
+        :root {
+            --lms-primary: #4361ee;
+            --lms-primary-dark: #3a0ca3;
+            --lms-secondary: #4cc9f0;
+            --lms-accent: #7209b7;
+            --lms-gradient: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            --lms-hero-gradient: linear-gradient(135deg, #3f51b5 0%, #2196f3 50%, #00bcd4 100%);
+            --lms-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            --lms-card-hover: 0 8px 30px rgba(67, 97, 238, 0.15);
+            --lms-radius: 14px;
+            --lms-border: #e9ecef;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Page Loader */
+        #page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            transition: opacity 0.3s ease;
+        }
+
+        .spinner-custom {
+            width: 45px;
+            height: 45px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid var(--lms-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Main Container */
+        .lms-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px 20px 40px;
+        }
+
+        /* Course Hero Header */
+        .course-hero {
+            background: var(--lms-hero-gradient);
+            color: #ffffff;
+            border-radius: var(--lms-radius);
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(33, 150, 243, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .course-hero::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+        }
+
+        .course-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: 30%;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            pointer-events: none;
+        }
+
+        .course-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(8px);
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .course-hero-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            line-height: 1.3;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .course-hero-desc {
+            font-size: 0.92rem;
+            opacity: 0.92;
+            margin: 0;
+        }
+
+        .btn-back-hero {
+            background: #ffffff;
+            color: #d90429;
+            border: 1.5px solid #ffccd5;
+            font-weight: 700;
+            padding: 8px 18px;
+            border-radius: 30px;
+            transition: all 0.25s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .btn-back-hero:hover {
+            background: #fff0f3;
+            color: #b80024;
+            border-color: #ffb3c1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(217, 4, 41, 0.18);
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs-wrapper {
+            background: #ffffff;
+            border-radius: var(--lms-radius);
+            padding: 6px;
+            box-shadow: var(--lms-card-shadow);
+            margin-bottom: 22px;
+            border: 1px solid var(--lms-border);
+        }
+
+        .lms-nav-tabs {
+            border: none;
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            gap: 4px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .lms-nav-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .lms-nav-tabs .nav-item {
+            flex-shrink: 0;
+        }
+
+        .lms-nav-tabs .nav-link {
+            border: none;
+            border-radius: 10px;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.92rem;
+            padding: 10px 18px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+        }
+
+        .lms-nav-tabs .nav-link:hover {
+            color: var(--lms-primary);
+            background: #f1f5f9;
+        }
+
+        .lms-nav-tabs .nav-link.active {
+            color: #ffffff !important;
+            background: var(--lms-gradient) !important;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.35);
+        }
+
+        /* Card Content Box */
+        .lms-card {
+            background: #ffffff;
+            border-radius: var(--lms-radius);
+            box-shadow: var(--lms-card-shadow);
+            border: 1px solid var(--lms-border);
+            padding: 22px 24px;
+            margin-bottom: 24px;
+            transition: box-shadow 0.25s ease;
+        }
+
+        .lms-card:hover {
+            box-shadow: var(--lms-card-hover);
+        }
+
+        .lms-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1.5px solid #f1f5f9;
+        }
+
+        .lms-card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lms-card-title i {
+            color: var(--lms-primary);
+        }
+
+        /* Primary Action Buttons */
+        .btn-lms-primary {
+            background: var(--lms-gradient);
+            color: #ffffff;
+            border: none;
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 8px 18px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.25s ease;
+            box-shadow: 0 3px 10px rgba(67, 97, 238, 0.25);
+        }
+
+        .btn-lms-primary:hover {
+            background: linear-gradient(135deg, #3651d4 0%, #2e0887 100%);
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.35);
+        }
+
+        /* Tables */
+        .table-responsive {
+            border-radius: 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .lms-table {
+            width: 100%;
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .lms-table thead th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.84rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 13px 15px;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .lms-table tbody td {
+            padding: 14px 15px;
+            vertical-align: middle;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+
+        .lms-table tbody tr {
+            transition: background 0.15s ease;
+        }
+
+        .lms-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Badges & File Links */
+        .file-link-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            text-decoration: none;
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+            transition: all 0.2s ease;
+        }
+
+        .file-link-badge:hover {
+            background: #dbeafe;
+            color: #1d4ed8;
+            border-color: #93c5fd;
+        }
+
+        .no-file-text {
+            color: #94a3b8;
+            font-size: 0.84rem;
+            font-style: italic;
+        }
+
+        .action-btns {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action-edit {
+            background: #fffbeb;
+            color: #d97706;
+            border-color: #fde68a;
+        }
+
+        .btn-action-edit:hover {
+            background: #fef3c7;
+            color: #b45309;
+            transform: translateY(-1px);
+        }
+
+        .btn-action-delete {
+            background: #fef2f2;
+            color: #dc2626;
+            border-color: #fecaca;
+        }
+
+        .btn-action-delete:hover {
+            background: #fee2e2;
+            color: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .btn-action-view {
+            background: #f0fdf4;
+            color: #16a34a;
+            border-color: #bbf7d0;
+        }
+
+        .btn-action-view:hover {
+            background: #dcfce7;
+            color: #15803d;
+            transform: translateY(-1px);
+        }
+
+        /* Modal Customization */
+        .modal-content {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: var(--lms-gradient);
+            color: #ffffff;
+            padding: 18px 24px;
+            border-bottom: none;
+        }
+
+        .modal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f1f5f9;
+            background: #f8fafc;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            padding: 9px 13px;
+            font-size: 0.92rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--lms-primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.18);
+        }
+
+        /* Select2 Customization */
+        .select2-container .select2-selection--multiple {
+            min-height: 42px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            padding: 4px 8px;
+        }
+
+        .select2-action-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .btn-toggle-select {
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 5px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-toggle-select:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-toggle-select.active {
+            background: var(--lms-primary);
+            color: #ffffff;
+            border-color: var(--lms-primary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+        }
+
+        .empty-state-icon {
+            font-size: 2.8rem;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+        }
+
+        .empty-state-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .empty-state-text {
+            font-size: 0.88rem;
+            margin: 0;
+        }
+
+        /* Mobile Responsiveness */
+        @@media (max-width: 768px) {
+            .lms-container {
+                padding: 12px 14px 30px;
+            }
+
+            .course-hero {
+                padding: 18px 20px;
+                margin-bottom: 16px;
+            }
+
+            .course-hero-title {
+                font-size: 1.25rem;
+            }
+
+            .btn-back-hero {
+                padding: 6px 14px;
+                font-size: 0.84rem;
+                margin-top: 10px;
+            }
+
+            .lms-card {
+                padding: 16px 16px;
+                margin-bottom: 18px;
+                border-radius: 12px;
+            }
+
+            .lms-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .lms-card-header > div,
+            .lms-card-header > button,
+            .lms-card-header > select {
+                width: 100%;
+            }
+
+            .lms-nav-tabs .nav-link {
+                padding: 8px 14px;
+                font-size: 0.86rem;
+            }
+
+            .modal-body {
+                padding: 16px;
+            }
+
+            .modal-footer {
+                padding: 12px 16px;
+            }
+
+            .lms-table thead th,
+            .lms-table tbody td {
+                padding: 10px 10px;
+                font-size: 0.84rem;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .course-hero-title {
+                font-size: 1.15rem;
+            }
+
+            .course-badge {
+                font-size: 0.78rem;
+            }
+
+            .btn-lms-primary {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Page Loader -->
+    <div id="page-loader">
+        <div class="spinner-custom"></div>
+    </div>
+
+    <!-- Hidden Common State -->
+    <input type="hidden" id="CommonclassId" value="@classId" />
+    <input type="hidden" id="CourseId" value="@courseId" />
+
+    <div class="lms-container">
+        <!-- Course Hero Banner -->
+        <div class="course-hero">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div style="flex: 1; min-width: 250px;">
+                    <div class="course-badge">
+                        <i class="fas fa-book-open"></i> @courseCode
+                    </div>
+                    <h1 class="course-hero-title">@courseTitle</h1>
+                    <p class="course-hero-desc">Manage course announcements, materials, assignments, and student grades</p>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-back-hero" onclick="window.history.back();">
+                        <i class="fas fa-arrow-left me-1"></i> Back
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs-wrapper">
+            <ul class="nav lms-nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-announcements" type="button" role="tab">
+                        <i class="fas fa-bullhorn"></i> Announcements
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-attachments" type="button" role="tab">
+                        <i class="fas fa-paperclip"></i> Attachments
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-assignments" type="button" role="tab">
+                        <i class="fas fa-tasks"></i> Assignments
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-marks" type="button" role="tab">
+                        <i class="fas fa-graduation-cap"></i> Marks & Grades
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-meeting" type="button" role="tab">
+                        <i class="fas fa-video"></i> Zoom Meeting
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-chat" type="button" role="tab">
+                        <i class="fas fa-comments"></i> Chat Room
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Tab Content Panes -->
+        <div class="tab-content">
+            
+            <!-- ========================================== -->
+            <!-- 1. ANNOUNCEMENTS TAB -->
+            <!-- ========================================== -->
+            <div class="tab-pane fade show active" id="tab-announcements" role="tabpanel">
+                <div class="lms-card">
+                    <div class="lms-card-header">
+                        <h2 class="lms-card-title">
+                            <i class="fas fa-bullhorn"></i> Course Announcements
+                        </h2>
+                        <button class="btn btn-lms-primary" onclick="OpenAddAnnouncementModal()">
+                            <i class="fas fa-plus-circle"></i> Add Announcement
+                        </button>
+                    </div>
+
+                    @if (Model.liAnnouncement != null && Model.liAnnouncement.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table lms-table align-middle" id="announcementsTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px;" class="text-center">#</th>
+                                        <th><i class="fas fa-comment-alt me-1"></i> Message</th>
+                                        <th style="width: 160px;"><i class="fas fa-paperclip me-1"></i> Attachment</th>
+                                        <th style="width: 110px;" class="text-center"><i class="fas fa-cog me-1"></i> Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ int annIdx = 1; }
+                                    @foreach (var item in Model.liAnnouncement)
+                                    {
+                                        <tr>
+                                            <td class="text-center fw-bold text-muted">@annIdx</td>
+                                            <td>
+                                                <div style="white-space: pre-wrap; word-break: break-word;">@item.MESSAGE</div>
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(item.FILE_PATH))
+                                                {
+                                                    <a href="@Url.Content(item.FILE_PATH)" target="_blank" class="file-link-badge">
+                                                        <i class="fas fa-eye"></i> View File
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="no-file-text">No attachment</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="action-btns justify-content-center">
+                                                    <button type="button" class="btn-action btn-action-edit btn-edit-announcement" data-id="@item.ANNOUNCEMENT_ID" title="Edit Announcement">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" class="btn-action btn-action-delete btn-delete-announcement" data-id="@item.ANNOUNCEMENT_ID" title="Delete Announcement">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        annIdx++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-bullhorn"></i></div>
+                            <div class="empty-state-title">No announcements yet</div>
+                            <p class="empty-state-text">Keep your students updated by creating your first course announcement.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 2. ATTACHMENTS TAB -->
+            <!-- ========================================== -->
+            <div class="tab-pane fade" id="tab-attachments" role="tabpanel">
+                <div class="lms-card">
+                    <div class="lms-card-header">
+                        <h2 class="lms-card-title">
+                            <i class="fas fa-folder-open"></i> Course Attachments & Study Material
+                        </h2>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <select id="notesFilter" class="form-select form-select-sm" style="min-width: 180px; max-width: 240px;">
+                                <option value="">All Class Notes</option>
+                            </select>
+                            <button class="btn btn-lms-primary" id="btnAddAttachments">
+                                <i class="fas fa-plus-circle"></i> Add Attachment
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (Model.lilmscoursewiseatt != null && Model.lilmscoursewiseatt.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table lms-table align-middle" id="attachmentsTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;" class="text-center">#</th>
+                                        <th><i class="fas fa-tag me-1"></i> Notes Type</th>
+                                        <th><i class="fas fa-bookmark me-1"></i> Topic</th>
+                                        <th><i class="fas fa-align-left me-1"></i> Description</th>
+                                        <th><i class="fas fa-list-ol me-1"></i> Unit No</th>
+                                        <th><i class="fas fa-book me-1"></i> Unit Name</th>
+                                        <th><i class="fas fa-file-alt me-1"></i> QP Model</th>
+                                        <th><i class="fas fa-file-signature me-1"></i> QP Type</th>
+                                        <th><i class="fas fa-paperclip me-1"></i> Attachment</th>
+                                        <th><i class="fas fa-folder me-1"></i> File</th>
+                                        <th style="width: 80px;" class="text-center"><i class="fas fa-cog me-1"></i> Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ int attCount = 1; }
+                                    @foreach (var item in Model.lilmscoursewiseatt)
+                                    {
+                                        <tr>
+                                            <td class="text-center fw-bold text-muted">@attCount</td>
+                                            <td><span class="badge bg-light text-dark border">@Html.Raw(item.NOTES_TITLE)</span></td>
+                                            <td><strong>@item.TITLE</strong></td>
+                                            <td>
+                                                <div style="max-height: 80px; overflow-y: auto; font-size: 0.86rem;">
+                                                    @Html.Raw(item.DESCRIPTION)
+                                                </div>
+                                            </td>
+                                            <td>@(string.IsNullOrEmpty(item.UNIT) ? "-" : item.UNIT)</td>
+                                            <td>@(string.IsNullOrEmpty(item.SUBJECT) ? "-" : item.SUBJECT)</td>
+                                            <td>@(string.IsNullOrEmpty(item.PAPER_TITLE) ? "-" : item.PAPER_TITLE)</td>
+                                            <td>@(string.IsNullOrEmpty(item.TYPE) ? "-" : item.TYPE)</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(item.ATTACHMENT))
+                                                {
+                                                    <a href="@Url.Content(item.ATTACHMENT)" target="_blank" class="file-link-badge">
+                                                        <i class="fas fa-download"></i> View
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="no-file-text">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(item.FILE_PATH))
+                                                {
+                                                    <a href="@Url.Content(item.FILE_PATH)" target="_blank" class="file-link-badge">
+                                                        <i class="fas fa-file-download"></i> File
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="no-file-text">-</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="action-btns justify-content-center">
+                                                    <button type="button" class="btn-action btn-action-delete btn-delete-attachment" data-id="@item.COURSEWISE_ATTACHMENT_ID" title="Delete Attachment">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        attCount++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
+                            <div class="empty-state-title">No attachments found</div>
+                            <p class="empty-state-text">Upload unit notes, syllabus, or question papers for your students.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 3. ASSIGNMENTS TAB -->
+            <!-- ========================================== -->
+            <div class="tab-pane fade" id="tab-assignments" role="tabpanel">
+                <div class="lms-card">
+                    <div class="lms-card-header">
+                        <h2 class="lms-card-title">
+                            <i class="fas fa-tasks"></i> Course Assignments & Work
+                        </h2>
+                        <button class="btn btn-lms-primary" id="btnAddAssignment">
+                            <i class="fas fa-plus-circle"></i> Add Assignment
+                        </button>
+                    </div>
+
+                    @if (Model.liassignmentsetting != null && Model.liassignmentsetting.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table lms-table align-middle" id="assignmentsTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;" class="text-center">#</th>
+                                        <th style="width: 90px;" class="text-center"><i class="fas fa-users me-1"></i> Students</th>
+                                        <th><i class="fas fa-file-alt me-1"></i> Assignment Name</th>
+                                        <th><i class="fas fa-align-left me-1"></i> Description</th>
+                                        <th style="width: 80px;" class="text-center"><i class="fas fa-award me-1"></i> Marks</th>
+                                        <th><i class="fas fa-calendar-alt me-1"></i> Start Date</th>
+                                        <th><i class="fas fa-calendar-check me-1"></i> Due Date</th>
+                                        <th><i class="fas fa-paperclip me-1"></i> Material</th>
+                                        <th><i class="fas fa-link me-1"></i> Link</th>
+                                        <th style="width: 140px;" class="text-center"><i class="fas fa-cog me-1"></i> Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ int asgCount = 1; }
+                                    @foreach (var item in Model.liassignmentsetting)
+                                    {
+                                        <tr>
+                                            <td class="text-center fw-bold text-muted">@asgCount</td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-outline-primary px-2 py-1 rounded-pill"
+                                                        onclick="showStudentDetails('@item.FIRST_NAME', '@item.ROLL_NO')" title="View assigned students">
+                                                    <i class="fas fa-users me-1"></i> List
+                                                </button>
+                                            </td>
+                                            <td><strong>@item.ASSIGNMENT_NAME</strong></td>
+                                            <td>
+                                                <div style="max-height: 70px; overflow-y: auto; font-size: 0.86rem;">
+                                                    @Html.Raw(item.DESCRIPTION)
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">@item.TOTAL_MARK</span>
+                                            </td>
+                                            <td>@item.START_DATE</td>
+                                            <td><span class="text-danger fw-semibold">@item.END_DATE</span></td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(item.FILE_PATH))
+                                                {
+                                                    <a href="@Url.Content(item.FILE_PATH)" target="_blank" class="file-link-badge">
+                                                        <i class="fas fa-download"></i> File
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="no-file-text">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(item.LINK_URL))
+                                                {
+                                                    <a href="@item.LINK_URL" target="_blank" class="file-link-badge">
+                                                        <i class="fas fa-external-link-alt"></i> URL
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="no-file-text">-</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="action-btns justify-content-center">
+                                                    <button type="button" class="btn-action btn-action-view view-submissions" data-id="@item.ASSIGNMENT_SETTING_ID" title="View Submissions & Evaluate">
+                                                        <i class="fas fa-clipboard-check"></i>
+                                                    </button>
+                                                    <button type="button" class="btn-action btn-action-edit btnEditAssignment" data-id="@item.ASSIGNMENT_SETTING_ID" title="Edit Assignment">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" class="btn-action btn-action-delete btnDeleteAssignment" data-id="@item.ASSIGNMENT_SETTING_ID" title="Delete Assignment">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        asgCount++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-tasks"></i></div>
+                            <div class="empty-state-title">No assignments posted yet</div>
+                            <p class="empty-state-text">Create assignments to evaluate students and collect online submissions.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 4. MARKS & GRADES TAB -->
+            <!-- ========================================== -->
+            <div class="tab-pane fade" id="tab-marks" role="tabpanel">
+                <div class="lms-card">
+                    <div class="lms-card-header">
+                        <h2 class="lms-card-title">
+                            <i class="fas fa-graduation-cap"></i> Student Marks & Grades Overview
+                        </h2>
+                    </div>
+
+                    @if (Model.limarksGrade != null && Model.limarksGrade.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table lms-table align-middle" id="marksTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;" class="text-center">#</th>
+                                        <th><i class="fas fa-user me-1"></i> Student Name</th>
+                                        <th><i class="fas fa-id-badge me-1"></i> Register No</th>
+                                        <th><i class="fas fa-book me-1"></i> Course</th>
+                                        <th><i class="fas fa-file-signature me-1"></i> Assignment</th>
+                                        <th style="width: 120px;" class="text-center"><i class="fas fa-award me-1"></i> Secured / Max</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ int markIdx = 1; }
+                                    @foreach (var item in Model.limarksGrade)
+                                    {
+                                        <tr>
+                                            <td class="text-center fw-bold text-muted">@markIdx</td>
+                                            <td><strong>@item.FIRST_NAME</strong></td>
+                                            <td><span class="badge bg-light text-dark border">@item.REGISTER_NO</span></td>
+                                            <td>@item.COURSE_TITLE</td>
+                                            <td>@item.ASSIGNMENT_NAME</td>
+                                            <td class="text-center">
+                                                @if (!string.IsNullOrEmpty(item.SEC_MARK))
+                                                {
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fw-bold fs-6">
+                                                        @item.SEC_MARK / @item.TOTAL_MARK
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">
+                                                        Pending / @item.TOTAL_MARK
+                                                    </span>
+                                                }
+                                            </td>
+                                        </tr>
+                                        markIdx++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="empty-state-title">No assignment evaluations recorded yet</div>
+                            <p class="empty-state-text">Once students submit assignments and marks are evaluated, grades will appear here.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 5. ZOOM MEETINGS TAB -->
+            <!-- ========================================== -->
+            <div class="tab-pane fade" id="tab-meeting" role="tabpanel">
+                <div class="lms-card">
+                    <div class="lms-card-header">
+                        <h2 class="lms-card-title">
+                            <i class="fas fa-video"></i> Zoom Online Class Meetings
+                        </h2>
+                    </div>
+
+                    @if (Model.lizoomMeting != null && Model.lizoomMeting.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table lms-table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;" class="text-center">#</th>
+                                        <th><i class="fas fa-calendar-alt me-1"></i> Date & Time</th>
+                                        <th><i class="fas fa-info-circle me-1"></i> Status</th>
+                                        <th><i class="fas fa-book me-1"></i> Course</th>
+                                        <th><i class="fas fa-user-tie me-1"></i> Host</th>
+                                        <th><i class="fas fa-link me-1"></i> Join Meeting</th>
+                                        <th class="text-center"><i class="fas fa-key me-1"></i> Password</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ var zoomIdx = 1; }
+                                    @foreach (var item in Model.lizoomMeting)
+                                    {
+                                        string statusBadge = item.STATUS == "Created" ? "bg-success" : "bg-secondary";
+                                        <tr>
+                                            <td class="text-center fw-bold text-muted">@zoomIdx</td>
+                                            <td>@Convert.ToDateTime(item.CREATED_DATE).ToString("dd-MMM-yyyy hh:mm tt")</td>
+                                            <td><span class="badge @statusBadge">@item.STATUS</span></td>
+                                            <td><strong>@item.COURSE_TITLE</strong></td>
+                                            <td>@item.FIRST_NAME</td>
+                                            <td>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    @if (!string.IsNullOrEmpty(item.START_URL))
+                                                    {
+                                                        <a href="@item.START_URL" target="_blank" class="btn btn-sm btn-success">
+                                                            <i class="fas fa-play me-1"></i> Start Host
+                                                        </a>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(item.JOIN_URL))
+                                                    {
+                                                        <a href="@item.JOIN_URL" target="_blank" class="btn btn-sm btn-primary">
+                                                            <i class="fas fa-sign-in-alt me-1"></i> Join
+                                                        </a>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-btn" data-url="@item.JOIN_URL">
+                                                            <i class="fas fa-copy"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td class="text-center font-monospace fw-bold">@item.MEETING_PASSWORD</td>
+                                        </tr>
+                                        zoomIdx++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-video-slash"></i></div>
+                            <div class="empty-state-title">No Zoom meetings scheduled</div>
+                            <p class="empty-state-text">Scheduled online virtual classrooms will appear here.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 6. CHAT ROOM TAB -->
+            <!-- ========================================== -->
+            <div class="tab-pane fade" id="tab-chat" role="tabpanel">
+                <div class="lms-card text-center py-5">
+                    <div class="empty-state-icon"><i class="fas fa-comments text-primary"></i></div>
+                    <h3 class="fw-bold mb-2">Entering Course Chat Room...</h3>
+                    <p class="text-muted mb-3">Connecting to real-time discussions with course students and faculty.</p>
+                    <a href="@Url.Action("ChatRoom", "LMS", new { courseId = courseId, courseCode = courseCode, courseName = courseTitle })" class="btn btn-lms-primary px-4 py-2">
+                        <i class="fas fa-external-link-alt me-1"></i> Open Chat Room Directly
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- MODALS SECTION                                                      -->
+    <!-- =================================================================== -->
+
+    <!-- 1. ADD / EDIT ANNOUNCEMENT MODAL -->
+    <div class="modal fade" id="AddAnnouncementModal" tabindex="-1" aria-labelledby="AddAnnouncementModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="AddAnnouncementModalLabel">
+                        <i class="fas fa-bullhorn"></i> Add New Announcement
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="frmAddAnnouncement" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <input type="hidden" id="hdnAnnouncementId" name="ANNOUNCEMENT_ID" />
+                        <input type="hidden" id="hdnExistingFilePath" name="EXISTING_FILE_NAME" />
+
+                        <div class="mb-3">
+                            <label for="AnnouncementMessage" class="form-label">Announcement Message <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="AnnouncementMessage" name="Message" rows="4" placeholder="Write announcement details here..." required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="AnnouncementFile" class="form-label">Attachment (Optional)</label>
+                            <input type="file" class="form-control" id="AnnouncementFile" name="Attachment" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png" />
+                            <small class="text-muted d-block mt-1">Accepted formats: PDF, DOC, PPT, Excel, Images (Max: 20MB)</small>
+
+                            <!-- Existing File Display -->
+                            <div id="AnnExistingFileContainer" class="mt-2 p-2 border rounded bg-light" style="display:none;">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                        <i class="fas fa-paperclip text-primary"></i>
+                                        <a id="AnnExistingFileNameLink" href="#" target="_blank" class="small fw-bold text-decoration-none text-truncate d-inline-block" style="max-width: 250px;"></a>
+                                    </div>
+                                    <span class="badge bg-secondary">Current File</span>
+                                </div>
+                            </div>
+
+                            <!-- New File Preview -->
+                            <div id="AnnPreviewContainer" class="mt-2" style="display:none;">
+                                <div class="p-2 border rounded bg-light d-flex align-items-center">
+                                    <div id="AnnPreviewMedia"></div>
+                                    <div class="ms-2 overflow-hidden">
+                                        <div id="AnnPreviewName" class="small fw-bold text-truncate" style="max-width: 200px;"></div>
+                                        <div id="AnnPreviewSize" class="small text-muted"></div>
+                                    </div>
+                                    <button type="button" class="btn-close ms-auto small" onclick="ClearAnnFile()" title="Remove file"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-lms-primary" id="AnnBtn">
+                            <i class="fas fa-paper-plane me-1"></i> Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. ADD ATTACHMENT MODAL -->
+    <div class="modal fade" id="AddAttachmentModal" tabindex="-1" aria-labelledby="AddAttachmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="AddAttachmentModalLabel">
+                        <i class="fas fa-folder-plus"></i> Add Course Attachment
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="frmAddAttachment" enctype="multipart/form-data">
+                        <input type="hidden" id="hdnAttachmentId" />
+
+                        <!-- ROW 1 -->
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Class Notes Category <span class="text-danger">*</span></label>
+                                @Html.DropDownListFor(m => m.LMSCLASSNOTES,
+                                    Model.LMSCLASSNOTES ?? Enumerable.Empty<SelectListItem>(),
+                                    "-- Select Category --",
+                                    new { @class = "form-select", id = "LMSCLASSNOTES", required = "required" })
+                            </div>
+
+                            <div class="col-md-4" id="unitContainer">
+                                <label class="form-label">Unit Number</label>
+                                @Html.DropDownListFor(m => m.UNITLIST,
+                                    Model.UNITLIST ?? Enumerable.Empty<SelectListItem>(),
+                                    "-- Select Unit --",
+                                    new { @class = "form-select", id = "UNITLIST" })
+                            </div>
+
+                            <div class="col-md-4" id="unitNameContainer">
+                                <label class="form-label">Unit / Subject Name</label>
+                                <input type="text" id="txtsubject" class="form-control" placeholder="Enter Unit / Subject Name">
+                            </div>
+                        </div>
+
+                        <!-- ROW 2 -->
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-4" id="unitTopicContainer">
+                                <label class="form-label">Sub Topic / Title</label>
+                                <input type="text" id="txttitle" class="form-control" placeholder="Enter Topic / Title">
+                            </div>
+
+                            <div class="col-md-4" id="QuePaperContainer" style="display:none;">
+                                <label class="form-label">Question Paper Model</label>
+                                @Html.DropDownListFor(m => m.LMSQUESTIONPAPER,
+                                    Model.LMSQUESTIONPAPER ?? Enumerable.Empty<SelectListItem>(),
+                                    "-- Select Model --",
+                                    new { @class = "form-select", id = "LMSQUESTIONPAPER" })
+                            </div>
+
+                            <div class="col-md-4" id="QuesTypeContainer" style="display:none;">
+                                <label class="form-label">Question Paper Type</label>
+                                @Html.DropDownListFor(m => m.LMSQUESTIONPAPERTYPE,
+                                    Model.LMSQUESTIONPAPERTYPE ?? Enumerable.Empty<SelectListItem>(),
+                                    "-- Select Type --",
+                                    new { @class = "form-select", id = "LMSQUESTIONPAPERTYPE" })
+                            </div>
+                        </div>
+
+                        <!-- EXCEL UPLOAD SECTION (For Instruction Plan) -->
+                        <div class="row g-3 mt-2 p-3 bg-light rounded-3" id="ExcelUploadContainer" style="display:none;">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Upload Instruction Plan (Excel)</label>
+                                <input type="file" id="ExcelUploadFile" class="form-control" accept=".xls,.xlsx">
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <a href="~/Content/ExcelTemplate/lms_instruction_plan.xlsx" class="btn btn-success" download>
+                                    <i class="fas fa-file-excel me-1"></i> Download Template (.xlsx)
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- DESCRIPTION -->
+                        <div class="mt-3" id="unitDescContainer">
+                            <label class="form-label">Description / Study Notes</label>
+                            <textarea id="txtdescription" class="summernote"></textarea>
+                        </div>
+
+                        <!-- MULTI FILE ATTACHMENTS -->
+                        <div class="mt-3" id="attachmentContainer">
+                            <label class="form-label">Upload Files</label>
+                            <input type="file" id="fAttachment" class="form-control" multiple onchange="handleMultipleAttachmentFiles()">
+                            <small class="text-muted">You can select multiple documents, presentations, or images.</small>
+                        </div>
+
+                        <!-- ATTACHMENT FILES PREVIEW TABLE -->
+                        <div class="table-responsive mt-3" id="tblcontainer">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 80px;">Preview</th>
+                                        <th>File Name & Size</th>
+                                        <th style="width: 30%;">Status</th>
+                                        <th style="width: 70px;" class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="files" id="attachmentFilesList">
+                                    <tr id="trEmpty">
+                                        <td colspan="4" class="text-center text-muted py-3">
+                                            No file selected
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-lms-primary" id="btnSaveAttachment">
+                        <i class="fas fa-save me-1"></i> Save Attachment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. ADD / EDIT ASSIGNMENT MODAL -->
+    <div class="modal fade" id="AddAssignmentModal" tabindex="-1" aria-labelledby="AddAssignmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="AddAssignmentModalLabel">
+                        <i class="fas fa-tasks"></i> Add Assignment Setting
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="AssignmentSettingId" />
+
+                    <!-- Students Multi-select -->
+                    <div class="mb-3">
+                        <label class="form-label">Select Students <span class="text-danger">*</span></label>
+                        @Html.DropDownList("excelCls",
+                            Model.liStudentLists ?? Enumerable.Empty<SelectListItem>(),
+                            new { @class = "form-control multiSelectPicker", @multiple = "multiple", id = "excelCls" })
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-8 mb-3">
+                            <label class="form-label">Assignment Title / Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="SettingName" placeholder="e.g. Unit 3 Case Study & Field Report" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Total Marks <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="TotalMark" placeholder="e.g. 50" min="1" max="1000" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description / Instructions</label>
+                        <textarea class="form-control" id="Description" rows="3" placeholder="Enter assignment guidelines, formatting rules, etc."></textarea>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Upload Reference File (Optional)</label>
+                            <input type="file" class="form-control" id="FileUpload" name="FileUpload">
+                            
+                            <!-- Existing File Info -->
+                            <div id="ExistingFileContainer" class="mt-2 p-2 border rounded bg-light" style="display:none;">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                        <div id="ExistingFilePreview"></div>
+                                        <a href="javascript:void(0)" id="ExistingFileNameLink" target="_blank" class="small fw-bold text-decoration-none text-truncate d-inline-block" style="max-width: 180px;"></a>
+                                    </div>
+                                    <span class="badge bg-secondary">Existing</span>
+                                    <input type="hidden" id="ExistingFileName" />
+                                </div>
+                            </div>
+
+                            <!-- New File Preview -->
+                            <div id="AssignmentPreviewContainer" class="mt-2" style="display:none;">
+                                <div class="p-2 border rounded bg-light d-flex align-items-center">
+                                    <div id="AssignmentPreviewMedia"></div>
+                                    <div class="ms-2 overflow-hidden">
+                                        <div id="AssignmentPreviewName" class="small fw-bold text-truncate" style="max-width: 180px;"></div>
+                                        <div id="AssignmentPreviewSize" class="small text-muted"></div>
+                                    </div>
+                                    <button type="button" class="btn-close ms-auto small" onclick="ClearAssignmentFile()" title="Remove file"></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">External Link / URL (Optional)</label>
+                            <input type="url" class="form-control" id="LinkUpload" placeholder="https://drive.google.com/...">
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="StartDate">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Due Date (End Date)</label>
+                            <input type="date" class="form-control" id="EndDate">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-lms-primary" id="btnSaveAssignmentSetting">
+                        <i class="fas fa-save me-1"></i> Save Assignment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. VIEW SUBMISSIONS MODAL -->
+    <div class="modal fade" id="ViewSubmissionsModal" tabindex="-1" aria-labelledby="ViewSubmissionsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ViewSubmissionsModalLabel">
+                        <i class="fas fa-clipboard-check"></i> Student Assignment Submissions
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive" style="max-height: 550px; overflow-y: auto;">
+                        <table id="tblSubmissions" class="table lms-table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;" class="text-center">#</th>
+                                    <th>Student Name</th>
+                                    <th style="width: 90px;" class="text-center">Max Marks</th>
+                                    <th style="width: 130px;">Secured Mark</th>
+                                    <th>Submission Date</th>
+                                    <th>Submitted File</th>
+                                    <th style="width: 90px;" class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. STUDENT DETAILS MODAL -->
+    <div class="modal fade" id="StudentDetailsModal" tabindex="-1" aria-labelledby="StudentDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="StudentDetailsModalLabel">
+                        <i class="fas fa-users me-2"></i> Enrolled Students
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                        <table class="table lms-table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;" class="text-center">#</th>
+                                    <th>Student Name</th>
+                                    <th style="width: 140px;">Roll Number</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalStudentDetailsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+    <script>
+        // Global Attachments FormData
+        let attachmentFilesFormData = new FormData();
+
+        $(document).ready(function () {
+            // Hide Loader
+            setTimeout(function () {
+                $("#page-loader").fadeOut(250);
+            }, 300);
+
+            // Active Tab Persistence
+            var activeTab = localStorage.getItem('courseDetailsActiveTab');
+            if (activeTab) {
+                var tabTrigger = document.querySelector('.lms-nav-tabs button[data-bs-target="' + activeTab + '"]');
+                if (tabTrigger) {
+                    var tab = new bootstrap.Tab(tabTrigger);
+                    tab.show();
+                }
+            }
+
+            $('.lms-nav-tabs button').on('shown.bs.tab', function (e) {
+                var target = $(e.target).data('bs-target');
+                localStorage.setItem('courseDetailsActiveTab', target);
+
+                // Handle Chat Room tab auto-redirect
+                if (target === '#tab-chat') {
+                    var courseId = '@courseId';
+                    var courseCode = '@courseCode';
+                    var courseName = '@courseTitle';
+                    window.location.href = '@Url.Action("ChatRoom", "LMS")'
+                        + '?courseId=' + courseId
+                        + '&courseCode=' + encodeURIComponent(courseCode)
+                        + '&courseName=' + encodeURIComponent(courseName);
+                }
+            });
+
+            // Initialize Summernote
+            $('.summernote').summernote({
+                height: 140,
+                placeholder: 'Write description or notes here...',
+                toolbar: [
+                    ['style', ['bold', 'italic', 'underline', 'clear']],
+                    ['font', ['strikethrough', 'superscript', 'subscript']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['insert', ['link', 'table']]
+                ]
+            });
+
+            // Initialize DataTables
+            if ($('#announcementsTable').length > 0) {
+                $('#announcementsTable').DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: false,
+                    responsive: true,
+                    language: { emptyTable: "No announcements available" }
+                });
+            }
+
+            if ($('#assignmentsTable').length > 0) {
+                $('#assignmentsTable').DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: false,
+                    responsive: true,
+                    language: { emptyTable: "No assignments available" }
+                });
+            }
+
+            if ($('#marksTable').length > 0) {
+                $('#marksTable').DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    responsive: true,
+                    language: { emptyTable: "No grades available" }
+                });
+            }
+
+            // Initialize Attachments DataTable & Filter
+            var attTable = null;
+            if ($('#attachmentsTable').length > 0) {
+                attTable = $('#attachmentsTable').DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: false,
+                    responsive: true,
+                    language: { emptyTable: "No attachments available" }
+                });
+
+                // Populate Class Notes filter dropdown
+                var uniqueNotes = [];
+                attTable.column(1).data().unique().sort().each(function (d) {
+                    var div = document.createElement("div");
+                    div.innerHTML = d;
+                    var val = (div.textContent || div.innerText || "").trim();
+                    if (val && !uniqueNotes.includes(val)) {
+                        uniqueNotes.push(val);
+                        $('#notesFilter').append('<option value="' + val + '">' + val + '</option>');
+                    }
+                });
+
+                $('#notesFilter').on('change', function () {
+                    var val = $(this).val();
+                    var searchVal = $.fn.dataTable.util.escapeRegex(val);
+                    attTable.column(1).search(searchVal ? '^' + searchVal + '$' : '', true, false).draw();
+                });
+            }
+
+            // Initialize Select2 with Select All / Unselect All
+            initSelect2WithActions(".multiSelectPicker", "Select Students");
+
+            // Dynamic Category Dropdown toggling in Attachments modal
+            $("#LMSCLASSNOTES").on("change", function () {
+                toggleAttachmentFields();
+            });
+
+            $("#LMSQUESTIONPAPER").on("change", function () {
+                var qpVal = $(this).val();
+                if (qpVal === "1" || qpVal === "2") {
+                    $("#QuesTypeContainer").fadeIn();
+                } else {
+                    $("#QuesTypeContainer").hide();
+                }
+            });
+        });
+
+        // =========================================================================
+        // ANNOUNCEMENTS TAB FUNCTIONS
+        // =========================================================================
+        function OpenAddAnnouncementModal() {
+            $("#hdnAnnouncementId").val('');
+            $("#hdnExistingFilePath").val('');
+            $("#AnnouncementMessage").val('');
+            $("#AnnouncementFile").val('');
+            $("#AnnExistingFileContainer").hide();
+            $("#AnnPreviewContainer").hide();
+            $("#AddAnnouncementModalLabel").html('<i class="fas fa-bullhorn me-1"></i> Add New Announcement');
+            $("#AnnBtn").html('<i class="fas fa-paper-plane me-1"></i> Submit');
+            $("#AddAnnouncementModal").modal('show');
+        }
+
+        function ClearAnnFile() {
+            $("#AnnouncementFile").val('');
+            $("#AnnPreviewContainer").hide();
+            if ($("#hdnExistingFilePath").val()) {
+                $("#AnnExistingFileContainer").show();
+            }
+        }
+
+        $("#AnnouncementFile").on("change", function () {
+            var file = this.files[0];
+            if (file) {
+                $("#AnnExistingFileContainer").hide();
+                var ext = file.name.split('.').pop().toLowerCase();
+                var size = (file.size / 1024).toFixed(2);
+                var sizeStr = size > 1024 ? (size / 1024).toFixed(2) + " MB" : size + " KB";
+
+                $("#AnnPreviewName").text(file.name);
+                $("#AnnPreviewSize").text(sizeStr);
+
+                var mediaHtml = "";
+                if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                    mediaHtml = `<img src="${URL.createObjectURL(file)}" class="rounded" style="width: 36px; height: 36px; object-fit: cover;">`;
+                } else {
+                    var iconClass = "fa-file-alt";
+                    if (ext === 'pdf') iconClass = "fa-file-pdf text-danger";
+                    else if (['doc', 'docx'].includes(ext)) iconClass = "fa-file-word text-primary";
+                    else if (['xls', 'xlsx'].includes(ext)) iconClass = "fa-file-excel text-success";
+                    else if (['ppt', 'pptx'].includes(ext)) iconClass = "fa-file-powerpoint text-warning";
+                    mediaHtml = `<i class="fas ${iconClass} fa-2x"></i>`;
+                }
+                $("#AnnPreviewMedia").html(mediaHtml);
+                $("#AnnPreviewContainer").fadeIn();
+            } else {
+                $("#AnnPreviewContainer").hide();
+                if ($("#hdnExistingFilePath").val()) {
+                    $("#AnnExistingFileContainer").show();
+                }
+            }
+        });
+
+        // Edit Announcement
+        $(document).on('click', '.btn-edit-announcement', function () {
+            var id = $(this).data('id');
+            $.ajax({
+                url: '@Url.Action("FetchAnnouncementById", "Lms")',
+                type: 'POST',
+                data: { sAnnouncementId: id },
+                success: function (res) {
+                    if (res && res.length > 0) {
+                        var data = res[0];
+                        $("#hdnAnnouncementId").val(data.ANNOUNCEMENT_ID);
+                        $("#AnnouncementMessage").val(data.MESSAGE);
+                        $("#AnnouncementFile").val('');
+                        $("#AnnPreviewContainer").hide();
+
+                        if (data.FILE_PATH) {
+                            var fileName = data.FILE_PATH.split('/').pop();
+                            $("#hdnExistingFilePath").val(data.FILE_PATH);
+                            $("#AnnExistingFileNameLink").text(fileName).attr("href", data.FILE_PATH);
+                            $("#AnnExistingFileContainer").show();
+                        } else {
+                            $("#hdnExistingFilePath").val('');
+                            $("#AnnExistingFileContainer").hide();
+                        }
+
+                        $("#AddAnnouncementModalLabel").html('<i class="fas fa-edit me-1"></i> Edit Announcement');
+                        $("#AnnBtn").html('<i class="fas fa-save me-1"></i> Update Announcement');
+                        $("#AddAnnouncementModal").modal('show');
+                    } else {
+                        Swal.fire('Error', 'Could not load announcement details.', 'error');
+                    }
+                },
+                error: function () {
+                    Swal.fire('Error', 'Unable to contact server.', 'error');
+                }
+            });
+        });
+
+        // Delete Announcement
+        $(document).on('click', '.btn-delete-announcement', function () {
+            var id = $(this).data('id');
+            Swal.fire({
+                title: 'Delete Announcement?',
+                text: 'This announcement will be removed permanently.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, delete'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteLmsAnnouncement", "Lms")',
+                        type: 'POST',
+                        data: { sCWId: id },
+                        success: function (res) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: 'Announcement removed successfully.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        },
+                        error: function () {
+                            Swal.fire('Error', 'Delete operation failed.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // Save Announcement Form
+        $("#frmAddAnnouncement").on("submit", function (e) {
+            e.preventDefault();
+
+            var announcementData = {
+                CLASS_ID: $("#CommonclassId").val(),
+                COURSE_ID: $("#CourseId").val(),
+                MESSAGE: $("#AnnouncementMessage").val(),
+                ANNOUNCEMENT_ID: $("#hdnAnnouncementId").val(),
+                EXISTING_FILE_NAME: $("#hdnExistingFilePath").val()
+            };
+
+            var formData = new FormData();
+            formData.append("sJson", JSON.stringify(announcementData));
+
+            var fileList = $("#AnnouncementFile")[0].files;
+            if (fileList && fileList.length > 0) {
+                formData.append("photo", fileList[0]);
+            }
+
+            $("#AnnBtn").prop("disabled", true).html('<i class="fas fa-spinner fa-spin me-1"></i> Saving...');
+
+            $.ajax({
+                url: '@Url.Action("SaveLMSannouncement", "Lms")',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (res) {
+                    $("#AnnBtn").prop("disabled", false);
+                    var isSuccess = res && (
+                        res.ErrorCode === 200 ||
+                        res.ErrorCode === "Ok" ||
+                        res.Success === true ||
+                        (res.Message && (res.Message.toLowerCase().includes("saved") || res.Message.toLowerCase().includes("updated") || res.Message.toLowerCase().includes("success")))
+                    );
+
+                    if (isSuccess) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Saved!',
+                            text: res.Message || 'Announcement saved successfully.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            $("#AddAnnouncementModal").modal('hide');
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', res.Message || 'Failed to save Announcement.', 'error');
+                    }
+                },
+                error: function () {
+                    $("#AnnBtn").prop("disabled", false);
+                    Swal.fire('Server Error', 'An unexpected error occurred while saving.', 'error');
+                }
+            });
+        });
+
+        // =========================================================================
+        // ATTACHMENTS TAB FUNCTIONS
+        // =========================================================================
+        $("#btnAddAttachments").on("click", function () {
+            attachmentFilesFormData = new FormData();
+            $("#hdnAttachmentId").val("");
+            $("#LMSCLASSNOTES").val("").trigger("change");
+            $("#UNITLIST").val("");
+            $("#txtsubject, #txttitle, #ExcelUploadFile, #fAttachment").val("");
+            $('#txtdescription').summernote('code', '');
+            $("#attachmentFilesList").html('<tr id="trEmpty"><td colspan="4" class="text-center text-muted py-3">No file selected</td></tr>');
+            toggleAttachmentFields();
+            $("#AddAttachmentModal").modal("show");
+        });
+
+        function toggleAttachmentFields() {
+            var selectedVal = $("#LMSCLASSNOTES").val();
+
+            // Notes Type 2 = Unit Class Notes
+            if (selectedVal === "2") {
+                $("#unitContainer, #unitNameContainer, #unitDescContainer, #unitTopicContainer").fadeIn();
+            } else {
+                $("#unitContainer, #unitNameContainer, #unitTopicContainer").hide();
+            }
+
+            // Notes Type 3 = Question Paper
+            if (selectedVal === "3") {
+                $("#QuePaperContainer").fadeIn();
+            } else {
+                $("#QuePaperContainer, #QuesTypeContainer").hide();
+            }
+
+            // Notes Type 4 = Instruction Plan (Excel)
+            if (selectedVal === "4") {
+                $("#ExcelUploadContainer").fadeIn();
+                $("#attachmentContainer, #tblcontainer").hide();
+            } else {
+                $("#ExcelUploadContainer").hide();
+                $("#attachmentContainer, #tblcontainer").fadeIn();
+            }
+        }
+
+        function handleMultipleAttachmentFiles() {
+            var files = document.getElementById('fAttachment').files;
+            if (files.length > 0) {
+                $('#trEmpty').remove();
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                let file = files[i];
+                let ext = file.name.split('.').pop().toLowerCase();
+                let size = (file.size / 1024).toFixed(2);
+                let sizeStr = size > 1024 ? (size / 1024).toFixed(2) + " MB" : size + " KB";
+                let rowId = 'file_' + Math.random().toString(36).substring(2, 9);
+
+                attachmentFilesFormData.append(rowId, file);
+
+                let icon = '<i class="fas fa-file-alt text-primary fa-2x"></i>';
+                if (['jpg', 'jpeg', 'png'].includes(ext)) {
+                    icon = `<img src="${URL.createObjectURL(file)}" style="width:36px;height:36px;object-fit:cover;border-radius:4px;">`;
+                } else if (ext === 'pdf') {
+                    icon = '<i class="fas fa-file-pdf text-danger fa-2x"></i>';
+                } else if (['doc', 'docx'].includes(ext)) {
+                    icon = '<i class="fas fa-file-word text-primary fa-2x"></i>';
+                } else if (['xls', 'xlsx'].includes(ext)) {
+                    icon = '<i class="fas fa-file-excel text-success fa-2x"></i>';
+                }
+
+                let rowHtml = `
+                    <tr id="${rowId}">
+                        <td class="text-center">${icon}</td>
+                        <td>
+                            <div class="fw-bold small text-truncate" style="max-width: 280px;">${file.name}</div>
+                            <div class="text-muted" style="font-size: 0.78rem;">${sizeStr}</div>
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-success" style="width: 100%;"></div>
+                            </div>
+                            <span class="small text-success">Ready</span>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeAttachmentFile('${rowId}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                $("#attachmentFilesList").append(rowHtml);
+            }
+        }
+
+        function removeAttachmentFile(rowId) {
+            attachmentFilesFormData.delete(rowId);
+            $("#" + rowId).remove();
+            if ($("#attachmentFilesList tr").length === 0) {
+                $("#attachmentFilesList").html('<tr id="trEmpty"><td colspan="4" class="text-center text-muted py-3">No file selected</td></tr>');
+            }
+        }
+
+        $("#btnSaveAttachment").on("click", function (e) {
+            e.preventDefault();
+
+            var classNotes = $('#LMSCLASSNOTES').val();
+            if (!classNotes) {
+                Swal.fire('Required Field', 'Please select a Class Notes category.', 'warning');
+                return;
+            }
+
+            var currentFormData = new FormData();
+            var sid = $('#hdnAttachmentId').val() || "0";
+            var unit = $('#UNITLIST').val() || "";
+            var sub = $('#txtsubject').val() || "";
+            var tit = $('#txttitle').val() || "";
+            var qusPaper = $('#LMSQUESTIONPAPER').val() || "";
+            var qusPaperType = $('#LMSQUESTIONPAPERTYPE').val() || "";
+            var courseId = $("#CourseId").val();
+            var classId = $("#CommonclassId").val();
+
+            var summernoteContent = $('#txtdescription').summernote('code');
+            currentFormData.append('sHtml', encodeURI(summernoteContent));
+
+            var jsonData = JSON.stringify({
+                "COURSEWISE_ATTACHMENT_ID": sid,
+                "COURSE_ID": courseId,
+                "CLASS_ID": classId,
+                "NOTES_ID": classNotes,
+                "UNIT": unit,
+                "SUBJECT": sub,
+                "TITLE": tit,
+                "QUESTION_PAPER_ID": qusPaper,
+                "QUESTION_PAPER_TYPE_ID": qusPaperType
+            });
+            currentFormData.append("sJsonData", jsonData);
+
+            // Append multiple files
+            for (var key of attachmentFilesFormData.keys()) {
+                currentFormData.append("Files", attachmentFilesFormData.get(key));
+            }
+
+            // Excel file if present
+            var excelFile = $("#ExcelUploadFile")[0]?.files[0];
+            if (excelFile) {
+                currentFormData.append("ExcelFile", excelFile);
+            }
+
+            $("#btnSaveAttachment").prop("disabled", true).html('<i class="fas fa-spinner fa-spin me-1"></i> Saving...');
+
+            $.ajax({
+                url: '@Url.Action("SaveCourseWiseAttachements", "Lms")',
+                type: "POST",
+                data: currentFormData,
+                contentType: false,
+                processData: false,
+                success: function (result) {
+                    $("#btnSaveAttachment").prop("disabled", false).html('<i class="fas fa-save me-1"></i> Save Attachment');
+                    if (result && (result.Success || result.ErrorCode === "200" || result.ErrorCode === 200 || (result.Message && result.Message.toLowerCase().includes("success")))) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Saved!',
+                            text: result.Message || 'Attachment added successfully.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', result.Message || 'Save failed.', 'error');
+                    }
+                },
+                error: function (ex) {
+                    $("#btnSaveAttachment").prop("disabled", false).html('<i class="fas fa-save me-1"></i> Save Attachment');
+                    Swal.fire('Error', 'Server Error: ' + ex.statusText, 'error');
+                }
+            });
+        });
+
+        // Delete Attachment
+        $(document).on('click', '.btn-delete-attachment', function () {
+            var id = $(this).data('id');
+            Swal.fire({
+                title: 'Delete Attachment?',
+                text: 'This attachment and its associated files will be removed.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, delete'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteCourseWiseAttachments", "Lms")',
+                        type: 'POST',
+                        data: { sCWId: id },
+                        success: function () {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: 'Attachment removed successfully.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        },
+                        error: function () {
+                            Swal.fire('Error', 'Delete failed.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // =========================================================================
+        // ASSIGNMENTS TAB FUNCTIONS
+        // =========================================================================
+        $("#btnAddAssignment").on("click", function () {
+            $("#AssignmentSettingId").val("");
+            $("#SettingName, #TotalMark, #Description, #StartDate, #EndDate, #LinkUpload").val("");
+            $("#excelCls").val(null).trigger('change');
+            $("#ExistingFileName").val("");
+            $("#ExistingFileContainer, #AssignmentPreviewContainer").hide();
+            $("#FileUpload").val('');
+            $("#AddAssignmentModalLabel").html('<i class="fas fa-tasks me-1"></i> Add Assignment Setting');
+            $("#btnSaveAssignmentSetting").html('<i class="fas fa-save me-1"></i> Save Assignment');
+            $("#AddAssignmentModal").modal("show");
+        });
+
+        function ClearAssignmentFile() {
+            $("#FileUpload").val('');
+            $("#AssignmentPreviewContainer").hide();
+            if ($("#ExistingFileName").val()) {
+                $("#ExistingFileContainer").show();
+            }
+        }
+
+        $("#FileUpload").on("change", function () {
+            var file = this.files[0];
+            if (file) {
+                $("#ExistingFileContainer").hide();
+                var ext = file.name.split('.').pop().toLowerCase();
+                var size = (file.size / 1024).toFixed(2);
+                var sizeStr = size > 1024 ? (size / 1024).toFixed(2) + " MB" : size + " KB";
+
+                $("#AssignmentPreviewName").text(file.name);
+                $("#AssignmentPreviewSize").text(sizeStr);
+
+                var mediaHtml = "";
+                if (['jpg', 'jpeg', 'png'].includes(ext)) {
+                    mediaHtml = `<img src="${URL.createObjectURL(file)}" style="width:36px;height:36px;object-fit:cover;border-radius:4px;">`;
+                } else {
+                    var iconClass = "fa-file-alt";
+                    if (ext === 'pdf') iconClass = "fa-file-pdf text-danger";
+                    else if (['doc', 'docx'].includes(ext)) iconClass = "fa-file-word text-primary";
+                    else if (['xls', 'xlsx'].includes(ext)) iconClass = "fa-file-excel text-success";
+                    mediaHtml = `<i class="fas ${iconClass} fa-2x"></i>`;
+                }
+                $("#AssignmentPreviewMedia").html(mediaHtml);
+                $("#AssignmentPreviewContainer").fadeIn();
+            } else {
+                $("#AssignmentPreviewContainer").hide();
+                if ($("#ExistingFileName").val()) {
+                    $("#ExistingFileContainer").show();
+                }
+            }
+        });
+
+        // Edit Assignment
+        $(document).on("click", ".btnEditAssignment", function () {
+            var id = $(this).data("id");
+            $.ajax({
+                url: '@Url.Action("FetchAssignmentSetting", "Lms")',
+                type: "GET",
+                data: { sSettingId: id },
+                success: function (res) {
+                    if (res && res.length > 0) {
+                        var data = res[0];
+                        $("#AssignmentSettingId").val(data.ASSIGNMENT_SETTING_ID);
+                        $("#SettingName").val(data.ASSIGNMENT_NAME);
+                        $("#TotalMark").val(data.TOTAL_MARK);
+                        $("#Description").val(data.DESCRIPTION);
+
+                        var selectedStudents = data.STUDENT_ID ? data.STUDENT_ID.split(',') : [];
+                        $("#excelCls").val(selectedStudents).trigger('change');
+
+                        function formatDateForInput(dateStr) {
+                            if (!dateStr) return "";
+                            var parts = dateStr.split("/");
+                            if (parts.length === 3) {
+                                return parts[2] + "-" + parts[1].padStart(2, "0") + "-" + parts[0].padStart(2, "0");
+                            }
+                            return dateStr;
+                        }
+
+                        $("#StartDate").val(formatDateForInput(data.START_DATE));
+                        $("#EndDate").val(formatDateForInput(data.END_DATE));
+                        $("#LinkUpload").val(data.LINK_URL || "");
+
+                        let fileName = data.FILE_PATH ? data.FILE_PATH.split("/").pop() : "";
+                        if (fileName) {
+                            $("#ExistingFileContainer").show();
+                            $("#ExistingFileNameLink").text(fileName).attr("href", data.FILE_PATH);
+                            $("#ExistingFileName").val(data.FILE_PATH);
+                            $("#ExistingFilePreview").html('<i class="fas fa-file-alt text-primary fa-lg"></i>');
+                            $("#AssignmentPreviewContainer").hide();
+                            $("#FileUpload").val('');
+                        } else {
+                            $("#ExistingFileContainer, #AssignmentPreviewContainer").hide();
+                            $("#ExistingFileName").val("");
+                        }
+
+                        $("#AddAssignmentModalLabel").html('<i class="fas fa-edit me-1"></i> Edit Assignment Setting');
+                        $("#btnSaveAssignmentSetting").html('<i class="fas fa-save me-1"></i> Update Assignment');
+                        $("#AddAssignmentModal").modal("show");
+                    } else {
+                        Swal.fire("Error", "Failed to load assignment data.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error", "Unable to fetch assignment details.", "error");
+                }
+            });
+        });
+
+        // Save Assignment Setting
+        $("#btnSaveAssignmentSetting").on("click", function () {
+            let newFile = $("#FileUpload")[0]?.files?.length > 0 ? $("#FileUpload")[0].files[0] : null;
+            let existingFile = $("#ExistingFileName").val();
+            let linkInput = $("#LinkUpload").val();
+            let selectedStudents = $("#excelCls").val();
+
+            const assignment = {
+                ASSIGNMENT_SETTING_ID: $("#AssignmentSettingId").val(),
+                ASSIGNMENT_NAME: $("#SettingName").val().trim(),
+                TOTAL_MARK: $("#TotalMark").val().trim(),
+                STUDENT_ID: selectedStudents ? selectedStudents.join(',') : "",
+                START_DATE: $("#StartDate").val(),
+                END_DATE: $("#EndDate").val(),
+                DESCRIPTION: $("#Description").val(),
+                COURSE_ID: $("#CourseId").val(),
+                CLASS_ID: $("#CommonclassId").val(),
+                LINK_URL: linkInput,
+                EXISTING_FILE_NAME: existingFile
+            };
+
+            if (!assignment.ASSIGNMENT_NAME || !assignment.TOTAL_MARK || !assignment.STUDENT_ID) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Missing Required Fields",
+                    text: "Please provide Assignment Name, Total Marks, and select at least one Student."
+                });
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append("jsonData", JSON.stringify(assignment));
+
+            if (newFile !== null) {
+                formData.append("FileUpload", newFile);
+            }
+
+            $("#btnSaveAssignmentSetting").prop("disabled", true).html('<i class="fas fa-spinner fa-spin me-1"></i> Saving...');
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("SaveAssignmentSettings", "Lms")',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    $("#btnSaveAssignmentSetting").prop("disabled", false).html('<i class="fas fa-save me-1"></i> Save Assignment');
+                    if (res && res.Message && res.Message.toLowerCase().includes("success")) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Saved!",
+                            text: res.Message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            $("#AddAssignmentModal").modal("hide");
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error", res.Message || "Failed to save assignment.", "error");
+                    }
+                },
+                error: function () {
+                    $("#btnSaveAssignmentSetting").prop("disabled", false).html('<i class="fas fa-save me-1"></i> Save Assignment');
+                    Swal.fire("Error", "Server error occurred while saving assignment.", "error");
+                }
+            });
+        });
+
+        // Delete Assignment Setting
+        $(document).on("click", ".btnDeleteAssignment", function () {
+            const id = $(this).data("id");
+            Swal.fire({
+                title: "Delete Assignment?",
+                text: "This assignment setting will be permanently deleted.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#64748b",
+                confirmButtonText: "Yes, delete"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteAssignmentSetting", "Lms")',
+                        type: "POST",
+                        data: { sSettingId: id },
+                        success: function (res) {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Deleted!",
+                                text: res.Message || "Assignment deleted.",
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        },
+                        error: function () {
+                            Swal.fire("Error", "Failed to delete assignment.", "error");
+                        }
+                    });
+                }
+            });
+        });
+
+        // View Submissions
+        $(document).on('click', '.view-submissions', function () {
+            var assignmentSettingId = $(this).data('id');
+            loadSubmissions(assignmentSettingId);
+        });
+
+        function loadSubmissions(assignmentSettingId) {
+            $.ajax({
+                url: '@Url.Action("FetchAssignmentSubmissions", "Lms")',
+                type: 'GET',
+                data: { assignmentSettingId: assignmentSettingId },
+                success: function (res) {
+                    if (res && Array.isArray(res) && res.length > 0) {
+                        let tbody = '';
+                        $.each(res, function (i, item) {
+                            let fileBtn = item.FILE_PATH
+                                ? `<button class="btn btn-sm btn-outline-primary view-submission-file" data-file="${item.FILE_PATH}"><i class="fas fa-file-alt me-1"></i> View</button>`
+                                : `<span class="no-file-text">No File</span>`;
+
+                            tbody += `<tr>
+                                <td class="text-center fw-bold text-muted">${i + 1}</td>
+                                <td><strong>${item.FIRST_NAME || item.NAME || 'Student'}</strong></td>
+                                <td class="text-center"><span class="badge bg-secondary">${item.TOTAL_MARK}</span></td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm sec-mark text-center fw-bold"
+                                           data-id="${item.STU_ASSIGNMENT_ID}" value="${item.SEC_MARK || ''}" min="0" max="${item.TOTAL_MARK}">
+                                </td>
+                                <td>${item.ENTRY_DATE || '-'}</td>
+                                <td>${fileBtn}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-success update-mark px-3" data-id="${item.STU_ASSIGNMENT_ID}">
+                                        <i class="fas fa-check me-1"></i> Save
+                                    </button>
+                                </td>
+                            </tr>`;
+                        });
+                        $("#tblSubmissions tbody").html(tbody);
+                        $("#ViewSubmissionsModal").modal('show');
+                    } else {
+                        Swal.fire("No Submissions", "No student submissions found for this assignment.", "info");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error", "Unable to fetch submissions.", "error");
+                }
+            });
+        }
+
+        // Save Assignment Evaluation Mark
+        $(document).on('click', '.update-mark', function () {
+            let btn = $(this);
+            let stuId = btn.data('id');
+            let mark = btn.closest('tr').find('.sec-mark').val();
+
+            var jsonData = JSON.stringify({
+                STU_ASSIGNMENT_ID: stuId,
+                SEC_MARK: mark
+            });
+
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+            $.ajax({
+                url: '@Url.Action("SaveAssignmentMark", "Lms")',
+                type: 'POST',
+                data: { sJsonData: jsonData },
+                success: function (res) {
+                    btn.prop('disabled', false).html('<i class="fas fa-check me-1"></i> Saved');
+                    setTimeout(() => btn.html('<i class="fas fa-check me-1"></i> Save'), 1800);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Mark Saved',
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+                },
+                error: function () {
+                    btn.prop('disabled', false).html('<i class="fas fa-check me-1"></i> Save');
+                    Swal.fire("Error", "Unable to update mark.", "error");
+                }
+            });
+        });
+
+        // View Student Submitted File in Modal
+        $(document).on('click', '.view-submission-file', function () {
+            let filePath = $(this).data('file');
+            let modalHtml = `
+            <div class="modal fade" id="FileViewModal" tabindex="-1">
+                <div class="modal-dialog modal-xl modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-dark text-white">
+                            <h5 class="modal-title"><i class="fas fa-file me-2"></i> Student Submission File</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body p-0">
+                            <iframe src="${filePath}" frameborder="0" width="100%" height="600px"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            $("body").append(modalHtml);
+            $("#FileViewModal").modal('show').on('hidden.bs.modal', function () {
+                $(this).remove();
+            });
+        });
+
+        // Show Enrolled Students List Modal
+        function showStudentDetails(names, rolls) {
+            var nameList = names ? names.split(',') : [];
+            var tbody = "";
+
+            if (nameList.length > 0) {
+                nameList.forEach(function (fullString, index) {
+                    if (fullString.trim()) {
+                        var parts = fullString.split(" - ");
+                        var studentName = parts[0].trim();
+                        var rollNo = parts.length > 1 ? parts[1].trim() : "N/A";
+
+                        tbody += `<tr>
+                            <td class="text-center text-muted small">${index + 1}</td>
+                            <td class="fw-bold text-dark">${studentName}</td>
+                            <td><span class="badge bg-light text-primary border border-primary-subtle px-2 py-1">${rollNo}</span></td>
+                        </tr>`;
+                    }
+                });
+            } else {
+                tbody = '<tr><td colspan="3" class="text-center text-muted py-4 small">No student details available</td></tr>';
+            }
+
+            $('#modalStudentDetailsBody').html(tbody);
+            $('#StudentDetailsModal').modal('show');
+        }
+
+        // =========================================================================
+        // UTILITY FUNCTIONS: SELECT2 AND COPY
+        // =========================================================================
+        function initSelect2WithActions(selector, placeholderText) {
+            const $el = $(selector);
+            $el.select2({
+                placeholder: placeholderText || "Select options",
+                allowClear: true,
+                closeOnSelect: false,
+                width: '100%',
+                dropdownParent: $('#AddAssignmentModal')
+            });
+
+            $el.on('select2:open', function () {
+                const dropdown = $('.select2-container--open .select2-dropdown');
+                if (dropdown.find('.select2-action-bar').length === 0) {
+                    dropdown.prepend(`
+                        <div class="select2-action-bar">
+                            <button type="button" class="btn-toggle-select btn-select-all active">
+                                <i class="fas fa-check-square me-1"></i> Select All
+                            </button>
+                            <button type="button" class="btn-toggle-select btn-unselect-all">
+                                <i class="fas fa-times-circle me-1"></i> Unselect All
+                            </button>
+                        </div>`);
+
+                    dropdown.find('.btn-select-all').on('mousedown', function (e) {
+                        e.preventDefault();
+                        $el.find('option:not(:disabled)').prop('selected', true);
+                        $el.trigger("change");
+                    });
+
+                    dropdown.find('.btn-unselect-all').on('mousedown', function (e) {
+                        e.preventDefault();
+                        $el.val(null).trigger("change");
+                    });
+                }
+            });
+        }
+
+        // Copy Meeting URL
+        $(document).on('click', '.copy-btn', function () {
+            var button = $(this);
+            var url = button.data('url');
+            if (url) {
+                navigator.clipboard.writeText(url).then(function () {
+                    button.html('<i class="fas fa-check text-success"></i>');
+                    setTimeout(() => button.html('<i class="fas fa-copy"></i>'), 2000);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

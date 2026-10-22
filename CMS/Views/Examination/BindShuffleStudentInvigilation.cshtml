@@ -1,0 +1,210 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{ 
+    Layout = null;
+}
+
+<br /><br />
+<div class="form-group col-md-12 table-responsive">
+    @if (Model.liexaminvigilation != null && Model.liexaminvigilation.Count > 0)
+    {
+        int nCount = 0;
+        if (Model.liStudentList!=null && Model.liStudentList.Count>0)
+        {
+            nCount = Convert.ToInt32(Model.liStudentList.FirstOrDefault().STUDENT_ID);
+        }
+
+        <!-- Hidden Fileds-->
+        <input type="hidden" id="sExamDate" value="@Model.liexaminvigilation.FirstOrDefault().EXAM_DATE" />
+        <input type="hidden" id="sStartTime" value="@Model.liexaminvigilation.FirstOrDefault().START_TIME" />
+        <input type="hidden" id="sEndTime" value="@Model.liexaminvigilation.FirstOrDefault().END_TIME" />
+        <input type="hidden" id="sTimeTableId" value="@Model.liexaminvigilation.FirstOrDefault().TIMETABLE_ID" />
+        <input type="hidden" id="sTotalHours" value="@Model.liexaminvigilation.FirstOrDefault().TOTAL_HOURS" />
+
+        <table class="table table-bordered" id="tblShuffleStudent">
+            <tbody>
+                @if (Model.liCourseRoot != null && Model.liCourseRoot.Count > 0)
+                {
+                    <tr>
+                        <td>Course Code  </td>
+                        <td>@Model.liCourseRoot.FirstOrDefault().COURSE_CODE</td>
+                        <td>Course Title  </td>
+                        <td>@Model.liCourseRoot.FirstOrDefault().COURSE_TITLE</td>
+                        <td>Department  </td>
+                        <td>@Model.liCourseRoot.FirstOrDefault().DEPARTMENT</td>
+                    </tr>
+                }
+                
+                <tr>
+                    <td>Exam Date  </td>
+                    <td>@Model.liexaminvigilation.FirstOrDefault().EXAM_DATE</td>
+                    <td>Start Time   </td>
+                    <td>@Model.liexaminvigilation.FirstOrDefault().START_TIME</td>
+                    <td>End Time  </td>
+                    <td>@Model.liexaminvigilation.FirstOrDefault().END_TIME</td>
+                </tr>
+                <tr>
+                    <td>Total Count  </td>
+                    <td>@{var Count = nCount + Model.liexaminvigilation.Count;} @Count</td>
+                    <td>Alloted Count  </td>
+                    <td>@nCount</td>
+                    <td>Balance Count  </td>
+                    <td>@Model.liexaminvigilation.Count</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-bordered" id="tblStudent">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" name="myTextEditBox" id="AllchkID" onchange="SelectOrUnselect()" /> Select All  <b id="lblCount"></b></th>
+                    <th>Register No </th>
+                    <th>Class </th>
+                    <th>Name </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.liexaminvigilation)
+                {
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="myTextEditBox" id="chkID" onclick="ClickCount()" cms-courseid="@item.COURSE_ID" cms-studentid="@item.STUDENT_ID"/> 
+                        </td>
+                        <td>@item.ROLL_NO</td>
+                        <td>@item.CLASS_NAME</td>
+                        <td>@item.FIRST_NAME</td>
+                        
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="form-group col-md-12">
+            <a class="btn btn-primary pull-right" href="javascript:;" onclick="SubmitData()"> Submit </a>
+        </div>
+}
+
+</div>
+
+
+<script>
+        SelectOrUnselect = function ()
+        {
+            if (AllchkID.checked == true)
+            {
+                $('#tblStudent tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", true);
+                    });
+                });
+            }
+            else
+            {
+                $('#tblStudent tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", false);
+                    });
+                });
+            }
+
+            ClickCount();
+        }
+</script>
+
+<script>
+    function SubmitData()
+    {
+        var nJsonCount = 0; var sJson = '{"liExamInvigilation" :[';
+        $('#tblStudent tbody tr').each(function ()
+        {
+            $(this).find('input[type="checkbox"]').each(function ()
+            {
+                if ($(this).is(':checked'))
+                {
+                    sJson += '{"EXAM_SETTING_ID":"' + $('#ExamSetting').val() + '",\
+                               "COURSE_ID":"'+ $(this).attr('cms-courseid') + '",\
+                               "STUDENT_ID":"' + $(this).attr('cms-studentid') + '",\
+                               "EXAM_INVIGILATOR_ID":"'+ $('#StaffList').val() + '",\
+                               "EXAM_DATE":"'+ $('#sExamDate').val() + '",\
+                               "START_TIME":"'+ $('#sStartTime').val() + '",\
+                               "END_TIME":"' + $('#sEndTime').val() + '",\
+                               "TOTAL_HOURS":"' + $('#sTotalHours').val() + '",\
+                               "SET":"' + $('#Set').val() + '",\
+                               "ACADEMIC_YEAR":"' + $('#AcademicYearList Option:selected').text() + '",\
+                               "TIMETABLE_ID":"'+ $('#sTimeTableId').val() + '"},';
+                    nJsonCount++;
+                }
+                //$('input[type="checkbox"]').attr("checked", true);
+            });
+        });
+        if (nJsonCount != 0)
+        {
+            sJson = sJson.slice(0, -1);
+            sJson += ']}';
+        } else
+        {
+            swal({ title: "Oops !", text: 'Please select students to continue !', showConfirmButton: false, timer: 2000, type: 'warning', animation: true });
+            return false;
+        }
+
+
+        // Post values using ajax
+
+        swal({
+            title: "Are you sure?",
+            text: "Your sure to assign ( " + nJsonCount + " ) students for this staff !",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+        function ()
+        {
+            $.ajax({
+                url: '@Url.Action("SaveShuffleStudentInvigilation", "Examination")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sJson: sJson },
+                success: function (data)
+                {
+                    if (data.ErrorCode == '200')
+                    {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                        loadShuffleStudents();
+                    }
+                    else
+                    {
+                        swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+                    }
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        });
+    }
+</script>
+
+<script>
+    var nCount = 0;
+    function ClickCount()
+    {
+        nCount = 0;
+        $('#tblStudent tbody tr').each(function ()
+        {
+            $(this).find('input[type="checkbox"]').each(function ()
+            {
+                if ($(this).is(':checked'))
+                {
+                    nCount++;
+                }
+            });
+        });
+        $('#lblCount').text(' ( ' + nCount + ' )');
+    }
+</script>

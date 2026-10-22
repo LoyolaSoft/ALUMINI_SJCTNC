@@ -1,0 +1,162 @@
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.ViewModel.Model
+
+@{
+    Layout = null;
+    int sCount = 0;
+    var questionGroups = Model.QuestionList.GroupBy(o => o.GROUP_TITLE).OrderBy(o => o.Key).ToList();
+}
+
+<div class="modern-feedback-questions">
+    <div class="assessee-profile" style="text-align: center; margin-bottom: 30px;">
+        <div style="position: relative; display: inline-block;">
+            <img src="@Model.AssesseePhoto" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+        </div>
+        <h3 style="margin: 15px 0 5px; color: #2d3436; font-weight: 700;"> @Model.AssesseeName</h3>
+        <p style="color: #636e72; font-size: 0.9em;">Faculty Assessment</p>
+    </div>
+
+    @if (Model.QuestionList != null && Model.QuestionList.Count > 0)
+    {
+        using (Html.BeginForm(null, null, FormMethod.Post, new { id = "modernFeedbackForm" }))
+        {
+            foreach (var group in questionGroups)
+            {
+                <div class="group-header" style="margin: 30px 0 20px; border-left: 4px solid #764ba2; padding-left: 15px;">
+                    <h4 style="color: #764ba2; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">@group.Key</h4>
+                </div>
+
+                foreach (var question in group)
+                {
+                    sCount++;
+                    var objectives = new List<FBOBJECTIVES>();
+                    if (Model.ObjectiveList != null)
+                    {
+                        objectives = Model.ObjectiveList.Where(x => x.FEEDBACK_ID == question.FEEDBACK_ID && x.QUESTION_ID == question.QUESTION_ID).ToList();
+                    }
+
+                    <div class="question-card" data-question-id="@question.QUESTION_ID">
+                        <div class="question-text">
+                            <span style="color: #764ba2; margin-right: 10px;">@sCount.</span>
+                            @question.QUESTION
+                            @if (!string.IsNullOrEmpty(question.TAMIL_QUESTION))
+                            {
+                                <div style="font-size: 0.85em; color: #636e72; margin-top: 5px; font-weight: normal;">@question.TAMIL_QUESTION</div>
+                            }
+                        </div>
+
+                        <div class="rating-options">
+                            @if (objectives != null && objectives.Count > 0)
+                            {
+                                foreach (var obj in objectives)
+                                {
+                                    if (!string.IsNullOrEmpty(obj.OBJECTIVE_ID) && obj.OBJECTIVE_ID != "0")
+                                    {
+                                        <div class="rating-item">
+                                            <input type="radio" name="@question.QUESTION_ID" value="@obj.OBJECTIVE_ID" id="m_fb_@question.QUESTION_ID@obj.OBJECTIVE_ID" required>
+                                            <label class="rating-label" for="m_fb_@question.QUESTION_ID@obj.OBJECTIVE_ID">
+                                                <div style="font-size: 1.1em;">@obj.OBJECTIVESHORTTERM</div>
+                                                <div style="font-size: 0.7em; margin-top: 4px; opacity: 0.8;">@obj.OBJECTIVES</div>
+                                            </label>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <textarea name="@question.QUESTION_ID" class="form-control" style="border-radius: 10px; border: 2px solid #eee; padding: 15px;" placeholder="Write your feedback here..." required></textarea>
+                                    }
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+            }
+
+            <div style="margin-top: 40px; display: flex; gap: 15px; padding-bottom: 50px;">
+                <button type="button" class="btn btn-primary" id="btnModernSubmit" style="flex: 1; padding: 15px; border-radius: 12px; font-weight: 700; background: var(--primary-gradient); border: none; box-shadow: 0 5px 15px rgba(118,75,162,0.3);">Submit Feedback</button>
+                <button type="button" class="btn btn-light" onclick="closeModal()" style="padding: 15px 30px; border-radius: 12px; font-weight: 600; border: 1px solid #ddd;">Cancel</button>
+            </div>
+        }
+    }
+    else
+    {
+        <div style="text-align: center; padding: 40px; color: #636e72;">
+            <i class="far fa-frown" style="font-size: 3em; margin-bottom: 20px; opacity: 0.3;"></i>
+            <p>@Model.sErrorMessage</p>
+        </div>
+    }
+</div>
+
+<script>
+    $('#btnModernSubmit').on('click', function() {
+        var form = $('#modernFeedbackForm');
+        var ArrayAnswer = '{"liFB_Answer":[';
+        var isValid = true;
+        var unansweredCount = 0;
+
+        $('.question-card').each(function() {
+            var qId = $(this).data('question-id');
+            var radioChecked = $(this).find('input[name="' + qId + '"]:checked');
+            var textArea = $(this).find('textarea[name="' + qId + '"]');
+
+            if (radioChecked.length > 0) {
+                ArrayAnswer += '{"QUESTION":"' + qId + '","ANSWER":"' + radioChecked.val() + '"},';
+            } else if (textArea.length > 0 && textArea.val().trim() !== "") {
+                ArrayAnswer += '{"QUESTION":"' + qId + '","ANSWER_IN_TEXT":"' + textArea.val() + '"},';
+            } else {
+                isValid = false;
+                unansweredCount++;
+                $(this).css('border-color', '#ff7675');
+            }
+        });
+
+        if (!isValid) {
+            swal("Incomplete", "Please answer all " + unansweredCount + " pending questions.", "warning");
+            return;
+        }
+
+        ArrayAnswer = ArrayAnswer.slice(0, -1) + ']}';
+
+        // Prepare context data
+        // These are typically gathered from the parent view or session
+        var courseId = '@ViewBag.CourseId' || "";
+        // Note: We need to ensure ViewBag.CourseId is set in BindModernFeedbackQuestions
+
+        var JsonData = JSON.stringify({
+            ASSESSOR: "",
+            CLASS_ID: '@Session[CMS.Utility.Common.SESSION_VARIABLES.FBCLASS_ID]',
+            ASSESSEE: '@ViewBag.Assessee',
+            FEEDBACK_ID: '@(Model.QuestionList != null && Model.QuestionList.Count > 0 ? Model.QuestionList.FirstOrDefault().FEEDBACK_ID : "")',
+            FEEDBACK_ROLE_ID: '@(Model.QuestionList != null && Model.QuestionList.Count > 0 ? Model.QuestionList.FirstOrDefault().FEEDBACK_ROLE_ID : "")', // Can be fetched if needed
+            ROLE: '@CMS.Utility.Common.SupRole.STAFF',
+            COURSE_ID: courseId,
+            SUP_FEEDBACK_ROLE_ID: '@CMS.Utility.Common.FBFEEDBACK_ROLE.STAFF_BY_STUDENT'
+        });
+
+        $("#globalLoader").css("display", "flex");
+
+        $.ajax({
+            url: '@Url.Action("SaveFeedBackAnswer", "Feedback")',
+            method: "POST",
+            data: { sJsonData: JsonData, sFeedBackAnswer: ArrayAnswer },
+            success: function(data) {
+                if (data.Message) {
+                    swal({
+                        title: "Success!",
+                        text: data.Message,
+                        type: "success"
+                    }, function() {
+                        location.reload(); // Refresh to update progress and badges
+                    });
+                } else {
+                    swal("Error", "Failed to save feedback.", "error");
+                }
+            },
+            error: function() {
+                swal("Error", "Internal server error. Please try again.", "error");
+            },
+            complete: function() {
+                $("#globalLoader").hide();
+            }
+        });
+    });
+</script>

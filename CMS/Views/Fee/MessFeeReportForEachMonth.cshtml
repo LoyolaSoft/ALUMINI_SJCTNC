@@ -1,0 +1,201 @@
+﻿@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+@using CMS.Utility;
+@{
+    ViewBag.Title = "MessFeeReportForEachMonth";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+
+            <li class="active"> Mess Fee Status</li>
+        </ol>
+        <h2 class="page-header"> Mess Fee Status </h2>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Mess Fee Status </h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div class="col-md-12">
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.liAcademicYear, "Academic Year", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.liAcademicYear, (Model.liAcademicYear != null) ? Model.liAcademicYear : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.liAcademicYear, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6 hidden">
+                            @Html.LabelFor(model => model.FeeRoot, "Fee Root", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownList("FeeRoot", (Model.LiSupFeeRoot != null) ? new SelectList(Model.LiSupFeeRoot, Common.SUP_FEE_ROOT.FEE_ROOT_ID, Common.SUP_FEE_ROOT.FEE_ROOT, Common.FeeRoot.MessFee) : Enumerable.Empty<SelectListItem>(), new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", disabled = "disabled" })
+                            </div>
+                        </div>                   
+                        <div class="form-group col-md-3">
+                            @Html.LabelFor(model => model.liFrequencyType, "Frequency", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.liFrequencyType, (Model.liFrequencyType != null) ? Model.liFrequencyType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.liFrequencyType, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.liHead, "Heads", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.liHead, (Model.liHead != null) ? Model.liHead : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @multiple = "true", @actionsBox = "true" })
+                                @Html.ValidationMessageFor(model => model.liHead, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-1 pull-right">
+                            <a href="javascript:;" id="btnGet" onclick="BindFeeDetails()" class="btn btn-sm btn-primary m-b-10 pull-right"> Get</a>
+                        </div>
+                    </div>                    
+                    <div class="col-md-12 m-b-5">
+                        <div id="divMessFeeCollection">
+                            <!--Need to use this fied to bind Student List-->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    }
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+    ContentLoad = function () {
+        //Ready Function()
+    }
+    $('.selectpicker').selectpicker({
+        size: 4
+    });
+</script>
+<script>
+
+    $('#liFrequencyType').change(function () {
+        BindFrequency();
+    });
+    $('#FeeRoot').change(function () {
+        BindFrequency();
+    });
+    $('#liAcademicYear').change(function () {
+        BindFrequencyId();
+    });
+    
+    BindFrequency = function () {
+        var AcademicYear = $('#liAcademicYear option:selected').text();
+        var FeeRoot = $("#FeeRoot").val();
+        var FrequencyType = $("#liFrequencyType").val();
+        if (AcademicYear != 0 && FrequencyType != 0 && FeeRoot) {
+            var dvMessFeeCollection = $('#divMessFeeCollection');
+            dvMessFeeCollection.empty();
+            $.ajax({
+                url: "@Url.Action("GetHeadByFreqencyForMess", "Fee")",
+                async: false,
+                data: { sAcademicYear: AcademicYear, sFeeRoot: FeeRoot, sFrequency: FrequencyType },
+                success: function (objResult) {
+                    $('#liHead').empty();
+                    $('#liHead').append(objResult.sResult);
+                    $('.selectpicker').selectpicker('refresh');
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+        }
+        else {
+            $('.selectpicker').selectpicker('refresh');
+            return false;
+        }
+    };
+     BindFrequencyId = function () {
+        var AcademicYear = $('#liAcademicYear option:selected').text();
+        var FeeRoot = $("#FeeRoot").val();
+        var FrequencyType = $("#liFrequencyType").val();
+        if (AcademicYear != 0 && FeeRoot) {
+            var dvMessFeeCollection = $('#divMessFeeCollection');
+            dvMessFeeCollection.empty();
+            $.ajax({
+                url: "@Url.Action("loadFrequencyByAcademicYearForMessAndHostel", "Fee")",
+                async: false,
+                data: { sAcademicYear: AcademicYear, sFeeRoot: FeeRoot },
+                success: function (objResult) {
+                    $('#liFrequencyType').empty();
+                    $('#liFrequencyType').append(objResult.sResult);
+                    $('.selectpicker').selectpicker('refresh');
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+        }
+        else {
+            $('.selectpicker').selectpicker('refresh');
+            return false;
+        }
+    };
+</script>
+<script>
+    function BindFeeDetails() {             
+        if (true) {
+            var sAcademicYear = $('#liAcademicYear option:selected').text();
+            var sHead = String($('#liHead').val());
+            $.ajax({
+                url: '@Url.Action("BindMessFeeCollection", "Fee")',
+                data: { sFrequencyId: $("#liFrequencyType").val(), sAcademicYear: sAcademicYear, sFeeRoot: $("#FeeRoot").val(), sHeads: sHead },
+                success: function (option) {
+                    var dvMessFeeCollection = $('#divMessFeeCollection');
+                    dvMessFeeCollection.empty();
+                    dvMessFeeCollection.append(option);
+                    $("#MessFeeCollection").DataTable({
+                        dom: "lBfrtip", buttons: [{
+                            extend: "copy", className: "btn-sm"
+                        }
+                        , {
+                            extend: "excel", className: "btn-sm"
+                        }
+                        , {
+                            extend: "pdf", className: "btn-sm"
+                        }
+                        ], responsive: !0
+                    });
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+        }
+        else {
+            alert('Please Select All The Values...!!!');
+        }
+    }
+
+</script>

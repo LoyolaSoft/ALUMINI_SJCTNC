@@ -1,0 +1,272 @@
+﻿@model IEnumerable<CMS.ViewModel.Model.Family>
+
+<div id="dvFamilyInfo">
+    <div class="row">
+        <div class="form-group pull-right">
+            <div class="col-md-12 pull-right">
+                <a href="#Family-dialog" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="table-responsive">
+
+            <table class="table table-hover">
+                @{int count = 0; }
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>@Html.DisplayNameFor(model => model.Name)</th>
+                        <th>@Html.DisplayNameFor(model => model.Relation)</th>
+                        <th>@Html.DisplayNameFor(model => model.DateOfBirth)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null)
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @{count++;} @count
+                                </td>
+                                <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Relation)</td>
+                                <td>@Html.DisplayFor(modelItem => item.DateOfBirth)</td>
+                                <td>
+                                    <a href="#Family-dialog" onclick="GetFamily(@item.FamilyId)" data-toggle="modal"><i class="fa fa-edit text-primary"></i></a>
+                                    <a href="javascript:;" onclick="GetConfirm(@item.FamilyId)"><i class="fa fa-trash text-danger"></i></a>
+                                </td>
+                            </tr>
+                          }
+                      }
+                      else
+                      {
+                          <tr>
+                              <td>No Data Found ....!</td>
+                          </tr>
+                      }
+
+                </tbody>
+            </table>
+
+            <script>
+                $(document).ready(function () {
+                    $("#btnEditFamily").hide();
+                    ////FormMultipleUpload.init();
+                    handleDatePicker = function () {
+                        "use strict";
+                        $("#DateOfBirth").datepicker({
+                            todayHighlight: true,
+                            autoclose: true,
+                            endDate: new Date(),
+                            format: "dd/mm/yyyy",
+                            orientation: "right bottom"
+                            // 'top': top,
+                            // 'left': left
+                        });
+                    }
+                    handleDatePicker();
+                    GetDropDown = function () {
+                        $.ajax({
+                            url: "@Url.Action("DDLFamily", "Staff")",
+                            method: "POST",
+                            datatype: "json",
+                            success: function (option) {
+                                $("#ddlRelation").empty();
+                                $("#ddlRelation").append('<option value="">-- select --</option>' + option);
+
+                            }, error: function (error) {
+                                alert('Internal Server Error ..!');
+                            }
+                        });
+                    }
+                    GetDropDown();
+                });
+                // Get Family List
+                GetFamilyInfo = function ()
+                {
+                    $.ajax({
+                        url: "@Url.Action("EditStaffFamilyInfo", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        success: function (data) {
+                            $('#dvFamilyInfo').empty();
+                            $('#dvFamilyInfo').append(data);
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+
+                //Bind Family Details ...
+                var GetFamily = function (ID) {
+                    $.ajax({
+                        url: "@Url.Action("BindFamily", "Staff")",
+                        method: "POST",
+                        datatype: "json",
+                        data: { sFamilyID: ID },
+                        success: function (data) {
+                            $("#Name").val(data.Name);
+                            $("#ddlRelation").val(data.Relation);
+                            $("#DateOfBirth").val(data.DateOfBirth);
+                            $("#btnEditFamily").show();
+                            $("#btnFamily").hide();
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+
+
+                // Delete Service ...
+                function GetConfirm(ID)
+                {
+                    if (!confirm('Are you sure to delete ?'))
+                    {
+                        return false;
+                    } else
+                    {
+                        $.ajax({
+                            url:"@Url.Action("DeleteFamily", "Staff")",
+                            method: "POST",
+                            datatype:"json",
+                            data: { sFamilyId: ID },
+                            success:function(data)
+                            {
+                                alert(data);
+                                GetFamilyInfo();
+                            },error:function(error)
+                            {
+                                alert('Internal Server Error ..!');
+                            }
+                        });
+                    }
+                }
+
+
+                //Update Family ...
+                $("#btnEditFamily").on("click", function ()
+                {
+                    var isValid = true;
+                    if ($('#nav-tab2-11').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        //gritter-info,danger,success,warning,default
+                        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    var Name = $("#Name").val();
+                    var Relation = $("#ddlRelation").val();
+                    var DateOfBirth = $("#DateOfBirth").val();
+                    var JsonData;
+                    if (JsonData == null) {
+                        JsonData = '{"Name":"' + Name + '","Relation":"' + Relation + '","DateOfBirth":"' + DateOfBirth + '"}';
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("UpdateFamily", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        data: { JsonFamily: JsonData },
+                        success: function (data) {
+                            alert(data);
+                            GetFamilyInfo();
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                });
+
+                //Add Family ...
+                $("#btnFamily").on("click", function ()
+                {
+                    var isValid = true;
+                    if ($('#nav-tab2-11').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        //gritter-info,danger,success,warning,default
+                        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    var Name = $("#Name").val();
+                    var Relation = $("#ddlRelation").val();
+                    var DateOfBirth = $("#DateOfBirth").val();
+                    var JsonData;
+                    if (JsonData == null) {
+                        JsonData = '{"Name":"' + Name + '","Relation":"' + Relation + '","DateOfBirth":"' + DateOfBirth + '"}';
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("AddFamily", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        data: { JsonFamily: JsonData },
+                        success: function (data) {
+                            alert(data);
+                            GetFamilyInfo();
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                });
+            </script>
+        </div>
+    </div>
+    <!--Modal-->
+    <div class="modal" id="Family-dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Family Information</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <div class="form-horizontal">
+                                <div class="col-md-12">
+
+                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Name</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="Name" placeholder="Enter Name" data-parsley-required="true" data-parsley-length="[3,100]" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Relation</label>
+                                        <div class="col-md-9">
+                                            <select id="ddlRelation" class="form-control input-sm" data-parsley-required="true">
+                                                <option value="">-- select --</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Date Of Birth</label>
+                                        <div class="col-md-9">
+                                            <div class="input-group date" id="datetimepicker1">
+                                                <input type="text" class="form-control input-sm" id="DateOfBirth" placeholder="Select Date" data-parsley-required="true" />
+                                                <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-sm btn-primary" id="btnFamily" data-dismiss="modal">Submit</a>
+                    <a class="btn btn-sm btn-primary" id="btnEditFamily" data-dismiss="modal">Update</a>
+                    <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Modal-->
+</div>

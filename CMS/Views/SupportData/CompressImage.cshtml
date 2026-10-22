@@ -1,0 +1,247 @@
+﻿@model CMS.ViewModel.Model.SupSemester
+
+@{
+    ViewBag.Title = "CompressImage";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+    
+    <style>
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        #btnImage {
+            border: 1px solid gray;
+            color: gray;
+            background-color: white;
+            padding: 7px 15px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+        }
+    </style>
+
+
+<div id="content" class="content">
+
+    <!-- BEGIN breadcrumb -->
+    <ul class="breadcrumb pull-right">
+        <li class="breadcrumb-item"><a @*href="@Url.Action("Dashboard","Admin")"*@ href="javascript:;">Home</a></li>
+        <li class="breadcrumb-item"><a @*href="@Url.Action("Studentlist","Student")"*@ href="javascript:;" onclick="loadContent('/Student/Studentlist')">Student List</a></li>
+        <li class="breadcrumb-item active"> Add Student Information</li>
+    </ul>
+    <!-- END breadcrumb -->
+    <!-- BEGIN page-header -->
+    <h1 class="page-header">
+        Add Student Information
+    </h1>
+    <!-- END page-header -->
+    <div id="AlertId" class="" data-toggle="notification"
+         data-title="Alert"
+         data-btn="true"
+         data-autoclose-time="5000"
+         data-autoclose="true"
+         data-btn-attr="data-click='trigger-details'"></div>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            <div class="panel">
+                <div class="panel-heading bg-primary">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn text-white" data-toggle="panel-expand"><i class="ti-fullscreen"></i></a>
+                        <a href="javascript:;" class="btn text-white" data-toggle="panel-reload"><i class="ti-reload"></i></a>
+                        <a href="javascript:;" class="btn text-white" data-toggle="panel-collapse"><i class="ti-minus"></i></a>
+                        <a href="javascript:;" class="btn text-white" data-toggle="panel-remove"><i class="ti-close"></i></a>
+                    </div>
+                    <h4 class="panel-title"> Add Student Information</h4>
+                </div>
+
+                <div class="panel-body" id="StudentValidate">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Photo</label>
+                                <div class="col-md-9">
+                                    <div class="fileupload fileupload-new" data-provides="fileupload">
+                                        <div class="fileupload-new thumbnail" style="width: 150px; height: 190px;">
+                                            <img src="" id="img" style="width: 140px; height: 185px;" accesskey=".jpg,.jpeg,.png" />
+                                        </div>
+                                        <div class="upload-btn-wrapper">
+                                            <button class="btn" id="btnImage">Select Image</button>
+                                            <input type="file" class="btn bg-purple" name="image" id="inputimg" onchange="encodeImagetoBase64(this)" accept=".jpg,.png,.jpeg">
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col-md-offset-5">
+                            <label>Multiple Image Upload : </label>
+                            <input type="file" id="inputFile" multiple />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group pull-right">
+                                <div class="col-md-12 pull-right">
+                                    <a class="btn btn-primary" id="btnStudent">Submit</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- END panel-body -->
+            </div>
+        </div>
+    }
+</div>
+
+
+<script>
+    function ContentLoad() {
+        // Document Ready Function .
+    }
+    var ObjFormData = new FormData(); // FormData Object ...
+  function readMultipleFiles()
+    {
+      
+      //Retrieve all the files from the FileList object
+      var fileUpload = $("#inputFile").get(0);
+      var files = fileUpload.files;
+
+      for (var i = 0; i < files.length; i++)
+      {
+          ObjFormData.append(files[i].name, files[i]);
+      }
+      
+  }
+
+  $('#btnStudent').on('click', function ()
+  {
+      if ($('#inputFile').val())
+      {
+          
+          var ObjFormData = new FormData(); // FormData Object ...
+         
+          //Retrieve all the files from the FileList object
+          var fileUpload = $("#inputFile").get(0);
+          var files = fileUpload.files;
+
+          for (var i = 0; i < files.length; i++)
+          {
+              ObjFormData.append(files[i].name, files[i]);
+          }
+
+          $.ajax({
+              url: "@Url.Action("UploadFileBasedImage", "SupportData")",
+              method: "POST",
+              contentType: false, // Not to set any content header
+              processData: false, // Not to process data
+              data: ObjFormData,
+              success:function (data)
+              {
+                  if (data.Message != null && data.Message != '')
+                  {
+                      alert(data.Message);
+                  } else
+                  {
+                     alert(data.sResult + ' ' + 'Your Request Completed Sucessfully !');
+                      
+                     loadContent('/SupportData/CompressImage');
+                     $('#inputFile').val('');
+                  }
+              }, error: function (error)
+              {
+                  alert('Internal Server Error !');
+              }
+          });
+      } else
+      {
+          var fileUpload = $("#inputimg").get(0);
+          var files = fileUpload.files;
+          // Create FormData object
+          var fileData = new FormData();
+
+          // Looping over all files and add it to FormData object
+          for (var i = 0; i < files.length; i++)
+          {
+              fileData.append(files[i].name, files[i]);
+          }
+          $.ajax({
+              url: "@Url.Action("CompressingImagesize", "SupportData")",
+              method: "POST",
+              contentType: false, // Not to set any content header
+              processData: false, // Not to process data
+              //data: { UpdateInfo: JsonData, sBaseImage: photo.base64String, sExtension: photo.sextension },
+              data: fileData,
+              success: function (data)
+              {
+                  alert('Your Request Completed Sucessfully !');
+                  loadContent('/SupportData/CompressImage');
+                  
+              }, error: function (error)
+              {
+                  alert('Internal Server Error !');
+              }
+          });
+      }
+  });
+
+    //document.getElementById('inputFile').addEventListener('change', readMultipleFiles, false);
+    </script>
+
+<script>
+            var baseimage64;
+            var extension;
+            function encodeImagetoBase64(element) {
+                if (element != null && element != "") {
+                    var file = element.files[0];
+                    extension = String(file.value).substr(String(file.value).lastIndexOf('.') + 1);
+                    var reader = new FileReader();
+                    reader.onloadend = function () {
+
+                        $(".link").attr("href", reader.result);
+
+                        $(".link").text(reader.result);
+
+                        $('#img').attr("src", reader.result);
+                        //only this is required to send file in ajax
+                        baseimage64 = reader.result;
+                }
+
+                }
+                //this is method call
+                reader.readAsDataURL(file);
+            }
+            function getBase64AndExtension() {
+                var file = String($('#inputimg').val());
+                extension = file.split('.').pop();
+                return { base64String: baseimage64, sextension: extension }
+            }
+
+
+
+</script>
+    
+    

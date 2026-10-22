@@ -1,0 +1,119 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = null;
+    string sSelected = string.Empty;
+}
+
+<link href="~/Content/assets/plugins/multi-select/multiselect.css" rel="stylesheet" />
+
+<div class="body-content">
+    <div class="col-md-12 table-responsive">
+        @{ int count = 0;}
+        <table class="table table-hover table-bordered" id="tblDeptWiseStaff">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Course Title</th>
+                    <th>Course Code</th>
+                    <th>Packet No</th>
+                    <th>Reference No</th>
+                    <th>Staff</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    if (Model.liExamRegistrationList != null && Model.liExamRegistrationList.Count > 0)
+                    {
+                        foreach (var item in Model.liExamRegistrationList)
+                        {
+                            <tr cms-SettingId="@item.EXAM_SETTING_ID" cms-Acyear="@Model.UDF1" cms-scourseid="@item.COURSE_ID" cms-allotedid="@item.MAPPING_ID" cms-referenceno="@item.PACKET_REFERENCE_NO" cms-packetno="@item.PACKET_NO" cms_staffselected="@item.STAFF_ID">
+                                <td>
+                                    @{count++;}
+                                    @count
+                                </td>
+                                <td>@item.COURSE_TITLE</td>
+                                <td>@item.COURSE_CODE</td>
+                                <td>@item.PACKET_NO</td>
+                                <td>@item.PACKET_REFERENCE_NO</td>
+                                <td>
+                                    <div class="col-md-12">
+                                        <select class="form-control m-b-10 selectpicker" id="Stafflist" data-live-search="true" multiple data-selected-text-format="count">
+                                            <option value="0">--Select--</option>
+                                            @{
+                                                var selectedStaffIds = item.STAFF_ID.Split(',').Select(id => id.Trim()).ToList();
+                                            }
+                                            @if (Model.LiStaffInfo != null && Model.LiStaffInfo.Count > 0)
+                                            {
+                                                foreach (var staff in Model.LiStaffInfo)
+                                                {
+                                                    bool isSelected = selectedStaffIds != null && selectedStaffIds.Contains(staff.STAFF_ID.ToString());
+                                                    <option value="@staff.STAFF_ID" @(isSelected ? "selected" : "")>@staff.FIRST_NAME</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="col-md-12 pull-right">
+        <a id="btnsubmit" href="#" class="btn btn-success pull-right">Submit</a>
+    </div>
+</div>
+
+
+<script>
+    ContentLoad = function () {
+    }
+
+    $('.selectpicker').selectpicker({ size: 6 });
+    $('.selectpicker').selectpicker('refresh');
+
+    $("#btnsubmit").on("click", function ()
+    {
+        var JsonData = '{"LI_EXAMINER_ADD":[';
+        $('#tblDeptWiseStaff tbody tr').each(function () {
+
+            SettingId = $(this).attr('cms-settingId');
+            Academicyear = $(this).attr('cms-Acyear');
+            COURSEID = $(this).attr('cms-scourseid');
+            PACKETNO = $(this).attr('cms-packetno');
+            allotment = $(this).attr('cms-allotedid');
+            REFERENCENO = $(this).attr('cms-referenceno');
+            OLDSTAFFIDS = $(this).attr('cms_staffselected');
+            STAFFIDS = String($(this).find('#Stafflist').val());
+            if (STAFFIDS != OLDSTAFFIDS) {
+                if (($(this).find('#Stafflist').val()) != '' && ($(this).find('#Stafflist').val()) != null || allotment != '' && allotment != null) {
+                    JsonData += '{"EXAM_SETTING_ID":"' + SettingId + '","ACADEMIC_YEAR":"' + Academicyear + '","COURSE_ID" :"' + COURSEID + '","MAPPING_ID" :"' + allotment + '","PACKET_NO":"' + PACKETNO + '","STAFF_ID":"' + String($(this).find('#Stafflist').val()) + '","PACKET_REFERENCE_NO":"' + REFERENCENO + '"},';
+                }
+            }
+        });
+
+        JsonData = JsonData.slice(0, -1) + ']}';
+        if (JsonData == '{"LI_EXAMINER_ADD":]}'){
+        alert("No Changes made..")
+        }
+        else{
+        $.ajax({
+            url: "@Url.Action("SaveOrUpdatestaffpacketreference", "Examination")",
+            method: "POST",
+            datatype: "json",
+            data: { sJsonData: JsonData },
+            success: function (data) {
+                swal({ title: "Success !", text: 'Record Save Successfuly!', showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                binddatas();
+            }
+        , error: function (error) {
+
+            swal({ title: "Error !", text: 'Internal Server Error !', showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+        }
+        });
+    }
+    });
+
+</script>

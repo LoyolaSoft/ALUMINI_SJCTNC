@@ -1,0 +1,128 @@
+﻿@model IEnumerable<CMS.Models.ALUMNI_DATA_COLLECTION>
+
+@{
+    ViewBag.Title = "List Alumni Data Collection";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Alumnae</a></li>
+        <li class="active">Alumni Data Collection List</li>
+    </ol>
+    <h1 class="page-header">Alumni Data Collection Report</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="@Url.Action("ExportAlumniDataToExcel", "Alumnae")" class="btn btn-xs btn-success"><i class="fa fa-file-excel-o"></i> Export to Excel</a>
+            </div>
+            <h4 class="panel-title"><b>Alumni Data Collection List</b></h4>
+        </div>
+        <div class="panel-body">
+            <table id="tblAlumniData" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Register No</th>
+                        <th>Name</th>
+                        <th>Batch</th>
+                        <th>Programme</th>
+                        <th>Profile</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Count() > 0)
+                    {
+                        int sno = 1;
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@sno</td>
+                                <td>@item.ROLL_NO</td>
+                                <td>@item.NAME</td>
+                                <td>@item.BATCH</td>
+                                <td>
+                                    @{
+                                        var branch = !string.IsNullOrEmpty(item.BRANCH_PHD) && item.BRANCH_PHD != "NA" ? item.BRANCH_PHD :
+                                                     !string.IsNullOrEmpty(item.BRANCH_MPHIL) && item.BRANCH_MPHIL != "NA" ? item.BRANCH_MPHIL :
+                                                     !string.IsNullOrEmpty(item.BRANCH_PG) && item.BRANCH_PG != "NA" ? item.BRANCH_PG :
+                                                     !string.IsNullOrEmpty(item.BRANCH_UG) && item.BRANCH_UG != "NA" ? item.BRANCH_UG : "";
+                                        
+                                        var programmeDisplay = item.PROGRAMME;
+                                        if (!string.IsNullOrEmpty(branch))
+                                        {
+                                            programmeDisplay += " " + branch;
+                                        }
+                                    }
+                                    @programmeDisplay
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="viewProfile('@item.ROLL_NO')">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </td>                                                                                                                                                                                       
+                            </tr>
+                            sno++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="profileModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Student Profile</h4>
+            </div>
+            <div class="modal-body" id="profileModalBody">
+                <!-- Profile data will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        if ($.fn.DataTable.isDataTable('#tblAlumniData')) {
+            $('#tblAlumniData').DataTable().destroy();
+        }
+        $('#tblAlumniData').DataTable({
+            responsive: true,
+            language: {
+                emptyTable: "No Records Found"
+            }
+        });
+    });
+
+    function viewProfile(rollNo) {
+        $('#page-loader').removeClass('fade in hide').addClass('fade in');
+        $('#profileModalBody').empty();
+
+        $.ajax({
+            url: '@Url.Action("GetAlumniDataCollectionProfile", "Alumnae")',
+            type: 'POST',
+            data: { rollNo: rollNo },
+            success: function(response) {
+                $('#page-loader').removeClass('fade in').addClass('fade in hide');
+                $('#profileModalBody').html(response);
+                $('#profileModal').modal('show');
+            },
+            error: function(xhr, status, error) {
+                $('#page-loader').removeClass('fade in').addClass('fade in hide');
+                alert("Error fetching details: " + error);
+            }
+        });
+    }
+</script>

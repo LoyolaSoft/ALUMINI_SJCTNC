@@ -1,0 +1,74 @@
+
+
+@model CMS.ViewModel.ViewModel.StaffViewModel
+@{
+    Layout = null;
+    int count = 0;
+    var currentDate = DateTime.Now.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+}
+
+@if (Model.liStudentList != null && Model.liStudentList.Count > 0)
+{
+    var liGroupClass = Model.liStudentList.GroupBy(x => x.CLASS_ID).ToList();
+    foreach (var Classitem in liGroupClass)
+    {
+        count = 0;
+        var liGroupedStudent = Model.liStudentList.Where(x => x.CLASS_ID == Classitem.FirstOrDefault().CLASS_ID).ToList();
+        if (liGroupedStudent != null && liGroupedStudent.Count > 0)
+        {
+            <div class="class-report-group">
+                <table class="table table-hover table-bordered table-striped tblReport">
+                    <thead>
+                        <tr>
+                            <th class="text-center" colspan="7" style="border:none;">
+                                <h3 style="margin:0;">ST.JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS)</h3>
+                                <h4 style="margin:5px 0;">CUDDALORE - 607001</h4>
+                                <h6 style="margin:5px 0; text-decoration:underline;">Convocation Eligble Student Report</h6>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th colspan="7" class="text-center" style="border:none; padding-bottom:15px;">
+                                <b>Class Name: @liGroupedStudent.FirstOrDefault().CLASS_NAME</b> 
+                                <span style="float:right; font-weight:normal; font-size:11px;">Printed on: @currentDate</span>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th style="width:50px;">#</th>
+                            <th>Register No</th>
+                            <th>Roll No</th>
+                            <th>Name</th>
+                            <th class="text-center">Payment Status</th>
+                            <th class="text-right">Amount</th>
+                            <th class="text-center">Payment Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in liGroupedStudent)
+                        {
+                            count++;
+                            <tr>
+                                <td>@count</td>
+                                <td>@item.REGISTER_NO</td>
+                                <td>@item.ROLL_NO</td>
+                                <td>@item.FIRST_NAME</td>
+                                <td class="text-center">
+                                    @if (item.STATUS == "PAID")
+                                    {
+                                        <label class="label label-success" style="display:inline-block; min-width:60px;">Paid</label>
+                                    }
+                                    else
+                                    {
+                                        <label class="label label-danger" style="display:inline-block; min-width:60px;">Not Paid</label>
+                                    }
+                                </td>
+                                <td class="text-right">@item.TOTAL_AMOUNT</td>
+                                <td class="text-center">@item.PAYMENT_DATE</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+}
+

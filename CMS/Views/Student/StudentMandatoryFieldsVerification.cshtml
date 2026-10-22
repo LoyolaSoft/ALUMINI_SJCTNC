@@ -1,0 +1,110 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    ViewBag.Title = "StudentMandatoryFieldsVerification";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">StudentMandatory FieldsVerification</li>
+    </ol>
+    <h1 class="page-header">StudentMandatory FieldsVerification</h1>
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">StudentMandatory FieldsVerification</h4>
+        </div>
+        <div class="panel-body" data-parsley-validate="true" id="Pbody">
+            <div class="form-horizontal">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="col-md-12">
+                    <div class="form-group col-md-5">
+                        @Html.LabelFor(model => model.ApplicationType, "ApplicaitonType", htmlAttributes: new { @class = "control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.ApplicationType, (Model.ApplicationType != null) ? Model.ApplicationType : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(model => model.ApplicationType, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-5">
+                        @Html.LabelFor(model => model.ProgrammeMode, "ProgrammeMode", htmlAttributes: new { @class = "control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.ProgrammeMode, (Model.ProgrammeMode != null) ? Model.ProgrammeMode : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(model => model.ProgrammeMode, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group col-md-5">
+                        @Html.LabelFor(model => model.ShiftList, "Shift", htmlAttributes: new { @class = "control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.ShiftList, (Model.ShiftList != null) ? Model.ShiftList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(model => model.ShiftList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-5">
+                        @Html.LabelFor(model => model.MandatoryFields, "Fields", htmlAttributes: new { @class = "control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.MandatoryFields, (Model.MandatoryFields != null) ? Model.MandatoryFields : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", multiple= "multiple", data_selected_text_format = "count" })
+                            @Html.ValidationMessageFor(model => model.MandatoryFields, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-1">
+                        <a class="btn btn-primary" id="btnGet">Get</a>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div id="dvCrossverification" class="form-group col-md-12 table-responsive">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+    ContentLoad = function () {
+        // Document Ready Function .
+        $('.selectpicker').selectpicker({
+            size: 5
+        });
+        $('.selectpicker').selectpicker('refresh');
+    }
+
+
+    $('#btnGet').on('click', function () {
+        var vApplicationType = $('#ApplicationType').val();
+        var vProgrammeMode = $('#ProgrammeMode').val();
+        var vShift = $('#ShiftList').val();
+        var vFields = String($('#MandatoryFields').val());
+        $.ajax({
+            url: '@Url.Action("BindStudentMandatoryFieldsVerification", "Student")',
+            method: 'POST',
+            data: { sApplicationType: vApplicationType, sProgrammeMode: vProgrammeMode, sShift: vShift, sFields: vFields, },
+            success: function (data) {
+                $('#dvCrossverification').empty();
+                if (data.Message != null && data.Message != '') {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                } else {
+                    $('#dvCrossverification').append(data);
+                }
+            }, error: function (error) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        })
+    });
+
+
+
+</script>

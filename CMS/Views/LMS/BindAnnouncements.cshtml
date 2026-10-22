@@ -1,0 +1,139 @@
+﻿@model CMS.ViewModel.ViewModel.LMSViewModel
+@{
+    Layout = null;
+    int count = 0;
+}
+
+
+<div class="row">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Course</th>
+                <th>Staff</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liAnnouncement != null && Model.liAnnouncement.Count > 0)
+            {
+                foreach (var item in Model.liAnnouncement)
+                {
+                    count++;
+                    <tr>
+                        <td>@count</td>
+                        <td>@item.DATE</td>
+                        <td>@item.COURSE_CODE</td>
+                        <td>@item.FIRST_NAME</td>
+                        <td>
+                            <a href="#Announcement-dialog" onclick="ShowAnnouncement(@item.ANNOUNCEMENT_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-eye"></i></a>
+                            @if (!string.IsNullOrEmpty(item.FILE_PATH))
+                            {
+                                <i class="fa fa-paperclip text-muted m-l-5" title="Has attachment"></i>
+                            }
+                        </td>
+
+                    </tr>
+
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5">No Records Found</td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
+
+</div>
+
+
+<div class="modal" id="Announcement-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Announcement</h4>
+            </div>
+            <div class="modal-body" id="pBody" style="min-height:300px;">
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+<script>
+
+    function ShowAnnouncement(id)
+    {
+
+            $.ajax({
+                url: "@Url.Action("FetchAnnouncementById", "LMS")",
+                method: "POST",
+                datatype: "json",
+                data: { sAnnouncementId:id},
+                success: function (data)
+                {
+                    console.log("Announcement Data:", data);
+                    $('#pBody').empty();
+                    
+                    if (data && data.length > 0) {
+                        var ann = data[0];
+                        var html = '<div class="announcement-wrapper" style="padding: 10px 5px;">';
+                        
+                        // Message Section
+                        html += '<div class="ann-message" style="font-size: 16px; color: #444; line-height: 1.7; margin-bottom: 30px; border-left: 4px solid #3498db; padding-left: 20px; background: #fdfdfd; padding-top: 10px; padding-bottom: 10px;">';
+                        html += (ann.MESSAGE || 'No message content available.');
+                        html += '</div>';
+                        
+                        // Attachment Section
+                        if (ann.FILE_PATH) {
+                            var fileName = ann.FILE_PATH.split('/').pop();
+                            var fileUrl = ann.FILE_PATH.replace('~', '');
+                            var extension = fileName.split('.').pop().toLowerCase();
+                            var iconClass = 'fa-file-o';
+                            
+                            // Determine icon based on extension
+                            if (['pdf'].includes(extension)) iconClass = 'fa-file-pdf-o';
+                            else if (['doc', 'docx'].includes(extension)) iconClass = 'fa-file-word-o';
+                            else if (['xls', 'xlsx'].includes(extension)) iconClass = 'fa-file-excel-o';
+                            else if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) iconClass = 'fa-file-image-o';
+                            
+                            html += '<div class="attachment-section">';
+                            html += '   <h5 style="font-weight: 600; color: #7f8c8d; font-size: 13px; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">Attachment</h5>';
+                            html += '   <div class="attachment-card" style="background: #ffffff; border: 1px solid #e1e8ed; border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">';
+                            html += '       <div style="display: flex; align-items: center; flex: 1; overflow: hidden;">';
+                            html += '           <div style="background: #ebf5fb; color: #3498db; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 16px; flex-shrink: 0;">';
+                            html += '               <i class="fa ' + iconClass + '" style="font-size: 22px;"></i>';
+                            html += '           </div>';
+                            html += '           <div style="overflow: hidden;">';
+                            html += '               <div style="font-weight: 600; color: #2c3e50; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="' + fileName + '">' + fileName + '</div>';
+                            html += '               <div style="color: #95a5a6; font-size: 12px; margin-top: 2px;">File ready to download</div>';
+                            html += '           </div>';
+                            html += '       </div>';
+                            html += '       <a href="' + fileUrl + '" target="_blank" class="btn btn-sm btn-primary" style="border-radius: 8px; padding: 8px 18px; font-weight: 500; margin-left: 15px; background-color: #3498db; border: none; transition: background 0.2s;">';
+                            html += '           <i class="fa fa-download"></i> Download';
+                            html += '       </a>';
+                            html += '   </div>';
+                            html += '</div>';
+                        }
+                        
+                        html += '</div>';
+                        $('#pBody').append(html);
+                    } else {
+                        $('#pBody').append('<div class="text-center p-40" style="padding: 40px;"><i class="fa fa-info-circle fa-3x text-muted mb-3"></i><p class="text-muted">Announcement details not found.</p></div>');
+                    }
+
+                }, error: function (error)
+                {
+                    console.error("Error fetching announcement:", error);
+                    swal({ title: "Error !", text: 'Internal Server Error !', showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+    }
+</script>

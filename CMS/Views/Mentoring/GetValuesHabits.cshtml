@@ -1,0 +1,119 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+}
+
+<div class="form-container mt-3" id="dvValuesHabits">
+    <h4 class="text-center mb-4"><b><i class="fa fa-heartbeat"></i> Goals, Strengths & Weaknesses</b></h4>
+
+    <div class="card shadow-sm border-0 p-4">
+        @if (Model.listudentGuid != null && Model.listudentGuid.Any())
+        {
+            var item = Model.listudentGuid.First();
+            <div class="row g-3">
+                <div class="col-md-6 form-group">
+                    <label for="VALUE_GOAL" class="form-label">Goal in life <span class="text-danger">*</span></label>
+                    <input type="text" id="VALUE_GOAL" class="form-control" value="@item.GOAL_IN_LIFE" placeholder="Enter Goal">
+                </div>
+                <div class="col-md-6 form-group">
+                    <label for="VALUE_STRENGTH" class="form-label">Your Strength <span class="text-danger">*</span></label>
+                    <input type="text" id="VALUE_STRENGTH" class="form-control" value="@item.STRENGTH" placeholder="Enter Strength">
+                </div>
+                <div class="col-md-6 form-group">
+                    <label for="VALUE_WEAKNESS" class="form-label">Your Weakness <span class="text-danger">*</span></label>
+                    <input type="text" id="VALUE_WEAKNESS" class="form-control" value="@item.WEAKNESS" placeholder="Enter Weakness">
+                </div>
+                <div class="col-md-6 form-group">
+                    <label for="VALUE_ROLE_MODEL" class="form-label">Your Role Model <span class="text-danger">*</span></label>
+                    <input type="text" id="VALUE_ROLE_MODEL" class="form-control" value="@item.ROLE_MODEL" placeholder="Enter Role Model">
+                </div>
+            </div>
+            <input type="hidden" id="VALUE_RECORD_ID" value="@item.STUDENT_ACTIVITY_ID" />
+        }
+        else
+        {
+            <div class="row g-3">
+                <div class="col-md-6 form-group">
+                    <label for="VALUE_GOAL" class="form-label">Goal in life <span class="text-danger">*</span></label>
+                    <input type="text" id="VALUE_GOAL" class="form-control" placeholder="Enter Goal">
+                </div>
+                <div class="col-md-6 form-group">
+                    <label for="VALUE_STRENGTH" class="form-label">Your Strength <span class="text-danger">*</span></label>
+                    <input type="text" id="VALUE_STRENGTH" class="form-control" placeholder="Enter Strength">
+                </div>
+                <div class="col-md-6 form-group">
+                    <label for="VALUE_WEAKNESS" class="form-label">Your Weakness <span class="text-danger">*</span></label>
+                    <input type="text" id="VALUE_WEAKNESS" class="form-control" placeholder="Enter Weakness">
+                </div>
+                <div class="col-md-6 form-group">
+                    <label for="VALUE_ROLE_MODEL" class="form-label">Your Role Model <span class="text-danger">*</span></label>
+                    <input type="text" id="VALUE_ROLE_MODEL" class="form-control" placeholder="Enter Role Model">
+                </div>
+            </div>
+        }
+
+        <div class="mt-4 text-right">
+            <button type="button" id="btnSaveValuesHabits" class="btn btn-primary">
+                <i class="fa fa-save"></i> Save Details
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function () {
+    var valuesSaveBusy = false;
+
+    $('#btnSaveValuesHabits').on('click', function () {
+        if (valuesSaveBusy) return;
+        valuesSaveBusy = true;
+
+        var studentId = typeof selectedStudentId !== 'undefined' ? selectedStudentId : null;
+
+        if (!studentId) {
+            swal('Error', 'Student identification failed', 'error');
+            valuesSaveBusy = false;
+            return;
+        }
+
+        var dataObj = {
+            STUDENT_ID: studentId,
+            GOAL_IN_LIFE: $('#VALUE_GOAL').val(),
+            STRENGTH: $('#VALUE_STRENGTH').val(),
+            WEAKNESS: $('#VALUE_WEAKNESS').val(),
+            ROLE_MODEL: $('#VALUE_ROLE_MODEL').val(),
+            STUDENT_ACTIVITY_ID: $('#VALUE_RECORD_ID').val() || 0
+        };
+
+        if (!dataObj.GOAL_IN_LIFE || !dataObj.STRENGTH || !dataObj.WEAKNESS || !dataObj.ROLE_MODEL) {
+            swal('Warning', 'Please fill all mandatory fields', 'warning');
+            valuesSaveBusy = false;
+            return;
+        }
+
+        $(this).prop('disabled', true);
+
+        $.ajax({
+            url: '@Url.Action("SaveValuesDetails", "Mentoring")',
+            type: 'POST',
+            data: dataObj,
+            success: function (res) {
+                swal('Success', 'Goals and values saved successfully', 'success');
+                // Reload tab if possible
+                if (typeof BindValues !== 'function') {
+                    $('#stuValues').click();
+                } else {
+                    BindValues();
+                }
+            },
+            error: function () {
+                swal('Error', 'Server error during save', 'error');
+            },
+            complete: function() {
+                $('#btnSaveValuesHabits').prop('disabled', false);
+                valuesSaveBusy = false;
+            }
+        });
+    });
+});
+</script>

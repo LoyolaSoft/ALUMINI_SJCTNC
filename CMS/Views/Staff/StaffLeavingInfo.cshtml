@@ -1,0 +1,122 @@
+﻿@model CMS.ViewModel.Model.StaffLeavingInfo
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <h4>Leaving Details</h4>
+    <hr />
+
+        <div class="form-horizontal row">
+            <div class="col-md-6">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="form-group">
+                    @Html.LabelFor(model => model.LEAVINGDATE, htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        <div class="input-group date" id="datetimepicker1">
+                            @Html.EditorFor(model => model.LEAVINGDATE, new { htmlAttributes = new { @class = "form-control input-sm", id = "Leavedate", placeholder = "Select Date" , @data_parsley_required = "true" } })
+                            @Html.ValidationMessageFor(model => model.LEAVINGDATE, "", new { @class = "text-danger" })
+                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.LEAVINGREMARKS, htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.TextAreaFor(model => model.LEAVINGREMARKS, 3, 20, new { @data_parsley_length = "[10,250]", placeholder = "Enter Remarks", @class = "form-control", id = "txtLeavingMark" })
+                        @Html.ValidationMessageFor(model => model.LEAVINGREMARKS, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.LEAVINGREASON, htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.TextAreaFor(model => model.LEAVINGREASON, 3, 20, new { @data_parsley_required = "true", @data_parsley_length = "[10,250]", placeholder = "Enter Leaving Reason", @class = "form-control", id = "txtLeavingReason" })
+                        @Html.ValidationMessageFor(model => model.LEAVINGREASON, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RETIREMENTDATE, htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        <div class="input-group date" id="datetimepicker1">
+                            @Html.EditorFor(model => model.RETIREMENTDATE, new { htmlAttributes = new { @class = "form-control input-sm", id = "RetirementDate", placeholder = "Select Date", @data_parsley_required = "true" } })
+                            @Html.ValidationMessageFor(model => model.RETIREMENTDATE, "", new { @class = "text-danger" })
+                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.DEPARTMENT, htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @if (Model.DEPARTMENT!=null)
+                        {
+                            @Html.DropDownListFor(model => model.DEPARTMENT, Model.DEPARTMENT, "-- Select --", new { @class = "form-control input-sm", id = "ddlDeprt", @data_parsley_required = "true" })
+                            @Html.ValidationMessageFor(model => model.DEPARTMENT, "", new { @class = "text-danger" })
+                        }
+                       
+                    </div>
+                </div>
+
+                <div class="form-group pull-right">
+                    <div class="col-md-12 pull-right">
+                        <a id="btnLeaving" class="btn btn-primary">Submit</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            $(document).ready(function () {
+                ////FormMultipleUpload.init();
+                handleDatePicker = function () {
+                    "use strict";
+                    $("#Leavedate,#RetirementDate").datepicker({
+                        todayHighlight: true,
+                        autoclose: true,
+                        endDate: new Date(),
+                        format: "dd/mm/yyyy",
+                        orientation: "right bottom"
+                        // 'top': top,
+                        // 'left': left
+                    });
+                }
+                handleDatePicker();
+            });
+            // Leaving ...
+            $("#btnLeaving").on("click", function ()
+            {
+                var isValid = true;
+                if ($('#nav-tab1-5').parsley().validate() !== true) isValid = false;
+                if (!isValid) {
+                    //gritter-info,danger,success,warning,default
+                    myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                    return false;
+                }
+                var txtLeavingDate = $("#Leavedate").val();
+                var txtLeavingMark = $("#txtLeavingMark").val();
+                var txtLeavingReason = $("#txtLeavingReason").val();
+                var RetirementDate = $("#RetirementDate").val();
+                var DDLDepartment = $("#ddlDeprt").val();
+                var JsonData;
+                if (JsonData == null)
+                {
+                    JsonData = '{"LeavingDate":"' + txtLeavingDate + '","LeavingRemark":"' + txtLeavingMark + '","LeavingReason":"' + txtLeavingReason + '","RetirementDate":"' + RetirementDate + '","Department":"' + DDLDepartment + '"}';
+                }
+            
+                $.ajax({
+                    url:"@Url.Action("Leaving", "Staff")",
+                    method: "POST",
+                    datatype: "html",
+                    data: { str: JsonData },
+                    success: function (data) {
+                        alert(data);
+                    }, error: function (error) {
+                        alert('Internal Server Error ..!');
+                    }
+                });
+            });
+        </script>
+}

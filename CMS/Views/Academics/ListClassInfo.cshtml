@@ -1,0 +1,137 @@
+﻿@model CMS.ViewModel.ViewModel.AcademicsViewModel
+
+@{
+    ViewBag.Title = "ListClassInfo";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+    <link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">List Class </li>
+    </ol>
+    <h1 class="page-header">List Class </h1>
+   
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Class </h4>
+        </div>
+        <div class="panel-body noPadding table-responsive">
+            <div class="">
+                <a class="btn btn-success pull-right form-group m-b-5" href="javascript:;" onclick="loadContent('/Academics/ClassInfo')" @*href="@Url.Action("ClassInfo","Academics")"*@><i class="fa fa-plus" title="Add"> Add</i></a>
+            </div>
+            <br />
+
+            @{ int count = 0;}
+            <table class="table table-hover table-bordered " id="ClassList">
+                <thead>
+                    <tr>
+                        <th>
+                            #
+                        </th>
+                        <th>
+                            @*@Html.DisplayNameFor(model => model.CLASS_CODE)*@
+                            Class Code
+                        </th>
+                        <th>
+                            @*@Html.DisplayNameFor(model => model.CLASS_NAME)*@
+                            Class Name
+                        </th>
+                        <th>
+                            @*@Html.DisplayNameFor(model => model.PROGRAMME)*@
+                            Programme
+                        </th>
+                        <th>
+                            @*@Html.DisplayNameFor(model => model.DEPARTMENT)*@
+                            Department
+                        </th>
+                        <th>
+                            @*@Html.DisplayNameFor(model => model.SHIFT)*@
+                            Shift
+                        </th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.liClassList)
+                    {
+                        <tr>
+                            <td>
+                                @{ count++;}
+                                @count
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.CLASS_CODE)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.CLASS_NAME)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.PROGRAMME)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DEPARTMENT)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.SHIFT)
+                            </td>
+                            <td>
+                                <a @*href="@Url.Action("EditClassInfo","Academics",new { id=@item.CLASS_ID})"*@ href="javascript:;" onclick="loadContent('/Academics/EditClassInfo/@item.CLASS_ID')"><i class="fa fa-edit text-primary" title="Click To Update"></i></a>
+                                <a @*href="@Url.Action("DeleteClassInfo","Academics",new { id=@item.CLASS_ID})" onclick="return confirm('Are you sure want to delete ?');"*@ href="javascript:;" onclick="GetConfrim(@item.CLASS_ID);"><i class="fa fa-trash text-danger" title="Click To Delete"></i></a>
+                            </td>
+                        </tr>
+                                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script>
+        $("#ClassList").DataTable({
+            "columnDefs": [
+                { "width": "10%", "targets": [1, 2] }
+            ], "scrollX": true
+        });
+
+        function GetConfrim(ID)
+        {
+            
+            if (!confirm('Are you sure want to delete ?'))
+            {
+                return false;
+            } 
+            $.ajax({
+                url: "@Url.Action("DeleteClassInfo", "Academics")",
+                method: "POST",
+                datatype: "json",
+                data: { id: ID },
+                success: function (data)
+                {
+                    alert(data.Message);
+                    if(data.sResult!="False")
+                    {
+                        loadContent('/Academics/ListClassInfo');
+                    }
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+    </script>

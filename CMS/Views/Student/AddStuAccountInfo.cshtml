@@ -1,0 +1,86 @@
+﻿@model CMS.ViewModel.Model.StuAccountInfo
+
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <h4>AccountInfo Details</h4>
+    <hr />
+    <div class="form-horizontal">
+        <div class="col-md-6">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            <div class="form-group">
+                @Html.LabelFor(model => model.ACCOUNT_NO, htmlAttributes: new { @class = "control-label col-md-3" })
+                <div class="col-md-9">
+                    @Html.EditorFor(model => model.ACCOUNT_NO, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "ACCOUNT NO", @data_parsley_required = "true", @data_parsley_length = "[5,50]", @data_parsley_type = "alphanum" } })
+                    @Html.ValidationMessageFor(model => model.ACCOUNT_NO, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.IFSC_CODE, htmlAttributes: new { @class = "control-label col-md-3" })
+                <div class="col-md-9">
+                    @Html.EditorFor(model => model.IFSC_CODE, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "IFSC CODE", @data_parsley_required = "true", @data_parsley_length = "[5,50]", @data_parsley_type = "alphanum" } })
+                    @Html.ValidationMessageFor(model => model.IFSC_CODE, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="form-group">
+                @Html.LabelFor(model => model.MICR_CODE, htmlAttributes: new { @class = "control-label col-md-3" })
+                <div class="col-md-9">
+                    @Html.EditorFor(model => model.MICR_CODE, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "MICR CODE", @data_parsley_required = "true", @data_parsley_length = "[5,50]", @data_parsley_type = "alphanum" } })
+                    @Html.ValidationMessageFor(model => model.MICR_CODE, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group pull-right">
+                <div class="col-md-12 pull-right">
+                    <a class="btn btn-primary" id="btnAccountInfo">Submit</a>
+                </div>
+            </div>
+        </div>
+        <script>
+
+            // AccountInfo ...
+            $("#btnAccountInfo").on("click", function ()
+            {
+                var isValid = true;
+                if ($('#nav-tab1-7').parsley().validate() !== true) isValid = false;
+                if (!isValid) {
+                    //gritter-info,danger,success,warning,default
+                    myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                    return false;
+                }
+                var ACCOUNT_NO = $("#ACCOUNT_NO").val();
+                var IFSC_CODE = $("#IFSC_CODE").val();
+                var MICR_CODE = $("#MICR_CODE").val();
+                var JsonData;
+                if (JsonData==null)
+                {
+                    JsonData = '{"AccountNo":"' + ACCOUNT_NO + '","IfscCode":"' + IFSC_CODE + '","MicrCode":"' + MICR_CODE + '"}';
+                }
+                $.ajax({
+                    url:"@Url.Action("InsertAccountDetails", "Student")",
+                    method: "POST",
+                    datatype: "html",
+                    data: { JsonAccountInfo: JsonData },
+                    success:function(data)
+                    {
+                        if (data == "200") 
+                            myAlert('Record(s) saved successfully ...!', 'gritter-success', '');
+                        else if (data == "406")
+                            myAlert('Failed to save Records ...!', 'gritter-warning', '');
+                        else if (data == "408")
+                            myAlert('Session Has Expired Login And Try Again ...!', 'gritter-warning', '');
+                    },error:function(error)
+                    {
+                        alert('Your record not saved try again ...!');
+                    }
+                });
+            });
+        </script>
+    </div>
+}

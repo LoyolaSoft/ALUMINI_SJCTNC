@@ -1,0 +1,157 @@
+﻿@model CMS.ViewModel.ViewModel.StaffViewModel
+
+@{
+    ViewBag.Title = "BindCommunityReporteClassYearWise";
+    Layout = null;
+
+    //var groupedByShift = Model.liCommunityReport
+    //    .GroupBy(x => x.SHIFT_ID)
+    //    .OrderBy(g => g.Key)
+    //    .ToList();
+    int Count = 0;
+
+
+
+}
+<div class="form-group table-responsive" style="page-break-after:always !important;">
+    @if (Model.liCommunityReport != null && Model.liCommunityReport.Count > 0)
+    {
+        var groupedbYCategory = Model.liCommunityReport
+.GroupBy(x => x.STF_CATEGORY)
+.OrderBy(g => g.Key)
+.ToList();
+<div>
+
+    <div class="form-group table-responsive" style="page-break-after:always !important;">
+
+
+        <table class="table table-bordered table-hover" id="tblStrengtt">
+            <thead>
+                <tr>
+
+                    <th colspan="4" class="text-center">
+
+                        <address>
+                            <h4>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME </h4>
+
+                        </address>
+
+                    </th>
+                </tr>
+                <tr>
+                    <th class="text-center"><b>S.No</b></th>
+                    <th class="text-center"><b>Category</b></th>
+                    <th class="text-center"><b>Community</b></th>
+                    <th class="text-center"><b>Total</b></th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach (var categoryGroup in groupedbYCategory)
+                {
+                    var groupedByCommunity = Model.liCommunityReport
+                        .Where(o => o.STF_CATEGORY == categoryGroup.FirstOrDefault().STF_CATEGORY)
+                        .GroupBy(x => new { x.STF_CATEGORY, x.COMMUNITYID, x.COMMUNITY })
+                        .OrderBy(g => g.Key.COMMUNITYID)
+                        .ThenBy(g => g.Key.STF_CATEGORY)
+                        .ToList();
+
+                    int tcount = 0;
+
+                    // Dictionary to store community-wise totals
+                    var communityTotals = new Dictionary<string, int>();
+
+                    foreach (var group in groupedByCommunity)
+                    {
+                        var communityName = group.Key.COMMUNITY;
+                        var count = group.Count();
+
+                        if (!communityTotals.ContainsKey(communityName))
+                        {
+                            communityTotals[communityName] = 0;
+                        }
+                        communityTotals[communityName] += count;
+
+                        if (categoryGroup.FirstOrDefault().STF_CATEGORY == group.FirstOrDefault().STF_CATEGORY)
+                        {
+                            tcount++;
+                            <tr>
+                                <td>@tcount</td>
+                                <td>@group.FirstOrDefault().STF_CATEGORY</td>
+                                <td>@communityName</td>
+                                <td>@count</td>
+                            </tr>
+                        }
+                    }
+                    var GrandTotal = 0;
+
+                    <tr style="font-weight:bold; background-color:#f2f2f2;">
+                        <td colspan="3">Community-wise Total</td>
+                        <td>
+                            @foreach (var total in communityTotals)
+                            {
+                                GrandTotal += total.Value;
+                            }
+                            @GrandTotal
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+
+
+
+</div>
+
+
+<table class="table table-bordered table-hover" id="tblStrengthReport">
+    <div class="text-center">
+        <address>
+            <h4>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME </h4>
+            @Model.liCollegeDetails.FirstOrDefault().UNIVERSITY <br />
+            @Html.Raw(Model.liCollegeDetails.FirstOrDefault().GRADE.Replace("rd", "<sup>rd</sup>")) <br />
+            @Model.liCollegeDetails.FirstOrDefault().PLACE .
+        </address>
+    </div>
+    <thead>
+
+        <tr>
+            <th class="text-center"><b>S.No</b></th>
+            <th class="text-center"><b>Staff Code</b></th>
+            <th class="text-center"><b>Name</b></th>
+            <th class="text-center"><b> Department</b></th>
+            <th class="text-center"><b> Community</b></th>
+            <th class="text-center"><b>Caste</b></th>
+            <th class="text-center"><b> Gender</b></th>
+        </tr>
+
+    </thead>
+    <tbody>
+        @foreach (var item in Model.liCommunityReport)
+        {
+            Count++;
+            <tr>
+                <td>@Count</td>
+                <td>@item.STAFF_CODE</td>
+                <td>@item.FIRST_NAME</td>
+                <td>@item.DEPARTMENT</td>
+                <td>@item.COMMUNITY</td>
+                <td>@item.CASTE</td>
+                <td>@item.GENDER</td>
+            </tr>
+        }
+
+    </tbody>
+</table>
+}
+else
+{
+<div class="bg-warning text-center">
+    <h4>No Records Found</h4>
+</div>
+}
+</div>
+
+

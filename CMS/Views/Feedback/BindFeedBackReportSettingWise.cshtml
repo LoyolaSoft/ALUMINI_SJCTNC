@@ -1,0 +1,304 @@
+﻿@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.Utility;
+@{
+    Layout = null;
+
+    int nCount = 0;
+    int sStudentTotalCount = 0;
+    int sStudentObjectivecount = 0;
+
+    double nTotalAvg = 0;
+    double nTotal = 0;
+    double nMark = 0;
+    double nTotalMark = 0;
+    double nPercentage = 0;
+    double groupPercentage = 0;
+    double nTotalPercentage = 0;
+    int chartCounter = 0;
+
+}
+
+<div class="form-group col-md-12">
+    <div class="form-group text-center">
+        <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO)" style="width:150px; height:150px" />
+    </div>
+
+    <div class="form-group text-center">
+        <h4>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME</h4>
+        <h5>
+            @Model.liCollegeDetails.FirstOrDefault().UNIVERSITY<br />
+            @Html.Raw(Model.liCollegeDetails.FirstOrDefault().GRADE.Replace("rd", "<sup>rd</sup>"))<br />
+        </h5>
+        @if (Model.liFbSettings != null && Model.liFbSettings.Count > 0)
+        {
+            <h4>@Model.liFbSettings.FirstOrDefault().FEEDBACK_NAME</h4>
+        }
+
+    </div>
+</div>
+
+<div class="form-group col-md-12 table-responsive">
+    @{
+        if (Model.LiEvaluation != null)
+        {
+            var groupyby = Model.LiEvaluation.GroupBy(x => x.FEEDBACK_ID).ToList();
+            foreach (var value in groupyby)
+            {
+                <div style="page-break-after:always !important;">
+
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th rowspan="2"><strong>Question</strong></th>
+                                @if (Model.LiFeedbackQuestionMapping != null && Model.LiFeedbackQuestionMapping.Count > 0)
+                                {
+                                    var grupobj = Model.LiFeedbackQuestionMapping.GroupBy(s => s.OBJECTIVE_ID).ToList();
+                                    <th colspan="10" class="text-center"><strong>Options : Attended</strong></th>
+
+                                }
+                                <th rowspan="2"><strong>Total Strength</strong></th>
+                                <th rowspan="2"><strong>Attended</strong></th>
+                                <th rowspan="2"><strong>Mark</strong></th>
+                                <th rowspan="2"><strong>Percentage</strong></th>
+                            </tr>
+                            <tr>
+                                <th><strong>Option </strong> </th>
+                                <th><strong>Attd</strong></th>
+                                <th><strong>Option</strong> </th>
+                                <th><strong>Attd</strong></th>
+                                <th><strong>Option </strong></th>
+                                <th><strong>Attd</strong></th>
+                                <th><strong>Option </strong></th>
+                                <th><strong>Attd</strong></th>
+                                <th><strong>Option </strong></th>
+                                <th><strong>Attd</strong></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.QuestionList != null && Model.QuestionList.Count > 0)
+                            {
+                                var groupbyTitle = Model.QuestionList.GroupBy(x => x.QUESTION_GROUP).ToList();
+                                foreach (var itemt in groupbyTitle)
+                                {
+                                    groupPercentage = 0;
+                                    {
+                                        <tr class="text-center">
+
+                                            <td colspan="14"><h3 style=" color: #008376;"><b>@itemt.FirstOrDefault().GROUP_TITLE </b></h3> </td>
+                                        </tr>
+                                    }
+                                    foreach (var item in Model.QuestionList)
+                                    {
+                                        if (item.QUESTION_GROUP == itemt.FirstOrDefault().QUESTION_GROUP)
+                                        {
+
+
+                                            var liQuestionObjectiveMappingObjectives = Model.LiFeedbackQuestionMapping.Where(x => x.QUESTION_ID == item.QUESTION_ID).Take(5).ToList();
+
+                                            // student total count in
+                                            var liEvaluation = Model.LiEvaluation.Where(x => x.QUESTION_ID == item.QUESTION_ID).ToList();
+                                            if (liEvaluation != null && liEvaluation.Count > 0)
+                                            {
+                                                sStudentTotalCount = liEvaluation.Count;
+                                            }
+                                            else
+                                            {
+                                                sStudentTotalCount = 0;
+                                            }
+
+                                            <tr>
+                                                <td><b>@{nCount++;} @nCount .  @item.QUESTION</b></td>
+
+                                                @if (liQuestionObjectiveMappingObjectives != null && liQuestionObjectiveMappingObjectives.Count > 0)
+                                                {
+                                                    int tdcournt = 0;
+
+                                                    foreach (var item1 in liQuestionObjectiveMappingObjectives)
+                                                    {
+                                                        tdcournt++;
+                                                        var liEvaluation1 = Model.LiEvaluation.Where(x => x.QUESTION_ID == item1.QUESTION_ID && x.ANSWER == item1.OBJECTIVE_ID).ToList();
+
+                                                        if (liEvaluation1 != null && liEvaluation1.Count > 0)
+                                                        {
+                                                            sStudentObjectivecount = liEvaluation1.Count;
+                                                        }
+                                                        else
+                                                        {
+                                                            sStudentObjectivecount = 0;
+                                                        }
+
+
+                                                        <td>@item1.OBJECTIVES @*:  @sStudentObjectivecount / @sStudentTotalCount*@</td>
+                                                        @*<td>@sStudentObjectivecount / @sStudentTotalCount</td>*@
+                                                        <td><strong>@sStudentObjectivecount</strong> </td>
+                                                    }
+                                                    if (tdcournt == 4)
+                                                    {
+                                                        <td></td>
+                                                        <td></td>
+                                                    }
+                                                }
+                                                @if (Model.liStudentStrength != null && Model.liStudentStrength.Count > 0)
+                                                {
+                                                    var liStuCount = Model.liStudentStrength.ToList();
+                                                    if (liStuCount != null && liStuCount.Count > 0)
+                                                    {
+                                                        var stuTotal = Model.liStudentStrength.Sum(x => Convert.ToDouble(x.NO_OF_STUDENT));
+
+                                                        <td>@stuTotal</td>
+                                                    }
+                                                }
+                                                @if (Model.StudentCount != null && Model.StudentCount.Count > 0)
+                                                {
+                                                    var liCount = Model.StudentCount.Where(x => x.QUESTION_ID == item.QUESTION_ID).ToList();
+                                                    if (liCount != null && liCount.Count > 0)
+                                                    {
+                                                        <td>@{nTotal = Convert.ToDouble(liCount[0].NO_OF_STUDENT);} @nTotal</td>
+                                                        <td>
+                                                            @{
+                                                                nTotalMark = Convert.ToDouble(liCount[0].NO_OF_STUDENT) * 10;
+                                                                nMark = Convert.ToDouble(liCount[0].TOTAL);
+                                                                // nTotalMark = nTotal;
+                                                            }  @nMark / @nTotalMark
+                                                        </td>
+                                                        <td>
+                                                            @{
+                                                                nPercentage = Math.Round((nMark / nTotalMark) * 100, 2, MidpointRounding.ToEven);
+                                                                nTotalPercentage += nPercentage;
+                                                                groupPercentage += nPercentage;
+                                                            }
+                                                            <strong>@nPercentage %</strong>
+                                                        </td>
+                                                    }
+                                                }
+                                            </tr>
+                                        }
+                                    }
+                                    if (Model.QuestionList.GroupBy(x => x.QUESTION_GROUP).ToList().Count > 1)
+                                    {
+                                        <tr>
+                                            <td colspan="13"> </td>
+                                            <td><strong>Group Wise Average:</strong></td>
+                                            <td>
+                                                @{ nTotalAvg = Math.Round(groupPercentage / Model.QuestionList.Where(x => x.QUESTION_GROUP == itemt.FirstOrDefault().QUESTION_GROUP).ToList().Count, 2, MidpointRounding.ToEven);} <strong> @nTotalAvg % </strong>
+                                            </td>
+
+                                        </tr>
+                                    }
+                                }
+
+                                <tr>
+                                    <td colspan="13"> </td>
+                                    <td><strong>Average:</strong></td>
+                                    <td>
+                                        @{ nTotalAvg = Math.Round(nTotalPercentage / Model.QuestionList.Count, 2, MidpointRounding.ToEven);} <strong> @nTotalAvg % </strong>
+                                    </td>
+
+                                </tr>
+                            }
+
+                            else
+                            {
+                                <tr>
+                                    <td colspan="2"> No Records Found !</td>
+                                </tr>
+                            }
+
+
+
+                    </table>
+                    @{
+
+                        var GroupbyQuestion = Model.LiEvaluation.Where(o => o.FEEDBACK_ID == value.FirstOrDefault().FEEDBACK_ID).GroupBy(o => new { o.QUESTION_GROUP }).OrderBy(o => o.Key.QUESTION_GROUP).ToList();
+
+                        foreach (var questionItem in GroupbyQuestion)
+                        {
+                            var groupbyTitle = Model.QuestionList.Where(o => o.QUESTION_GROUP == questionItem.FirstOrDefault().QUESTION_GROUP).GroupBy(x => x.QUESTION_GROUP).ToList();
+                            foreach (var itemt in groupbyTitle)
+                            {
+                                {
+                                    <br />
+                                    <hr />
+                                    <div class="text-center">
+
+                                        <p><h3 style=" color: #008376;"><b>@itemt.FirstOrDefault().GROUP_TITLE </b></h3> </p>
+                                    </div>
+                                }
+                                <div class="row m-3">
+                                    @foreach (var item in Model.QuestionList)
+                                    {
+                                        if (item.QUESTION_GROUP == itemt.FirstOrDefault().QUESTION_GROUP)
+                                        {
+                                            <script type="text/javascript">
+                                                    anychart.onDocumentReady(function () {
+                                                var unitChartData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+                                                            Model.LiEvaluation
+                                                            .Where(o => (item.QUESTION_ID == o.QUESTION_ID)).GroupBy(O => new { O.QUESTION_ID, O.ANSWER }).ToList().Select(items => new
+                                                            {
+                                                                UnitName = items.FirstOrDefault().OBJECTIVES,
+                                                                TotalEntry = items.Count()
+                                                            })
+                                                            ));
+
+                                                                // Convert the data into a format suitable for AnyChart
+                                                                let data = [];
+                                                                unitChartData.forEach(function (item) {
+                                                                    data.push([item.UnitName, item.TotalEntry]);
+                                                                });
+
+                                                                // Create a pie chart with the data
+                                                                let chart = anychart.pie(data);
+
+                                                                // Set the chart title
+                                                                chart.title("Feedback Chart");
+                                                                chart
+                                                                    .labels()
+                                                                    .fontColor("white") // Set the font color of labels to white
+                                                                    .format("{%percentValue}{decimalsCount:0}%");
+
+
+                                                                // Set container ID for the chart
+                                                                chart.container("unit_chart_@chartCounter");
+
+                                                                // Initiate chart drawing
+                                                                chart.draw();
+                                                            });
+
+
+                                            </script>
+                                            <div>
+                                                <div>
+                                                    @item.QUESTION
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div id="unit_chart_@chartCounter" style="width: 450px; height: 380px;"></div>
+                                            </div>
+
+
+
+                                            chartCounter++;
+                                        }
+                                    }
+                                </div>
+
+                                <br />
+                            }
+
+                        }
+                    }
+
+                </div>
+                nCount = 0;
+                nTotalAvg = 0;
+                nTotalMark = 0;
+                nTotal = 0;
+                nMark = 0;
+                nPercentage = 0;
+                nTotalPercentage = 0;
+            }
+
+
+        }
+    }
+</div>

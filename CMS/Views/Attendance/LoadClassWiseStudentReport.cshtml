@@ -1,0 +1,140 @@
+﻿@model CMS.ViewModel.ViewModel.AttendanceViewModel
+@using CMS.Utility;
+@{
+    ViewBag.Title = "LoadClassWiseStudentReport";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    int count = 0;
+}
+
+@if (Model.liAttendanceReportForOptionalPapers != null && Model.liAttendanceReportForOptionalPapers.Count > 0)
+{
+    <div class="col-md-12 table-responsive">
+        <br />
+        <div class="form-group text-center">
+            <div class="invoice-company">
+                @Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME ,<small>
+                    ATTENDANCE REPORT
+                </small>
+            </div>
+            <hr />
+            <br />
+            <div class="col-xs-6 form-group text-center"> <b>Class : </b><span id="txtClass"></span></div>
+            <div class="col-xs-6 form-group text-center"> <b>Course : </b> @Model.liAttendanceReportForOptionalPapers.FirstOrDefault().COURSE_CODE</div>
+        </div>
+        
+        <table class="table table-bordered table-responsive table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Roll No</th>
+                    <th>Register No</th>
+                    <th>Name</th>
+                    @*<th>Course</th>*@
+                    <th>Hour</th>
+                    <th>Remark</th>
+                    <th>Mobile</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    if (Model.liAttendanceReportForOptionalPapers != null && Model.liAttendanceReportForOptionalPapers.Count > 0)
+                    {
+                        foreach (var item in Model.liAttendanceReportForOptionalPapers)
+                        {
+                            <tr>
+                                <td>@{count++;}@count</td>
+                                <td>@item.ROLL_NO</td>
+                                <td>@item.REGISTER_NO</td>
+                                <td>@item.FIRST_NAME</td>
+                                @*<td>@item.COURSE_CODE</td>*@
+                                <td>@item.HOUR_ID</td>
+                                <td>@item.ATTENDANCE_TYPE</td>
+                                <td>@item.MOBILE</td>
+                            </tr>
+                        }
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+ }
+
+<div class="col-md-12 table-responsive">
+    @if (Model.liAttendanceReport != null && Model.liAttendanceReport.Count > 0)
+    {
+        var liGroupStudent = Model.liAttendanceReport.GroupBy(x => x.STUDENT_ID).Select(o => new CMS.ViewModel.Model.ATTENDANCE_REPORT()
+        { STUDENT_ID = o.FirstOrDefault().STUDENT_ID,
+            ROLL_NO =o.FirstOrDefault().ROLL_NO,
+            REGISTER_NO =o.FirstOrDefault().REGISTER_NO,
+            FIRST_NAME =o.FirstOrDefault().FIRST_NAME,
+            MOBILE=o.FirstOrDefault().MOBILE,
+            DOB=o.FirstOrDefault().DOB}).ToList();
+        // var liCourseCount = Model.liAttendanceReport.GroupBy(x => x.COURSE_CODE).ToList();
+        //<h4 class="text-center">Student Attendance Report</h4>
+
+        <br />
+        <div class="form-group"></div>
+        <div class="invoice-company">
+            @Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME ,<small>
+                ATTENDANCE REPORT FOR <span id="txtClass"></span>
+
+            </small>
+        </div>
+        <hr />
+        
+  
+        <div class="table-responsive">
+            @{count = 0;}
+                @foreach (var student in liGroupStudent)
+                {
+                  <div style="page-break-after:avoid !important;page-break-inside:avoid !important;">
+                    
+                    <div class="col-xs-4 form-group"> <b>Roll No : </b> @student.ROLL_NO</div>
+                    <div class="col-xs-4 form-group"> <b>Register No : </b> @student.REGISTER_NO</div>
+                    <div class="col-xs-4 form-group"> <b>Name : </b> @student.FIRST_NAME</div>
+                    <div class="col-xs-4 form-group"> <b>Date : </b> @Model.sDate</div>
+                    <div class="col-xs-4 form-group"> <b>Date Of Birth : </b> @student.DOB</div>
+                    <div class="col-xs-4 form-group"> <b>Mobile : </b> @student.MOBILE</div>
+                    <table class="table table-bordered table-responsive table-hover" >
+                        <thead>
+                            <tr>
+                                @*<th>#</th>*@
+                                <th>Course</th>
+                                <th>Hour</th>
+                                <th>Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ var liAttendance = Model.liAttendanceReport.Where(x => x.STUDENT_ID == student.STUDENT_ID).ToList();
+                                if (liAttendance != null && liAttendance.Count > 0)
+                                {
+                                    foreach (var item in liAttendance)
+                                    {
+                                        <tr>
+                                            @*<td>@{count++;}@count</td>*@
+                                            <td>@item.COURSE_CODE</td>
+                                            <td>@item.HOUR_ID</td>
+                                            <td>@item.ATTENDANCE_TYPE</td>
+                                          </tr>
+                                    }
+                                }
+                            }
+                        </tbody>
+                    </table>
+                    <hr />
+
+            </div>
+                                }
+        </div>
+   
+}
+   
+
+</div>
+
+<script>
+    function ContentLoad() {
+        // Document Ready Function .
+    }
+</script>

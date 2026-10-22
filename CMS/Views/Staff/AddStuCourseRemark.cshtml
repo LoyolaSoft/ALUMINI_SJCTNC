@@ -1,0 +1,181 @@
+﻿@model CMS.ViewModel.ViewModel.StaffViewModel
+@{
+    ViewBag.Title = "AddStuCourseRemark";
+    //    Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Add/Edit StudentCourse Remark</li>
+    </ol>
+    <h1 class="page-header">Add/Edit StudentCourse Remark</h1>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Add/Edit StudentCourse Remark</h4>
+        </div>
+        <div class="panel-body">
+            <div class="form-horizontal">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            @Html.Label("Class", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.liLCasslist, (Model.liLCasslist != null) ? Model.liLCasslist : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.liLCasslist, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.CourseList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                        @Html.LabelFor(model => model.Component, "Component", htmlAttributes: new { @class = "control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.Component, (Model.Component != null) ? Model.Component : Enumerable.Empty<SelectListItem>(), null, new { @class = " selectpicker form-control  input-sm", @data_live_search = "true"})
+                            @Html.ValidationMessageFor(model => model.Component, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <div class="form-group">
+                            <a class="btn btn-primary" id="btnGetRemark">Get</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12" id="dvAddStuCourseRemark">
+
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <a class="btn btn-success disabled" id="btnSaveRemark" >Submit</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script>
+
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+
+        $('.selectpicker').selectpicker({
+            size: 5
+        });
+        $('.selectpicker').selectpicker('refresh');
+        $('#liLCasslist').on("change", function () {
+            $("#dvAddStuCourseRemark").empty();
+            $('#btnSaveRemark').addClass("disabled");
+            var sAcademicYear = $('#liLCasslist').val();
+            if (sAcademicYear == '' || sAcademicYear == '0') {
+                alert('Please Choose Class...!!!');
+                return false;
+            }
+            $.ajax({
+                url: "@Url.Action("GetCourseListByClassIdAndStaffId", "Examination")",
+                method: "POST",
+                datatype: "json",
+                data: { sClassId: $('#liLCasslist').val() },
+                success: function (data) {
+                    $("#CourseList").empty();
+                    $("#CourseList").append('<option value="">-- select --</option>' + data);
+                    $('.selectpicker').selectpicker('refresh');
+                }, error: function (error) {
+                    alert('Internal Server Error !');
+                }
+            })
+        });
+
+        $("#CourseList").on("change", function () {
+            var VCourseId = $("#CourseList").val();
+            $.ajax({
+                url: "@Url.Action("FetchSupCIAComponentbyCourseId", "Staff")",
+                method: "POST",
+            datatype: "json",
+            data: { sCourseId: VCourseId },
+            success: function (data) {
+                $("#Component").empty();
+                $("#Component").append('<option value="0">-- Select --</option>' + data);
+                $('.selectpicker').selectpicker('refresh');
+            }, error: function (error) {
+                alert('Internal Server Error ! ');
+            }
+        });
+        });
+
+        $('#btnGetRemark').on("click", function () {
+        var sAcademicYear = $('#CourseList').val();
+        if (sAcademicYear == '' || sAcademicYear == '0') {
+            alert('Please Choose Course...!!!');
+            return false;
+        }
+        $.ajax({
+            url: "@Url.Action("BindStudentForStuCourseRemark", "Staff")",
+            method: "POST",
+            datatype: "json",
+            data: { sCourseId: $('#CourseList').val(), sClassId: $('#liLCasslist').val() , sComponentId: String($('#Component').val())},
+            success: function (data) {
+                $("#dvAddStuCourseRemark").empty();
+                $("#dvAddStuCourseRemark").append(data);
+                $("#tblAddStuCourseRemark").DataTable({ paging: false });
+                $('#btnSaveRemark').removeClass("disabled");                
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        })
+        });        
+        $('#btnSaveRemark').click(function ()
+        {                 
+            var jsonObject;
+            if (jsonObject == null) {
+                jsonObject = '{"LiJsonStuCourseRemark":[';
+                $('#tblAddStuCourseRemark tbody tr').each(function () {                                    
+                    jsonObject += '{"REMARK_ID":"' + $(this).attr("cms-remarkid") + '","CLASS_ID":"' + $(this).attr("cms-classid") + '","COURSE_ID":"' + $(this).attr("cms-cousrseid") + '","STUDENT_ID":"' + $(this).attr("cms-studentid") + '","REMARK":"' + ($(this).find('input[type="text"]').val()) + '","COURSE_GROUP_ID":"' + $(this).attr("cms-cia-group-id") + '"},';
+                });
+                jsonObject = jsonObject.slice(0, -1);
+                jsonObject += ']}';               
+            }
+            $.ajax({ 
+                url: "@Url.Action("SaveStuCourseRemark", "Staff")",
+                method: "post",
+                content: "application/json; charset=utf-8",
+                data: {JsonAddStuCourseRemark : jsonObject },
+                success: function (data) {                               
+                    alert(data.Message);
+                    $('#btnGetRemark').click();
+                }, error: function (e) {
+                    alert('Internal Server Error !');
+                }
+        });
+
+        });
+    </script>
+
+

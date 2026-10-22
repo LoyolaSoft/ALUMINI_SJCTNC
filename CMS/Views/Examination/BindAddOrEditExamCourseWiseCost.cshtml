@@ -1,0 +1,107 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+
+@{
+    Layout = null;
+    int nCount = 0;
+}
+
+<div class="form-group col-md-12 table-responsive">
+    <br />
+    <table class="table table-bordered table-hover" id="tblCourseWiseCost">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Programme Type</th>
+                <th>Course Code</th>
+                <th>Course Title</th>
+                @*<th>UGC Course Type</th>
+        <th>Programme Type</th>
+        <th>Exam Type</th>*@
+                <th>Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liExamCourseWiseCost != null && Model.liExamCourseWiseCost.Count > 0)
+            {
+                string sSelected = string.Empty;
+                foreach (var item in Model.liExamCourseWiseCost)
+                {
+            <tr cms-courseWiseCost="@item.COURSE_WISE_COST_ID" cms-sExamSettingId="@item.EXAM_SETTING_ID" cms-sCourseId="@item.COURSE_ID" cms-sCourseCode="@item.COURSE_CODE">
+                <td>@{nCount++;} @nCount</td>
+                <td>@item.PROGRAMME_TYPE</td>
+                <td>@item.COURSE_CODE</td>
+                <td>@item.COURSE_TITLE</td>
+                @*<td>@item.UGC_COURSE_TYPE</td>
+        <td>@item.PROGRAMME_TYPE</td>
+        <td>@item.EXAM_TYPE</td>*@
+                <td>
+                    <select id="ddlExamCourseWiseCost" data-live-search="true" class="selectpicker show-menu-arrow show-tick">
+                        <option value="0"> -- Select --</option>
+                        @if (Model.liExamUGCTypeCost != null && Model.liExamUGCTypeCost.Count > 0)
+            {
+                foreach (var UGCTypeitem in Model.liExamUGCTypeCost)
+                {
+                    sSelected = string.Empty;
+                    <option value="@UGCTypeitem.UGC_TYPE_COST_ID"
+                            @if (!string.IsNullOrEmpty(item.UGC_TYPE_COST_ID)) { if (item.UGC_TYPE_COST_ID == UGCTypeitem.UGC_TYPE_COST_ID) { sSelected = "SELECTED"; } } else if (item.SUBJECT_TYPE == UGCTypeitem.UGC_COURSE_TYPE_ID && item.PROGRAMME_TYPE_ID == UGCTypeitem.PROGRAMME_TYPE_ID) { sSelected = "SELECTED"; }
+                            @sSelected>
+                        @UGCTypeitem.TITLE
+                    </option>
+    }
+}
+                    </select>
+                </td>
+            </tr>
+                                }
+                            }
+        </tbody>
+    </table>
+
+    <div class="col-md-12 form-group">
+        <a class="btn btn-primary pull-right" id="btnSubmit" href="javascript:;">Submit</a>
+    </div>
+</div>
+
+<script>
+    $('#btnSubmit').on('click', function ()
+    {
+        var JsonData = '{"liExamCourseWiseCost":[';
+        var nJsonCount = 0;
+        $('.table tbody tr').each(function ()
+        {
+            if ($(this).find('select').val() != 0)
+            {
+                JsonData += '{"COURSE_WISE_COST_ID":"' + $(this).attr('cms-courseWiseCost') + '",\
+                          "COURSE_ID":"' + $(this).attr('cms-sCourseId') + '",\
+                          "COURSE_CODE":"' + $(this).attr('cms-sCourseCode') + '",\
+                          "UGC_TYPE_COST_ID":"' + $(this).find('select Option:selected').val() + '",\
+                          "EXAM_SETTING_ID":"' + $(this).attr('cms-sExamSettingId') + '"},';
+                nJsonCount++;
+            }
+
+        });
+        if (nJsonCount != 0)
+        {
+            JsonData = JsonData.slice(0, -1);
+            JsonData += "]}";
+        } else
+        {
+            alert('Please Select Options To Continue !');
+            return false;
+        }
+        $.ajax({
+            url: '@Url.Action("SaveExamCourseWiseCost", "Examination")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sJsonExamCourseWiseCost: JsonData },
+            success: function (data) {
+                alert(data.Message);
+                FetchCourseWiseCostList();
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+
+    });
+</script>

@@ -1,0 +1,130 @@
+﻿@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+@{
+    ViewBag.Title = "RazorPayPaymentGate";
+    Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    //Layout = null;
+}
+
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Fee</a></li>
+        <li class="active">Online Payment</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Online Payment<small></small></h1>
+    <!-- end page-header -->
+
+
+    <div class="form-horizontal">
+        <div class="panel panel-primary">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Head List</h4>
+            </div>
+            <div class="panel-body">
+                @if (Model.liFeeStudentAccount != null && Model.liFeeStudentAccount.Count > 0)
+                {
+                    <div action="" id="frmPayUPost" method="post" class="col-lg-offset-3 col-lg-6 table-bordered">
+                        <input type="hidden" id="hdAcademicYear" value="@Model.liFeeStudentAccount.FirstOrDefault().ACADEMIC_YEAR"/>
+
+                        <div class="form-horizontal">
+                        </div>
+                        <div class="form-horizontal ">
+                            <h4 class="lead"><img src="@Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO" width="70px;" style="box-shadow:1px 1px #eee;" class="img-circle img" alt="HCC Logo" /> @Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME</h4>
+
+                            <hr />
+                            <div class="alert-info alert "><span class="label label-inverse m-r-5">NOTE!</span> Please do not press back button or refresh when you make payment.</div>
+                            <table class="table table-bordered table-hover" width="100%">
+                                @if (Model.liFeeStudentAccount != null && Model.liFeeStudentAccount.Count > 0)
+                                {
+
+                                    <tr>
+                                        <td>Name</td>
+                                        <td>@Model.liFeeStudentAccount.FirstOrDefault().FIRST_NAME</td>
+                                    </tr>
+                                    <tr><td>Register No </td><td>@Model.liFeeStudentAccount.FirstOrDefault().REGISTER_NO</td></tr>
+
+                                    foreach (var item in Model.liFeeStudentAccount)
+                                    {
+                                        if (item.BALANCE != "0")
+                                        {
+                                            <tr><td>@item.HEAD (@item.FREQUENCY_NAME ) </td><td><i class="fa fa-rupee"></i> @item.BALANCE</td></tr>
+                                        }
+                                    }
+                                    <tr><td>Total </td><td><b><i class="fa fa-rupee"></i> @Model.liFeeStudentAccount.Sum(o => Convert.ToDouble(o.BALANCE))</b></td></tr>
+                                }
+                                else
+                                {
+                                    <tr><td>Erorr Message</td><td>Your Account is not available,Please use help line to get more details. </td></tr>
+                                }
+
+
+
+                            </table>
+
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <a href="#" id="rzp-button1" class="btn btn-success pull-right">Pay Now</a>
+                        </div>
+                    </div>
+
+                    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+                    <script>
+        var options = {
+            "key": "@Model.objOrderId.key",
+            "amount": "@Model.objOrderId.amount", // 2000 paise = INR 20
+            "name": "Holy Cross College",
+            "description": "@Model.liFeeStudentAccount.FirstOrDefault().FREQUENCY_TYPE",
+            "image": "http://erp.holycrossngl.edu.in/Content/assets/img/hcc-img/hccngl.jpg",
+            "order_id": "@Model.objOrderId.id",
+            "handler": function (response) {
+                console.log($('#hdAcademicYear').val());
+
+
+                loadContent('/fee/RazorPayPaymentResponse?PaymentId=' + response.razorpay_payment_id + '&sAcademicYear=' + $('#hdAcademicYear').val());
+
+            },
+            "prefill": {
+                "name": "@Model.liFeeStudentAccount.FirstOrDefault().FIRST_NAME",
+                "email": "@Model.liFeeStudentAccount.FirstOrDefault().STU_EMAILID",
+                "contact": "@Model.liFeeStudentAccount.FirstOrDefault().STU_MOBILENO"
+            },
+            "notes": {
+                "udf1": "@Model.objOrderId.notes.udf1",
+                "udf2": "@Model.objOrderId.notes.udf2",
+                "udf3": "@Model.objOrderId.notes.udf3",
+                "udf4": "@Model.objOrderId.notes.udf4",
+                "udf5": "@Model.objOrderId.notes.udf5"
+            },
+            "theme": {
+                "color": "#007aff"
+            }
+        };
+        var rzp1 = new Razorpay(options);
+
+        document.getElementById('rzp-button1').onclick = function (e) {
+
+            rzp1.open();
+            e.preventDefault();
+        }
+
+                    </script>
+
+                }
+            </div>
+        </div>
+    </div>
+
+
+</div>
+

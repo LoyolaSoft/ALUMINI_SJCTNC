@@ -1,0 +1,290 @@
+﻿@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@{
+    ViewBag.Title = "CourseBasedFeedbackReportForStaff";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/intro-js/introjs.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<!-- begin #content -->
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">ClassWiseFeedbackReportForStaff</a></li>
+        <li class="active">ClassWiseFeedbackReportForStaff</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Class Wise Feedback Report For Staff<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Class Wise Feedback Report For Staff</h4>
+        </div>
+        <div class="panel-body">
+
+
+            <div class="form-horizontal">
+                <div class="form-group  col-md-12">
+                    <div class="col-md-4">
+                        @Html.Label("Feedback", htmlAttributes: new { @class = "col-md-4 control-label " })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(m => m.FeedBackSettingList, (Model.FeedBackSettingList != null) ? Model.FeedBackSettingList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control   selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(m => m.FeedBackSettingList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-6" data-step="1" data-intro="Choose Class">
+                        @Html.LabelFor(model => model.CLASS_ID, htmlAttributes: new { @class = "control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.CLASS_ID, (Model.CLASS_ID != null) ? Model.CLASS_ID : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(model => model.CLASS_ID, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-6">
+                        <label class="control-label col-md-3">Student</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(modal => modal.StudentList, (Model.StudentList != null) ? Model.StudentList : Enumerable.Empty<SelectListItem>(), null, new { @class = "selectpicker form-control input-sm", @data_live_search = "true", multiple = "multiple", @data_actions_box = "true" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="page-loader-index" class="fade in hide"><span class="spinner"></span></div>
+            <div id="divAnswerView" class="form-group col-md-12">
+            </div>
+            <div class="col-md-1 pull-right">
+                <button class="btn btn-primary pull-right hidden" onclick="printDiv()" id="btnPrint"> Print </button>
+            </div>
+            @*<div class="col-md-1 pull-right">
+                    <button class="btn btn-primary pull-right hidden" onclick="Export1()" id="btnExport"> Export </button>
+                </div>*@
+
+
+
+
+        </div>
+    </div>
+</div>
+<!-- end #content -->
+<input type="hidden" id="FbRating" value="1" />
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<script>
+        ContentLoad = function () {
+            //Ready Function()
+        }
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('Refresh');
+
+
+
+   @*$("#CLASS_ID, #FeedBackSettingList").on('change', function () {
+    if ($("#CLASS_ID").val() !== '' && $("#FeedBackSettingList").val() !== '') {
+        $.ajax({
+            url: "@Url.Action("BindclassWiseFeedbackReportForStaff", "Feedback")",
+            async: false,
+            data: { sStaffId: "staff", sFeedBackId: $('#FeedBackSettingList').val(), sClassId: $("#CLASS_ID").val() },
+            success: function (data) {
+                if (data.Message != null && data.Message != "") {
+                    swal({ title: "error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                    //loadContent('/Library/LiUserList');
+                }
+                else {
+                    $('#btnPrint').removeClass("hidden");
+                    $('#btnExport').removeClass("hidden");
+                    $('#divAnswerView').html('');
+                    $('#divAnswerView').append(data);
+                }
+            },
+            error: function (ex) {
+                //alert('Failed to retrieve .' + ex);
+                swal({ title: "Error !", text: "Internal Server Error!", showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+            }
+        });
+    }
+});*@
+    
+    $("#StudentList").on('change', function () {
+        var sStudentIds = String($('#StudentList').val());
+        if ($("#CLASS_ID").val() !== '' && $("#FeedBackSettingList").val() !== '' && sStudentIds != 0) {
+
+        // Show "Fetching" message
+        $('#divAnswerView').html('<p style="text-align:center;">Fetching...</p>');
+
+        $.ajax({
+            url: "@Url.Action("BindCourseBasedFeedbackReportForStaff", "Feedback")",
+            async: false,
+            data: { sStaffId: "staff", sFeedBackId: $('#FeedBackSettingList').val(), sClassId: $("#CLASS_ID").val(), sStudentId: sStudentIds },
+            success: function (data) {
+
+                if (data.Message != null && data.Message != "") {
+                    swal({ title: "error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                    //loadContent('/Library/LiUserList');
+                }
+                else {
+                    $('#btnPrint').removeClass("hidden");
+                    $('#btnExport').removeClass("hidden");
+
+                    // Delay for 2 seconds before appending the data
+                    setTimeout(function() {
+                        $('#divAnswerView').html('');
+                        $('#divAnswerView').append(data);
+                    }, 1000);
+                }
+            },
+            error: function (ex) {
+
+                //alert('Failed to retrieve .' + ex);
+                swal({ title: "Error !", text: "Internal Server Error!", showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+            }
+        });
+    }
+    });
+
+    @*$("#CLASS_ID, #FeedBackSettingList, #StudentList").on('change', function () {
+        var sStudentIds = String($('#StudentList').val());
+        if ($("#CLASS_ID").val() !== '' && $("#FeedBackSettingList").val() !== '' && sStudentIds != 0) {
+
+        // Show "Fetching" message
+        $('#divAnswerView').html('<p style="text-align:center;">Fetching...</p>');
+
+        $.ajax({
+            url: "@Url.Action("BindCourseBasedFeedbackReportForStaff", "Feedback")",
+            async: false,
+            data: { sStaffId: "staff", sFeedBackId: $('#FeedBackSettingList').val(), sClassId: $("#CLASS_ID").val(), sStudentId: sStudentIds },
+            success: function (data) {
+
+                if (data.Message != null && data.Message != "") {
+                    swal({ title: "error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                    //loadContent('/Library/LiUserList');
+                }
+                else {
+                    $('#btnPrint').removeClass("hidden");
+                    $('#btnExport').removeClass("hidden");
+
+                    // Delay for 2 seconds before appending the data
+                    setTimeout(function() {
+                        $('#divAnswerView').html('');
+                        $('#divAnswerView').append(data);
+                    }, 1000);
+                }
+            },
+            error: function (ex) {
+
+                //alert('Failed to retrieve .' + ex);
+                swal({ title: "Error !", text: "Internal Server Error!", showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+            }
+        });
+    }
+    });*@
+
+    // Class List Change ...
+    $('#CLASS_ID').on('change', function () {
+    $.ajax({
+        url: '@Url.Action("GetStudentAndClassList", "Feedback")',
+        method: 'POST',
+        datatype: 'json',
+        data: { sClassId: $('#CLASS_ID').val()},
+        success: function (data) {
+
+            $('#StudentList').empty().append(data.sResult).select();
+          //  $('#NMECourseList').empty().append(data.ErrorCode).select();
+            $('.selectpicker').selectpicker('refresh');
+        }, error: function (error) {
+            alert('Internal Server Error !');
+            $('.selectpicker').selectpicker('refresh');
+        }
+    });
+});
+
+    @*$("#CLASS_ID").on('change', function () {
+    if ($("#CLASS_ID").val() !== '') {
+
+
+        $.ajax({
+            url: "@Url.Action("FetchFeedBackClassBasedId", "Feedback")",
+            async: false,
+            data: {sClassId: $("#CLASS_ID").val()},
+            success: function (data) {
+
+                if (data.Message != null && data.Message != "") {
+                    swal({ title: "error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                    //loadContent('/Library/LiUserList');
+                }
+                else {
+                    $('#btnPrint').removeClass("hidden");
+                    $('#btnExport').removeClass("hidden");
+
+                        $('#StudentCourseList').append(data);
+
+                }
+            },
+            error: function (ex) {
+
+                //alert('Failed to retrieve .' + ex);
+                swal({ title: "Error !", text: "Internal Server Error!", showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+            }
+        });
+    }
+});*@
+
+
+
+
+    function printDiv() {
+
+        //$('#btnPrint').addClass("hidden");
+        //$('#btnExport').addClass("hidden");
+        var printContents = document.getElementById('divAnswerView').innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+    }
+
+
+    function Export1() {
+
+        var title = "";
+        var sFeedback = $('#FeedBackSettingList option:selected').text();
+
+        title = sFeedback + "_" + $('#lblReportName').text();
+
+
+        let file = new Blob([$('#divAnswerView').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: title + ".xls"
+        }).appendTo("body").get(0).click();
+        e.preventDefault();
+
+    }
+
+</script>
+
+<script src="~/Content/assets/plugins/intro-js/intro.js"></script>
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,651 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@using CMS.Utility;
+@{
+    Layout = null;
+    int qcount = 0;
+    int licount = 0;
+    int imgcount = 0;
+}
+<div class="col-md-12">
+
+    @if (Model.Liexamquesions != null && Model.Liexamquesions.Count > 0)
+    {
+        <input type="hidden" id="">
+        var predefinedmarksquestiontype = Model.Liexamquesions.Where(o => o.QUESTION_TYPE == Common.Question_Type.ObjectiveType || o.QUESTION_TYPE == Common.Question_Type.FillInTheBlank || o.QUESTION_TYPE == Common.Question_Type.MatchTheFollowing).ToList();
+        var evaluatormarkseitherquestiontype = Model.Liexamquesions.Where(o => o.QUESTION_TYPE == Common.Question_Type.EitherQuestions).ToList();
+        var evaluatormarkschoicequestiontype = Model.Liexamquesions.Where(o => o.QUESTION_TYPE == Common.Question_Type.ChooseBasedQuestions).ToList();
+        if (predefinedmarksquestiontype != null && predefinedmarksquestiontype.Count > 0)
+        {
+            var evaluatoedcount = predefinedmarksquestiontype.Where(o => o.SECURED_MARK != null && o.SECURED_MARK != "");
+
+            double secmark = 0;
+            <div id="predefindmarksdiv" class="table-responsive">
+                <input type="hidden" id="actualeval" class="actualeval" value="@(evaluatoedcount != null ? evaluatoedcount.Count().ToString() : "0")">
+                <input type="hidden" id="totaleval" class="totaleval" value="@predefinedmarksquestiontype.FirstOrDefault().TO_BE_ATTEND">
+                <br><br>
+                <table class="table table-bordered table-responsive" id="tblpredefined">
+                    <thead>
+                        <tr>
+                            <th>Questions</th>
+                            <th>Answer</th>
+                            <th>Status</th>
+                            <th>Mark</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in predefinedmarksquestiontype)
+                        {
+
+                            if (item.QUESTION_TYPE.ToString() == Common.Question_Type.ObjectiveType || item.QUESTION_TYPE.ToString() == Common.Question_Type.FillInTheBlank)
+                            {
+                                if (item.STATUS == Common.IsActiveFalg.IsActive)
+                                {
+                                    secmark += Convert.ToDouble((string.IsNullOrEmpty(item.MARK_FOR_EACH_QUESTION)) ? "0" : item.MARK_FOR_EACH_QUESTION);
+                                }
+                                <tr questiontype="@item.QUESTION_TYPE" questioinid="@item.QUIZ_ID" status="@item.STATUS" examsettingid="@item.EXAM_SETTING_ID" totalmark="@item.MARK_FOR_EACH_QUESTION">
+                                    <td>@(new HtmlString(Model.GetStrigFromBase64String(item.QUESTION)))</td>
+                                    @if (item.OPTION != null && item.OPTION != "")
+                                    {
+                                        if (item.STATUS == Common.IsActiveFalg.IsActive)
+                                        {
+                                            <td>
+                                                @(new HtmlString(Model.GetStrigFromBase64String(item.OPTION)))
+                                            </td>
+                                            <td>
+                                                <label class="text-success"><i class="fa fa-check-circle" style="font-size:16px"></i></label>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control sec_mark" min="0" value="1" style="width:100px" required />
+                                            </td>
+
+                                        }
+                                        else
+                                        {
+                                            <td>
+                                                @(new HtmlString(Model.GetStrigFromBase64String(item.OPTION)))
+                                            </td>
+                                            <td>
+                                                <label class="text-danger"><i class="fa fa-close" style="font-size:16px"></i></label>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control sec_mark" value="0" min="0" style="width:100px" required />
+                                            </td>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <td>
+                                            -
+                                        </td>
+                                        <td>
+                                            -
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control sec_mark" value="0" min="0" style="width:100px" required />
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        }
+
+                        @*<tr class="markrow">
+                                <td colspan="2">
+                                    Total Secured
+                                </td>
+                                <td>
+                                    @secmark/@predefinedmarksquestiontype.FirstOrDefault().TOTAL_MARK_FOR_EACH_SECTION
+                                </td>
+                            </tr>*@
+                    </tbody>
+                </table>
+                <br><br>
+
+
+
+                <div class="col-md-12">
+                    <button class="btn btn-primary pull-right" id="btnsave">Submit</button>
+                </div>
+            </div>
+        }
+        else if (evaluatormarkseitherquestiontype != null && evaluatormarkseitherquestiontype.Count > 0)
+        {
+
+            var groupbyquestion = evaluatormarkseitherquestiontype.GroupBy(o => o.QUIZ_ID).ToList();
+            var evaluatoedcount = groupbyquestion.Where(o => o.FirstOrDefault().SECURED_MARK != null && o.FirstOrDefault().SECURED_MARK != "");
+
+            <div id="questiontype_@Common.Question_Type.EitherQuestions">
+                <input type="hidden" id="totaleval" class="totaleval" value="@evaluatormarkseitherquestiontype.FirstOrDefault().TO_BE_ATTEND">
+                <input type="hidden" id="actualeval" class="actualeval" value="@(evaluatoedcount != null ? evaluatoedcount.Count().ToString() : "0")">
+
+                @foreach (var question in groupbyquestion)
+                {
+                    qcount++;
+                    var liGroupOptions = Model.liexamoptions.Where(o => o.QUIZ_ID == question.FirstOrDefault().QUIZ_ID).ToList();
+                    var answersheets = evaluatormarkseitherquestiontype.Where(o => o.QUIZ_ID == question.FirstOrDefault().QUIZ_ID && o.IMAGE_PATH != "").ToList();
+                    <div class="col-md-12 hidden" id="questioncount_@qcount" questionid="@question.FirstOrDefault().QUIZ_ID" optionid="@question.FirstOrDefault().OPTION_ID" questiontypeid="@question.FirstOrDefault().QUESTION_TYPE" examsettingid="@question.FirstOrDefault().EXAM_SETTING_ID">
+
+                        @if (!string.IsNullOrEmpty(question.FirstOrDefault().COURSE_ID) && string.IsNullOrEmpty(question.FirstOrDefault().OPTION_ID) || question.FirstOrDefault().OPTION_ID==" ")
+                        {
+                            <div class="radio radio-css radio-inline" style="padding-top: 0px !important">
+                                <input type="radio" class="radio-inline" id="@question.FirstOrDefault().QUIZ_ID" radio-id="RadioOption" name="eitherquestion_@question.FirstOrDefault().QUIZ_ID" questionid="@question.FirstOrDefault().QUIZ_ID" optionid=" " questiontypeid="@question.FirstOrDefault().QUESTION_TYPE" examsettingid="@question.FirstOrDefault().EXAM_SETTING_ID" totalmark="@question.FirstOrDefault().MARK_FOR_EACH_QUESTION" checked />
+                                <label for="@question.FirstOrDefault().QUIZ_ID" class="control-label">@(new HtmlString(Model.GetStrigFromBase64String(question.FirstOrDefault().QUESTION)))</label>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="radio radio-css radio-inline" style="padding-top: 0px !important">
+                                <input type="radio" class="radio-inline" id="@question.FirstOrDefault().QUIZ_ID" radio-id="RadioOption" name="eitherquestion_@question.FirstOrDefault().QUIZ_ID" questionid="@question.FirstOrDefault().QUIZ_ID" optionid=" " questiontypeid="@question.FirstOrDefault().QUESTION_TYPE" examsettingid="@question.FirstOrDefault().EXAM_SETTING_ID" totalmark="@question.FirstOrDefault().MARK_FOR_EACH_QUESTION" />
+                                <label for="@question.FirstOrDefault().QUIZ_ID" class="control-label">@(new HtmlString(Model.GetStrigFromBase64String(question.FirstOrDefault().QUESTION)))</label>
+                            </div>
+                        }
+                       
+                        @*<p class="">@(new HtmlString(Model.GetStrigFromBase64String(question.FirstOrDefault().QUESTION)))</p><br><br>*@
+                        @foreach (var GpOptionitem in liGroupOptions)
+                        {
+                            <br> <br>
+                            <span>OR</span>
+                            <br> <br>
+                            if (!string.IsNullOrEmpty(question.FirstOrDefault().COURSE_ID) && !string.IsNullOrEmpty(question.FirstOrDefault().OPTION_ID) && question.FirstOrDefault().OPTION_ID != " ")
+                            {
+                                <div class="radio radio-css radio-inline" style="padding-top: 0px !important">
+                                    <input type="radio" class="radio-inline" id="@question.FirstOrDefault().QUIZ_ID+@GpOptionitem.OPTION_ID" radio-id="RadioOption" name="eitherquestion_@question.FirstOrDefault().QUIZ_ID" questionid="@question.FirstOrDefault().QUIZ_ID" optionid="@question.FirstOrDefault().OPTION_ID" questiontypeid="@question.FirstOrDefault().QUESTION_TYPE" examsettingid="@question.FirstOrDefault().EXAM_SETTING_ID" totalmark="@question.FirstOrDefault().MARK_FOR_EACH_QUESTION" checked="checked" />
+                                    <label for="@question.FirstOrDefault().QUIZ_ID+@GpOptionitem.OPTION_ID" class="control-label">@(new HtmlString(Model.GetStrigFromBase64String(GpOptionitem.OPTION)))</label>
+                                </div>
+                                <br> <br>
+                            }
+                            else
+                            {
+                                <div class="radio radio-css radio-inline" style="padding-top: 0px !important">
+                                    <input type="radio" class="radio-inline" id="@question.FirstOrDefault().QUIZ_ID+@GpOptionitem.OPTION_ID" radio-id="RadioOption" name="eitherquestion_@question.FirstOrDefault().QUIZ_ID" questionid="@question.FirstOrDefault().QUIZ_ID" optionid="@question.FirstOrDefault().OPTION_ID" questiontypeid="@question.FirstOrDefault().QUESTION_TYPE" examsettingid="@question.FirstOrDefault().EXAM_SETTING_ID" totalmark="@question.FirstOrDefault().MARK_FOR_EACH_QUESTION" />
+                                    <label for="@question.FirstOrDefault().QUIZ_ID+@GpOptionitem.OPTION_ID" class="control-label">@(new HtmlString(Model.GetStrigFromBase64String(GpOptionitem.OPTION)))</label>
+                                </div>
+                                <br> <br>
+                            }
+
+                            @*<p class="">@(new HtmlString(Model.GetStrigFromBase64String(GpOptionitem.OPTION)))</p><br><br>*@
+
+                        }
+
+                        <div class="tab-overflow" data-parsley-validate="true" name="form-wizard">
+                            <ul class="nav nav-tabs">
+                                <li class="active" id="answersheet"><a href="#nav_@qcount" data-toggle="tab">Answer Sheets</a></li>
+                                <li class="" id="keyanswer"><a href="#nav_@qcount-@qcount" data-toggle="tab">Key Answers</a></li>
+
+                            </ul>
+                        </div>
+                        <div class="tab-content">
+                            <div class="tab-pane fade in active" id="nav_@qcount">
+                                @if (answersheets != null && answersheets.Count > 0)
+                                {
+                                    <div id = "answer_@qcount" class="carousel slide" data-ride="carousel">
+                                    <!-- Indicators -->
+                                    <ol class="carousel-indicators">
+
+                                        @foreach (var item in answersheets)
+                                        {
+                                            licount++;
+                                            if (licount == 1)
+                                            {
+                                                    <li data - target = "#answer_@qcount" data-slide-to = "@licount" class="active"></li>
+                                            }
+                                            else
+                                            {
+
+                                                <li data-target="#answer_@qcount" data-slide-to="@licount"></li>
+                                            }
+                                        }
+                                        @{
+                                            licount = 0;
+                                        }
+                                    </ol>
+
+                                    <!-- Wrapper for slides -->
+                                    <div class="carousel-inner">
+                                        @foreach (var item in answersheets)
+                                        {
+                                            imgcount++;
+                                            if (imgcount == 1)
+                                            {
+                                                <div class="item active">
+
+                                                <img src="@item.IMAGE_PATH" class="img" alt="Image" style="width:100%;transform:rotate(180deg) scaley(-1)  !important;">
+
+
+                                            </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="item ">
+
+                                                    <img src="@item.IMAGE_PATH" class="img" alt="Image" style="width:100%;transform:rotate(180deg) scaley(-1)  !important;">
+
+
+                                                </div>
+                                            }
+                                        }
+                                        @{
+                                            imgcount = 0;
+                                        }
+                                    </div>
+                                    <center>@*<i class="fa fa-minus-circle" style="font-size:20px" onclick="zoomout()"></i>*@&nbsp;&nbsp;&nbsp;&nbsp;<i class="fa fa-rotate-right" style="font-size:20px" onclick="rotate('questioncount_@qcount')"></i>&nbsp;&nbsp;&nbsp;&nbsp;@*<i class="fa fa-plus-circle " style="font-size:20px" onclick="zoomin()"></i>*@</center>
+                                    <!-- Left and right controls -->
+                                    <a class="left carousel-control" href="#answer_@qcount" data-slide="prev">
+                                        <span class="glyphicon glyphicon-chevron-left"></span>
+                                        <span class="sr-only">Previous</span>
+                                    </a>
+                                    <a class="right carousel-control" href="#answer_@qcount" data-slide="next">
+                                        <span class="glyphicon glyphicon-chevron-right"></span>
+                                        <span class="sr-only">Next</span>
+                                    </a>
+                                </div>
+                                            }
+                                            else
+                                            {
+                                                <pre>No Answer Sheets Found..!</pre>
+                                            }
+                            </div>
+                            <div class="tab-pane fade" id="nav_@qcount-@qcount">
+                                <iframe src="@question.FirstOrDefault().ANSWER_KEY_PATH" width="100%" height="500px">  </iframe>
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            @Html.Label("Secured Mark", htmlAttributes: new { @class = "control-label col-md-5" })
+                            <div class="col-md-6">
+                                <input type="number" id="securedmark" class="form-control input-sm" min="0" max="@question.FirstOrDefault().MARK_FOR_EACH_QUESTION" />
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            @Html.Label("Total Mark", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-6">
+                                <label class="col-md-2">@question.FirstOrDefault().MARK_FOR_EACH_QUESTION</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 form-group">
+                            <button class="btn btn-primary btnsubmit" id="btnsubmit" onclick="SaveEvaluationMark(@Common.Question_Type.EitherQuestions,'questioncount_@qcount',@question.FirstOrDefault().MARK_FOR_EACH_QUESTION)">Submit</button>
+                        </div>
+                        <div class="col-md-12">
+                            <button class="btn btn-primary pull-left btnback"><i class="fa fa-arrow-left"></i></button>
+                            <button class="btn btn-primary pull-right btnnext" total="@groupbyquestion.Count()"><i class="fa fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+
+                                            }
+                </div>
+                                            }
+                                            else if (evaluatormarkschoicequestiontype != null && evaluatormarkschoicequestiontype.Count > 0)
+                                            {
+
+                                                var groupbyquestion = evaluatormarkschoicequestiontype.GroupBy(o => o.QUIZ_ID).ToList();
+                                                var evaluatoedcount = groupbyquestion.Where(o => o.FirstOrDefault().SECURED_MARK != null && o.FirstOrDefault().SECURED_MARK != "");
+
+                                                <div id="questiontype_@Common.Question_Type.ChooseBasedQuestions">
+                                                    <input type="hidden" id="totaleval" class="totaleval" value="@evaluatormarkschoicequestiontype.FirstOrDefault().TO_BE_ATTEND">
+                                                    <input type="hidden" id="actualeval" class="actualeval" value="@(evaluatoedcount != null ? evaluatoedcount.Count().ToString() : "0")">
+                                                    @foreach (var question in groupbyquestion)
+                                                    {
+                                                        qcount++;
+                                                        var answersheets = evaluatormarkschoicequestiontype.Where(o => o.QUIZ_ID == question.FirstOrDefault().QUIZ_ID && o.IMAGE_PATH != "").ToList();
+                                                            <div class="col-md-12" id="questioncount_@qcount" questionid="@question.FirstOrDefault().QUIZ_ID" optionid="" questiontypeid="@question.FirstOrDefault().QUESTION_TYPE" examsettingid="@question.FirstOrDefault().EXAM_SETTING_ID">
+
+                                                            <p class="">@(new HtmlString(Model.GetStrigFromBase64String(question.FirstOrDefault().QUESTION)))</p><br><br>
+                                                            <div class="tab-overflow" data-parsley-validate="true" name="form-wizard">
+                                                                <ul class="nav nav-tabs">
+                                                                    <li class="active" id="answersheet"><a href="#nav_@qcount" data-toggle="tab">Answer Sheets</a></li>
+                                                                    <li class="" id="keyanswer"><a href="#nav_@qcount-@qcount" data-toggle="tab">Key Answers</a></li>
+
+                                                                </ul>
+                                                            </div>
+                                                            <div class="tab-content">
+                                                                <div class="tab-pane fade in active " id="nav_@qcount">
+                                                                    @if (answersheets != null && answersheets.Count > 0)
+                                                                    {
+                                                                            <div id = "answer_@qcount" class="carousel slide" data-ride="carousel">
+                                                                            <!-- Indicators -->
+                                                                            <ol class="carousel-indicators">
+
+                                                                                @foreach (var item in answersheets)
+                                                                                {
+                                                                                    licount++;
+                                                                                    if (licount == 1)
+                                                                                    {
+                                                                                            <li data - target = "#answer_@qcount" data-slide-to = "@licount" class="active"></li>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+
+                                                                                        <li data-target="#answer_@qcount" data-slide-to="@licount"></li>
+                                                                                    }
+                                                                                }
+                                                                                @{
+                                                                                    licount = 0;
+                                                                                }
+                                                                            </ol>
+
+                                                                            <!-- Wrapper for slides -->
+                                                                            <div class="carousel-inner">
+                                                                                @foreach (var item in answersheets)
+                                                                                {
+                                                                                    imgcount++;
+                                                                                    if (imgcount == 1)
+                                                                                    {
+                                                                                        <div class="item active">
+                                                                                        <img src="@item.IMAGE_PATH" alt="Image" style="width:100%;transform:rotate(180deg) scaley(-1) !important;">
+
+                                                                                    </div>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        <div class="item ">
+                                                                                            <img src="@item.IMAGE_PATH" alt="Image" style="width:100%;transform: rotate(180deg) scaley(-1) !important;">
+
+                                                                                        </div>
+                                                                                    }
+                                                                                }
+                                                                                @{
+                                                                                    imgcount = 0;
+                                                                                }
+                                                                            </div>
+                                                                            <center>@*<i class="fa fa-minus-circle" style="font-size:20px" onclick="zoomout()"></i>*@&nbsp;&nbsp;&nbsp;&nbsp;<i class="fa fa-rotate-right" style="font-size:20px" onclick="rotate('questioncount_@qcount')"></i>&nbsp;&nbsp;&nbsp;&nbsp;@*<i class="fa fa-plus-circle " style="font-size:20px" onclick="zoomin()"></i>*@</center>
+                                                                            <!-- Left and right controls -->
+                                                                            <a class="left carousel-control" href="#answer_@qcount" data-slide="prev">
+                                                                                <span class="glyphicon glyphicon-chevron-left"></span>
+                                                                                <span class="sr-only">Previous</span>
+                                                                            </a>
+                                                                            <a class="right carousel-control" href="#answer_@qcount" data-slide="next">
+                                                                                <span class="glyphicon glyphicon-chevron-right"></span>
+                                                                                <span class="sr-only">Next</span>
+                                                                            </a>
+                                                                        </div>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        <pre>No Answer Sheets Found..!</pre>
+                                                                                    }
+                                                                </div>
+                                                                <div class="tab-pane fade" id="nav_@qcount-@qcount">
+                                                                    <iframe src="@question.FirstOrDefault().ANSWER_KEY_PATH" width="100%" height="500px">  </iframe>
+                                                                </div>
+                                                                </div>
+                                                                <div class="col-md-4 form-group">
+                                                                    @Html.Label("Secured Mark", htmlAttributes: new { @class = "control-label col-md-5" })
+                                                                    <div class="col-md-6">
+                                                                        <input type="number" id="securedmark" class="form-control input-sm" min="0" max="@question.FirstOrDefault().MARK_FOR_EACH_QUESTION" questionid="@question.FirstOrDefault().QUIZ_ID" optionid="@question.FirstOrDefault().OPTION_ID" questiontypeid="@question.FirstOrDefault().QUESTION_TYPE" examsettingid="@question.FirstOrDefault().EXAM_SETTING_ID" totalmark="@question.FirstOrDefault().MARK_FOR_EACH_QUESTION" />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-4 form-group">
+                                                                    @Html.Label("Total Mark", htmlAttributes: new { @class = "control-label col-md-4" })
+                                                                    <div class="col-md-6">
+                                                                        <label class="col-md-2">@question.FirstOrDefault().MARK_FOR_EACH_QUESTION</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-2 form-group">
+                                                                    <button class="btn btn-primary btnsubmit" id="btnsubmit" onclick="SaveEvaluationMark(@Common.Question_Type.ChooseBasedQuestions,'questioncount_@qcount',@question.FirstOrDefault().MARK_FOR_EACH_QUESTION)">Submit</button>
+                                                                </div>
+                                                                <div class="col-md-12" style="height:4px;background-color:grey">
+                                                                </div>
+                                                                @*<div class="col-md-12">
+                                                                        <button class="btn btn-primary pull-left btnback"><i class="fa fa-arrow-left"></i></button>
+                                                                        <button class="btn btn-primary pull-right btnnext" total="@groupbyquestion.Count()"><i class="fa fa-arrow-right"></i></button>
+                                                                    </div>*@
+                                                                </div>
+
+
+                                                                                    }
+                                                    </div>
+                                                                                        }
+
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        <div class="alert alert-info">
+                                                                                            No Records Found ..!
+                                                                                        </div>
+                                                                                    }
+    </div>
+    <input type="hidden" id="questioncount" value="1">
+    <script>
+
+        function SaveEvaluationMark(questiontypeid, divid, maxmark)
+        {
+            if ($('#' + divid).find('.btnsubmit').hasClass('disabled')) {
+                swal({ title: "Error", text: "You have already enterd mark for this Question ..!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                return false;
+            }
+            if (parseFloat($('#' + divid).find('input[type=number]').val()) <= parseFloat(maxmark)) {
+                if ($('#' + divid).find('input[type=number]').val() != null && $('#' + divid).find('input[type=number]').val() != '') {
+
+                    var optionid = '';
+                    var questionid = null;
+                    var questiontype = null;
+                    var totalmark = null;
+                    var examsettingid = null;
+                    var securedmark = null;
+
+                    var invigilationid = $('#invigilationid').val();
+                    var evaluationid = $('#evaluationid').val();
+                    var evalutiontype = $('#evaluationtype').val();
+                    var JsonData = '{"liEvaluationmark":[';
+                    if (questiontypeid == "4") {
+                        var total = $('#questiontype_@Common.Question_Type.EitherQuestions').find('.totaleval').val();
+                        var actual = $('#questiontype_@Common.Question_Type.EitherQuestions').find('.actualeval').val();
+                        if (parseFloat(actual) < parseFloat(total)) {
+                            if ($('#' + divid).find('input[type=radio]:checked').attr('questionid') != '' && $('#' + divid).find('input[type=radio]:checked').attr('questionid') != null) {
+                                questionid = $('#' + divid).find('input[type=radio]:checked').attr('questionid');
+                                questiontype = $('#' + divid).find('input[type=radio]:checked').attr('questiontypeid');
+                                totalmark = $('#' + divid).find('input[type=radio]:checked').attr('totalmark');
+                                examsettingid = $('#' + divid).find('input[type=radio]:checked').attr('examsettingid');
+                                securedmark = $('#' + divid).find('input[type=number]').val();
+                            }
+                            else {
+                                swal({ title: "Error", text: "Please select the questions ..!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                                return false;
+                            }
+                        }
+                        else {
+                            swal({ title: "Error", text: "You have already enterd mark for maximum Question ..!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                            return false;
+                        }
+                    }
+                    else if (questiontypeid == "5") {
+
+                        var total = $('#questiontype_@Common.Question_Type.ChooseBasedQuestions').find('.totaleval').val();
+                        var actual = $('#questiontype_@Common.Question_Type.ChooseBasedQuestions').find('.actualeval').val();
+                        if (parseFloat(actual) < parseFloat(total)) {
+
+                            questionid = $('#' + divid).find('input[type=number]').attr('questionid');
+                            questiontype = $('#' + divid).find('input[type=number]').attr('questiontypeid');
+                            totalmark = $('#' + divid).find('input[type=number]').attr('totalmark');
+                            examsettingid = $('#' + divid).find('input[type=number]').attr('examsettingid');
+                            securedmark = $('#' + divid).find('input[type=number]').val();
+                        }
+                        else {
+                            swal({ title: "Error", text: "You have already enterd mark for maximum Question ..!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                            return false;
+                        }
+                    }
+
+                    if ($('#' + divid).find('input[type=radio]:checked').attr('optionid') != null && $('#' + divid).find('input[type=radio]:checked').attr('optionid') != '') {
+                        optionid = $('#' + divid).find('input[type=radio]:checked').attr('optionid');
+                    }
+                    JsonData += '{"QUESTION_ID":"' + questionid + '","QUESTION_TYPE":"' + questiontype + '","TOTAL_MARK":"' + totalmark + '", "SECURED_MARK":"' + securedmark + '","EXAM_SETTING_ID":"' + examsettingid + '","OPTION_ID":"' + optionid + '"},';
+                    JsonData = JsonData.slice(0, -1);
+                    JsonData += ']}';
+                    $('#' + divid).find('.btnsubmit').addClass('disabled'); 44
+                    $.ajax({
+                        url: '@Url.Action("SaveEvaluationMarks", "Examination")',
+                        method: 'POST',
+                        datatype: 'json',
+                        data: { sJsonData: JsonData, Evaluationtype: evalutiontype, sEvaluationId: evaluationid, sInvigilationId: invigilationid },
+                        success: function (data) {
+                            if (data.ErrorCode == "200")
+                            {
+                                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                                //$('#' + divid).find('input[type=number]').attr('disabled', 'disabled');
+                                if (questiontypeid == "4") {
+
+                                    $('#questiontype_@Common.Question_Type.EitherQuestions').find('.actualeval').val(parseInt($('#questiontype_@Common.Question_Type.EitherQuestions').find('.actualeval').val()) + 1);
+
+                                }
+                                else if (questiontypeid == "5")
+                                {
+                                    $('#questiontype_@Common.Question_Type.ChooseBasedQuestions').find('.actualeval').val(parseInt($('#questiontype_@Common.Question_Type.ChooseBasedQuestions').find('.actualeval').val()) + 1);
+                                }
+
+                            }
+                            else
+                            {
+                                swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                            }
+                        },
+                        error: function (error) {
+                            swal({ title: "Error", text: "Internal Server Error!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                        }
+                    });
+                }
+                else {
+                    swal({ title: "Error", text: "Please enter the mark ..!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }
+            else {
+                swal({ title: "Error", text: "Mark should be  less-than or equal to maximum mark  ..!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+
+        }
+        $('#questioncount_' + $('#questioncount').val()).removeClass('hidden');
+
+        $('.carousel').carousel({
+            interval: false,
+            wrap: false
+        });
+
+        $('.btnnext').on('click', function () {
+            var totalcount = $(this).attr('total');
+            var qcount = $('#questioncount').val();
+            if ($('#questioncount_' + qcount).find('input[type=number]').val() != null && $('#questioncount_' + qcount).find('input[type=number]').val() != '') {
+                if (totalcount > qcount) {
+                    var count = parseInt(qcount) + 1;
+                    $('#questioncount').val(count);
+                    $('#questioncount_' + count).removeClass('hidden');
+                    $('#questioncount_' + qcount).addClass('hidden');
+                }
+                else {
+                    swal({ title: "Message", text: "There is no more question and answers", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                }
+            }
+            else {
+                swal({ title: "Error", text: "Please enter the mark ..!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+
+        });
+
+        $('.btnback').on('click', function () {
+            var qcount = $('#questioncount').val();
+            if ($('#questioncount_' + qcount).find('input[type=number]').val() != null && $('#questioncount_' + qcount).find('input[type=number]').val() != '') {
+
+                if (qcount != 1) {
+                    var count = parseInt(qcount) - 1;
+                    $('#questioncount').val(count);
+                    $('#questioncount_' + count).removeClass('hidden');
+                    $('#questioncount_' + qcount).addClass('hidden');
+                }
+                else {
+                    swal({ title: "Message", text: "There is no more question and answers", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                }
+            }
+            else {
+                swal({ title: "Error", text: "Please enter the mark ..!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+
+
+        $('#btnsave').on('click', function () {
+            var total = $('#predefindmarksdiv').find('.totaleval').val();
+            var actual = $('#predefindmarksdiv').find('.actualeval').val();
+            if (parseInt(actual) < parseInt(total)) {
+
+                $('#btnsave').addClass('disabled');
+                var invigilationid = $('#invigilationid').val();
+                var evaluationid = $('#evaluationid').val();
+                var evalutiontype = $('#evaluationtype').val();
+                var JsonData = '{"liEvaluationmark":[';
+                $('#tblpredefined > tbody  > tr').each(function () {
+                    var questionid = $(this).attr('questioinid');
+                    var questiontype = $(this).attr('questiontype');
+                    var totalmark = $(this).attr('totalmark');
+                    var examsettingid = $(this).attr('examsettingid');
+                    var status = $(this).attr('status');
+                    var securedmark = $(this).find('.sec_mark').val();
+                    //if (parseInt(securedmark) < parseInt(totalmark))
+                    //{
+                    if (questionid != null && questionid != '') {
+                        JsonData += '{"QUESTION_ID":"' + questionid + '","QUESTION_TYPE":"' + questiontype + '","TOTAL_MARK":"' + totalmark + '", "SECURED_MARK":"' + securedmark + '","EXAM_SETTING_ID":"' + examsettingid + '","OPTION_ID":""},';
+                    }
+                    //}
+                    //else
+                    //{
+                    //    swal({ title: "Error", text: "Mark should be  less-than or equal to maximum mark  ..!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    //    return false;
+                    //}
+                });
+                JsonData = JsonData.slice(0, -1);
+                JsonData += ']}';
+
+                $.ajax({
+                    url: '@Url.Action("SaveEvaluationMarks", "Examination")',
+                    method: 'POST',
+                    datatype: 'json',
+                    data: { sJsonData: JsonData, Evaluationtype: evalutiontype, sEvaluationId: evaluationid, sInvigilationId: invigilationid },
+                    success: function (data) {
+                        $('#btnsave').removeClass('disabled');
+                        if (data.ErrorCode == "200") {
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                            $('#btnsave').attr('disabled', 'disabled');
+                        }
+                        else {
+                            swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                        }
+                    },
+                    error: function (error) {
+                        $('#btnsave').removeClass('disabled');
+                        swal({ title: "Error", text: "Internal Server Error!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                });
+            }
+            else {
+                swal({ title: "Error", text: "You have already enterd mark for maximum Question ..!", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                return false;
+            }
+        });
+        var degrees = 0;
+        //$('img').click(function rotateMe(e) {
+        function rotate(divid) {
+            degrees += 90;
+            //$('.img').addClass('rotated'); // for one time rotation
+
+            $('#' + divid).find('img').css({
+                'transform': 'rotate(' + degrees + 'deg) scaley(-1)',
+                '-ms-transform': 'rotate(' + degrees + 'deg) scaley(-1)',
+                '-moz-transform': 'rotate(' + degrees + 'deg) scaley(-1)',
+                '-webkit-transform': 'rotate(' + degrees + 'deg) scaley(-1)',
+                '-o-transform': 'rotate(' + degrees + 'deg) scaley(-1)'
+            });
+        }
+
+        //});
+        var currentZoom = 1.0;
+        function zoomin() {
+            currentZoom = currentZoom + 0.03;
+            var scaleString = "scale(" + currentZoom + ")";
+            $('.item').css("transform", scaleString);
+
+        }
+        function zoomout() {
+            currentZoom = currentZoom - 0.03;
+            var scaleString = "scale(" + currentZoom + ")";
+            $('.item').css("transform", scaleString);
+
+        }
+
+    </script>

@@ -1,0 +1,266 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+@using CMS.Utility
+@{@*double dGpa = 0;
+    double dwam = 0;
+    double dmulti = 0;
+    double wam = 0;
+    double credit = 0;
+    double max = 0;
+    double sec = 0;
+    double totalcredit = 0;
+    double totalgpa = 0;
+    double ogpa = 0;*@
+    var MphillCourse = Model.LiMphillStudentProject;
+    //double dGpaS = 0;
+}
+<style>
+    .verticalTableHeader 
+    {
+    text-align:center;
+    white-space:nowrap;
+    transform: rotate(270deg);
+     
+}
+</style>
+@if (Model.liSemestermark != null && Model.liSemestermark.Count > 0)
+{
+    var StudentList = Model.liSemestermark.GroupBy(s => s.STUDENT_ID).ToList();
+
+    if (StudentList.Count > 0 && StudentList != null)
+    {
+        foreach (var item in StudentList)
+        {
+            var folionumbers = Model.liStudentList.Where(s => s.STUDENT_ID == item.FirstOrDefault().STUDENT_ID).ToList();
+            var Individual = Model.liSemestermark.Where(s => s.STUDENT_ID == item.FirstOrDefault().STUDENT_ID).OrderBy(x => Convert.ToInt16(x.STUDENT_ID)).ThenBy(x => Convert.ToInt16(x.SEMESTER)).ThenBy(x => Convert.ToInt16(x.COURSE_ORDER)).ToList();
+
+            var Partlist = Model.liSemestermark.GroupBy(s => s.PART).ToList();
+
+            var datelist = Individual;
+            var Date = datelist.OrderByDescending(x => DateTime.ParseExact(x.START_DATE, "dd/MM/yyyy", null)).ToList();
+
+
+            if (Individual != null && Individual.Count() > 0 && folionumbers != null && folionumbers.Count > 0)
+            {
+                <div style="page-break-after:always !important;page-break-inside:avoid !important;">
+                    <div style="height: 1100px;  width: 816px;">
+                      &nbsp;&nbsp; &nbsp;&nbsp; 
+                       
+                            <table align="center" style="width:100%;" border="1">
+                                <tr>
+                                    <td style="width:60%;text-align:center;padding:10px;padding-left:5px;border-right:1px solid" ><b>NAME OF THE CANDIDATE</b> <br><br>&nbsp;<span style="font-weight: bold;">@Individual.FirstOrDefault().NAME.ToUpper()</span></td>
+                                    <td style="width:23%;text-align:center;padding:10px;padding-left:5px;border-right:1px solid" align="right"><b>REGISTER NUMBER</b> <br><br>&nbsp;<span style="font-weight: bold;">@Individual.FirstOrDefault().REGISTER_NO</span></td>
+                                    <td style="width:17%;text-align:center;padding:10px;padding-left:5px;border-right:1px solid" align="right"><b>FOLIO NUMBER</b> <br> <br>&nbsp;<span style="font-weight: bold;">@folionumbers.FirstOrDefault().FOLIO_NUMBER</span></td>
+                                </tr>
+                                
+                                
+                            </table>
+                       
+                      
+                      
+                        @if (Individual.FirstOrDefault().APPLICATION_TYPE_ID == "2")
+                        {
+                            var groupsem = Individual.GroupBy(s => s.SEMESTER).ToList();
+                            <table align="center" style="width:100%; border:1px solid;margin-top:5px">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2" style="border:1px solid;width:2% !important;padding-left:5px;" align="left">SEM</th>
+                                        <th rowspan="2" style="border:1px solid;width:2% !important;padding-left:5px;" align="left" class="verticalTableHeader">PART</th>
+                                        <th rowspan="2" style="border:1px solid;width:4% !important;padding-left:5px;" align="left">SUBJECT<br>CODE</th>
+                                        <th rowspan="2" style="border:1px solid;width:42% !important;padding-left:5px;text-align:center" align="center">TITLE OF THE SUBJECT</th>
+                                        <th colspan="3" style="width:5% !important;border:1px solid ;padding-left:5px;text-align:center" align="center">MARKS</th>
+
+                                        <th rowspan="2" style="width:2% !important;border:1px solid ;padding-left:5px;" align="left" class="verticalTableHeader">CREDIT</th>
+                                        <th rowspan="2" style="width:2% !important;border:1px solid ;padding-left:5px;" align="left" class="verticalTableHeader">GRADE <br> POINT</th>
+                                        <th rowspan="2" style="width:2% !important;border:1px solid ;padding-left:5px;" align="left" class="verticalTableHeader">GRADE</th>
+                                        <th rowspan="2" style="width:21% !important;border:1px solid ;padding-left:5px;min-width:80px" align="left">MONTH & <br>YEAR OF PASSED</th>
+                                    </tr>
+                                    <tr>
+
+                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">CIA</th>
+                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">ESE</th>
+                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">TOTAL</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                    @foreach (var sem in groupsem)
+                                    {
+                                        var semwisemark = Individual.Where(s => s.SEMESTER == sem.FirstOrDefault().SEMESTER).ToList();
+                                        foreach (var items in semwisemark)
+                                        {
+                                            var gp = Convert.ToDecimal(Convert.ToDecimal(items.TOTAL) / 10);
+                                            <tr>
+                                                <td style="width:5% !important; padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.SEMESTER_NAME</td>
+                                                <td style="width:5% !important; padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.PART_NAME</td>
+                                                <td style="width:15% !important;padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.COURSE_CODE</td>
+                                                <td style="width:42% !important;padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.COURSE_TITLE</td>
+                                                <td style="width:5% !important; padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.INTERNAL_MARK</td>
+                                                <td style="width:5% !important; padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.EXTERNAL_MARK</td>
+                                                <td style="width:5% !important; padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.TOTAL</td>
+                                                <td style="width:5% !important; padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.CREDIT</td>
+                                                <td style="width:5% !important; padding-left:5px;  border-right:1px solid;align-content:flex-start;font-size:11px">@*@items.GRADE_POINT*@ @gp</td>
+                                                <td style="width:5% !important; padding-left:5px;  border-right:1px solid ;align-content:flex-start;font-size:11px">@items.GRADE</td>
+                                                <td style="width:8% !important; padding-left:5px;  border-right:1px solid ;align-content:flex-start;font-size:11px">@items.M_EXAM</td>
+                                            </tr>
+
+                                        }
+                                        <tr style="border-top:1px solid;">
+                                            <td colspan="11"></td>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;" align="center"><b>*** END OF STATEMENT ***</b></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+
+                                    </tr>
+                                    <tr style="height:380px">
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;" align="center"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                        <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+                                <br>
+                                <label>SEM:SEMESTER, CIA:CONTINUOUS INTERNAL ASSESSMENT,ESE:END SEMESTER EXAMINATIONS, AA:ABSENT.</label>
+                                <br>
+                                <label>Any Correction is invalid</label>
+                           
+                            <br />
+                          
+                                            }
+                                            else if (Individual.FirstOrDefault().APPLICATION_TYPE_ID == "1")
+                                            {
+                                                var groupsem=Individual.GroupBy(s => s.SEMESTER).ToList();
+                                                <table align="center" style="width:100%; border:1px solid;margin-top:5px">
+                                                    <thead>
+                                                        <tr>
+                                                            <th rowspan="2" style="border:1px solid;width:2% !important;padding-left:5px;" align="left">SEM</th>
+                                                            <th rowspan="2" style="border:1px solid;width:2% !important;padding-left:5px;" align="left" class="verticalTableHeader">PART</th>
+                                                            <th  rowspan="2" style="border:1px solid;width:4% !important;padding-left:5px;" align="left">SUBJECT<br>CODE</th>
+                                                            <th rowspan="2" style="border:1px solid;width:42% !important;padding-left:5px;text-align:center" align="center">TITLE OF THE SUBJECT</th>
+                                                            <th colspan="3" style="width:5% !important;border:1px solid ;padding-left:5px;text-align:center" align="center">MARKS</th>
+
+                                                            <th rowspan="2" style="width:2% !important;border:1px solid ;padding-left:5px;" align="left" class="verticalTableHeader">CREDIT</th>
+                                                            <th rowspan="2" style="width:2% !important;border:1px solid ;padding-left:5px;" align="left" class="verticalTableHeader">GRADE <br> POINT</th>
+                                                            <th rowspan="2" style="width:2% !important;border:1px solid ;padding-left:5px;" align="left" class="verticalTableHeader">GRADE</th>
+                                                            <th rowspan="2" style="width:21% !important;border:1px solid ;padding-left:5px;min-width:80px" align="left">MONTH & <br>YEAR OF PASSED</th>
+                                                        </tr>
+                                                        <tr>
+                                                           
+                                                            <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">CIA</th>
+                                                            <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">ESE</th>
+                                                            <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">TOTAL</th>
+                                                            
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        
+                                                        @foreach (var sem in groupsem)
+                                                        {
+                                                            var semwisemark = Individual.Where(s => s.SEMESTER == sem.FirstOrDefault().SEMESTER).ToList();
+                                                            foreach (var items in semwisemark)
+                                                            {
+                                                                
+                                                                var gp =Convert.ToDecimal(Convert.ToDecimal(items.TOTAL)/10);
+                                                                <tr>
+                                                                    <td style="width:5% !important; padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.SEMESTER_NAME</td>
+                                                                    <td style="width:5% !important; padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.PART_NAME</td>
+                                                                    <td style="width:15% !important;padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.COURSE_CODE</td>
+                                                                    <td style="width:42% !important;padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.COURSE_TITLE</td>
+                                                                    <td style="width:5% !important; padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.INTERNAL_MARK</td>
+                                                                    <td style="width:5% !important; padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.EXTERNAL_MARK</td>
+                                                                    <td style="width:5% !important; padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.TOTAL</td>
+                                                                    <td style="width:5% !important; padding-left:5px;  border-right:1px solid;font-size:11px" align="left">@items.CREDIT</td>
+                                                                    <td style="width:5% !important; padding-left:5px;  border-right:1px solid;align-content:flex-start;font-size:11px">@*@items.GRADE_POINT*@ @gp</td>
+                                                                    <td style="width:5% !important; padding-left:5px;  border-right:1px solid ;align-content:flex-start;font-size:11px">@items.GRADE</td>
+                                                                    <td style="width:8% !important; padding-left:5px;  border-right:1px solid ;align-content:flex-start;font-size:11px">@items.M_EXAM</td>
+                                                                </tr>
+
+                                                            }
+                                                            <tr style="border-top:1px solid;">
+                                                                <td colspan="11"></td>
+                                                            </tr>
+                                                        }
+                                                        <tr >
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;" align="center"><b>*** END OF STATEMENT ***</b></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+
+                                                        </tr>
+                                                        <tr style="height:150px">
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;" align="center"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid;"></td>
+
+                                                        </tr>
+                                                        
+                                                    </tbody>
+                                                    
+                                                </table>
+                                                <br>
+                                                <label>SEM:SEMESTER, CIA:CONTINUOUS INTERNAL ASSESSMENT,ESE:END SEMESTER EXAMINATIONS, AA:ABSENT.</label>
+                                                <br>
+                                                <label>Any Correction is invalid</label>
+
+
+                                                   
+
+
+
+                                            }
+                                            
+                    </div>
+                    <div class="form-group">
+                        <div class="pull-left">
+                            <label><b>DATE OF PUBLICATION:&nbsp;&nbsp;</b>@DateTime.Today.ToString("dd/MM/yyyy")</label>
+                        </div>
+                       <div class="pull-right"> 
+                        
+                       <center>(Dr.(Sr.)Nirmala S.G)</center>
+                          <b> CONTROLLER OF EXAMINATIONS</b>
+                       </div>
+
+                    </div>
+                </div>
+
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }

@@ -1,0 +1,218 @@
+﻿
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "BindOverllFeeReport";
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+@if (Model.liExamCourseFeeReport != null && Model.liExamOveralFeeReport != null && Model.liProgrammeGroupId!=null && Model.liExamCourseFeeReport.Count>0 && Model.liExamOveralFeeReport.Count>0)
+{
+    if (Model.liCollegeDetails != null && Model.liCollegeDetails.Count>0)
+    {
+
+        <div class="text-center">
+            @*<img class="image" />*@
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO)" style="width:100px; height:100px" />
+        </div>
+        <div class="text-center">
+
+            <h3>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME &nbsp;&nbsp; @Model.liCollegeDetails.FirstOrDefault().PLACE .</h3>
+            <h4>@Model.liCollegeDetails.FirstOrDefault().UNIVERSITY.</h4>
+            <h5>
+                EXAM OVERALL FEE REPORT FOR &nbsp;-(@{if (Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] != null)
+                    { @Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] } }) <br />
+
+            </h5>
+
+
+        </div>
+    }
+
+
+                                    <br />
+                                    <div class="row">
+                                        <!-- begin lg-12 -->
+                                       
+                                            @foreach (var programmeId in Model.liProgrammeGroupId)
+                                            {
+                                                var groupFee = Model.liExamOveralFeeReport.Where(x => x.PROGRAMME_GROUP_ID == programmeId).ToList();
+
+
+                                                var levelsGroup = groupFee.GroupBy(x => x.PROGRAMME_LEVEL_ID).Select(x => x.FirstOrDefault());
+                                                if (levelsGroup != null)
+                                                {
+                                                    foreach (var level in levelsGroup)
+                                                    {
+                                                        if (level.PROGRAMME_LEVEL_ID != "")
+                                                        {
+                                                            var TotalCourseCost = Model.liExamCourseFeeReport.Where(x => x.PROGRAMME_GROUP_ID == programmeId && x.PROGRAMME_LEVEL_ID == level.PROGRAMME_LEVEL_ID).Sum(x => (x.COST != "" ? Convert.ToDouble(x.COST) : 0));
+                                                                <center><h5>@level.CLASS_NAME</h5></center>
+                                                                var levelByOrder = groupFee.Where(x => x.PROGRAMME_LEVEL_ID == level.PROGRAMME_LEVEL_ID || x.PROGRAMME_LEVEL_ID == "").ToList();
+                                                                if (levelByOrder != null)
+                                                                {
+                                                                    <div class="col-lg-12 table-responsive">
+                                                                        <table class="table table-bordered table-hover" border="1">
+                                                                            <tbody>
+                                                                                @foreach (var programms in levelByOrder)
+                                                                                {
+
+
+                                                                                    <tr>
+                                                                                        @if (!string.IsNullOrEmpty(programms.PROGRAMME_LEVEL_ID))
+                                                                                        {
+                                                                                            <td>@programms.MAIN_HEAD</td>
+                                                                                            <td><i class="fa fa-rupee"></i> @programms.COST</td>
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            if (@programms.HEAD.Contains("Examination Fees"))
+                                                                                            {
+                                                                                                <td>@programms.MAIN_HEAD</td>
+                                                                                                <td><i class="fa fa-rupee"></i> @TotalCourseCost</td>
+                                                                                            }
+                                                                                        }
+                                                                                    </tr>
+
+
+
+                                                                                }
+                                                                                <tr>
+                                                                                    <td><b>Total</b></td>
+                                                                                    <td>@{double total = levelByOrder.Sum(x => (x.COST != "" ? Convert.ToDouble(x.COST) : 0)) + TotalCourseCost;}<b><i class="fa fa-rupee"></i> @total</b></td>
+                                                                                </tr>
+                                                                            </tbody>
+
+                                                                        </table>
+                                                                    </div>
+                                                                }
+
+                                                             }
+
+
+                                                         }
+                                                       }
+                                             }
+                                              
+                                        @*<div class="text-center">
+                                            
+                                            <h5>
+                                                    SEMESTER EXAMINATION FEES FOR COURSES(@{if (Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] != null)
+                                                    { @Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] } }) <br />
+
+                                            </h5>
+
+                                        </div>*@
+                                                    
+
+                                        @*<div class="row">
+                                            <div class="col-lg-12 table-responsive">
+                                                <table class="table table-bordered table-hover" id="tblExamFeeForCourse" border="1">
+                                                    <thead>
+                                                        <tr>
+                                                            <td>Department</td>
+                                                            @{ double CoursesCost = 0;
+                                                                double Cost = 0;
+                                                                var Levels = Model.liExamOveralFeeReport.GroupBy(x => x.PROGRAMME_TYPE_ID).Select(x => x.FirstOrDefault()).OrderBy(x=>x.PROGRAMME_TYPE_ID);
+
+                                                                foreach (var programme in Levels)
+                                                                {
+                                                                    if (!string.IsNullOrEmpty(programme.PROGRAMME_LEVEL_ID))
+                                                                    {
+                                                                        <td>@programme.PROGRAMME</td>
+                                                                    }
+
+                                                                }
+
+                                                            }
+                                                           
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var programmeId in Model.liProgrammeGroupId)
+                                                        {
+                                                            var liProgramme = Model.liExamOveralFeeReport.Where(x => x.PROGRAMME_GROUP_ID == programmeId).ToList();
+                                                            if (liProgramme != null && liProgramme.Count > 0)
+                                                            {
+                                                                <tr>
+                                                                    <td> @liProgramme.FirstOrDefault().PROGRAMME_NAME</td>
+                                                                    @foreach (var item in Levels)
+                                                                    {
+                                                                        if (!string.IsNullOrEmpty(item.PROGRAMME_LEVEL_ID))
+                                                                        {
+                                                                            Cost = 0;
+                                                                            CoursesCost = 0;
+                                                                            <td>
+                                                                                @{ var liProgramWiseCost = Model.liExamCourseFeeReport.Where(x => x.PROGRAMME_GROUP_ID == programmeId && x.PROGRAMME_LEVEL_ID == item.PROGRAMME_LEVEL_ID && x.PROGRAMME_TYPE_ID==item.PROGRAMME_TYPE_ID).ToList();
+                                                                                    if (liProgramWiseCost != null && liProgramWiseCost.Count > 0)
+                                                                                    {
+                                                                                        CoursesCost = liProgramWiseCost.Sum(x => Convert.ToDouble(x.COST));
+                                                                                    }
+                                                                                    var liHeadWiseCost = Model.liExamOveralFeeReport.Where(x => x.PROGRAMME_GROUP_ID == programmeId && x.PROGRAMME_LEVEL_ID == item.PROGRAMME_LEVEL_ID && x.PROGRAMME_TYPE_ID == item.PROGRAMME_TYPE_ID).ToList();
+                                                                                    if (liHeadWiseCost != null && liHeadWiseCost.Count > 0)
+                                                                                    {
+                                                                                        Cost = liHeadWiseCost.Sum(x => Convert.ToDouble(x.COST));
+                                                                                    }
+                                                                                    CoursesCost = CoursesCost + Cost;
+                                                                                }
+                                                                                @CoursesCost
+                                                                            </td>
+                                                                                        }
+
+                                                                                    }
+                                                                </tr>
+                                                                                }
+
+
+
+                                                                                //CoursesCost = Model.liExamCourseFeeReport.Where(x => x.PROGRAMME_GROUP_ID == programmeId).Sum(x => (x.COST != "" ? Convert.ToInt16(x.COST) : 0));
+                                                                                //Cost = Model.liExamOveralFeeReport.Where(x => x.PROGRAMME_GROUP_ID == programmeId).Sum(x => (x.COST != "" ? Convert.ToInt16(x.COST) : 0));
+                                                                                //var result = Model.liExamOveralFeeReport.Where(x => x.PROGRAMME_GROUP_ID == programmeId).ToList();
+                                                                                //var levelsGroup = result.GroupBy(x => x.PROGRAMME).Select(x => x.FirstOrDefault());
+                                                                                //var item = levelsGroup.Any();
+                                                            @*if (levelsGroup != null && item==true)
+                                                            {
+                                                                <tr>
+                                                                    <td>@levelsGroup.FirstOrDefault().PROGRAMME_NAME</td>
+                                                                    @foreach (var programmeByOrder in levelsGroup)
+                                                                    {
+
+                                                                    if (programmeByOrder.PROGRAMME_LEVEL_ID != "")
+                                                                    {
+                                                                        int total = @CoursesCost + @Cost;
+                                                                        <td>@total</td>
+
+                                                                    }
+
+                                                                }*@
+                                                                @*</tr>
+
+                                                            }*@
+                                                            
+
+                                                        @*}*@
+
+
+                                                        
+                                                            
+                                                    @*</tbody>
+                                                </table>
+                                            </div>
+                                        </div>*@
+
+                                    </div>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <div class="alert alert-danger">No Record(s) Found !</div>
+                                                                    }
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+    $('.table').DataTable({
+                "paging": false
+            });
+</script>

@@ -1,0 +1,69 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+
+
+@{
+    Layout = null;
+    int nCount = 0;
+    string sDomData = string.Empty;
+}
+
+<div class="form-group">
+    <table class="table table-bordered table-responsive" id="tblIQAC">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Class Code</th>
+                <th>Semester</th>
+                <th>Unit</th>
+                <th>Allotted</th>
+                <th>Covered</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @functions{
+                public string BindWorload()
+                {
+                    string sDom = string.Empty;
+                    sDom = @"<td><input type='number' cms-IQACID='' class='form-control' value='' data-parsley-required='true'/></td>
+                            <td><input type='number' cms-IQACID='' class='form-control' value='' data-parsley-required='true'/> </td>
+                            <td><input type='number' cms-IQACID='' class='form-control' value='' data-parsley-required='true'/> </td>
+                            <td></td>";
+                    return sDom;
+                }
+            }
+            @if (Model.liClassCourseStaff != null && Model.liClassCourseStaff.Count > 0)
+            {
+                foreach (var item in Model.liClassCourseStaff)
+                {
+                    <tr cms-ClassId="@item.CLASS_ID">
+                        <td>@{nCount++;} @nCount</td>
+                        <td>@item.CLASS_CODE</td>
+                        <td>@item.SEMESTER_ID</td>
+                        @if (Model.liWorkDoneData != null && Model.liWorkDoneData.Count > 0)
+                        {
+                            var liWorkDoneData = Model.liWorkDoneData.Where(x => x.CLASS_ID == item.CLASS_ID).ToList();
+                            if (liWorkDoneData != null && liWorkDoneData.Count > 0)
+                            {
+                                <td><input type="number" class="form-control" cms-IQACID="@liWorkDoneData.FirstOrDefault().IQAC_ID" data-parsley-required="true" value="@liWorkDoneData.FirstOrDefault().UNIT" /> </td>
+                                <td><input type="number" class="form-control" cms-IQACID="@liWorkDoneData.FirstOrDefault().IQAC_ID" data-parsley-required="true" value="@liWorkDoneData.FirstOrDefault().ALLOTTED" /> </td>
+                                <td><input type="number" class="form-control" cms-IQACID="@liWorkDoneData.FirstOrDefault().IQAC_ID" data-parsley-required="true" value="@liWorkDoneData.FirstOrDefault().COVERED" /> </td>
+                                <td><a onclick="GetConfrim(@liWorkDoneData.FirstOrDefault().IQAC_ID)" href="javascript:;"><i class="fa fa-trash text-danger" title="Click To Delete"></i></a></td>
+                            }
+                            else
+                            {
+                                sDomData = BindWorload();
+                                @Html.Raw(sDomData)
+                            }
+                        }
+                        else
+                        {
+                            sDomData = BindWorload();
+                            @Html.Raw(sDomData)
+                        }
+                    </tr>
+                                }
+                            }
+        </tbody>
+    </table>
+</div>

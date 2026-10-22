@@ -1,0 +1,156 @@
+﻿@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+@{ 
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Attendance</a></li>
+        <li class="active">Attendance Report</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Attendance Report<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Attendance Report</h4>
+        </div>
+        <div class="panel-body">
+            <div class="col-md-12 form-horizontal">
+
+                <div class="col-md-6 form-group">
+                    @Html.Label("AcYear", htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                    </div>
+                </div>
+
+                <div class="col-md-6 form-group">
+                    @Html.Label("Shift", htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.DropDownListFor(model => model.Shift, (Model.Shift != null) ? Model.Shift : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-5 form-group">
+                    @Html.Label("Start Date", htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        <input type="text" id="txtStartDate" class="datepicker date form-control" />
+                    </div>
+                </div>
+
+                <div class="col-md-5 form-group">
+                    @Html.Label("EndDate", htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        <input type="text" id="txtEndDate" class="datepicker date form-control" />
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-primary" id="btnGet" onclick="BindAttendancePercentage()"> Get </button>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-success" id="btnPrint"> Print </button>
+                </div>
+            </div>
+
+            <div class="form-group col-md-12">
+                <div id="dvAttendanceReport"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<script>
+    function ContentLoad()
+    {
+        $(".date").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            endDate: new Date(),
+            format: "dd/mm/yyyy",
+            orientation: "right bottom"
+        });
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+    }
+
+
+</script>
+
+<script>
+    $('#AcademicYearList').on('change', function ()
+    {
+        BindAttendancePercentage();
+    });
+
+    $('#Shift').on('change', function ()
+    {
+        BindAttendancePercentage();
+    });
+
+    
+</script>
+
+<script>
+    function BindAttendancePercentage()
+    {
+        if ($('#AcademicYearList').val() && $('#Shift').val() && $('#txtStartDate').val() && $('#txtEndDate').val())
+        {
+            $.ajax({
+                url:'@Url.Action("BindAttendancePercentage", "Attendance")',
+                method:'POST',
+                datatype:'json',
+                data: { sAcYear: $('#AcademicYearList Option:selected').text(), sShiftId: $('#Shift').val(), sStartDate: $('#txtStartDate').val(), sEndDate: $('#txtEndDate').val() },
+                success: function (data)
+                {
+                    if (data.Message!=null && data.Message!='') 
+                    {
+                        swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                    }else
+                    {
+                        $('#dvAttendanceReport').empty();
+                        $('#dvAttendanceReport').append(data);
+                    }
+                }, eror: function (error)
+                {
+                    swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                }   
+            });
+        }
+    }
+</script>
+
+<script>
+    $('#btnPrint').on('click', function ()
+    {
+        var printContents = document.getElementById('dvAttendanceReport').innerHTML;
+        myWindow = window.open('', '', 'width=200,height=100');
+        myWindow.document.write(printContents);
+        myWindow.document.close(); //missing code
+        myWindow.focus();
+        myWindow.print();
+    });
+</script>

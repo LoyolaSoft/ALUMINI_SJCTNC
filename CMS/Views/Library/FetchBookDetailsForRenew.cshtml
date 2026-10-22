@@ -1,0 +1,192 @@
+﻿
+@model CMS.ViewModel.ViewModel.LibraryViewModel
+
+@{
+    ViewBag.Title = "FetchBookDetailsForRenew";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    int nCount = 0;
+   
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<div class="form-group">
+    <div class="col-md-12 table-responsive">
+        <table class="table table-bordered" id="tblRenewBook">
+            <thead>
+                <tr>
+                    <th>#</th>
+                  
+                    <th>
+                        <div class="checkbox checkbox-css">
+                            <input type="checkbox" id="AllchkIDR" onchange="SelectOrUnselect()" />
+                            <label for="AllchkIDR"> &nbsp; &nbsp; &nbsp; &nbsp;</label>
+                        </div>
+                    </th>
+                   
+                    @*<th>BOID</th>
+                        <th>Name</th>*@
+                    <th>Access No</th>
+                    <th>Class No</th>
+                    <th>ISBN</th>
+                    <th>Book No</th>
+                    <th>Title</th>
+                    <td>Language</td>
+
+                    <th>Issue Date</th>
+                    <th>Dues</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.liBookIssueList != null && Model.liBookIssueList.Count > 0)
+                {
+                    foreach (var item in Model.liBookIssueList)
+                    {
+                        <tr cms-IssueId="@item.ISSUE_ID" cms-Fine="@item.FINE_AMOUNT" cms-BookId="@item.BOOK_ID">
+                            <td>@{nCount++;} @nCount</td>
+                            <td>
+                                <div class="checkbox checkbox-css">
+                                    <input type="checkbox" id="0 @nCount" cms-IssueId="@item.ISSUE_ID" />
+                                    <label for="0 @nCount"></label>
+                                </div>
+                            </td>
+                           
+                            @*<td>@item.BOID</td>
+                                <td>@item.FIRST_NAME</td>*@
+                            <td>@item.ACCESS_NO</td>
+                            <td>@item.CLASS_NO</td>
+                            <td>@item.ISBN_NO</td>
+                            <td>@item.BOOK_NO</td>
+                            <td>@item.BOOK_TITLE</td>
+                            <td>@item.LANGUAGE</td>
+
+                            <td>@item.ISSUE_DATE</td>
+                            <td><i class="fa fa-rupee"></i> @item.FINE_AMOUNT</td>
+                            @*<td><a href="javascrip:;" onclick="RenewBook()" class="btn btn-success" title="Go for Payment"><i class="ion-card"></i>Proceed to Renew</a></td>*@
+                        </tr>
+                                    }
+                                }
+            </tbody>
+        </table>
+        <div class="form-group">
+            <a class="btn btn-primary pull-right" href="javascript:;" id="btnBookRenew"> Submit </a>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+
+    $(document).ready(function () {
+
+        $('select[name="sStatusDDL"] option:contains("RETURN")').attr('selected', 'selected');
+        $('.selectpicker').selectpicker('refresh');
+    });
+
+
+
+    $('.selectpicker').selectpicker({
+        size: 5
+    });
+    $('.selectpicker').selectpicker('refresh');
+</script>
+
+<script>
+        SelectOrUnselect = function ()
+        {
+            if (AllchkID.checked == true)
+            {
+                $('#tblRenewBook tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", true);
+                    });
+                });
+            }
+            else
+            {
+                $('#tblRenewBook tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", false);
+                    });
+                });
+            }
+        }
+
+
+
+
+
+</script>
+
+@* Book Return Submit *@
+<script>
+    
+
+
+    $('#btnBookRenew').on("click", function () {
+
+        var JsonData = '{"liBookIssue":[';
+        var nCount = 0;
+        var fCount = 0;
+        var sStatus = 0;
+        $('#tblRenewBook tbody tr').each(function () {
+
+            if ($(this).find('input[type="checkbox"]').is(':checked')) {
+
+               
+               
+                JsonData += '{"ISSUE_ID":"' + $(this).attr('cms-IssueId') + '","IS_RENEWED":"1","USER_ID":"' + $('#txtliUserid').val() + '","BOOK_ID":"' + $(this).attr('cms-BookId') + '","FINE_AMOUNT":"' + $(this).attr('cms-Fine') + '"},';
+                    nCount++;
+            }
+        });
+       
+       
+
+        if (nCount != 0)
+            {
+            
+                JsonData = JsonData.slice(0, -1);
+                JsonData = JsonData + "]}";
+                $.ajax({
+                    url: '@Url.Action("SaveBookRenew", "Library")',
+                    method: 'POST',
+                    datatype: 'json',
+                    data: { sJsonBookDetails: JsonData },
+                    success: function (data) {
+                        if (data.ErrorCode == "200") {
+                            swal({ title: "Success !", text: "Successfully renewed", showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                            $('#anchorRenewBook').click();
+                        }
+                        if (data.ErrorCode == "417") {
+                            swal({ title: "Error !", text: "Failed to renew ", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+
+                        }
+                        if (data.ErrorCode == "406") {
+                            swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'info', animation: true });
+
+                        }
+
+                    }, error: function (error) {
+                        swal({ title: "Internal Server Error !", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                });
+        }
+            else {
+               
+                swal({ title: "Alert !", text: "Please Select Any One To Continue !", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+            }
+        
+        
+            
+    });
+
+</script>
+
+

@@ -1,0 +1,222 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+}
+
+<input type="hidden" id="STUDENT_ID" value="@ViewBag.StudentId" />
+
+<div class="container mt-3">
+    <h4 class="text-center mb-3"><b>Participation & Achievement</b></h4>
+
+    <div class="text-right mb-2">
+        <button class="btn btn-success btn-sm" id="btnAdd">
+            <i class="fa fa-plus"></i> Add Participation
+        </button>
+    </div>
+
+    <table class="table table-bordered table-hover" id="tblParticipation">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Institution</th>
+                <th>Place</th>
+                <th>Event</th>
+                <th>Level</th>
+                <th>Achievement</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int i = 0;
+                foreach (var item in Model.liParticipationAchievement)
+                {
+                    i++;
+                    <tr>
+                        <td>@i</td>
+                        <td>@item.DATE</td>
+                        <td>@item.INSTITUTION</td>
+                        <td>@item.PLACE</td>
+                        <td>@item.EVENT</td>
+                        <td>@item.LEVEL</td>
+                        <td>@item.PRIZE_ACHIEVEMENT</td>
+                        <td>
+                            <button class="btn btn-warning btn-xs edit" data-id="@item.PARTICIPATION_ID">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-xs delete" data-id="@item.PARTICIPATION_ID">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="participationModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Participation</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="PARTICIPATION_ID" />
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>Date *</label>
+                        <div class="input-group">
+                            <input type="text" id="DATE" class="form-control" autocomplete="off" />
+                            <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Institution *</label>
+                        <input type="text" id="INSTITUTION" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6 mt-2">
+                        <label>Place</label>
+                        <input type="text" id="PLACE" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6 mt-2">
+                        <label>Event</label>
+                        <input type="text" id="EVENT" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6 mt-2">
+                        <label>Level</label>
+                        <input type="text" id="LEVEL" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6 mt-2">
+                        <label>Achievement</label>
+                        <input type="text" id="PRIZE_ACHIEVEMENT" class="form-control" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-success" id="btnSave">Save</button>
+                <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+$(document).ready(function () {
+
+    $('#tblParticipation').DataTable();
+
+    $('#DATE').datepicker({
+        todayHighlight: true,
+        autoclose: true,
+        format: "dd/mm/yyyy",
+        orientation: "bottom"
+    });
+
+    // Open datepicker on icon click
+    $('#DATE').closest('.input-group').find('.input-group-addon').on('click', function(){
+        $('#DATE').focus();
+    });
+
+    $('#btnAdd').click(function () {
+        $('#participationModal input').val('');
+        $('#DATE').datepicker('update', '');
+        $('#participationModal').modal('show');
+    });
+
+   $('#btnSave').click(function () {
+
+    var pDate = $('#DATE').val();
+    if(pDate) pDate = pDate.split("/").reverse().join("-");
+
+    var data = {
+        PARTICIPATION_ID: $('#PARTICIPATION_ID').val(),
+        STUDENT_ID: $('#STUDENT_ID').val(),
+        DATE: pDate,
+        INSTITUTION: $('#INSTITUTION').val(),
+        PLACE: $('#PLACE').val(),
+        EVENT: $('#EVENT').val(),
+        LEVEL: $('#LEVEL').val(),
+        PRIZE_ACHIEVEMENT: $('#PRIZE_ACHIEVEMENT').val()
+    };
+
+    if (!data.DATE || !data.INSTITUTION) {
+        swal('Warning', 'Date & Institution required', 'warning');
+        return;
+    }
+
+    $.post('@Url.Action("SaveParticipation","Mentoring")', data, function (res) {
+
+        if (res.success) {
+            swal('Success', res.message, 'success');
+            $('#participationModal').modal('hide');
+            setTimeout(function () {
+                $('#tabParticipationTable').click();
+            }, 300);
+        } else {
+            swal('Error', res.message, 'error');
+        }
+
+    }).fail(function () {
+        swal('Error', 'Server error', 'error');
+    });
+});
+
+ $('#tblParticipation').on('click', '.edit', function () {
+    var id = $(this).data('id');
+
+    $.get('@Url.Action("GetParticipationById","Mentoring")', { id: id }, function (res) {
+        $('#PARTICIPATION_ID').val(res.PARTICIPATION_ID);
+        if (res.DATE) {
+             $('#DATE').datepicker('update', new Date(res.DATE));
+        } else {
+             $('#DATE').datepicker('update', '');
+        }
+        $('#INSTITUTION').val(res.INSTITUTION);
+        $('#PLACE').val(res.PLACE);
+        $('#EVENT').val(res.EVENT);
+        $('#LEVEL').val(res.LEVEL);
+        $('#PRIZE_ACHIEVEMENT').val(res.PRIZE_ACHIEVEMENT);
+        $('#participationModal').modal('show');
+    });
+});
+
+$('#tblParticipation').on('click', '.delete', function () {
+    var id = $(this).data('id');
+
+    swal({
+        title: "Delete?",
+        type: "warning",
+        showCancelButton: true
+    }, function (ok) {
+        if (ok) {
+            $.post('@Url.Action("DeleteParticipation","Mentoring")', { id: id }, function (res) {
+                if (res.success) {
+                    swal('Deleted', res.message, 'success');
+                    setTimeout(function () {
+                        $('#tabParticipationTable').click();
+                    }, 300);
+                }
+            });
+        }
+    });
+});
+
+
+});
+</script>

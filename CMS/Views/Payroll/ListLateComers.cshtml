@@ -1,0 +1,400 @@
+﻿@model CMS.ViewModel.ViewModel.PayrollViewModel
+@{
+    ViewBag.Title = "ListLateComers";
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-timepicker/css/bootstrap-timepicker.min.css" rel="stylesheet" />
+<link href="~/Content/assets/css/timepicki.css" rel="stylesheet" />
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="#" onclick="loadContent('@Url.Action("ADMIN","DashBoard")')"></a></li>
+
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <!-- end page-header -->
+    <!-- begin panel -->
+    <div class="panel panel-default panel-with-tabs" data-sortable-id="ui-unlimited-tabs-2">
+        <div class="panel-heading p-0">
+            <div class="panel-heading-btn m-r-10 m-t-10">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-inverse" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+            </div>
+            <!-- begin nav-tabs -->
+            <div class="tab-overflow" data-parsley-validate="true" name="form-wizard">
+                <ul class="nav nav-tabs">
+
+
+                    <li class="nav-item active" id="latecomers"><a href="#nav-tab1-1" class="nav-link active" data-toggle="tab">List Late Comers</a></li>
+                    <li class="" id="faildlogout"><a href="#nav-tab1-2" data-toggle="tab">List Faild to Logout</a></li>
+
+                </ul>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="tab-content">
+                <div class="tab-pane fade active in" id="nav-tab1-1" data-parsley-validate="true">
+                   
+
+                    <div class="form-group col-md-12">
+                        <form id="getlatecomers">
+                            <div class="col-md-4">
+                                @Html.Label("Date From", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                <div class="col-md-7">
+                                    <input type="text" class="form-control" id="datefrom" name="DATE_FROM">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                @Html.Label("Date To", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                <div class="col-md-7">
+                                    <input type="text" class="form-control" id="dateto" name="DATE_TO">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="col-md-4">
+                                    @Html.Label("Shift", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.DropDownList("Shift", (Model.SHIFT != null) ? Model.SHIFT : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl", @data_live_search = "true", @data_parsley_required = "true", @id = "SHIFT", @name = "SHIFT" })
+                                    @Html.ValidationMessageFor(model => model.SHIFT, "", new { @class = "text-danger" })
+                                </div>
+
+                            </div>
+                        </form>
+
+                        <div class="col-md-1">
+                            <button class="btn btn-primary" id="btnGet">Get</button>
+                        </div>
+                        <br>
+
+                        <div class="col-md-12" id="bindlatecomers">
+
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="tab-pane fade" id="nav-tab1-2" data-parsley-validate="true">
+                    <div class="form-group col-md-12">
+                       
+                        <form id="getfaildlogout">
+                            <div class="col-md-4">
+                                @Html.Label("Date From", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                <div class="col-md-7">
+                                    <input type="text" class="form-control" id="fromdate" name="DATE_FROM">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                @Html.Label("Date To", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                <div class="col-md-7">
+                                    <input type="text" class="form-control" id="todate" name="DATE_TO">
+                                </div>
+                            </div>
+                           
+                        </form>
+
+                        <div class="col-md-1">
+                            <button class="btn btn-primary" id="Get">Get</button>
+                        </div>
+                        <br>
+
+                        <div class="col-md-12" id="bindfaildlogout">
+
+                        </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- end panel -->
+</div>
+ </div>
+  
+<div class="modal" id="staffattendance">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Edit</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <input type="text" id="staffattid" class="hidden">
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Date In</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="datein" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Time In</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="timein" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Date Out</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="dateout" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Time Out</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="timeout" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Status</label>
+
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(model => model.SHIFT, (Model.LEAVE_STATUS != null) ? Model.LEAVE_STATUS : Enumerable.Empty<SelectListItem>(), new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl", @data_live_search = "true", @data_parsley_required = "true", @id = "LEAVE_STATUS" })
+                                            @Html.ValidationMessageFor(model => model.LEAVE_STATUS, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal" id="faildlogoutmodal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Edit</h4>
+                </div>
+                <div class="modal-body" data-parsley-validate="true" id="pBody1">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+
+                            <div class="col-md-12">
+                                <div class="form-horizontal">
+                                    <div class="col-md-12 form-horizontal">
+                                        <input type="text" id="stfattid" class="hidden">
+                                        <div class="col-md-12 form-group">
+                                            <label class="col-md-4 control-label">Date In</label>
+
+                                            <div class="col-md-8">
+                                                <input type="text" id="indate" class="form-control" data-parsley-required="true">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 form-group">
+                                            <label class="col-md-4 control-label">Time In</label>
+
+                                            <div class="col-md-8">
+                                                <input type="text" id="intime" class="form-control" data-parsley-required="true">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 form-group">
+                                            <label class="col-md-4 control-label">Date Out</label>
+
+                                            <div class="col-md-8">
+                                                <input type="text" id="outdate" class="form-control" data-parsley-required="true">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 form-group">
+                                            <label class="col-md-4 control-label">Time Out</label>
+
+                                            <div class="col-md-8">
+                                                <input type="text" id="outtime" class="form-control" data-parsley-required="true">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 form-group">
+                                            <label class="col-md-4 control-label">Status</label>
+
+                                            <div class="col-md-8">
+                                                @Html.DropDownListFor(model => model.LEAVE_STATUS, (Model.LEAVE_STATUS != null) ? Model.LEAVE_STATUS : Enumerable.Empty<SelectListItem>(), new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl", @data_live_search = "true", @data_parsley_required = "true", @id = "ddlstatus" })
+                                                @Html.ValidationMessageFor(model => model.LEAVE_STATUS, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="javascript:;" id="Submit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                    <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-timepicker/js/bootstrap-timepicker.min.js"></script>
+<script src="~/Content/assets/js/timepicki.js"></script>
+
+<script>
+    function ContentLoad()
+    {
+
+        $('.selectpicker').selectpicker('refresh');
+    }
+    $('#fromtime').timepicki({
+        min_hour_value: 0,
+        max_hour_value: 23
+    });
+    $('#totime').timepicki({
+        min_hour_value: 0,
+        max_hour_value: 23
+    });
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $("#dateto,#datefrom").datepicker({
+        todayHighlight: true,
+        autoclose: true,
+        //  endDate: new Date(),
+        format: "dd/mm/yyyy",
+        orientation: "right bottom"
+    });
+    $("#fromdate,#todate").datepicker({
+        todayHighlight: true,
+        autoclose: true,
+        //  endDate: new Date(),
+        format: "dd/mm/yyyy",
+        orientation: "right bottom"
+    });
+
+    $("#datein,#dateout").datepicker({
+        todayHighlight: true,
+        autoclose: true,
+        endDate: new Date(),
+        format: "dd/mm/yyyy",
+        orientation: "right bottom"
+    });
+    $("#indate,#outdate").datepicker({
+        todayHighlight: true,
+        autoclose: true,
+        endDate: new Date(),
+        format: "dd/mm/yyyy",
+        orientation: "right bottom"
+    });
+
+
+    $('#btnGet').click(function ()
+    {
+        if ($('#datefrom').val() && $('#dateto').val() && $('#SHIFT').val())
+        {
+            $.ajax({
+                url: "@Url.Action("BindLateComers", "Payroll")",
+                type: "post",
+                data: $('#getlatecomers').serialize(),
+                success: function (data)
+                {
+                    $('#bindlatecomers').empty();
+                    $('#bindlatecomers').append(data);
+                    $('#tblstaffattendance').DataTable({});
+
+                },
+                error: function (ex)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+        else
+        {
+           alert('Please Select Date ...!')
+        }
+    });
+
+    $('#Get').click(function ()
+    {
+        if ($('#fromdate').val() && $('#todate').val())
+        {
+            $.ajax({
+                url: "@Url.Action("BindLogoutFaild", "Payroll")",
+                type: "post",
+                data: $('#getfaildlogout').serialize(),
+            success: function (data)
+            {
+                $('#bindfaildlogout').empty();
+                $('#bindfaildlogout').append(data);
+                $('#tblstaffattendance').DataTable({});
+
+            },
+            error: function (ex)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+    else
+    {
+           alert('Please Select Date ...!')
+    }
+    });
+
+    $('#Submit').click(function ()
+    {
+        var isValid = true;
+        var JsonData = null;
+        if ($('#pBody1').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            return false;
+        }
+        JsonData = '{"STF_ATT_ID":"' + $('#stfattid').val() + '","TIME_IN":"' + $('#indate').val() + '","IN_TIME":"' + $('#intime').val() + '","TIME_OUT":"' + $('#outdate').val() + '","OUT_TIME":"' + $('#outtime').val() + '","STATUS_ID":"' + $('#ddlstatus').val() + '"}';
+
+        $.ajax({
+            url: "@Url.Action("UpdateStaffAttendance", "Payroll")",
+            type: "post",
+        data: { sJsonData: JsonData },
+        success: function (data)
+        {
+
+            swal({ title: "Message", text:data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+            loadContent('/Payroll/ListLateComers');
+        },
+        error: function (ex) {
+            swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+        }
+    });
+    });
+
+
+</script>
+
+
+
+
+
+

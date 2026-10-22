@@ -1,0 +1,337 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    ViewBag.Title = "MentorGroupSessionRecords";
+}
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/css/PrintJS.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<style>
+    .nav-tabs > li > a {
+        background-color: #f8f9fa;
+        color: #000;
+    }
+
+        .nav-tabs > li > a:hover {
+            background-color: #e0e0e0;
+            color: #000;
+        }
+
+
+    .nav-tabs > .active > a,
+    .nav-tabs > .active > a:focus,
+    .nav-tabs > .active > a:hover {
+        background-color: #007aff !important;
+        color: #fff !important;
+    }
+</style>
+
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="#" onclick="loadContent('@Url.Action("ADMIN","DashBoard")')"></a></li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin panel -->
+    <div class="panel panel-default panel-with-tabs" data-sortable-id="ui-unlimited-tabs-2">
+        <div class="panel-heading p-0">
+            <div class="panel-heading-btn m-r-10 m-t-10">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-inverse" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+            </div>
+            <!-- begin nav-tabs -->
+            <div class="tab-overflow" data-parsley-validate="true" name="form-wizard">
+                <ul class="nav nav-tabs">
+                    <li class="nav-item active" id="studentlist"><a href="#nav-tab1-1" class="nav-link active" data-toggle="tab">Group Session Records</a></li>
+                    <li class="" id="stafflist"><a href="#nav-tab1-2" data-toggle="tab">Group Session Records Report By Incharge</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="tab-content">
+                <div class="tab-pane fade active in" id="nav-tab1-1" data-parsley-validate="true">
+                    <div class="panel-body noPadding">
+                        <div class="form-group col-md-12">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    @Html.Label("Academic Year", htmlAttributes: new { @class = "col-md-4 control-label" })
+                                    <div class="col-md-8">
+                                        @Html.DropDownListFor(m => m.AcademicYear, (Model.AcademicYear != null) ? Model.AcademicYear : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true" })
+                                        @Html.ValidationMessageFor(m => m.AcademicYear, "", new { @class = "text-danger", id = "AcademicYear" })
+                                    </div>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <a class="btn btn-success" href="#Add" data-toggle="modal" onclick="Add(1)" id="AddButton">
+                                        <i class="fa fa-plus" title="Add"></i> Add
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12" id="binddiv">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-tab1-2" data-parsley-validate="true">
+                    <div class="row">
+                        <div class="form-group col-md-11">
+
+                        </div>
+                        <div class="form-group col-md-1">
+                            <button id="btnExportExcel" class="btn btn-success">Excel</button>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12 table-responsive">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered" id="tbladmin">
+                                <thead>
+                                    <tr>
+                                        <th>S.No.</th>
+                                        <th>Roll No</th>
+                                        <th>Name</th>
+                                        <th>Class</th>
+                                        <th>Visit Date</th>
+                                        <th>Visit Time</th>
+                                        <th>Visit Duration</th>
+                                        <th>Matter Discussed</th>
+                                        <th>Conclusion Arrived</th>
+                                        <th>Action Taken</th>
+                                        <th>General Impression</th>
+                                        <th>Next Visit Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.liGroupSessionRecords != null && Model.liGroupSessionRecords.Any())
+                                    {
+                                        int count = 0;
+                                        foreach (var item in Model.liGroupSessionRecords)
+                                        {
+                                            count++;
+                                            <tr>
+                                                <td>@count</td>
+                                                <td>@item.ROLL_NO</td>
+                                                <td>@item.FIRST_NAME</td>
+                                                <td>@item.CLASS_CODE</td>
+                                                <td>@(item.VISIT_DATE?.Split(' ')[0])</td>
+                                                <td>@item.VISIT_TIME</td>
+                                                <td>@item.VISIT_DURATION</td>
+                                                <td>@item.MATTER_DISCUSSED</td>
+                                                <td>@item.CONCULATION_ARRIVED_AT</td>
+                                                <td>@item.ACTION_TAKEN</td>
+                                                <td>@item.GENERAL_IMPRESSION</td>
+                                                <td>@(item.DATE_OF_NEXT_VISIT?.Split(' ')[0])</td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="15" class="text-center">No records found.</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- end panel -->
+</div>
+
+<div class="modal fade" id="Add" tabindex="-1" role="dialog" aria-labelledby="addMentorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addMentorModalLabel">Add Group Session Records</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="divAdd">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" id="submitButton">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+
+<script>
+
+    $('#AcademicYear').change(function () {
+
+    const selectedYear = $('#AcademicYear').val();
+    if (!selectedYear || selectedYear === "-- Select --") {
+        alert("Please select a valid Academic Year.");
+        return;
+     }
+
+     $.ajax({
+        url: "@Url.Action("BindGroupSessionDetails", "Mentoring")",
+        type: "POST",
+        data: { sAcademicYear: $('#AcademicYear').val() },
+
+        beforeSend: function () {
+            $('#page-loader').removeClass('hide').addClass('fade in');
+        },
+        success: function (data) {
+            $('#page-loader').addClass('hide').removeClass('fade in');
+            $('#binddiv').empty().append(data);
+            $('#tbladmin').DataTable({ "paging": false });
+        },
+        error: function (xhr, status, error) {
+
+            $('#page-loader').addClass('hide').removeClass('fade in');
+            alert(xhr.responseText || status || "An error occurred while processing the request.");
+        }
+    });
+    });
+
+    function Add(ID) {
+    if (!ID) {
+        alert("Invalid ID provided!");
+        return;
+    }
+
+    $('#page-loader').removeClass('fade in hide').addClass('fade in');
+    $('#divAdd').empty();
+
+    $.ajax({
+        url: "@Url.Action("AddGroupSessioninfo", "Mentoring")",
+        type: "post",
+        data: { sStaffId: ID },
+        success: function (data) {
+            $('#page-loader').removeClass('fade in').addClass('fade in hide');
+            $('#divAdd').html(data);
+        },
+        error: function (ex) {
+            $('#page-loader').removeClass('fade in').addClass('fade in hide');
+            $('#divAdd').html('<p class="text-danger">Failed to load data. Please try again later.</p>');
+            console.error('Error:', ex);
+        }
+    });
+}
+$('#Add').on('hidden.bs.modal', function () {
+    $('#divAdd').empty();
+});
+
+ $(document).ready(function () {
+    $('#submitButton').on('click', function () {
+        var ACADEMIC_YEAR = $('#Acyear').val().trim();
+        var ShiftList = $('#shift').val();
+        var VISIT_TIME = $('#VisitTime').val();
+        var VISIT_DATE = $('#VisitDate').val();
+        var programe = $('#ProgramName').val();
+        var CLASS_ID = $('#ClName').val();
+        var STUDENT_ID = $('#StuName').val();
+        var VISIT_DURATION = $('#VisitDuration').val();
+        var MATTER_DISCUSSED = $('#MatterDiscussed').val();
+        var CONCULATION_ARRIVED_AT = $('#ConclusionArrived').val();
+        var ACTION_TAKEN = $('#ActionTaken').val();
+        var GENERAL_IMPRESSION = $('#ImpressionaboutStudent').val();
+        var SHORT_REVIEW = $('#ShortReview').val();
+        var DATE_OF_NEXT_VISIT = $('#NextVisitDate').val();
+
+        $.ajax({
+            url: '@Url.Action("SaveGroupSessionDetails", "Mentoring")',
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            data: JSON.stringify({
+                ACADEMIC_YEAR: ACADEMIC_YEAR,
+                ShiftList: ShiftList,
+                VISIT_TIME: VISIT_TIME,
+                VISIT_DATE: VISIT_DATE,
+                programe: programe,
+                CLASS_ID: CLASS_ID,
+                STUDENT_ID: STUDENT_ID,
+                VISIT_DURATION: VISIT_DURATION,
+                MATTER_DISCUSSED: MATTER_DISCUSSED,
+                CONCULATION_ARRIVED_AT: CONCULATION_ARRIVED_AT,
+                ACTION_TAKEN: ACTION_TAKEN,
+                GENERAL_IMPRESSION: GENERAL_IMPRESSION,
+                SHORT_REVIEW: SHORT_REVIEW,
+                DATE_OF_NEXT_VISIT: DATE_OF_NEXT_VISIT
+            }),
+            success: function (response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Data saved successfully.',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    $('#Add').modal('hide');
+                });
+            },
+            error: function (xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'An error occurred: ' + xhr.responseText,
+                    footer: 'Please try again later.'
+                });
+                console.error('AJAX Error:', xhr, status, error);
+            }
+        });
+    });
+});
+
+
+
+
+
+    document.getElementById("btnExportExcel").addEventListener("click", function () {
+        const table = document.getElementById("tbladmin");
+        const workbook = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+        const worksheet = workbook.Sheets["Sheet1"];
+        const range = XLSX.utils.decode_range(worksheet["!ref"]);
+        for (let C = range.s.c; C <= range.e.c; C++) {
+            const cell_address = XLSX.utils.encode_cell({ r: 0, c: C });
+            if (worksheet[cell_address]) {
+                worksheet[cell_address].s = {
+                    font: { bold: true, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "0070C0" } },
+                    alignment: { horizontal: "center", vertical: "center" },
+                };
+            }
+        }
+        for (let R = range.s.r + 1; R <= range.e.r; R++) {
+            for (let C = range.s.c; C <= range.e.c; C++) {
+                const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+                if (worksheet[cell_address]) {
+                    worksheet[cell_address].s = {
+                        alignment: { horizontal: "center", vertical: "center" },
+                    };
+                }
+            }
+        }
+        for (let R = range.s.r; R <= range.e.r; R++) {
+            for (let C = range.s.c; C <= range.e.c; C++) {
+                const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+                if (worksheet[cell_address]) {
+                    worksheet[cell_address].s = {
+                        ...worksheet[cell_address].s,
+                        border: {
+                            top: { style: "thin", color: { rgb: "000000" } },
+                            bottom: { style: "thin", color: { rgb: "000000" } },
+                            left: { style: "thin", color: { rgb: "000000" } },
+                            right: { style: "thin", color: { rgb: "000000" } },
+                        },
+                    };
+                }
+            }
+        }
+        XLSX.writeFile(workbook, "Report.xlsx");
+    });
+</script>
+
+

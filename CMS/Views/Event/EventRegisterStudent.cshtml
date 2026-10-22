@@ -1,0 +1,125 @@
+﻿@model CMS.ViewModel.Model.EventRegisterStudentViewModel
+@{
+    ViewBag.Title = "Event Registration";
+}
+
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Available Events</h2>
+
+    @if (Model.Events != null && Model.Events.Count > 0)
+    {
+        <div class="row">
+
+            @foreach (var item in Model.Events)
+            {
+                var isRegistered = Convert.ToInt32(item.IS_REGISTERED);
+                var availableSeats = Convert.ToInt32(item.AVAILABLE_SEATS);
+
+                <div class="col-md-4">
+                    <div class="panel panel-info" style="border-radius:10px;">
+                        <div class="panel-heading" style="background:#0069d9;color:white;">
+                            <h4 class="panel-title">@item.EVENT_NAME</h4>
+                        </div>
+
+                        <div class="panel-body">
+
+                            <p><b>Title:</b> @item.TITLE</p>
+                            <p><b>Date:</b> @item.DATE</p>
+                            <p><b>Time:</b> @item.EVENT_TIME</p>
+                            <p><b>Venue:</b> @item.EVENT_VENUE</p>
+
+                            <p>
+                                <b>Mode:</b>
+                                @(string.IsNullOrEmpty(item.MODE_NAME) ? item.MODE : item.MODE_NAME)
+                            </p>
+
+                            <p><b>No. of Seats:</b> @item.NO_OF_REGISTER</p>
+                            <p><b>No. of Available Seats:</b> @availableSeats</p>
+
+                            <hr />
+
+                            @if (isRegistered > 0)
+                            {
+                                <button class="btn btn-secondary btn-block" disabled>Registered</button>
+                            }
+                            else if (availableSeats <= 0)
+                            {
+                                <button class="btn btn-danger btn-block" disabled>Seats Full</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-success btn-block"
+                                        onclick="ConfirmRegister('@item.EVENT_ID', '@item.EVENT_NAME', '@item.DATE', '@item.EVENT_TIME')">
+                                    Register
+                                </button>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning text-center">
+            No events available for your class / semester.
+        </div>
+    }
+</div>
+
+
+<script>
+
+    function ConfirmRegister(eventId, eventName, date, time) {
+
+        swal({
+            title: "Confirm Registration?",
+            text: "Event: " + eventName + "\nDate: " + date + "\nTime: " + time,
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#28a745",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Confirm",
+            cancelButtonText: "Cancel",
+            closeOnConfirm: false
+        }, function (isConfirm) {
+            if (isConfirm) {
+                RegisterEvent(eventId);
+            }
+        });
+    }
+
+    function RegisterEvent(eventId) {
+
+        $.ajax({
+            url: '@Url.Action("RegisterToEvent", "Event")',
+            type: 'POST',
+            data: { eventId: eventId },
+            success: function (res) {
+
+                if (res.success) {
+                    swal({
+                        title: "Registered!",
+                        text: res.message,
+                        type: "success"
+                    }, function () {
+                        loadContent('/Event/EventRegisterStudent');
+                    });
+                }
+                else {
+                    swal("Failed!", res.message, "error");
+                }
+            },
+            error: function () {
+                swal("Error!", "Something went wrong!", "error");
+            }
+        });
+
+    }
+
+</script>

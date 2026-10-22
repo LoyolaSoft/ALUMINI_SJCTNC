@@ -1,0 +1,1085 @@
+@using CMS.Utility;
+@using System.Data;
+@using CMS.ViewModel.Model;
+@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    if (Session["USER_ID"] == null)
+    {
+        Response.Redirect("/Account/Index");
+    }
+
+    string sCollegeCode = string.Empty;
+    string sCollegeLogo = string.Empty;
+    string sCollegeName = string.Empty;
+
+}
+
+@if (Session[Common.SESSION_VARIABLES.COLLEGE_DETAILS] != null)
+{
+    var liCollegeDetails = (List<CollegeDetails>)Session[Common.SESSION_VARIABLES.COLLEGE_DETAILS];
+    sCollegeCode = liCollegeDetails.FirstOrDefault().COLLEGE_CODE;
+    sCollegeLogo = liCollegeDetails.FirstOrDefault().COLLEGE_LOGO;
+    sCollegeName = liCollegeDetails.FirstOrDefault().COLLEGE_NAME;
+}
+
+
+<style>
+    /* =============== FILE UPLOAD SECTION =============== */
+    .file-upload-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    /* Upload button */
+    .fileinput-button {
+        background: #2563eb;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 18px;
+        color: #fff;
+        font-weight: 500;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: 0.3s;
+    }
+
+        .fileinput-button:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .fileinput-button input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            height: 100%;
+            width: 100%;
+        }
+
+    /* Preview container */
+    #preview-container, #preview-containerAPPOINMENT,
+    #preview-containerintern, #preview-containerCF {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 6px;
+    }
+
+    /* Individual file box */
+    .preview-file {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 14px;
+        min-width: 180px;
+        max-width: 220px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+        .preview-file span {
+            color: #1e293b;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            max-width: 160px;
+        }
+
+        .preview-file .remove-file {
+            color: #ef4444;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 6px;
+            transition: color 0.2s;
+        }
+
+            .preview-file .remove-file:hover {
+                color: #b91c1c;
+            }
+
+    /* =============== FORM SPACING FIXES =============== */
+    .form-group {
+        margin-bottom: 22px;
+    }
+
+    label.control-label {
+        margin-bottom: 6px;
+    }
+
+    /* =============== RESPONSIVE LAYOUT =============== */
+    @@media (max-width: 992px) {
+        .form-group.col-md-4 {
+            width: 100%;
+        }
+
+        .panel-body {
+            padding: 20px;
+        }
+
+        .file-upload-group {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .preview-file {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .btn-success {
+            width: 100%;
+            margin-top: 10px;
+        }
+    }
+
+    #APCOLLOBORATION, #SUPAPINCOME, #APSTATUS {
+        max-width: 250px;
+    }
+    .panel-body {
+        padding: 15px;
+    }
+</style>
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">
+            Alumni Progression
+        </li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">
+        Alumni Progression
+    </h1>
+
+    <!-- end page-header -->
+    @if (Model.liStudent != null && Model.liStudent.Count > 0)
+    {
+        <div class="panel panel-primary" id="panel">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">
+                    Alumni Progression
+                </h4>
+            </div>
+            <div class="panel-body">
+                <center class="header-college">
+                    @*<h2>@sCollegeName</h2>*@
+                </center>
+
+                <center><h3 style="text-decoration: underline;">Alumni Progression</h3></center>
+                <br />
+                <label><b>Name:</b> @Model.liStudent[0].FIRST_NAME</label>&nbsp;&nbsp;&nbsp;
+                <label style="float:right"><b>Batch:</b> @Model.liStudent[0].DURATION</label>&nbsp;&nbsp;&nbsp;
+                <br />
+                <label><b>Programme:</b> @Model.liStudent[0].PROGRAMME_NAME</label>&nbsp;&nbsp;&nbsp;
+                <label style="float:right"><b>Department:</b> @Model.liStudent[0].DEPARTMENT</label>
+                <br /><br />
+                <div style="width: 100%; border-bottom: 1px solid #918c8c;"></div>
+                <br />
+                @if (Model.liStudent != null && Model.liStudent.Count > 0)
+                {
+                    using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-vertical">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            <div class="row">
+                                <div class="col-md-4 general">
+                                    <label class="control-label" for="APSTATUS">Please select your current status <span class="text-danger">*</span></label><br />
+                                    @Html.DropDownListFor(model => model.APSTATUS, (Model.APSTATUS != null) ? Model.APSTATUS : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true" })
+                                </div>
+                                <!-- This is for studing category -->
+                                <div class="form-group col-md-4 studying Programmename">
+                                    <label class="control-label" for="Programmename">Name of the course or Programme <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="max-width: 250px;" for="name" id="Programmename" placeholder="Typewriting, Stenography / M.sc, M.A, MBA, Ph.D." />
+                                </div>
+                                <div class="form-group col-md-4 Specifydoing2 ">
+                                    <label class="control-label" for="Specifydoing2">Specify: <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="max-width: 250px;" for="address" id="Specifydoing2" />
+                                </div>
+                                <div class="form-group col-md-4 studying">
+                                    <label class="control-label" for="InstitutionName">Name of the Institution <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="max-width: 250px;" for="name" id="InstitutionName" />
+                                </div>
+                                <div class="form-group col-md-4 studying">
+                                    <label class="control-label" for="InstitutionAddress">Address of the Institution <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="max-width: 250px;" for="address" id="InstitutionAddress" />
+                                </div>
+                                @*<div class="form-group col-md-4 studying">
+                                    <label class="control-label" for="">Phone Number of the Institution</label>
+                                    <input type="tel" class="form-control" style="max-width: 250px;" for="phone" id="InstitutionPhone" maxlength="10" />
+                                </div>
+                                <div class="form-group col-md-4 studying">
+                                    <label class="control-label" for="">Email of the Institution</label>
+                                    <input type="email" class="form-control" style="max-width: 250px;" for="email" id="InstitutionEmail" />
+                                </div>*@
+                                <div class="form-group col-md-4 studying">
+                                    <label class="control-label" for="Institutionattachment">
+                                        ID Card / Fee Receipt <span class="text-danger" id="span_institution_attachment">*</span>
+                                    </label>
+                                    <p class="text-danger small" style="margin-bottom: 5px;"><i class="fa fa-info-circle"></i> Only PDF allowed, Max size 20KB</p>
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <span class="btn btn-primary fileinput-button m-r-3">
+                                                <i class="fa fa-plus"></i>
+                                                <span>
+                                                    Add file...
+                                                    <input type="file" class="form-control" style="position: absolute; opacity: 0; top: 0; max-width: 150px; left: 0px;" for="pdf" id="Institutionattachment" accept="application/pdf" />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div id="preview-container" class="mt-3 p-2" style="margin-left: 25px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Ends studing category -->
+                                <!-- This is for working category -->
+                                <div class="form-group col-md-4 working">
+                                    <label class="control-label" for="CompanyName">Name of the Institution/Company/Organization <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="max-width: 250px;" for="name" id="CompanyName" />
+                                </div>
+                                <div class="form-group col-md-4 working">
+                                    <label class="control-label" for="CompanyAddress">Address of the Institution/Company/Organization <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="max-width: 250px;" for="address" id="CompanyAddress" />
+                                </div>
+                                @*<div class="form-group col-md-4 working">
+                                    <label class="control-label" for="">Phone Number of the Institution/Company/Organization</label>
+                                    <input type="tel" class="form-control" style="max-width: 250px;" for="phone" id="CompanyPhone" maxlength="10" />
+                                </div>
+                                <div class="form-group col-md-4 working">
+                                    <label class="control-label" for="">Email of the Institution/Company/Organization</label>
+                                    <input type="email" class="form-control" style="max-width: 250px;" for="email" id="CompanyEmail" />
+                                </div>*@
+                                <div class="form-group col-md-4 working">
+                                    <label class="control-label" for="designation">Designation <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="max-width: 250px;" for="designation" id="designation" />
+                                </div>
+                                <div class="form-group col-md-4 working">
+                                    <label class="control-label" for="appointmentletter">
+                                        Upload appointment letter / salary slip / employee ID card <span class="text-danger">*</span>
+                                    </label>
+                                    <p class="text-danger small" style="margin-bottom: 5px;"><i class="fa fa-info-circle"></i> Only PDF allowed, Max size 20KB</p>
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <span class="btn btn-primary fileinput-button m-r-3">
+                                                <i class="fa fa-plus"></i>
+                                                <span>
+                                                    Add file...
+                                                    <input type="file" class="form-control" style="position: absolute; opacity: 0; top: 0; max-width: 150px; left: 0px;" for="pdf" id="appointmentletter" accept="application/pdf" />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div id="preview-containerAPPOINMENT" class="mt-3 p-2" style="margin-left: 25px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 working">
+                                    <label class="control-label" for="SUPAPINCOME">Please select your current income Range <span class="text-danger">*</span></label><br />
+                                    @Html.DropDownListFor(model => model.SUPAPINCOME, (Model.SUPAPINCOME != null) ? Model.SUPAPINCOME : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(model => model.SUPAPINCOME, "", new { @class = "text-danger maxwidth250" })
+                                    <input type="text" class="form-control" style="max-width: 250px; margin-top: 4px;" placeholder="Enter Exact Income" id="income" />
+                                </div>
+
+                                <!-- Ends working category -->
+                                <!-- Starts Specify -->
+                                <div class="form-group col-md-4 Specifydoing">
+                                    <label class="control-label" for="Specifydoing">Specify: <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="max-width: 250px;" for="address" id="Specifydoing" />
+                                </div>
+                                <!-- Ends Specify  -->
+                                <!-- This is for Intern category -->
+                                <div class="form-group col-md-4 Intern">
+                                    <label class="control-label" for="duration">Duration of Intenship <span class="text-danger">*</span></label><br />
+                                    <select class=" selectpicker show-menu-arrow show-tick drop-down form-control input-sm" id="duration">
+                                        <option value="">--Select--</option>
+                                        <option value="1 Month">1 Month</option>
+                                        <option value="2 Months">2 Months</option>
+                                        <option value="3 Months">3 Months</option>
+                                        <option value="4 Months">4 Months</option>
+                                        <option value="5 Months">5 Months</option>
+                                        <option value="6 Months">6 Months</option>
+                                        <option value="> 6 Months">> 6 Months</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-4 Intern">
+                                    <label class="control-label" for="InstitutionNameintern">Name of the Institution/Company/Organization <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="max-width: 250px;" for="name" id="InstitutionNameintern" />
+                                </div>
+                                <div class="form-group col-md-4 Intern">
+                                    <label class="control-label" for="InstitutionAddressintern">Address of the Institution/Company/Organization <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="max-width: 250px;" for="address" id="InstitutionAddressintern" />
+                                </div>
+                                @*<div class="form-group col-md-4 Intern">
+                                    <label class="control-label" for="">Phone Number of the Institution/Company/Organization</label>
+                                    <input type="tel" class="form-control" style="max-width: 250px;" for="phone" id="InstitutionPhoneintern" maxlength="10" />
+                                </div>
+                                <div class="form-group col-md-4 Intern">
+                                    <label class="control-label" for="">Email of the Institution/Company/Organization</label>
+                                    <input type="email" class="form-control" style="max-width: 250px;" for="email" id="InstitutionEmailintern" />
+                                </div>*@
+                                <div class="form-group col-md-4 Intern">
+                                    <label class="control-label" for="Institutionattachmentforintern">
+                                        ID Card /Offer Letter/ Fee Receipt <span class="text-danger">*</span>
+                                    </label>
+                                    <p class="text-danger small" style="margin-bottom: 5px;"><i class="fa fa-info-circle"></i> Only PDF allowed, Max size 20KB</p>
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <span class="btn btn-primary fileinput-button m-r-3">
+                                                <i class="fa fa-plus"></i>
+                                                <span>
+                                                    Add file...
+                                                    <input type="file" class="form-control" style="position: absolute; opacity: 0; top: 0; max-width: 150px; left: 0px;" for="pdf" id="Institutionattachmentforintern" accept="application/pdf" />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div id="preview-containerintern" class="mt-3 p-2" style="margin-left: 25px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Ends Intern category -->
+
+                                <div class="form-group col-md-4 general">
+                                    <label class="control-label" for="competitiveexam">Have you cleared any competitive examination? <span class="text-danger">*</span></label>
+                                    <br />
+                                    <input type="radio" name="competitiveexam" value="1">
+                                    <label>Yes &nbsp;</label>
+                                    <input type="radio" name="competitiveexam" value="0">
+                                    <label>No &nbsp;</label>
+                                </div>
+                                <div class="form-group col-md-4 competitive">
+                                    <label class="control-label" for="competitiveexamname">Name of the exam <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="max-width: 250px;" for="exam" id="competitiveexamname" />
+                                </div>
+                                <div class="form-group col-md-4 competitive">
+                                    <label class="control-label" for="competitiveexamyear">Year of passing <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="max-width: 250px;" for="year" id="competitiveexamyear" />
+                                </div>
+                                <div class="form-group col-md-4 competitive" >
+                                    <label class="control-label" for="competitiveexamproof">
+                                        Certificate of passing <span class="text-danger">*</span>
+                                    </label>
+                                    <p class="text-danger small" style="margin-bottom: 5px;"><i class="fa fa-info-circle"></i> Only PDF allowed, Max size 20KB</p>
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <span class="btn btn-primary fileinput-button m-r-3">
+                                                <i class="fa fa-plus"></i>
+                                                <span>
+                                                    Add file...
+                                                    <input type="file" class="form-control" style="position: absolute; opacity: 0; top: 0; max-width: 150px; left: 0px;" for="pdf" id="competitiveexamproof" accept="application/pdf" />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div id="preview-containerCF" class="mt-3 p-2" style="margin-left: 25px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 general">
+                                    <label class="control-label" for="APCOLLOBORATION">How would you like to collaborate with the St Joseph College Alumnae Association? <span class="text-danger">*</span></label>
+                                    @Html.DropDownListFor(model => model.APCOLLOBORATION, (Model.APCOLLOBORATION != null) ? Model.APCOLLOBORATION : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(model => model.APCOLLOBORATION, "", new { @class = "text-danger maxwidth250" })
+                                </div>
+
+                                <div class="form-group col-md-4 general">
+                                    <label class="control-label" for="">Suggestions towards enhancement of the college</label>
+                                    <textarea type="text" class="form-control pull-left" style="max-width: 450px;" rows="3" for="year" id="Suggestions" />
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12 general">
+                                <button id="submitButton" style="align-content:center" class="btn btn-success pull-right">Save and proceed to payment</button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <script>
+                        loadContent('/Alumnae/Convocationinfo');
+                    </script>
+                }
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <script>loadContent('/Alumnae/Convocationinfo');</script>
+    }
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+
+<script>
+    function ContentLoad() {
+
+    }
+    $('.selectpicker').selectpicker({
+        size: 4
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        $(".studying").hide();
+        $(".working").hide();
+        $('.competitive').hide();
+        $('.Specifydoing').hide();
+        $('.Intern').hide();
+        $(".curtain").hide();
+
+        $("#APSTATUS").on("change", function () {
+            var status = $(this).val();
+
+            if (status === "1" || status === "3") {
+                $(".studying").show();
+                $(".working").hide();
+                $('.Specifydoing').hide();
+                $('.Specifydoing2').hide();
+                $('.Intern').hide();
+                $("#span_institution_attachment").show();
+            }
+            else if (status === "4") {
+                $(".studying").hide();
+                $(".working").hide();
+                $('.Specifydoing').hide();
+                $('.Programmename').hide();
+                $('.Specifydoing2').show();
+                $('.Intern').hide();
+                $("#span_institution_attachment").hide();
+            } else if (status === "2") {
+                $(".studying").hide();
+                $(".working").show();
+                $('.Specifydoing').hide();
+                $('.Specifydoing2').hide();
+                $('.Intern').hide();
+            } else if (status === "7" || status === "6") {
+                $(".studying").hide();
+                $(".working").hide();
+                $(".Specifydoing").show();
+                $(".Specifydoing2").hide();
+                $('.Intern').hide();
+            } else if (status === "5") {
+                $(".studying").hide();
+                $(".working").hide();
+                $(".Specifydoing").hide();
+                $(".Specifydoing2").hide();
+                $('.Intern').show();
+            } else {
+                $(".studying").hide();
+                $(".working").hide();
+                $(".Specifydoing").hide();
+                $(".Specifydoing2").hide();
+                $('.Intern').hide();
+            }
+        });
+
+        $("#submitButton").on("click", function (e) {
+            e.preventDefault();
+            var formData = new FormData();
+            var hasError = false;
+
+            if (!$("#APSTATUS").val() || $("#APSTATUS").val().trim() === "") {
+                showAlert('warning', 'Please select your current status!');
+                return;
+            }
+
+            var apstatus = $("#APSTATUS").val();
+            var Alumnaeprogression = {
+                APSTATUS: apstatus,
+                COURSE_NAME: null,
+                INSTITUTION_COMPANY_NAME: null,
+                INSTITUTION_COMPANY_ADDRESS: null,
+                INSTITUTION_COMPANY_NO: null,
+                INSTITUTION_COMPANY_EMAIL: null,
+                INCOME: null,
+                EINCOME: null,
+                COLLOBRATION: null,
+                DURATION: null,
+                SPECIFY: null,
+                SUGGESTIONS: null,
+                DESIGNATION: null,
+                EXAM_CLEARED: $('input[name="competitiveexam"]:checked').val(),
+                EXAM_NAME: null,
+                PASSED_YEAR: null
+            };
+
+            if (apstatus === "1" || apstatus === "3") {
+                if (!$("#Programmename").val()) {
+                    showAlert('warning', 'Please provide the programme!');
+                    return;
+                }
+                if (!$("#InstitutionName").val()) {
+                    showAlert('warning', 'Please provide the name of the institution!');
+                    return;
+                }
+                if (!$("#InstitutionAddress").val()) {
+                    showAlert('warning', 'Please provide the address of the institution!');
+                    return;
+                }
+                var phone = "";
+                //if (!phone || phone.length !== 10 || !/^\d+$/.test(phone)) {
+                //    showAlert('warning', 'Please provide a valid 10-digit phone number for the institution!');
+                //    return;
+                //}
+
+                //if (!$("#InstitutionEmail").val()) {
+                //    showAlert('warning', 'Please provide the email of the Company/Institution!');
+                //    return;
+                //} else {
+                //    var email = $("#InstitutionEmail").val();
+                //    var emailPattern = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                //    if (!emailPattern.test(email)) {
+                //        showAlert('warning', 'Please provide a valid email address!');
+                //        return;
+                //    }
+                //}
+                if (!$('input[name="competitiveexam"]:checked').val()) {
+                    showAlert('warning', 'Please check competitive exam section!');
+                    return;
+                }
+                var selectedValue = $('input[name="competitiveexam"]:checked').val();
+                if (selectedValue === "1") {
+                    if (!$("#competitiveexamname").val()) {
+                        showAlert('warning', 'Please provide the Competitive exam name');
+                        return;
+                    }
+                    if (!$("#competitiveexamyear").val()) {
+                        showAlert('warning', 'Please provide the Competitive exam year');
+                        return;
+                    }
+                }
+                var suggestions = $("#Suggestions").val();
+                function wordCount(str) {
+                    return str.trim().split(/\s+/).length;
+                }
+                //if (!suggestions || wordCount(suggestions) < 10 || suggestions.length < 80) {
+                //    showAlert('warning', 'Please provide a suggestion with at least 10 words and 80 characters!');
+                //    return;
+                //}
+
+                Alumnaeprogression.COURSE_NAME = $("#Programmename").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_NAME = $("#InstitutionName").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_ADDRESS = $("#InstitutionAddress").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_NO = $("#InstitutionPhone").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_EMAIL = $("#InstitutionEmail").val();
+                Alumnaeprogression.COLLOBRATION = $("#APCOLLOBORATION").val();
+                Alumnaeprogression.SUGGESTIONS = $("#Suggestions").val();
+                Alumnaeprogression.EXAM_NAME = $("#competitiveexamname").val();
+                Alumnaeprogression.PASSED_YEAR = $("#competitiveexamyear").val();
+                Alumnaeprogression.EINCOME = $("#income").val();
+            }
+            else if (apstatus === "4") {
+                if (!$("#Specifydoing2").val()) {
+                    showAlert('warning', 'Please specify!');
+                    return;
+                }
+                //if (!$("#InstitutionName").val()) {
+                //    showAlert('warning', 'Please provide the name of the institution!');
+                //    return;
+                //}
+                //if (!$("#InstitutionAddress").val()) {
+                //    showAlert('warning', 'Please provide the address of the institution!');
+                //    return;
+                //}
+                var phone = $("#InstitutionPhone").val();
+                //if (!phone || phone.length !== 10 || !/^\d+$/.test(phone)) {
+                //    showAlert('warning', 'Please provide a valid 10-digit phone number for the institution!');
+                //    return;
+                //}
+
+                //if (!$("#InstitutionEmail").val()) {
+                //    showAlert('warning', 'Please provide the email of the Company/Institution!');
+                //    return;
+                //} else {
+                //    var email = $("#InstitutionEmail").val();
+                //    var emailPattern = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                //    if (!emailPattern.test(email)) {
+                //        showAlert('warning', 'Please provide a valid email address!');
+                //        return;
+                //    }
+                //}
+                if (!$('input[name="competitiveexam"]:checked').val()) {
+                    showAlert('warning', 'Please check competitive exam section!');
+                    return;
+                }
+                var selectedValue = $('input[name="competitiveexam"]:checked').val();
+                if (selectedValue === "1") {
+                    if (!$("#competitiveexamname").val()) {
+                        showAlert('warning', 'Please provide the Competitive exam name');
+                        return;
+                    }
+                    if (!$("#competitiveexamyear").val()) {
+                        showAlert('warning', 'Please provide the Competitive exam year');
+                        return;
+                    }
+                }
+                var suggestions = $("#Suggestions").val();
+                function wordCount(str) {
+                    return str.trim().split(/\s+/).length;
+                }
+                //if (!suggestions || wordCount(suggestions) < 10 || suggestions.length < 80) {
+                //    showAlert('warning', 'Please provide a suggestion with at least 10 words and 80 characters!');
+                //    return;
+                //}
+
+                Alumnaeprogression.COURSE_NAME = $("#Programmename").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_NAME = $("#InstitutionName").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_ADDRESS = $("#InstitutionAddress").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_NO = $("#InstitutionPhone").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_EMAIL = $("#InstitutionEmail").val();
+                Alumnaeprogression.COLLOBRATION = $("#APCOLLOBORATION").val();
+                Alumnaeprogression.SUGGESTIONS = $("#Suggestions").val();
+                Alumnaeprogression.SPECIFY = $("#Specifydoing2").val();
+                Alumnaeprogression.EXAM_NAME = $("#competitiveexamname").val();
+                Alumnaeprogression.PASSED_YEAR = $("#competitiveexamyear").val();
+                Alumnaeprogression.EINCOME = $("#income").val();
+            }
+            else if (apstatus === "2") {
+                if (!$("#CompanyName").val()) {
+                    showAlert('warning', 'Please provide the Company/Institution name!');
+                    return;
+                }
+                if (!$("#CompanyAddress").val()) {
+                    showAlert('warning', 'Please provide the address of the Company/Institution!');
+                    return;
+                }
+                if (!$("#designation").val()) {
+                    showAlert('warning', 'Please provide the Designation!');
+                    return;
+                }
+                if (!$("#income").val()) {
+                    showAlert('warning', 'Please provide the exact income!');
+                    return;
+                }
+                var phone = "";
+                //var phone = $("#CompanyPhone").val();
+                //if (!phone || phone.length !== 10 || !/^\d+$/.test(phone)) {
+                //    showAlert('warning', 'Please provide a valid 10-digit phone number for the institution!');
+                //    return;
+                //}
+                //if (!$("#CompanyEmail").val()) {
+                //    showAlert('warning', 'Please provide the email of the Company/Institution!');
+                //    return;
+                //} else {
+                //    var email = $("#CompanyEmail").val();
+                //    var emailPattern = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                //    if (!emailPattern.test(email)) {
+                //        showAlert('warning', 'Please provide a valid email address!');
+                //        return;
+                //    }
+                //}
+                if (!$("#SUPAPINCOME").val() || $("#SUPAPINCOME").val().trim() === "") {
+                    showAlert('warning', 'Please select your income range!');
+                    return;
+                }
+                if (!$('input[name="competitiveexam"]:checked').val()) {
+                    showAlert('warning', 'Please check competitive exam section!');
+                    return;
+                }
+                var selectedValue = $('input[name="competitiveexam"]:checked').val();
+                if (selectedValue === "1") {
+                    if (!$("#competitiveexamname").val()) {
+                        showAlert('warning', 'Please provide the Competitive exam name');
+                        return;
+                    }
+                    if (!$("#competitiveexamyear").val()) {
+                        showAlert('warning', 'Please provide the Competitive exam year');
+                        return;
+                    }
+                }
+                var suggestions = $("#Suggestions").val();
+                function wordCount(str) {
+                    return str.trim().split(/\s+/).length;
+                }
+                //if (!suggestions || wordCount(suggestions) < 10 || suggestions.length < 80) {
+                //    showAlert('warning', 'Please provide a suggestion with at least 10 words and 80 characters!');
+                //    return;
+                //}
+
+                Alumnaeprogression.INSTITUTION_COMPANY_NAME = $("#CompanyName").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_ADDRESS = $("#CompanyAddress").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_NO = $("#CompanyPhone").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_EMAIL = $("#CompanyEmail").val();
+                Alumnaeprogression.INCOME = $("#SUPAPINCOME").val();
+                Alumnaeprogression.COLLOBRATION = $("#APCOLLOBORATION").val();
+                Alumnaeprogression.SUGGESTIONS = $("#Suggestions").val();
+                Alumnaeprogression.EXAM_NAME = $("#competitiveexamname").val();
+                Alumnaeprogression.PASSED_YEAR = $("#competitiveexamyear").val();
+                Alumnaeprogression.EINCOME = $("#income").val();
+                Alumnaeprogression.DESIGNATION = $("#designation").val();
+            }
+            else if (apstatus === "5") {
+                if (!$("#InstitutionNameintern").val()) {
+                    showAlert('warning', 'Please provide the Company/Institution name!');
+                    return;
+                }
+                if (!$("#InstitutionAddressintern").val()) {
+                    showAlert('warning', 'Please provide the address of the Company/Institution!');
+                    return;
+                }
+                var phone = "";
+                //var phone = $("#InstitutionPhoneintern").val();
+                //if (!phone || phone.length !== 10 || !/^\d+$/.test(phone)) {
+                //    showAlert('warning', 'Please provide a valid 10-digit phone number for the Company/Institution!');
+                //    return;
+                //}
+                if (!$("#duration").val()) {
+                    showAlert('warning', 'Please select the duration!!');
+                    return;
+                }
+                //if (!$("#InstitutionEmailintern").val()) {
+                //    showAlert('warning', 'Please provide the email of the Company/Institution!');
+                //    return;
+                //} else {
+                //    var email = $("#InstitutionEmailintern").val();
+                //    var emailPattern = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                //    if (!emailPattern.test(email)) {
+                //        showAlert('warning', 'Please provide a valid email address!');
+                //        return;
+                //    }
+                //}
+                if (!$('input[name="competitiveexam"]:checked').val()) {
+                    showAlert('warning', 'Please check competitive exam section!');
+                    return;
+                }
+                var selectedValue = $('input[name="competitiveexam"]:checked').val();
+                if (selectedValue === "1") {
+                    if (!$("#competitiveexamname").val()) {
+                        showAlert('warning', 'Please provide the Competitive exam name');
+                        return;
+                    }
+                    if (!$("#competitiveexamyear").val()) {
+                        showAlert('warning', 'Please provide the Competitive exam year');
+                        return;
+                    }
+                }
+                var suggestions = $("#Suggestions").val();
+                function wordCount(str) {
+                    return str.trim().split(/\s+/).length;
+                }
+                //if (!suggestions || wordCount(suggestions) < 10 || suggestions.length < 80) {
+                //    showAlert('warning', 'Please provide a suggestion with at least 10 words and 80 characters!');
+                //    return;
+                //}
+
+                Alumnaeprogression.INSTITUTION_COMPANY_NAME = $("#CompanyName").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_ADDRESS = $("#CompanyAddress").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_NO = $("#CompanyPhone").val();
+                Alumnaeprogression.INSTITUTION_COMPANY_EMAIL = $("#CompanyEmail").val();
+                Alumnaeprogression.INCOME = $("#SUPAPINCOME").val();
+                Alumnaeprogression.COLLOBRATION = $("#APCOLLOBORATION").val();
+                Alumnaeprogression.SUGGESTIONS = $("#Suggestions").val();
+                Alumnaeprogression.EXAM_NAME = $("#competitiveexamname").val();
+                Alumnaeprogression.PASSED_YEAR = $("#competitiveexamyear").val();
+                Alumnaeprogression.DURATION = $("#duration").val();
+                Alumnaeprogression.EINCOME = $("#income").val();
+            }
+            else if (apstatus === "6" || apstatus === "7") {
+                var selectedValue = $('input[name="competitiveexam"]:checked').val();
+                if (selectedValue === "1") {
+                    if (!$("#competitiveexamname").val()) {
+                        showAlert('warning', 'Please provide the Competitive exam name');
+                        return;
+                    }
+                    if (!$("#competitiveexamyear").val()) {
+                        showAlert('warning', 'Please provide the Competitive exam year');
+                        return;
+                    }
+                }
+                if (!$("#Specifydoing").val()) {
+                    showAlert('warning', 'Please specify !');
+                    return;
+                }
+                if (!$("#APCOLLOBORATION").val() || $("#APCOLLOBORATION").val().trim() === "") {
+                    showAlert('warning', 'Please select how you will collaborate!');
+                    return;
+                }
+                var suggestions = $("#Suggestions").val();
+                function wordCount(str) {
+                    return str.trim().split(/\s+/).length;
+                }
+                //if (!suggestions || wordCount(suggestions) < 10 || suggestions.length < 80) {
+                //    showAlert('warning', 'Please provide a suggestion with at least 10 words and 80 characters!');
+                //    return;
+                //}
+                Alumnaeprogression.COLLOBRATION = $("#APCOLLOBORATION").val();
+                Alumnaeprogression.SUGGESTIONS = $("#Suggestions").val();
+                Alumnaeprogression.EXAM_NAME = $("#competitiveexamname").val();
+                Alumnaeprogression.PASSED_YEAR = $("#competitiveexamyear").val();
+                Alumnaeprogression.SPECIFY = $("#Specifydoing").val();
+            }
+            else {
+                var selectedValue = $('input[name="competitiveexam"]:checked').val();
+                if (selectedValue === "1") {
+                    if (!$("#competitiveexamname").val()) {
+                        showAlert('warning', 'Please provide the Competitive exam name');
+                        return;
+                    }
+                    if (!$("#competitiveexamyear").val()) {
+                        showAlert('warning', 'Please provide the Competitive exam year');
+                        return;
+                    }
+                }
+                if (!$("#APCOLLOBORATION").val() || $("#APCOLLOBORATION").val().trim() === "") {
+                    showAlert('warning', 'Please select how you will collaborate!');
+                    return;
+                }
+                var suggestions = $("#Suggestions").val();
+                function wordCount(str) {
+                    return str.trim().split(/\s+/).length;
+                }
+                //if (!suggestions || wordCount(suggestions) < 10 || suggestions.length < 80) {
+                //    showAlert('warning', 'Please provide a suggestion with at least 10 words and 80 characters!');
+                //    return;
+                //}
+                Alumnaeprogression.COLLOBRATION = $("#APCOLLOBORATION").val();
+                Alumnaeprogression.SUGGESTIONS = $("#Suggestions").val();
+                Alumnaeprogression.EXAM_NAME = $("#competitiveexamname").val();
+                Alumnaeprogression.PASSED_YEAR = $("#competitiveexamyear").val();
+            }
+
+
+            var jsonData = JSON.stringify(Alumnaeprogression);
+            formData.append("sJsonData", jsonData);
+            var institutionProof, cmpProof;
+
+            if (apstatus === "1" || apstatus === "3" || apstatus === "4") {
+                institutionProof = $("#Institutionattachment")[0].files[0];
+                if (!institutionProof) {
+                    if (apstatus !== "4") {
+                        showAlert('warning', 'Please upload an institution proof file!');
+                        return;
+                    }
+                } else {
+                    formData.append("sProof", institutionProof);
+                }
+            }
+            else if (apstatus === "2") {
+                institutionProof = $("#appointmentletter")[0].files[0];
+                if (!institutionProof) {
+                    showAlert('warning', 'Please upload an appointment letter file!');
+                    return;
+                } else {
+                    formData.append("sProof", institutionProof);
+                }
+            }
+            else if (apstatus === "5") {
+                institutionProof = $("#Institutionattachmentforintern")[0].files[0];
+                if (!institutionProof) {
+                    showAlert('warning', 'Please upload the file!');
+                    return;
+                } else {
+                    formData.append("sProof", institutionProof);
+                }
+            }
+
+            if ($('input[name="competitiveexam"]:checked').val() === "1") {
+                cmpProof = $("#competitiveexamproof")[0].files[0];
+                if (!cmpProof) {
+                    showAlert('warning', 'Please upload a competitive exam proof file!');
+                    return;
+                } else {
+                    formData.append("cmpProof", cmpProof);
+                }
+            }
+
+            $.ajax({
+                url: '/alumnae/SaveAlumnaeprogression',
+                type: "post",
+                data: formData,
+                contentType: false,
+                processData: false,
+                datatype: "json",
+                success: function (data) {
+                    console.log(data)
+                    if (data.Message == "Records saved successfully!") {
+                        if (data.sResult == "NOFEES") {
+                            showAlert('success', 'Registration Complete! Welcome to Alumni Family!', function () {
+                                loadContent('/Alumnae/Convocationinfo');
+                            });
+                        }
+                        else {
+                            showAlert('success', 'Registration Complete! Welcome to Alumni Family!', function () {
+                                var DOMAINURL = window.location.origin + '/';
+                                window.location.href = DOMAINURL + 'PaymentGateway/PaymentMode?sFrequencyTypeId=11&sFeeRootId=6&sFrequencyId=23&sAcademicYear=2025';
+                            });
+                        }
+
+                    }
+                    else if (data.Message == "Session Expired..!") {
+                        showAlert('error', 'Session Expired..!', function () {
+                            loadContent('/Alumnae/Convocationinfo');
+                        });
+                    }
+                    else if (data.Message == "Record already exists!") {
+                        showAlert('error', 'Record already exists!', function () {
+                            loadContent('/Alumnae/Convocationinfo');
+                        });
+                    }
+                    else if (data.Message == "ALL DONE.") {
+                        showAlert('success', 'ALL DONE.', function () {
+                            loadContent('/Alumnae/Convocationinfo');
+                        });
+                    }
+                    else {
+                        showAlert('error', 'Failed to save try again!');
+                    }
+
+                },
+                error: function (xhr, status, error) {
+                    console.log(data)
+                    showAlert('error', 'There was a server error: ' + xhr.responseText);
+                }
+            });
+        });
+
+        function showAlert(type, message, callback) {
+            const titles = {
+                success: "Success!",
+                error: "Error!",
+                warning: "Warning!"
+            };
+
+            const swalOptions = {
+                title: titles[type] || "Notification",
+                text: message,
+                showConfirmButton: type === "success",
+                confirmButtonText: 'OK',
+                animation: true,
+                type: type
+            };
+
+            if (type !== "success") {
+                swalOptions.timer = 1500;
+                swalOptions.showConfirmButton = false;
+            } else {
+                swalOptions.timer = 40000;
+            }
+            swal(swalOptions);
+            if (type !== "success") {
+                setTimeout(() => {
+                    swal.close();
+                    if (callback) {
+                        callback();
+                    }
+                }, swalOptions.timer);
+            } else {
+                swal(swalOptions, function () {
+                    if (callback) {
+                        callback();
+                    }
+                });
+            }
+        }
+
+
+        function toggleCompetitive() {
+            var selectedValue = $('input[name="competitiveexam"]:checked').val();
+            if (selectedValue === "0") {
+                $('.competitive').hide();
+            } else if (selectedValue === "1") {
+                $('.competitive').show();
+            }
+        }
+
+        $('input[name="competitiveexam"]').on('change', toggleCompetitive);
+        toggleCompetitive();
+    });
+
+    function showpopimage() {
+
+    }
+</script>
+
+<script>
+    document.getElementById('Institutionattachment').addEventListener('change', function (event) {
+        handleFilePreview('Institutionattachment', 'preview-container');
+    });
+
+    document.getElementById('appointmentletter').addEventListener('change', function (event) {
+        handleFilePreview('appointmentletter', 'preview-containerAPPOINMENT');
+    });
+
+    document.getElementById('competitiveexamproof').addEventListener('change', function (event) {
+        handleFilePreview('competitiveexamproof', 'preview-containerCF');
+    });
+    document.getElementById('Institutionattachmentforintern').addEventListener('change', function (event) {
+        handleFilePreview('Institutionattachmentforintern', 'preview-containerintern');
+    });
+    function handleFilePreview(inputId, previewContainerId) {
+        const inputElement = document.getElementById(inputId);
+        const files = inputElement.files;
+        const previewContainer = $(`#${previewContainerId}`);
+        previewContainer.empty();
+
+        $.each(files, function (index, file) {
+            // Validation: Only allow PDF
+            if (file.type !== 'application/pdf') {
+                showAlert('error', 'Only PDF files are allowed!');
+                inputElement.value = ""; // Clear the input
+                previewContainer.empty();
+                return false;
+            }
+
+            // Validation: File size Max 20KB
+            const maxSize = 20 * 1024; // 20KB in bytes
+            if (file.size > maxSize) {
+                showAlert('error', 'File size exceeds 20KB limit!');
+                inputElement.value = ""; // Clear the input
+                previewContainer.empty();
+                return false;
+            }
+
+            // If valid, show preview
+            const pdfIcon = $('<i>')
+                .addClass('fa fa-file-pdf-o')
+                .css({
+                    'font-size': '40px',
+                    'color': 'red',
+                    'margin-right': '10px'
+                });
+
+            const pdfLink = $('<a>')
+                .attr({
+                    'href': URL.createObjectURL(file),
+                    'target': '_blank'
+                })
+                .append(pdfIcon);
+
+            previewContainer.append(pdfLink);
+        });
+    }
+
+</script>

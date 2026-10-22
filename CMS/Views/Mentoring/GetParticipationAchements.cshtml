@@ -1,0 +1,99 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+}
+
+<div class="container mt-3">
+    <form id="ParticipationAchievementsForm">
+        <input type="hidden" id="PARTIC_ACH_STUDENT_ID" value="@ViewBag.StudentId" />
+
+        <h4 class="text-center mb-3"><b>Sports / Participation Details</b></h4>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="text-center">
+                    <tr>
+                        <th width="150">Category</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-center"><b>Sports</b></td>
+                        <td>
+                            <input type="text"
+                                   id="PARTIC_SKILLS_TALENTS"
+                                   class="form-control"
+                                   name="SKILLS_TALENTS"
+                                   value="@(Model.liParticipationAchievement != null && Model.liParticipationAchievement.Any() ? Model.liParticipationAchievement[0].PLACE : "")" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- TEXT AREAS -->
+        <div class="row mt-3">
+            <div class="col-md-6 form-group">
+                <label><b>Achievements / Awards</b></label>
+                <textarea id="PARTIC_ACHIEVEMENTS"
+                          name="ACHIEVEMENTS"
+                          class="form-control"
+                          rows="3">@(Model.liParticipationAchievement != null && Model.liParticipationAchievement.Any() ? Model.liParticipationAchievement[0].ACHIEVEMENTS : "")</textarea>
+            </div>
+
+            <div class="col-md-6 form-group">
+                <label><b>Additional Skills / Talents</b></label>
+                <textarea id="PARTIC_ADDITIONAL_SKILLS"
+                          name="ADDITIONAL_SKILLS"
+                          class="form-control"
+                          rows="3">@(Model.liParticipationAchievement != null && Model.liParticipationAchievement.Any() ? Model.liParticipationAchievement[0].ADDITIONAL_SKILLS : "")</textarea>
+            </div>
+        </div>
+
+        <div class="text-right mt-4">
+            <button type="button" id="btnSaveParticipationAch" class="btn btn-primary">
+                <i class="fa fa-save"></i> Save Details
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+$(document).ready(function () {
+
+    $('#btnSaveParticipationAch').off('click').on('click', function (e) {
+        e.preventDefault();
+
+        const data = {
+            SKILLS_TALENTS: $('#PARTIC_SKILLS_TALENTS').val(),
+            ACHIEVEMENTS: $('#PARTIC_ACHIEVEMENTS').val(),
+            ADDITIONAL_SKILLS: $('#PARTIC_ADDITIONAL_SKILLS').val(),
+            STUDENT_ID: $('#PARTIC_ACH_STUDENT_ID').val()
+        };
+
+        if (!data.STUDENT_ID) {
+            swal('Error', 'Student Selection is missing', 'error');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("SaveParticipationAchements", "Mentoring")',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (res) {
+                swal('Success', 'Details saved successfully', 'success');
+                setTimeout(function() {
+                    // Trigger reload by clicking the tab link in the main page
+                    $('#tabParticipationAchievements').click();
+                }, 300);
+            },
+            error: function () {
+                swal('Error', 'Something went wrong while saving', 'error');
+            }
+        });
+    });
+
+});
+</script>

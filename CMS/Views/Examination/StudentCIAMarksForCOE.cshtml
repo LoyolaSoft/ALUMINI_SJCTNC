@@ -1,0 +1,124 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{ 
+    Layout = null;
+}
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">CIA Marks</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">CIA Marks<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">CIA Marks</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <input type="text" name="name" class="hidden"  id="sStudentId" />
+                <div class="form-horizontal">
+                    <div class="col-md-12 form-group">
+                        <label class="control-label col-md-3"> Roll No</label>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="txtRollNo" />
+                        </div>
+                        <div class="form-group col-md-3">
+                            <a class="btn btn-primary" href="javascript:;" id="btnGet"> Get </a>
+                        </div>
+                    </div> 
+                    <div class="col-md-12 form-group hidden" id="dvHeading">
+                        <label class="col-md-3 control-label"> Name : <b id="lblName"></b></label>
+                        <label class="col-md-3 control-label"> Roll No : <b id="lblRollNo"></b></label>
+                        <label class="col-md-3 control-label"> Date Of Birth : <b id="lblDOB"></b></label>
+                    </div> 
+                    <div class="col-md-12 form-group">
+                        <div id="BindCIAMarks"></div>
+                    </div>                   
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    function ContentLoad()
+    {
+        // Document Ready Function .
+        
+    }
+    //var sStudentId = null;
+    function GetStudentIdByRollNo(sRollNo)
+    {
+        
+       // return sSubStudentId;
+    }
+    $('#btnGet').on('click', function ()
+    {
+        $('#BindCIAMarks').empty();
+        $('#dvHeading').addClass('hidden');
+        if ($('#txtRollNo').val())
+        {
+            $.ajax({
+                url: '@Url.Action("GetStudentIdByRollNo", "Examination")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sRollNo: $('#txtRollNo').val() },
+                success: function (data)
+                {
+                    if (data.Message != null && data.Message != '')
+                    {
+                        alert(data.Message);
+                    } else
+                    {
+                        $('#dvHeading').removeClass('hidden');
+                        $('#lblName').text(data[0].FIRST_NAME);
+                        $('#lblRollNo').text(data[0].ROLL_NO);
+                        $('#lblDOB').text(data[0].DATE_OF_BIRTH);
+
+                        $.ajax({
+                            url: '@Url.Action("BindCIAMarksByStudentId", "Examination")',
+                            method: 'POST',
+                            datatype: 'json',
+                            data: { sStudentId: data[0].STUDENT_ID },
+                            success: function (data)
+                            {
+                                if (data.Message != null && data.Message != '')
+                                {
+                                    alert(data.Message);
+                                } else
+                                {
+                                    $('#BindCIAMarks').empty();
+                                    $('#BindCIAMarks').append(data);
+                                }
+                            }, error: function (error)
+                            {
+                                alert('Internal Server Error !');
+                            }
+                        });
+                    }
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+
+        }
+    });
+</script>

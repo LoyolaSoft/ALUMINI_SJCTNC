@@ -1,0 +1,118 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+@{ int count = 0; int stuCourseCountMax = 0;}
+
+@if (Model.liStudent != null && Model.liStudent.Count > 0)
+{
+
+    var groupCourse = Model.liStudent.GroupBy(o => o.COURSE_ID).ToList();
+    var groupStudent = Model.liStudent.GroupBy(o => o.STUDENT_ID).ToList();
+    if (groupStudent != null && groupStudent.Count > 0)
+    {
+        foreach (var item in groupStudent)
+        {
+            var StudentOptCourses = Model.liStudent.Where(o => o.STUDENT_ID == item.FirstOrDefault().STUDENT_ID).ToList();
+            if (StudentOptCourses.Count > stuCourseCountMax)
+            {
+                stuCourseCountMax = StudentOptCourses.Count;
+            }
+        }
+    }
+    <table class="table table-bordered" id="tblOptCourse">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Reg.No</th>
+                <th>Name</th>
+                <th>Add Course</th>
+                @for (int i = 1; i <= stuCourseCountMax; i++)
+                {
+                    <th>Course @i</th>
+                    <th>Delete Course @i</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @if (groupStudent != null && groupStudent.Count > 0)
+            {
+                foreach (var student in groupStudent)
+                {
+                    var studentInfo = student.FirstOrDefault();
+                    if (studentInfo != null)
+                    {
+                        var studentId = studentInfo.STUDENT_ID;
+                        var semesterId = studentInfo.SEMESTER_ID;
+                        var RegNo = studentInfo.ROLL_NO;
+                        var studentName = studentInfo.FIRST_NAME;
+                        var ClassLevel = studentInfo.CLASS_LEVEL;
+
+                        <tr>
+                            <td>@(++count)</td>
+                            <td>@RegNo</td>
+                            <td>@studentName</td>
+
+                            <td>
+                                <a class="btn bg-green" title="Add"
+                                   onclick="openModalAndFetchData(@studentId, '@RegNo', '@studentName',@semesterId,@ClassLevel)">
+                                    <i class="fa fa-plus"></i>
+                                </a>
+                            </td>
+
+                            @{
+                                var StuCourse = Model.liStudent.Where(o => o.STUDENT_ID == studentId).OrderBy(o => o.COURSE_ORDER).ToList();
+                            }
+                            @if (StuCourse != null && StuCourse.Count > 0)
+                            {
+                                foreach (var course in StuCourse)
+                                {
+                                    if (!string.IsNullOrEmpty(course.COURSE_CODE))
+                                    {
+                                        <td cmsStudentId="@course.STUDENT_ID" cmsCourseId="@course.COURSE_ID" cmsSClassId="@course.S_CLASS_ID">@course.COURSE_CODE</td>
+                                        <td>
+                                            <a href="#" onclick="GetConfirmToDelete(@course.STUDENT_ID, @course.COURSE_ID, @course.S_CLASS_ID)" title="Click To Delete">
+                                                <i class="fa fa-trash text-danger"></i>
+                                            </a>
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td><p>-</p></td>
+                                        <td><p>-</p></td>
+                                    }
+                                }
+                                if (StuCourse.Count < stuCourseCountMax)
+                                {
+                                    int addColumns = stuCourseCountMax - StuCourse.Count;
+                                    for (int i = 1; i <= addColumns; i++)
+                                    {
+                                        <td><p>-</p></td>
+                                        <td><p>-</p></td>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                for (int i = 1; i <= stuCourseCountMax; i++)
+                                {
+                                    <td><p>-</p></td>
+                                    <td><p>-</p></td>
+                                }
+                            }
+                        </tr>
+                    }
+                }
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="col-md-12 bg-danger">No Records Found..!</div>
+}
+
+
+<script>
+    function openModalAndFetchData(studentId, registerNo, firstName, semesterId, ClassLevel) {
+        $('#AddModal-dialog').modal('show');
+        FetchStudentToAdd(studentId, registerNo, firstName, semesterId, ClassLevel);
+    }
+</script>

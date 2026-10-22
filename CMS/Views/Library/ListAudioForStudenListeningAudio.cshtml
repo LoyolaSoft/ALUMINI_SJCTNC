@@ -1,0 +1,299 @@
+﻿
+@model CMS.ViewModel.ViewModel.LibraryViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "ListAudioForStudenListeningAudio";
+    Layout = null;
+    DateTime availableDate;
+
+}
+
+
+<style>
+    body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f9fafb;
+        margin: 0;
+        padding: 0;
+    }
+    .panel-body{
+        padding:5px;
+    }
+    .worksheet-container {
+        max-width: 900px;
+        margin: 0 auto;
+       
+    }
+
+    .worksheet-title {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .shift-note {
+        text-align: center;
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 15px;
+    }
+
+    .shift-box {
+        background: #fff;
+        border-radius: 12px;
+        padding-bottom: 20px;
+        padding-left: 5px;
+        padding-right: 5px;
+        padding-top: 5px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease;
+    }
+
+        .shift-box:hover {
+            transform: translateY(-2px);
+        }
+
+    .shift-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 16px;
+        font-weight: 600;
+        color: #007bff;
+        margin-bottom: 10px;
+    }
+
+    audio {
+        width: 100%;
+        margin-bottom: 15px;
+        border-radius: 6px;
+    }
+
+    .btn-quiz {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+        .btn-primary:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    @@media (max-width: 600px) {
+        
+
+        .worksheet-title {
+            font-size: 20px;
+        }
+
+        .shift-box {
+            padding: 5px;
+        }
+
+        .shift-header {
+            flex-direction: column;
+            align-items: flex-start;
+            font-size: 14px;
+        }
+
+        .btn-quiz {
+            font-size: 14px;
+        }
+    }
+</style>
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Effective English</a></li>
+        <li class="active">WorkSheets</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">WorkSheets<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand" title="Expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload" title="Reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse" title="Collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove" title="Remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">WorkSheets</h4>
+        </div>
+        <div class="panel-body">
+
+            <div class="panel-body">
+                <div class="worksheet-container">
+                    <div class="worksheet-title">Effective English Worksheets</div>
+                    <div class="shift-note">
+                        Kindly complete the audio without skipping to unlock the quiz.
+                    </div>
+
+                    @if (Model.liListeningAudio != null && Model.liListeningAudio.Count > 0)
+                    {
+                        foreach (var item in Model.liListeningAudio)
+                        {
+                            var audioId = "audio_" + item.LISTENING_ID;
+                            var btnId = "btnQuiz_" + item.LISTENING_ID;
+
+                            <div class="shift-box">
+                                <div class="shift-header">
+                                    <span>@item.DESCRIPTION</span>
+                                    <span>Last Date: @item.AVAILABLE_TO_DATE</span>
+                                </div>
+
+                                <audio id="@audioId" controls preload="auto" controlsList="nodownload">
+                                    <source src="@item.AUDIO_URL" type="audio/mpeg">
+                                    Your browser does not support the audio element.
+                                </audio>
+                                <div class="text-center">
+                                    @if (item.HAS_ATTEMPTED == "1")
+                                    {
+
+                                        <a href="#" id="@btnId" onclick="FetchQuizAnswerbyListernerId(@item.LISTENING_ID)">
+                                            <span class="btn-quiz btn-success">Already Attempted</span>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        if (DateTime.TryParseExact(item.AVAILABLE_TO_DATE, "dd/MM/yyyy",
+                          System.Globalization.CultureInfo.InvariantCulture,
+                           System.Globalization.DateTimeStyles.None,
+                           out availableDate))
+                                        {
+                                            if (availableDate >= DateTime.Now)
+                                            {
+                                                <a href="#" id="@btnId" class="btn-quiz btn-primary" disabled onclick="FetchQuizQuestion(@item.LISTENING_ID)">
+                                                    Start Quiz
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a href="#" id="@btnId" class="btn-quiz btn-danger" disabled>
+                                                    Date Expired
+                                                </a>
+                                            }
+                                        }
+
+                                    }
+                                </div>
+                                <script>
+                    (function () {
+                        const audio = document.getElementById("@audioId");
+                        const btnQuiz = document.getElementById("@btnId");
+                        let allowSeek = (@item.HAS_ATTEMPTED == "1");
+                        let lastPlayedTime = 0;
+
+                        // Lock playback speed
+                        audio.addEventListener('ratechange', () => {
+                            if (audio.playbackRate !== 1) {
+                                audio.playbackRate = 1;
+                            }
+                        });
+
+                        // Track last played position
+                        audio.addEventListener('timeupdate', () => {
+                            if (!audio.seeking) {
+                                lastPlayedTime = audio.currentTime;
+                            }
+                        });
+
+                        // Prevent skipping
+                        audio.addEventListener('seeking', () => {
+                            if (!allowSeek && audio.currentTime > lastPlayedTime + 1) {
+                                swal({ title: "Warning !", text: "Skipping is not allowed. Resuming from the last listened position", showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+                                audio.currentTime = lastPlayedTime;
+                            }
+                        });
+
+                        // Enable quiz after completion
+                        audio.addEventListener('ended', () => {
+                            allowSeek = true;
+                            btnQuiz.disabled = false;
+                        });
+                    })();
+                                </script>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <strong>Note:</strong> Listening audios are not available.
+                        </div>
+                    }
+                </div>
+
+            </div>
+        </div>
+
+
+    </div>
+
+</div>
+<div id="quizModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Quiz Entry/Result</h4>
+            </div>
+            <div class="modal-body" id="quizContent"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function FetchQuizQuestion(listeningId) {
+        $.ajax({
+            url: '@Url.Action("FetchQuizQuestionByListeningId", "Library")',
+            method: 'GET',
+            data: { listeningId: listeningId },
+            success: function (data) {
+                $('#quizContent').html(data);
+                $('#quizModal').modal('show');
+            },
+            error: function () {
+                swal("Error", "Unable to load quiz.", "error");
+            }
+        });
+    }
+    function FetchQuizAnswerbyListernerId(listeningId) {
+    $.ajax({
+        url: '@Url.Action("FetchQuizAnswerbyListernerId", "Library")',
+        method: 'GET',
+        data: { listeningId: listeningId },
+        success: function (data) {
+            $('#quizContent').html(data);
+            $('#quizModal').modal('show');
+        },
+        error: function () {
+            swal("Error", "Unable to load quiz.", "error");
+        }
+    });
+}
+
+</script>
+

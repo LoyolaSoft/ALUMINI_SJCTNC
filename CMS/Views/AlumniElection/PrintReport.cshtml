@@ -1,0 +1,1533 @@
+@{
+    Layout = null;
+    string reportType = ViewBag.ReportType as string ?? "alphabetical";
+    bool isPaged = ViewBag.IsPaged != null ? (bool)ViewBag.IsPaged : (reportType == "programme_paged");
+    bool isProgReport = (reportType == "programme_list" || reportType == "programme_paged");
+    string academicYear = ViewBag.AcademicYear as string ?? "ALL";
+    string status = ViewBag.Status as string ?? "ALL";
+    string progName = ViewBag.ProgrammeName as string ?? "All Programmes";
+    string genDate = ViewBag.GeneratedDate as string ?? DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt");
+    var activeSetting = ViewBag.ActiveSetting as CMS.Models.AlumniElectionSetting;
+    string settingTitle = (activeSetting != null && !string.IsNullOrEmpty(activeSetting.SETTING_NAME)) ? activeSetting.SETTING_NAME : "Alumni Association General Body Meeting & Election 2026";
+    string electionDate = (activeSetting != null && activeSetting.ELECTION_DATE.HasValue) ? activeSetting.ELECTION_DATE.Value.ToString("dddd, dd MMMM yyyy") : "Sunday, 27 September 2026";
+    string electionPlace = (activeSetting != null && !string.IsNullOrEmpty(activeSetting.ELECTION_PLACE)) ? activeSetting.ELECTION_PLACE : "St. Joseph's College of Arts and Science (Autonomous), Cuddalore";
+    string electionTime = (activeSetting != null && !string.IsNullOrEmpty(activeSetting.ELECTION_TIME)) ? activeSetting.ELECTION_TIME : "10:00 AM - 01:00 PM";
+    bool includeSignature = ViewBag.IncludeSignature != null && (bool)ViewBag.IncludeSignature;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alumni Election Report - @(reportType == "programme" ? "Programme Summary" : (isProgReport ? "Programme-Wise Registered Alumni Report" : "Alphabetical List"))</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: #f1f5f9;
+            color: #0f172a;
+            padding: 24px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .report-page-container {
+            max-width: 1060px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 32px 36px;
+            border-radius: 8px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Screen Action Bar */
+        .screen-toolbar {
+            max-width: 1060px;
+            margin: 0 auto 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn-toolbar {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .btn-print {
+            background: #1e3a8a;
+            color: #ffffff;
+        }
+
+            .btn-print:hover {
+                background: #1e40af;
+            }
+
+        .btn-close-win {
+            background: #f1f5f9;
+            color: #475569;
+            border-color: #cbd5e1;
+        }
+
+            .btn-close-win:hover {
+                background: #e2e8f0;
+                color: #0f172a;
+            }
+
+        .mode-toggle-group {
+            display: inline-flex;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+
+        .btn-mode {
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+            .btn-mode.active-mode {
+                background: #1e3a8a;
+                color: #ffffff;
+            }
+
+            .btn-mode:not(.active-mode):hover {
+                background: #e2e8f0;
+                color: #0f172a;
+            }
+
+        /* Signature Toggle Switch */
+        .signature-toggle-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            padding: 5px 14px 5px 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+            .signature-toggle-container:hover {
+                background: #f1f5f9;
+                border-color: #94a3b8;
+            }
+
+            .signature-toggle-container.active-toggle {
+                background: #ecfdf5;
+                border-color: #10b981;
+                box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+            }
+
+        .switch-toggle {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 18px;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+            .switch-toggle input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .25s;
+            border-radius: 18px;
+        }
+
+            .switch-slider:before {
+                position: absolute;
+                content: "";
+                height: 14px;
+                width: 14px;
+                left: 2px;
+                bottom: 2px;
+                background-color: white;
+                transition: .25s;
+                border-radius: 50%;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+            }
+
+        .switch-toggle input:checked + .switch-slider {
+            background-color: #10b981;
+        }
+
+            .switch-toggle input:checked + .switch-slider:before {
+                transform: translateX(16px);
+            }
+
+        .switch-label-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e293b;
+            cursor: pointer;
+        }
+
+        .hidden-signature {
+            display: none !important;
+        }
+
+        .hidden-mode {
+            display: none !important;
+        }
+
+        /* Separate Page Sheet for Programme-Wise Paged Print */
+        .programme-page-sheet {
+            max-width: 1060px;
+            margin: 0 auto 30px;
+            background: #ffffff;
+            padding: 30px 34px;
+            border-radius: 8px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+
+        .sheet-page-indicator {
+            position: absolute;
+            top: 14px;
+            right: 20px;
+            font-size: 11px;
+            color: #475569;
+            font-weight: 700;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+
+        /* Official Letterhead Header */
+        .college-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #1e3a8a;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .college-logo {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+        }
+
+        .header-text h1 {
+            font-size: 17px;
+            font-weight: 800;
+            color: #1e3a8a;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .header-text h2 {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 2px;
+        }
+
+        .header-text p {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* Excel-Style Programme Banner */
+        .prog-excel-banner {
+            background-color: #1e3a8a;
+            color: #ffffff;
+            padding: 8px 14px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .prog-excel-title {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+
+        .prog-excel-stats {
+            font-size: 11.5px;
+            font-weight: 700;
+            display: flex;
+            gap: 12px;
+        }
+
+            .prog-excel-stats span {
+                background: rgba(255, 255, 255, 0.15);
+                padding: 2px 8px;
+                border-radius: 3px;
+            }
+
+        /* Info Row */
+        .report-sub-info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10.5px;
+            color: #475569;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 6px 12px;
+            margin-bottom: 14px;
+        }
+
+        /* Report Title Banner for Continuous / Alphabetical */
+        .report-title-banner {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .report-main-title {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+            .report-main-title h3 {
+                font-size: 14px;
+                font-weight: 800;
+                color: #1e3a8a;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                margin-bottom: 5px;
+                line-height: 1.3;
+            }
+
+        .report-title-meta-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            font-size: 11px;
+            color: #475569;
+            line-height: 1.4;
+        }
+
+        .report-title-meta-item {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+            .report-title-meta-item .meta-label {
+                font-weight: 700;
+                color: #334155;
+                white-space: nowrap;
+            }
+
+            .report-title-meta-item .meta-val {
+                color: #475569;
+            }
+
+        .report-main-title p {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        .report-meta-badges {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+            text-align: right;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .report-meta-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            .report-meta-row .meta-label {
+                color: #64748b;
+                font-weight: 500;
+            }
+
+            .report-meta-row .meta-val {
+                color: #0f172a;
+                font-weight: 700;
+            }
+
+        .report-badge-tag {
+            background: #e0e7ff;
+            color: #1e3a8a;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 10.5px;
+            letter-spacing: 0.3px;
+            border: 1px solid #c7d2fe;
+            display: inline-block;
+        }
+
+        .report-meta-badges strong {
+            color: #0f172a;
+        }
+
+        @@media (max-width: 768px) {
+            .report-title-banner {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .report-meta-badges {
+                align-items: flex-start;
+                text-align: left;
+                width: 100%;
+                padding-top: 8px;
+                border-top: 1px dashed #cbd5e1;
+            }
+        }
+
+        /* Filter Info Grid */
+        .filter-info-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px 24px;
+            background: #ffffff;
+            border: 1px dashed #cbd5e1;
+            padding: 8px 14px;
+            border-radius: 6px;
+            margin-bottom: 14px;
+            font-size: 11px;
+        }
+
+        .filter-item {
+            display: flex;
+            gap: 5px;
+        }
+
+            .filter-item span:first-child {
+                color: #64748b;
+            }
+
+            .filter-item span:last-child {
+                font-weight: 600;
+                color: #0f172a;
+            }
+
+        /* Tables */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 14px;
+        }
+
+            .report-table th,
+            .report-table td {
+                border: 1px solid #cbd5e1;
+                padding: 6px 8px;
+            }
+
+            .report-table thead th {
+                background: #2563eb;
+                color: #ffffff;
+                font-weight: 700;
+                text-transform: uppercase;
+                font-size: 10px;
+                letter-spacing: 0.3px;
+            }
+
+            .report-table tbody tr:nth-child(even) {
+                background: #f8fafc;
+            }
+
+            .report-table tbody tr:hover {
+                background: #f1f5f9;
+            }
+
+        .table-total-row th,
+        .table-total-row td {
+            background: #f1f5f9;
+            font-weight: 700;
+            font-size: 11px;
+            border-top: 2px solid #1e3a8a;
+            border-bottom: 2px solid #1e3a8a;
+        }
+
+        .badge-status {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 9.5px;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .badge-approved {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+
+        .badge-rejected {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+
+        .sig-line-dotted {
+            border-bottom: 1px dotted #94a3b8;
+            width: 85%;
+            margin: 18px auto 2px;
+        }
+
+        /* Summary Metric Strips */
+        .summary-stats-strip {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .stat-badge {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            text-align: center;
+        }
+
+            .stat-badge .stat-num {
+                font-size: 16px;
+                font-weight: 800;
+                line-height: 1.2;
+            }
+
+            .stat-badge .stat-lbl {
+                font-size: 10px;
+                text-transform: uppercase;
+                color: #64748b;
+                font-weight: 600;
+            }
+
+        /* Signatures Footer */
+        .signature-section {
+            margin-top: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-top: 14px;
+            page-break-inside: avoid;
+        }
+
+        .sig-block {
+            text-align: center;
+            min-width: 160px;
+        }
+
+        .sig-line {
+            border-top: 1px solid #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .sig-title {
+            font-size: 10.5px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .page-footer-note {
+            margin-top: 18px;
+            padding-top: 8px;
+            border-top: 1px dashed #cbd5e1;
+            font-size: 9px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        /* Print Specific Media Query */
+        @@media print {
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                color: #000000 !important;
+            }
+
+            .screen-toolbar {
+                display: none !important;
+            }
+
+            .hidden-mode {
+                display: none !important;
+            }
+
+            .hidden-signature {
+                display: none !important;
+            }
+
+            .sheet-page-indicator {
+                display: none !important;
+            }
+
+            .programme-page-sheet {
+                page-break-after: always !important;
+                break-after: page !important;
+                page-break-inside: avoid !important;
+                margin: 0 !important;
+                padding: 10mm 8mm !important;
+                border: none !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+                .programme-page-sheet:last-child {
+                    page-break-after: auto !important;
+                    break-after: auto !important;
+                }
+
+            .principal-sign-img {
+                max-height: 48px;
+                max-width: 105px;
+                object-fit: contain;
+                display: inline-block;
+            }
+
+            .report-page-container {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 10mm 8mm !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            .prog-excel-banner {
+                background-color: #1e3a8a !important;
+                color: #ffffff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .prog-excel-stats span {
+                background: rgba(255, 255, 255, 0.25) !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .report-title-banner {
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .report-badge-tag {
+                background: #e0e7ff !important;
+                color: #1e3a8a !important;
+                border: 1px solid #c7d2fe !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .report-table thead th {
+                background: #2563eb !important;
+                color: #ffffff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .table-total-row th,
+            .table-total-row td {
+                background: #f1f5f9 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .badge-approved {
+                background: #ffffff !important;
+                color: #15803d !important;
+                border: 1px solid #15803d !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .badge-rejected {
+                background: #ffffff !important;
+                color: #b91c1c !important;
+                border: 1px solid #b91c1c !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .signature-section {
+                page-break-inside: avoid !important;
+            }
+
+            tr {
+                page-break-inside: avoid !important;
+            }
+
+            @@page {
+                size: A4 portrait;
+                margin: 8mm 6mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Screen Toolbar (Hidden on Print) -->
+    <div class="screen-toolbar">
+        <div>
+            <div style="font-weight: 700; color: #1e3a8a; font-size: 13.5px;">
+                <i class="fa fa-print me-1"></i> Print Preview
+            </div>
+            <div class="text-muted" style="font-size: 11.5px; margin-top: 2px;">
+                @(reportType == "programme" ? "Programme-Wise Attendance Summary" : (isProgReport ? "Programme-Wise Registered Alumni Report" : "Detailed Registrations List (A to Z)"))
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            @if (isProgReport)
+            {
+                <!-- Mode Switcher -->
+                <div class="mode-toggle-group" title="Switch between Separate Page per Programme (with page break) and Continuous List layout">
+                    <button type="button" class="btn-mode @(isPaged ? "active-mode" : "")" id="btnModePaged" onclick="switchPrintMode('paged')">
+                        <i class="fa fa-copy"></i> Separate Page per Programme
+                    </button>
+                    <button type="button" class="btn-mode @(!isPaged ? "active-mode" : "")" id="btnModeContinuous" onclick="switchPrintMode('continuous')">
+                        <i class="fa fa-bars"></i> Continuous List
+                    </button>
+                </div>
+            }
+
+            @if (reportType != "programme")
+            {
+                <div class="signature-toggle-container @(includeSignature ? "active-toggle" : "")" id="printSignatureContainer" title="Toggle signature column for manual attendance sign-in">
+                    <label class="switch-toggle" style="margin-bottom: 0;">
+                        <input type="checkbox" id="chkPrintSignature" @(includeSignature ? "checked" : "") onchange="toggleSignatureColumn(this.checked)" />
+                        <span class="switch-slider"></span>
+                    </label>
+                    <span class="switch-label-text" onclick="document.getElementById('chkPrintSignature').click();">
+                        <i class="fa fa-pencil-square-o text-primary"></i> Signature Column
+                    </span>
+                </div>
+            }
+
+            <button type="button" class="btn-toolbar btn-print" onclick="window.print()">
+                <i class="fa fa-print"></i> Print Report
+            </button>
+            <button type="button" class="btn-toolbar btn-close-win" onclick="window.close()">
+                <i class="fa fa-times"></i> Close Window
+            </button>
+        </div>
+    </div>
+
+    @if (reportType == "programme")
+    {
+        /* ---------------------------------------------------- */
+        /* REPORT TYPE 1: PROGRAMME SUMMARY OVERVIEW            */
+        /* ---------------------------------------------------- */
+        var summaryList = Model as List<CMS.Models.ProgrammeWiseElectionReportItem> ?? new List<CMS.Models.ProgrammeWiseElectionReportItem>();
+        int totReg = 0, totApp = 0, totRej = 0;
+        foreach (var item in summaryList)
+        {
+            totReg += item.TOTAL_COUNT;
+            totApp += item.APPROVED_COUNT;
+            totRej += item.REJECTED_COUNT;
+        }
+        double overallPct = (totReg > 0) ? Math.Round(((double)totApp / totReg) * 100.0, 1) : 0.0;
+
+        <div class="report-page-container">
+            <!-- Official College Header -->
+            <header class="college-header">
+                <img src="/Content/assets/img/hcc-img/SJCLOGO.png" alt="SJC Logo" class="college-logo" onerror="this.style.display='none'" />
+                <div class="header-text">
+                    <h1>ST. JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS)</h1>
+                    <h2>Affiliated to Thiruvalluvar University, Vellore &bull; Re-accredited by NAAC with 'A' Grade</h2>
+                    <p>Cuddalore - 607 001, Tamil Nadu, India</p>
+                </div>
+            </header>
+
+            <div class="report-title-banner">
+                <div class="report-main-title">
+                    <h3>@settingTitle</h3>
+                    <div class="report-title-meta-list">
+                        <div class="report-title-meta-item">
+                            <span class="meta-label">Election Date:</span>
+                            <span class="meta-val">@electionDate (@electionTime)</span>
+                        </div>
+                        <div class="report-title-meta-item">
+                            <span class="meta-label">Venue:</span>
+                            <span class="meta-val">@electionPlace</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="report-meta-badges">
+                    <div class="report-meta-row">
+                        <span class="meta-label">Report:</span>
+                        <span class="meta-badge-tag">PROGRAMME-WISE SUMMARY</span>
+                    </div>
+                    <div class="report-meta-row">
+                        <span class="meta-label">Generated:</span>
+                        <span class="meta-val">@genDate</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-info-box">
+                <div class="filter-item"><span>Academic Year:</span> <span>@academicYear</span></div>
+                <div class="filter-item"><span>Programme:</span> <span>@progName</span></div>
+                <div class="filter-item"><span>Status Filter:</span> <span>@status</span></div>
+            </div>
+
+            <div class="summary-stats-strip">
+                <div class="stat-badge">
+                    <div class="stat-num" style="color: #1e3a8a;">@totReg</div>
+                    <div class="stat-lbl">Total Registered</div>
+                </div>
+                <div class="stat-badge">
+                    <div class="stat-num" style="color: #15803d;">@totApp</div>
+                    <div class="stat-lbl">Attending (Approved)</div>
+                </div>
+                <div class="stat-badge">
+                    <div class="stat-num" style="color: #b91c1c;">@totRej</div>
+                    <div class="stat-lbl">Cannot Attend (Rejected)</div>
+                </div>
+                <div class="stat-badge">
+                    <div class="stat-num" style="color: #4338ca;">@summaryList.Count</div>
+                    <div class="stat-lbl">Programmes</div>
+                </div>
+                <div class="stat-badge">
+                    <div class="stat-num" style="color: #0369a1;">@overallPct%</div>
+                    <div class="stat-lbl">Attendance Rate</div>
+                </div>
+            </div>
+
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th style="width: 45px; text-align: center;">#</th>
+                        <th style="text-align: left;">Programme Name</th>
+                        <th style="width: 140px; text-align: right;">Total Registered</th>
+                        <th style="width: 160px; text-align: right;">Attending (Approved)</th>
+                        <th style="width: 180px; text-align: right;">Cannot Attend (Rejected)</th>
+                        <th style="width: 120px; text-align: right;">Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (summaryList.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 20px; color: #64748b;">No registrations found for the selected criteria.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        int sno = 1;
+                        foreach (var row in summaryList)
+                        {
+                            <tr>
+                                <td style="text-align: center;">@(sno++)</td>
+                                <td style="font-weight: 600;">@row.PROGRAMME_NAME</td>
+                                <td style="text-align: right; font-weight: 700;">@row.TOTAL_COUNT</td>
+                                <td style="text-align: right; color: #15803d; font-weight: 700;">@row.APPROVED_COUNT</td>
+                                <td style="text-align: right; color: #b91c1c;">@row.REJECTED_COUNT</td>
+                                <td style="text-align: right; font-weight: 700;">@row.ATTENDANCE_PERCENTAGE%</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-total-row">
+                        <th colspan="2" style="text-align: right;">Grand Total:</th>
+                        <th style="text-align: right; color: #1e3a8a;">@totReg</th>
+                        <th style="text-align: right; color: #15803d;">@totApp</th>
+                        <th style="text-align: right; color: #b91c1c;">@totRej</th>
+                        <th style="text-align: right; color: #1e3a8a;">@overallPct%</th>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="signature-section">
+                <div class="sig-block">
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Prepared By (ERP)</div>
+                </div>
+                <div class="sig-block">
+                    <div class="sig-line">
+                        <img src="@Url.Content("~/Content/hcc_img/sign/Fr_maria_anandraj.png")" alt="Alumni Coordinator" class="principal-sign-img" onerror="this.style.display='none'" />
+                    </div>
+                    <div class="sig-title">Verified By Alumni Coordinator</div>
+                </div>
+                <div class="sig-block">
+                    <div class="sig-line">
+                        <img src="@Url.Content("~/Content/hcc_img/sign/SJC_PRINCIPAL_Singn_RBG.png")" alt="Principal Signature" class="principal-sign-img" onerror="this.style.display='none'" />
+                    </div>
+                    <div class="sig-title">Verified By Principal</div>
+                </div>
+                <div class="sig-block">
+                    <div class="sig-line">
+                        <img src="@Url.Content("~/Content/hcc_img/sign/Secretary_Sign.png")" alt="Secretary" class="principal-sign-img" onerror="this.style.display='none'" />
+                    </div>
+                    <div class="sig-title">Certified By Secretary</div>
+                </div>
+            </div>
+
+            <div class="page-footer-note">
+                This is an official system-generated attendance report from the St. Joseph's College Alumni Election Registry. Generated on @genDate.
+            </div>
+        </div>
+    }
+    else if (isProgReport)
+    {
+        /* ---------------------------------------------------- */
+        /* REPORT TYPE 2: PROGRAMME-WISE REGISTERED ALUMNI      */
+        /* (Supports Paged & Continuous Modes)                  */
+        /* ---------------------------------------------------- */
+        var regList = Model as List<CMS.Models.AlumniElectionRegistration> ?? new List<CMS.Models.AlumniElectionRegistration>();
+        int totReg = regList.Count;
+        int totApp = regList.Count(x => x.ELECTION_STATUS == "APPROVED");
+        int totRej = regList.Count(x => x.ELECTION_STATUS == "REJECTED");
+        var groupedProgrammes = regList
+            .GroupBy(x => !string.IsNullOrEmpty(x.PROGRAMME_NAME) ? x.PROGRAMME_NAME.Trim() : "Unspecified")
+            .OrderBy(g => g.Key)
+            .ToList();
+
+        <!-- ============================================== -->
+        <!-- MODE 1: SEPARATE PAGE PER PROGRAMME (EXCEL LAYOUT) -->
+        <!-- ============================================== -->
+        <div id="containerPaged" class="@(isPaged ? "" : "hidden-mode")">
+            @if (regList.Count == 0)
+            {
+                <div class="programme-page-sheet">
+                    <header class="college-header">
+                        <img src="/Content/assets/img/hcc-img/SJCLOGO.png" alt="SJC Logo" class="college-logo" onerror="this.style.display='none'" />
+                        <div class="header-text">
+                            <h1>ST. JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS)</h1>
+                            <h2>Affiliated to Thiruvalluvar University, Vellore &bull; Re-accredited by NAAC with 'A' Grade</h2>
+                            <p>Cuddalore - 607 001, Tamil Nadu, India</p>
+                        </div>
+                    </header>
+                    <div style="text-align: center; padding: 40px; color: #64748b; font-size: 13px;">
+                        No registrations found for the selected criteria.
+                    </div>
+                </div>
+            }
+            else
+            {
+                int sheetIdx = 1;
+                foreach (var progGroup in groupedProgrammes)
+                {
+                    int progTot = progGroup.Count();
+                    int progApp = progGroup.Count(x => x.ELECTION_STATUS == "APPROVED");
+                    int progRej = progGroup.Count(x => x.ELECTION_STATUS == "REJECTED");
+                    var sortedAlumni = progGroup.OrderBy(x => (x.NAME ?? "").Trim(), StringComparer.CurrentCultureIgnoreCase).ToList();
+
+        <div class="programme-page-sheet">
+            <div class="sheet-page-indicator">
+                Programme @sheetIdx of @groupedProgrammes.Count
+            </div>
+
+            <!-- Official College Letterhead Header -->
+            <header class="college-header">
+                <img src="/Content/assets/img/hcc-img/SJCLOGO.png" alt="SJC Logo" class="college-logo" onerror="this.style.display='none'" />
+                <div class="header-text">
+                    <h1>ST. JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS)</h1>
+                    <h2>Affiliated to Thiruvalluvar University, Vellore &bull; Re-accredited by NAAC with 'A' Grade</h2>
+                    <p>Cuddalore - 607 001, Tamil Nadu, India</p>
+                </div>
+            </header>
+
+            <!-- Excel-style Programme Banner -->
+            <div class="prog-excel-banner">
+                <div class="prog-excel-title">
+                    <i class="fa fa-graduation-cap"></i> ALUMNI ELECTION LIST - @progGroup.Key.ToUpper()
+                </div>
+                <div class="prog-excel-stats">
+                    <span>Total: <strong>@progTot</strong></span>
+                    <span>Attending: <strong>@progApp</strong></span>
+                    <span>Cannot Attend: <strong>@progRej</strong></span>
+                </div>
+            </div>
+
+            <!-- Sub-info Meta Bar -->
+            <div class="report-sub-info-bar">
+                <div>
+                    <strong>Election:</strong> @settingTitle &bull;
+                    <strong>Date:</strong> @electionDate (@electionTime) &bull;
+                    <strong>Venue:</strong> @electionPlace
+                </div>
+                <div>
+                    <strong>Academic Year:</strong> @academicYear &bull;
+                    <strong>Generated:</strong> @genDate
+                </div>
+            </div>
+
+            <!-- Programme Alumni Table (Excel Match) -->
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th style="width: 35px; text-align: center;">#</th>
+                        <th style="width: 140px; text-align: center;">SERIAL NO.</th>
+                        <th style="width: 155px; text-align: center;">REGISTERED NO.</th>
+                        <th style="text-align: left;">ALUMNUS NAME (A TO Z)</th>
+                        <th style="width: 95px; text-align: center;">MOBILE NO</th>
+                        <th style="width: 75px; text-align: center;">PASSING YEAR</th>
+                        <th class="col-signature @(includeSignature ? "" : "hidden-signature")" style="width: 130px; text-align: center;">SIGNATURE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int sno = 1;
+                        foreach (var row in sortedAlumni)
+                        {
+                            string serialNo = !string.IsNullOrEmpty(row.SERIAL_NO)
+                                ? row.SERIAL_NO
+                                : ("SJC-ELEC-" + (!string.IsNullOrWhiteSpace(row.ACADEMIC_YEAR) ? row.ACADEMIC_YEAR.Trim() : "2026") + "-" + row.ID.ToString("D4"));
+                            string registeredNo = !string.IsNullOrEmpty(row.REGISTRATION_NO)
+                                ? row.REGISTRATION_NO
+                                : ("SJC-" + (!string.IsNullOrWhiteSpace(row.PROGRAMME_CODE) ? row.PROGRAMME_CODE.Trim() : "ELEC") + "-" + (!string.IsNullOrWhiteSpace(row.ACADEMIC_YEAR) ? row.ACADEMIC_YEAR.Trim() : "2026") + "-" + row.ID.ToString("D4"));
+
+                            <tr>
+                                <td style="text-align: center;">@(sno++)</td>
+                                <td style="text-align: center; font-weight: 700; color: #1e3a8a; font-family: monospace; font-size: 10.5px;">
+                                    @serialNo
+                                </td>
+                                <td style="text-align: center; font-weight: 700; color: #0284c7; font-family: monospace; font-size: 10.5px;">
+                                    @registeredNo
+                                </td>
+                                <td style="font-weight: 700; color: #0f172a;">@row.NAME</td>
+                                <td style="text-align: center;">@row.MOBILE_NO</td>
+                                <td style="text-align: center;">@row.YEAR_OF_PASSING</td>
+                                <td class="col-signature @(includeSignature ? "" : "hidden-signature")" style="text-align: center; vertical-align: bottom; height: 32px; padding: 2px 6px;">
+                                    <div class="sig-line-dotted"></div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-total-row">
+                        <th colspan="3" style="text-align: right;">Total for @progGroup.Key:</th>
+                        <th colspan="3" class="th-total-colspan" style="text-align: left; color: #1e3a8a;">
+                            @progTot Registered (@progApp Attending, @progRej Cannot Attend)
+                        </th>
+                        <th class="col-signature @(includeSignature ? "" : "hidden-signature")"></th>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- Verification Signatures Footer per Page -->
+            <div class="signature-section">
+                <div class="sig-block">
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Prepared By (ERP)</div>
+                </div>
+                <div class="sig-block">
+                    <img src="@Url.Content("~/Content/hcc_img/sign/Fr_maria_anandraj.png")" alt="Alumni Coordinator" class="principal-sign-img" onerror="this.style.display='none'" />
+
+                    <div class="sig-line">
+                    </div>
+                    <div class="sig-title">Verified By Alumni Coordinator</div>
+                </div>
+                <div class="sig-block">
+                    <img src="@Url.Content("~/Content/hcc_img/sign/SJC_PRINCIPAL_Singn_RBG.png")" alt="Principal Signature" class="principal-sign-img" onerror="this.style.display='none'" />
+
+                    <div class="sig-line">
+                    </div>
+                    <div class="sig-title">Verified By Principal</div>
+                </div>
+                <div class="sig-block">
+                    <img src="@Url.Content("~/Content/hcc_img/sign/Secretary_Sign.png")" alt="Secretary" class="principal-sign-img" onerror="this.style.display='none'" />
+
+                    <div class="sig-line">
+                    </div>
+                    <div class="sig-title">Certified By Secretary</div>
+                </div>
+            </div>
+
+
+            <div class="page-footer-note">
+                Official Alumni Election List Sheet &bull; @progGroup.Key &bull; Generated on @genDate &bull; Page @sheetIdx of @groupedProgrammes.Count
+            </div>
+        </div>
+                    sheetIdx++;
+                }
+            }
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODE 2: CONTINUOUS LIST MODE                   -->
+        <!-- ============================================== -->
+        <div id="containerContinuous" class="@(isPaged ? "hidden-mode" : "")">
+            <div class="report-page-container">
+                <!-- Single College Header -->
+                <header class="college-header">
+                    <img src="/Content/assets/img/hcc-img/SJCLOGO.png" alt="SJC Logo" class="college-logo" onerror="this.style.display='none'" />
+                    <div class="header-text">
+                        <h1>ST. JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS)</h1>
+                        <h2>Affiliated to Thiruvalluvar University, Vellore &bull; Re-accredited by NAAC with 'A' Grade</h2>
+                        <p>Cuddalore - 607 001, Tamil Nadu, India</p>
+                    </div>
+                </header>
+
+                <div class="report-title-banner">
+                    <div class="report-main-title">
+                        <h3>@settingTitle</h3>
+                        <div class="report-title-meta-list">
+                            <div class="report-title-meta-item">
+                                <span class="meta-label">Election Date:</span>
+                                <span class="meta-val">@electionDate (@electionTime)</span>
+                            </div>
+                            <div class="report-title-meta-item">
+                                <span class="meta-label">Venue:</span>
+                                <span class="meta-val">@electionPlace</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="report-meta-badges">
+                        <div class="report-meta-row">
+                            <span class="meta-label">Report:</span>
+                            <span class="meta-badge-tag">PROGRAMME-WISE ALUMNI LIST (CONTINUOUS)</span>
+                        </div>
+                        <div class="report-meta-row">
+                            <span class="meta-label">Generated:</span>
+                            <span class="meta-val">@genDate</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-info-box">
+                    <div class="filter-item"><span>Academic Year:</span> <span>@academicYear</span></div>
+                    <div class="filter-item"><span>Programme:</span> <span>@progName</span></div>
+                    <div class="filter-item"><span>Status Filter:</span> <span>@status</span></div>
+                </div>
+
+                <!-- KPI Metric Strip -->
+                <div class="summary-stats-strip">
+                    <div class="stat-badge">
+                        <div class="stat-num" style="color: #1e3a8a;">@totReg</div>
+                        <div class="stat-lbl">Total Registered</div>
+                    </div>
+                    <div class="stat-badge">
+                        <div class="stat-num" style="color: #15803d;">@totApp</div>
+                        <div class="stat-lbl">Attending (Approved)</div>
+                    </div>
+                    <div class="stat-badge">
+                        <div class="stat-num" style="color: #b91c1c;">@totRej</div>
+                        <div class="stat-lbl">Cannot Attend (Rejected)</div>
+                    </div>
+                    <div class="stat-badge">
+                        <div class="stat-num" style="color: #4338ca;">@groupedProgrammes.Count</div>
+                        <div class="stat-lbl">Programmes</div>
+                    </div>
+                </div>
+
+                @if (regList.Count == 0)
+                {
+                    <table class="report-table">
+                        <tbody>
+                            <tr>
+                                <td style="text-align: center; padding: 25px; color: #64748b;">No registrations found for the selected criteria.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    foreach (var progGroup in groupedProgrammes)
+                    {
+                        int progTot = progGroup.Count();
+                        int progApp = progGroup.Count(x => x.ELECTION_STATUS == "APPROVED");
+                        int progRej = progGroup.Count(x => x.ELECTION_STATUS == "REJECTED");
+                        var sortedAlumni = progGroup.OrderBy(x => (x.NAME ?? "").Trim(), StringComparer.CurrentCultureIgnoreCase).ToList();
+
+                        <div style="margin-top: 20px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 4px; page-break-after: avoid;">
+                            <h4 style="font-size: 13px; font-weight: 700; color: #1e3a8a; margin: 0;">
+                                <i class="fa fa-graduation-cap"></i> @progGroup.Key
+                            </h4>
+                            <div style="font-size: 11px; font-weight: 600; color: #475569;">
+                                <span>Total: <strong>@progTot</strong></span> &bull;
+                                <span style="color: #15803d;">Attending: <strong>@progApp</strong></span> &bull;
+                                <span style="color: #b91c1c;">Cannot Attend: <strong>@progRej</strong></span>
+                            </div>
+                        </div>
+
+                        <table class="report-table" style="margin-bottom: 14px;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 35px; text-align: center;">#</th>
+                                    <th style="width: 140px; text-align: center;">SERIAL NO.</th>
+                                    <th style="width: 155px; text-align: center;">REGISTERED NO.</th>
+                                    <th style="text-align: left;">ALUMNUS NAME (A TO Z)</th>
+                                    <th style="width: 95px; text-align: center;">MOBILE NO</th>
+                                    <th style="width: 75px; text-align: center;">PASSING YEAR</th>
+                                    <th class="col-signature @(includeSignature ? "" : "hidden-signature")" style="width: 130px; text-align: center;">SIGNATURE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    int progSno = 1;
+                                    foreach (var row in sortedAlumni)
+                                    {
+                                        string serialNo = !string.IsNullOrEmpty(row.SERIAL_NO)
+                                            ? row.SERIAL_NO
+                                            : ("SJC-ELEC-" + (!string.IsNullOrWhiteSpace(row.ACADEMIC_YEAR) ? row.ACADEMIC_YEAR.Trim() : "2026") + "-" + row.ID.ToString("D4"));
+                                        string registeredNo = !string.IsNullOrEmpty(row.REGISTRATION_NO)
+                                            ? row.REGISTRATION_NO
+                                            : ("SJC-" + (!string.IsNullOrWhiteSpace(row.PROGRAMME_CODE) ? row.PROGRAMME_CODE.Trim() : "ELEC") + "-" + (!string.IsNullOrWhiteSpace(row.ACADEMIC_YEAR) ? row.ACADEMIC_YEAR.Trim() : "2026") + "-" + row.ID.ToString("D4"));
+
+                                        <tr>
+                                            <td style="text-align: center;">@(progSno++)</td>
+                                            <td style="text-align: center; font-weight: 700; color: #1e3a8a; font-family: monospace; font-size: 10.5px;">
+                                                @serialNo
+                                            </td>
+                                            <td style="text-align: center; font-weight: 700; color: #0284c7; font-family: monospace; font-size: 10.5px;">
+                                                @registeredNo
+                                            </td>
+                                            <td style="font-weight: 700; color: #0f172a;">@row.NAME</td>
+                                            <td style="text-align: center;">@row.MOBILE_NO</td>
+                                            <td style="text-align: center;">@row.YEAR_OF_PASSING</td>
+                                            <td class="col-signature @(includeSignature ? "" : "hidden-signature")" style="text-align: center; vertical-align: bottom; height: 32px; padding: 2px 6px;">
+                                                <div class="sig-line-dotted"></div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-total-row">
+                                    <th colspan="3" style="text-align: right;">Total for @progGroup.Key:</th>
+                                    <th colspan="3" class="th-total-colspan" style="text-align: left; color: #1e3a8a;">
+                                        @progTot Registered (@progApp Attending, @progRej Cannot Attend)
+                                    </th>
+                                    <th class="col-signature @(includeSignature ? "" : "hidden-signature")"></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    }
+
+                    <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 16px; margin-top: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; font-weight: 700; font-size: 12px; page-break-inside: avoid;">
+                        <span>Grand Total Across All Programmes:</span>
+                        <span style="color: #1e3a8a;">@totReg Alumni in @groupedProgrammes.Count Programmes (@totApp Attending, @totRej Cannot Attend)</span>
+                    </div>
+                }
+
+                <div class="signature-section">
+                    <div class="sig-block">
+                        <div class="sig-line"></div>
+                        <div class="sig-title">Prepared By (ERP)</div>
+                    </div>
+                    <div class="sig-block">
+                        <img src="@Url.Content("~/Content/hcc_img/sign/Fr_maria_anandraj.png")" alt="Alumni Coordinator" class="principal-sign-img" onerror="this.style.display='none'" />
+
+                        <div class="sig-line">
+                        </div>
+                        <div class="sig-title">Verified By Alumni Coordinator</div>
+                    </div>
+                    <div class="sig-block">
+                        <img src="@Url.Content("~/Content/hcc_img/sign/SJC_PRINCIPAL_Singn_RBG.png")" alt="Principal Signature" class="principal-sign-img" onerror="this.style.display='none'" />
+
+                        <div class="sig-line">
+                        </div>
+                        <div class="sig-title">Verified By Principal</div>
+                    </div>
+                    <div class="sig-block">
+                        <img src="@Url.Content("~/Content/hcc_img/sign/Secretary_Sign.png")" alt="Secretary" class="principal-sign-img" onerror="this.style.display='none'" />
+
+                        <div class="sig-line">
+                        </div>
+                        <div class="sig-title">Certified By Secretary</div>
+                    </div>
+                </div>
+                <div class="page-footer-note">
+                    This is an official system-generated attendance report from the St. Joseph's College Alumni Election Registry. Generated on @genDate.
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        /* ---------------------------------------------------- */
+        /* REPORT TYPE 3: DETAILED ALPHABETICAL REGISTRATIONS   */
+        /* ---------------------------------------------------- */
+        var regList = Model as List<CMS.Models.AlumniElectionRegistration> ?? new List<CMS.Models.AlumniElectionRegistration>();
+        int totReg = regList.Count;
+        int totApp = regList.Count(x => x.ELECTION_STATUS == "APPROVED");
+        int totRej = regList.Count(x => x.ELECTION_STATUS == "REJECTED");
+
+<div class="report-page-container">
+    <!-- Official College Header -->
+    <header class="college-header">
+        <img src="/Content/assets/img/hcc-img/SJCLOGO.png" alt="SJC Logo" class="college-logo" onerror="this.style.display='none'" />
+        <div class="header-text">
+            <h1>ST. JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS)</h1>
+            <h2>Affiliated to Thiruvalluvar University, Vellore &bull; Re-accredited by NAAC with 'A' Grade</h2>
+            <p>Cuddalore - 607 001, Tamil Nadu, India</p>
+        </div>
+    </header>
+
+    <div class="report-title-banner">
+        <div class="report-main-title">
+            <h3>@settingTitle</h3>
+            <div class="report-title-meta-list">
+                <div class="report-title-meta-item">
+                    <span class="meta-label">Election Date:</span>
+                    <span class="meta-val">@electionDate (@electionTime)</span>
+                </div>
+                <div class="report-title-meta-item">
+                    <span class="meta-label">Venue:</span>
+                    <span class="meta-val">@electionPlace</span>
+                </div>
+            </div>
+        </div>
+        <div class="report-meta-badges">
+            <div class="report-meta-row">
+                <span class="meta-label">Report:</span>
+                <span class="meta-badge-tag">DETAILED REGISTRATIONS (A TO Z)</span>
+            </div>
+            <div class="report-meta-row">
+                <span class="meta-label">Generated:</span>
+                <span class="meta-val">@genDate</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-info-box">
+        <div class="filter-item"><span>Academic Year:</span> <span>@academicYear</span></div>
+        <div class="filter-item"><span>Programme:</span> <span>@progName</span></div>
+        <div class="filter-item"><span>Status Filter:</span> <span>@status</span></div>
+    </div>
+
+    <div class="summary-stats-strip">
+        <div class="stat-badge">
+            <div class="stat-num" style="color: #1e3a8a;">@totReg</div>
+            <div class="stat-lbl">Total Registered</div>
+        </div>
+        <div class="stat-badge">
+            <div class="stat-num" style="color: #15803d;">@totApp</div>
+            <div class="stat-lbl">Attending (Approved)</div>
+        </div>
+        <div class="stat-badge">
+            <div class="stat-num" style="color: #b91c1c;">@totRej</div>
+            <div class="stat-lbl">Cannot Attend (Rejected)</div>
+        </div>
+    </div>
+
+    <!-- Detailed Alphabetical Table -->
+    <table class="report-table" id="tblDetailedReport">
+        <thead>
+            <tr>
+                <th style="width: 35px; text-align: center;">#</th>
+                <th style="width: 140px; text-align: center;">SERIAL NO.</th>
+                <th style="width: 155px; text-align: center;">REGISTERED NO.</th>
+                <th style="text-align: left;">ALUMNUS NAME (A TO Z)</th>
+                <th style="width: 95px; text-align: center;">MOBILE NO</th>
+                <th style="text-align: left;">PROGRAMME / DEGREE</th>
+                <th style="width: 75px; text-align: center;">PASSING YEAR</th>
+                <th class="col-signature @(includeSignature ? "" : "hidden-signature")" style="width: 130px; text-align: center;">SIGNATURE</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (regList.Count == 0)
+            {
+                <tr>
+                    <td colspan="@(includeSignature ? 8 : 7)" id="tdEmptyMsg" style="text-align: center; padding: 25px; color: #64748b;">No registrations found for the selected criteria.</td>
+                </tr>
+            }
+            else
+            {
+                int sno = 1;
+                foreach (var row in regList)
+                {
+                    string serialNo = !string.IsNullOrEmpty(row.SERIAL_NO)
+                        ? row.SERIAL_NO
+                        : ("SJC-ELEC-" + (!string.IsNullOrWhiteSpace(row.ACADEMIC_YEAR) ? row.ACADEMIC_YEAR.Trim() : "2026") + "-" + row.ID.ToString("D4"));
+                    string registeredNo = !string.IsNullOrEmpty(row.REGISTRATION_NO)
+                        ? row.REGISTRATION_NO
+                        : ("SJC-" + (!string.IsNullOrWhiteSpace(row.PROGRAMME_CODE) ? row.PROGRAMME_CODE.Trim() : "ELEC") + "-" + (!string.IsNullOrWhiteSpace(row.ACADEMIC_YEAR) ? row.ACADEMIC_YEAR.Trim() : "2026") + "-" + row.ID.ToString("D4"));
+
+                    <tr>
+                        <td style="text-align: center;">@(sno++)</td>
+                        <td style="text-align: center; font-weight: 700; color: #1e3a8a; font-family: monospace; font-size: 10.5px;">
+                            @serialNo
+                        </td>
+                        <td style="text-align: center; font-weight: 700; color: #0284c7; font-family: monospace; font-size: 10.5px;">
+                            @registeredNo
+                        </td>
+                        <td style="font-weight: 700; color: #0f172a;">@row.NAME</td>
+                        <td style="text-align: center;">@row.MOBILE_NO</td>
+                        <td>@row.PROGRAMME_NAME</td>
+                        <td style="text-align: center;">@row.YEAR_OF_PASSING</td>
+                        <td class="col-signature @(includeSignature ? "" : "hidden-signature")" style="text-align: center; vertical-align: bottom; height: 32px; padding: 2px 6px;">
+                            <div class="sig-line-dotted"></div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+        <tfoot>
+            <tr class="table-total-row">
+                <th colspan="4" style="text-align: right;">Total Registrations Listed:</th>
+                <th colspan="@(includeSignature ? 4 : 3)" id="thFooterTotal" style="text-align: left; color: #1e3a8a;">@totReg Alumni</th>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="signature-section">
+        <div class="sig-block">
+            <div class="sig-line"></div>
+            <div class="sig-title">Prepared By (ERP)</div>
+        </div>
+        <div class="sig-block">
+            <img src="@Url.Content("~/Content/hcc_img/sign/Fr_maria_anandraj.png")" alt="Alumni Coordinator" class="principal-sign-img" onerror="this.style.display='none'" />
+
+            <div class="sig-line">
+            </div>
+            <div class="sig-title">Verified By Alumni Coordinator</div>
+        </div>
+        <div class="sig-block">
+            <img src="@Url.Content("~/Content/hcc_img/sign/SJC_PRINCIPAL_Singn_RBG.png")" alt="Principal Signature" class="principal-sign-img" onerror="this.style.display='none'" />
+
+            <div class="sig-line">
+            </div>
+            <div class="sig-title">Verified By Principal</div>
+        </div>
+        <div class="sig-block">
+            <img src="@Url.Content("~/Content/hcc_img/sign/Secretary_Sign.png")" alt="Secretary" class="principal-sign-img" onerror="this.style.display='none'" />
+
+            <div class="sig-line">
+            </div>
+            <div class="sig-title">Certified By Secretary</div>
+        </div>
+    </div>
+
+    <div class="page-footer-note">
+        This is an official system-generated attendance report from the St. Joseph's College Alumni Election Registry. Generated on @genDate.
+    </div>
+</div>
+    }
+
+    <script>
+        function switchPrintMode(mode) {
+            var paged = document.getElementById('containerPaged');
+            var continuous = document.getElementById('containerContinuous');
+            var btnPaged = document.getElementById('btnModePaged');
+            var btnContinuous = document.getElementById('btnModeContinuous');
+
+            if (mode === 'paged') {
+                if (paged) paged.classList.remove('hidden-mode');
+                if (continuous) continuous.classList.add('hidden-mode');
+                if (btnPaged) btnPaged.classList.add('active-mode');
+                if (btnContinuous) btnContinuous.classList.remove('active-mode');
+            } else {
+                if (paged) paged.classList.add('hidden-mode');
+                if (continuous) continuous.classList.remove('hidden-mode');
+                if (btnPaged) btnPaged.classList.remove('active-mode');
+                if (btnContinuous) btnContinuous.classList.add('active-mode');
+            }
+        }
+
+        function toggleSignatureColumn(show) {
+            var cols = document.querySelectorAll('.col-signature');
+            for (var i = 0; i < cols.length; i++) {
+                if (show) {
+                    cols[i].classList.remove('hidden-signature');
+                } else {
+                    cols[i].classList.add('hidden-signature');
+                }
+            }
+
+            var thTot = document.getElementById('thFooterTotal');
+            if (thTot) {
+                thTot.setAttribute('colspan', show ? '4' : '3');
+            }
+
+            var tdEmpty = document.getElementById('tdEmptyMsg');
+            if (tdEmpty) {
+                tdEmpty.setAttribute('colspan', show ? '8' : '7');
+            }
+
+            var container = document.getElementById('printSignatureContainer');
+            if (container) {
+                if (show) {
+                    container.classList.add('active-toggle');
+                } else {
+                    container.classList.remove('active-toggle');
+                }
+            }
+        }
+
+        window.onload = function () {
+            // Auto-trigger print dialog after styles load
+            setTimeout(function () {
+                window.print();
+            }, 600);
+        };
+    </script>
+</body>
+</html>

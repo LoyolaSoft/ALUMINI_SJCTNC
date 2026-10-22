@@ -1,0 +1,328 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+
+@using CMS.Utility
+@{double dGpa = 0;
+    double dwam = 0;
+    double dmulti = 0;
+    double wam = 0;
+    double credit = 0;
+    double max = 0;
+    double sec = 0;
+    //double dGpaS = 0;
+}
+
+@if (Model.liSemestermark != null && Model.liSemestermark.Count > 0)
+{
+    var StudentList = Model.liSemestermark.GroupBy(s => s.STUDENT_ID).ToList();
+    if (StudentList.Count > 0 && StudentList != null)
+    {
+        foreach (var item in StudentList)
+        {
+            var Individual = Model.liSemestermark.Where(s => s.STUDENT_ID == item.FirstOrDefault().STUDENT_ID).ToList();
+            var Partlist = Model.liSemestermark.GroupBy(s => s.PART).ToList();
+            var Date = Individual.OrderByDescending(x => DateTime.Parse(x.START_DATE)).ToList();
+            if (Individual != null && Individual.Count() > 0)
+            {
+                <div style="page-break-after:always !important;page-break-inside:avoid !important;">
+                    <br /><br /><br /><br /><br /><br /><br /><br /><br /> <br />
+                    
+                    <div class="col-md-12">
+                        <table align="center" width="98%">
+                            <tr>
+                                <td style="width:50%"><b>Name</b> : &nbsp;@Individual.FirstOrDefault().NAME.ToUpper()</td>
+                                <td style="width:50%" align="right"><b>Register No</b> : &nbsp;@Individual.FirstOrDefault().REGISTER_NO</td>
+                            </tr>
+                            <tr>
+                                <td style="width:60%"><b>Degree & Major</b> : &nbsp;@Individual.FirstOrDefault().PROGRAMME_NAME </td>
+                                <td style="width:40%" align="right"><b>Roll No</b> : &nbsp;@Individual.FirstOrDefault().ROLL_NO</td>
+                            </tr>
+                            <tr>
+                                <td style="width:50%"><input type="hidden" value="@Date.FirstOrDefault().M_EXAM" id="hdEndDate" /></td>
+                                <td style="width:50%" align="right"><b>Month & Year</b> : &nbsp;@Date.FirstOrDefault().M_EXAM</td>
+                            </tr>
+                        </table>                   
+                    </div>
+                    <br />
+                    @if (Individual.FirstOrDefault().APPLICATION_TYPE_ID == "2")
+                    {
+                        <div class="col-md-12">
+                            <table align="center" style="width:95%; border:1px solid;" id="tblMarkOther">
+                                <thead>
+                                    <tr>
+                                        <th style="border:1px solid;width:5% !important;padding-left:5px;" align="left">Sem</th>
+                                        <th style="border:1px solid;width:12% !important;padding-left:5px;" align="left">Course Code</th>
+                                        <th style="border:1px solid;width:40% !important;padding-left:5px;" align="left">Course Title</th>
+                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">Max.</th>
+                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">Sec.</th>
+                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">Credit</th>
+                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">Grade Point</th>
+                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">Grade</th>
+                                        <th style="width:8% !important;border:1px solid ;padding-left:5px;" align="left">Passed Month</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        foreach (var items in Individual)
+                                        {
+                                            <tr>
+                                                <td style="width:5% !important; padding:3px;  border-right:1px solid ;" align="left"><input class="form-control" type="text" value="@items.SEMESTER_NAME" /></td>
+                                                <td style="width:12% !important;padding:3px;  border-right:1px solid ;" align="left"><input class="form-control" type="text" value="@items.COURSE_CODE" /></td>
+                                                <td style="width:40% !important;padding:3px;  border-right:1px solid ;" align="left"><input class="form-control" type="text" value="@items.COURSE_TITLE" /></td>
+                                                <td style="width:5% !important; padding:3px;  border-right:1px solid ;" align="left"><input class="form-control" type="text" value="@items.MAXIMUM" /></td>
+                                                <td style="width:5% !important; padding:3px;  border-right:1px solid ;" align="left"><input class="form-control" type="text" value="@items.TOTAL" /></td>
+                                                <td style="width:5% !important; padding:3px;  border-right:1px solid ;" align="left"><input class="form-control" type="text" value="@items.CREDIT" /></td>
+                                                <td style="width:5% !important; padding:3px;  border-right:1px solid ;" align="left"><input class="form-control" type="text" value="@items.GRADE_POINT" /></td>
+                                                <td style="width:5% !important; padding:3px;  border-right:1px solid ;align-content:flex-start;"><input class="form-control" type="text" value="@items.GRADE" /></td>
+                                                <td style="width:8% !important; padding:3px;  border-right:1px solid ;align-content:flex-start;"><input class="form-control" type="text" value="@items.M_PASS" /></td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                                <thead>
+                                    <tr style="border:1px solid; padding:5px;">
+                                        <th colspan="5" style="border:1px solid; padding:3px;"><b>Total</b></th>
+                                        <th style="border:1px solid; padding:3px;"><input class="form-control" type="text" value="@Individual.Sum(o => Convert.ToDouble(o.CREDIT))" /></th>
+                                        <th style="border:1px solid; padding:3px;"></th>
+                                        <th style="border:1px solid; padding:3px;"></th>
+                                        <th style="border:1px solid; padding:3px;"></th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                        <br />
+                        <div class="col-md-12">
+                            <div class="col-md-6" style="table-layout: fixed;">
+                                <table class="table-condensed" align="left" style="width:50%;" id="tblcumlative">
+                                    <caption>Cumulative</caption>
+                                    <thead>
+                                        <tr>
+                                            <th>WAMAAAA</th>
+                                            <th>GPAAAA</th>
+                                            <th>GRADE</th>
+                                            <th>CRAAAA</th>
+                                        </tr>
+                                    </thead>
+                                    @if (Individual.Count() > 0)
+                                    {
+                                        dmulti = 0;
+                                        wam = 0;
+                                        credit = 0;
+                                        max = 0;
+                                        sec = 0;
+                                        foreach (var sitem in Individual)
+                                        {
+                                            if (sitem.RESULT.ToUpper().Contains("A") || sitem.RESULT.ToUpper().Contains("F") || sitem.UGC_COURSE_TYPE == "49")
+                                            {
+
+                                            }
+                                            else
+                                            {
+                                                dmulti += (Convert.ToDouble(sitem.CREDIT) * Convert.ToDouble(sitem.GRADE_POINT));
+                                                wam += (Convert.ToDouble(sitem.CREDIT) * Convert.ToDouble(sitem.TOTAL));
+                                                credit += Convert.ToDouble(sitem.CREDIT);
+                                                max += Convert.ToDouble(sitem.MAXIMUM);
+                                                sec += Convert.ToDouble(sitem.TOTAL);
+                                            }
+                                        }
+                                        dGpa = dmulti / credit;
+                                        dwam = wam / credit;
+                                    }
+                                    <tr>
+                                        <td><input class="form-control" type="text" value="@dwam.ToString("#.##")" /></td>
+                                        <td><input class="form-control" type="text" value="@dGpa.ToString("#.##")" /></td>
+                                        @if (dGpa >= 9.00)
+                                        {
+                                            <td><input class="form-control" type="text" value="O" /></td>
+                                        }
+                                        else
+                                        {
+                                            if (dGpa >= 8.00)
+                                            {
+                                                <td><input class="form-control" type="text" value="A+" /></td>
+                                            }
+                                            else
+                                            {
+                                                if (dGpa >= 7.00)
+                                                {
+                                                    <td><input class="form-control" type="text" value="A" /></td>
+                                                }
+                                                else
+                                                {
+                                                    if (dGpa >= 6.00)
+                                                    {
+                                                        <td><input class="form-control" type="text" value="B+" /></td>
+                                                    }
+                                                    else
+                                                    {
+                                                        if (dGpa >= 5.00)
+                                                        {
+                                                            <td><input class="form-control" type="text" value="B" /></td>
+                                                        }
+                                                        else
+                                                        {
+                                                            if (dGpa < 5.00)
+                                                            {
+                                                                <td><input class="form-control" type="text" value="R.A"/></td>
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        <td><input class="form-control" type="text" value="@credit" /></td>
+                                    </tr>
+
+                                </table>
+                            </div>
+                            <div class="col-md-5" style="table-layout:fixed;">
+                                <table class="table-condensed" align="right" style="width:50%;" id="tblMark">
+                                    <caption></caption>
+                                    <thead>
+                                        <tr>
+                                            <th>Total Marks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <input class="form-control" type="text" value="@sec/@max" />                                                
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                                        }
+                                        else
+                                        {
+                                            <table align="center" style="width:95%; border:1px solid;">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="border:1px solid;width:5% !important;padding-left:5px; " align="left">Sem</th>
+                                                        <th style="border:1px solid;width:15% !important;padding-left:5px;" align="left">Course Code</th>
+                                                        <th style="border:1px solid;width:35% !important;padding-left:5px;" align="left">Course Title</th>
+                                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;  " align="left">CIA</th>
+                                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">ESE</th>
+                                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">Aggre gate</th>
+                                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">Credit</th>
+                                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">Grade Point</th>
+                                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">Grade</th>
+                                                        <th style="width:5% !important;border:1px solid ;padding-left:5px;" align="left">Credit * Grade Point</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var items in Individual)
+                                {
+                                                        <tr>
+                                                            <td style="width:5% !important; padding:5px 5px;  border-right:1px solid ; " align="left">@items.SEMESTER_NAME</td>
+                                                            <td style="width:15% !important;padding:5px 5px;border-right:1px solid;" align="left">@items.COURSE_CODE</td>
+                                                            <td style="width:35% !important;padding:5px 5px;border-right:1px solid;" align="left">@items.COURSE_TITLE</td>
+                                                            <td style="width:5% !important;padding:5px 5px;border-right:1px solid;" align="left">@items.INTERNAL_MARK</td>
+                                                            <td style="width:5% !important;padding:5px 5px;border-right:1px solid;" align="left">@items.EXTERNAL_MARK</td>
+                                                            <td style="width:5% !important;padding:5px 5px;border-right:1px solid;" align="left">@items.TOTAL</td>
+                                                            <td style="width:5% !important;padding:5px 5px;border-right:1px solid;" align="left">@items.CREDIT</td>
+                                                            <td style="width:5% !important;padding:5px 5px;border-right:1px solid;" align="left">@items.GRADE_POINT</td>
+                                                            <td style="width:5% !important;padding:5px 5px;border-right:1px solid;" align-content:flex-start;">@items.GRADE</td>
+                                                            <td style="width:5% !important;padding:5px 5px;border-right:1px solid;" align="left">@{var multimple = Convert.ToDouble(items.CREDIT) * @Convert.ToDouble(items.GRADE_POINT);}@multimple</td>
+                                                        </tr>
+                                                                }
+                                                </tbody>
+                                                <thead>
+                                                    <tr>
+                                                        <th colspan="7"><b>Total</b></th>
+                                                        <th>@Individual.Sum(o => Convert.ToDouble(o.CREDIT))</th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                            </table>
+                                            <br />
+                                                                if (Partlist.Count > 0 && Partlist != null)
+                                                                {
+                                                                    <table class="table-condensed" cellpadding="5">
+                                                                        <thead><caption>Current Semester</caption></thead>
+                                                                        <tr>
+                                                                            <th>PART</th>
+                                                                            <th>WAM</th>
+                                                                            <th>GPA</th>
+                                                                            <th>GRADE</th>
+                                                                            <th>CR</th>
+                                                                        </tr>
+                                                                        @foreach (var sitem in Partlist)
+                                                                        {
+                                                                            var Gpa = Individual.Where(s => s.PART == sitem.FirstOrDefault().PART).ToList();
+                                                                            dmulti = 0;
+                                                                            dGpa = 0;
+                                                                            foreach (var gitem in Gpa)
+                                                                            {
+                                                                                dmulti += (Convert.ToDouble(gitem.CREDIT) * Convert.ToDouble(gitem.GRADE_POINT));
+                                                                                wam += (Convert.ToDouble(gitem.CREDIT) * Convert.ToDouble(gitem.TOTAL));
+                                                                            }
+                                                                            dGpa = dmulti / Gpa.Sum(o => Convert.ToDouble(o.CREDIT));
+                                                                            dwam = wam / Gpa.Sum(o => Convert.ToDouble(o.CREDIT));
+                                                                            <tr>
+                                                                                <td>@Gpa.FirstOrDefault().PART</td>
+                                                                                <td>@dwam.ToString("#.##")</td>
+                                                                                <td>@dGpa.ToString("#.##")</td>
+                                                                                @if (dGpa >= 9.00)
+                                                                                {
+                                                                                    <td>O</td>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    if (dGpa >= 8.00)
+                                                                                    {
+                                                                                        <td>A+</td>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        if (dGpa >= 7.00)
+                                                                                        {
+                                                                                            <td>A</td>
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            if (dGpa >= 6.00)
+                                                                                            {
+                                                                                                <td>B+</td>
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                                if (dGpa >= 5.00)
+                                                                                                {
+                                                                                                    <td>B</td>
+                                                                                                }
+                                                                                                else
+                                                                                                {
+                                                                                                    if (dGpa <= 4.00)
+                                                                                                    {
+                                                                                                        <td>C</td>
+                                                                                                    }
+                                                                                                    else
+                                                                                                    {
+                                                                                                        if (dGpa < 4.00)
+                                                                                                        {
+                                                                                                            <td>R.A</td>
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                <td>@Gpa.Sum(o => Convert.ToDouble(o.CREDIT))</td>
+                                                                            </tr>
+
+                                                                        }
+                                                                    </table>
+                                                                    }
+
+                                                                }
+                </div>
+
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+

@@ -1,0 +1,472 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+
+@{ 
+    Layout = null;
+    int ncount = 0;
+}
+
+
+ <div class="form-horizontal">
+                   
+                    <div class="col-md-12 table-responsive">
+                         <div class="form-group col-md-12 pull-right">
+                             <a class="btn btn-success pull-right" data-toggle="modal" href="#Activity-dialog"><i class="fa fa-plus"></i> Add</a>
+                         </div> <br />
+                        <table class="table table-bordered" id="tblIQAC">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Activity Type</th>
+                                    <th>Programme Type</th>
+                                    <th>Date From</th>
+                                    <th>Date To</th>
+                                    <th>Organizer</th>
+                                    <th>Place</th>
+                                    <th>Level</th>
+                                    <th>Paper Title</th>
+                                    <th>ISBN Number</th>
+                                    <th>Published In Proceeding</th>
+                                    <th>Presenting Author</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ 
+                                    if (Model.liStaffActivity!=null && Model.liStaffActivity.Count>0)
+                                    {
+                                        foreach (var item in Model.liStaffActivity)
+                                        {
+                                            <tr>
+                                                <td>@{ncount++;} @ncount</td>
+                                                <td>@item.ACTIVITY_ID</td>
+                                                <td>@item.PROGRAMME_TYPE_ID</td>
+                                                <td>@item.ACTIVITY_DATE</td>
+                                                <td>@item.ACTIVITY_DATE_TO</td>
+                                                <td>@item.ORGANIZER</td>
+                                                <td>@item.PLACE</td>
+                                                <td>@item.LEVEL_ID</td>
+                                                <td>@item.PAPER_TITLE</td>
+                                                <td>@item.ISBN_NUMBER</td>
+                                                <td>@item.PUBLISHED_IN_PROCEEDING</td>
+                                                <td>@item.PRESENTING_AUTHOR</td>
+                                                <td>
+                                                    <a class="text-primary" href="#Activity-dialog" onclick="FetchActivityById(@item.IQAC_STAFF_ACTIVITY_ID)" data-toggle="modal"><i class="fa fa-edit"></i></a>
+                                                    <a class="text-danger" href="javascript:;" onclick="GetConfrim(@item.IQAC_STAFF_ACTIVITY_ID)"><i class="fa fa-trash"></i></a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            
+<!-- Begin Honour Modal -->
+<div class="modal" id="Activity-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title"> Participated / Presented Info</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal row">
+                    <div class="col-md-12" id="dvActivity" data-parsley-validate="true">
+
+                        <div class="form-group">
+                            @Html.Label("Activity Type", htmlAttributes: new { @class = "col-md-3 control-label " })
+                            <div class="col-md-9">
+                                <select class="selectpicker form-control" id="ddlActivity" onchange="ValidateControles()" data-live-search="true" data-parsley-required="true">
+                                    <option value=""> -- Select -- </option>
+                                    <option value="1">Presented</option>
+                                    <option value="2">Participated</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Programme Type", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.sProgrammeTypeList, (Model.sProgrammeTypeList != null) ? Model.sProgrammeTypeList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", @data_parsley_required = "true",id="ddlProgrammeType" })
+                                @Html.ValidationMessageFor(model => model.sProgrammeTypeList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Activity Date From", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <div class="input-group date" id="datepicker" data-date-format="dd-mm-yyyy">
+                                    <input type="text" class="form-control" id="txtActivityDate" placeholder="Select Date dd-mm-yyyy">
+                                    <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Activity Date To", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <div class="input-group date" id="datepicker" data-date-format="dd-mm-yyyy">
+                                    <input type="text" class="form-control" id="txtActivityDateTo" placeholder="Select Date dd-mm-yyyy">
+                                    <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Programme Title", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtActivityTitle" data-parsley-required="true" placeholder="Activity Title" data-parsley-maxlength="300"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Organizer", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtActivityOrganizer" data-parsley-required="true" placeholder="Organizer" data-parsley-maxlength="150"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Place", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtActivityPlace" data-parsley-required="true" placeholder="Place" data-parsley-maxlength="150"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Activity Level", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.sLevelList, (Model.sLevelList != null) ? Model.sLevelList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", @data_parsley_required = "true",id="ddlActivityLevel" })
+                                @Html.ValidationMessageFor(model => model.sLevelList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Paper Title", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtActivityPaperTitle"  placeholder="Paper Title" data-parsley-maxlength="150"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("ISBN Number", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtActivityIsbnNumber" placeholder="If published in Proceeding" data-parsley-maxlength="150" />
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            @Html.Label("Published In Proceeding", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <div class="radio radio-css radio-success">
+                                    <input type="radio" name="Proceeding" id="Proceeding1" value="1" />
+                                    <label for="Proceeding1">
+                                        Yes
+                                    </label>
+                                </div>
+                                <div class="radio radio-css ">
+                                    <input type="radio" name="Proceeding" id="Proceeding2" value="2" />
+                                    <label for="Proceeding2">
+                                        No
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Presenting Author", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9" >
+                                <div class="radio radio-css radio-success">
+                                    <input type="radio" name="Author" id="Author1" value="1" />
+                                    <label for="Author1">
+                                        Yes
+                                    </label>
+                                </div>
+                                <div class="radio radio-css ">
+                                    <input type="radio" name="Author" id="Author2" value="2" />
+                                    <label for="Author2">
+                                        No
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("File Upload", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <div class="btn btn-primary" onclick="FileClick('ParticipationAndPrasentationUpload')"> <i class="fa fa-plus"></i>  File</div><br />
+                                <input type="file" id="ParticipationAndPrasentationUpload" class="hidden" multiple="multiple" onchange="LoadFile('ParticipationAndPrasentationUploadData', 'ParticipationAndPrasentationUpload')" />
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="ParticipationAndPrasentationUploadData">
+                            <div class="form-group col-md-12 table-responsive">
+                                <div class="col-md-1"></div>
+                                <div class="col-md-10">
+                                    <table class="table table-bordered table-hover" id="tbl_ParticipationAndPrasentationUpload">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>File</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbParticipationAndPrasentationUpload"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="btnSubmit" class="btn btn-sm btn-primary" onclick="SubmitData()" >Submit</a>
+                <a href="javascript:;" id="btnCancel" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="hdActivityId" />
+<!-- End Subject Association Modal -->
+<script>
+   // data-parsley-required="true"
+    function ValidateControles()
+    {
+        if ($('#ddlActivity').val() == "1") //Prasented
+        {
+            $('#Author1').attr('data-parsley-required', true);
+            $('#txtActivityPaperTitle').attr('data-parsley-required', true);
+
+        } else if ($('#ddlActivity').val() == "2") // Participateds
+        {
+            $('#Author1').removeAttr('data-parsley-required');
+            $('#txtActivityPaperTitle').removeAttr('data-parsley-required');
+        }
+    }
+
+    function SubmitData()
+    {
+        var isValid = true;
+        if ($('#dvActivity').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            //gritter-info,danger,success,warning,default
+            swal({ title: "Warning !", text: 'Something went wrong ! Please check your inputs !', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+
+
+        //for image update
+        var PrasentedImagePath = '';
+        var FilePath = '';
+        var fCount = 0;
+        var iCount = 0;
+        $('#ParticipationAndPrasentationUploadData').find("table tbody tr").each(function ()
+        {
+            if ($(this).attr("cms-img-path"))
+            {
+                PrasentedImagePath += $(this).attr("cms-img-path") + ",";
+                fCount = parseInt(fCount) + 1;
+            }
+            else
+            {
+                if ($(this).attr("id"))
+                {
+                    FilePath += $(this).attr("id") + ",";
+                    iCount = parseInt(iCount) + 1;
+                }
+            }
+        });
+
+        if (fCount > 0)
+        {
+            PrasentedImagePath = PrasentedImagePath.slice(0, -1);
+            PrasentedImagePath += '';
+            //clearing formdata sJsonData
+            if (formData.has('sPhoto'))
+            {
+                formData.delete("sPhoto");
+            }
+            formData.append("sPhoto", PrasentedImagePath);
+        }
+        if (iCount > 0)
+        {
+            FilePath = FilePath.slice(0, -1);
+            FilePath += '';
+        }
+
+
+        var sAuthor = 0;
+        if ($('#Author1').is(':checked'))
+        {
+            sAuthor = 1;
+        } else if ($('#Author2').is(':checked'))
+        {
+            sAuthor = 2;
+        }
+
+        var sProceeding = 0;
+        if ($('#Proceeding1').is(':checked')) {
+            sProceeding = 1;
+        } else if ($('#Proceeding2').is(':checked')) {
+            sProceeding = 2;
+        }
+
+
+
+        if (formData.has('sJsonData'))
+        {
+            formData.delete("sJsonData");
+        }
+        var sJsonData = '{"IQAC_STAFF_ACTIVITY_ID":"' + $('#hdActivityId').val() + '","ACTIVITY_ID":"' + $('#ddlActivity').val() + '","PROGRAMME_TYPE_ID":"' + $('#ddlProgrammeType').val() + '","ACTIVITY_DATE":"' + $('#txtActivityDate').val() + '","ACTIVITY_DATE_TO":"' + $('#txtActivityDateTo').val() + '","ACTIVITY_TITLE":"' + $('#txtActivityTitle').val() + '","ORGANIZER":"' + $('#txtActivityOrganizer').val() + '","PLACE":"' + $('#txtActivityPlace').val() + '","LEVEL_ID":"' + $('#ddlActivityLevel').val() + '","PAPER_TITLE":"' + $('#txtActivityPaperTitle').val() + '","PRESENTING_AUTHOR":"' + sAuthor + '","ISBN_NUMBER":"' + $('#txtActivityIsbnNumber').val() + '","PUBLISHED_IN_PROCEEDING":"' + sProceeding + '","FILE_PATH":"' + FilePath + '"}';
+        formData.append("sJsonData", sJsonData);
+        $.ajax({
+            url: '@Url.Action("SavePublicationAndPrasentation", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (data)
+            {
+                if (data.ErrorCode == "200")
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    $('#btnCancel').click();
+                    $('#liActivity').click();
+                } else
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+
+
+    function FetchActivityById(Id)
+    {
+        $.ajax({
+            url: '@Url.Action("FetchPublicationAndPrasentationById", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sActivityId: Id },
+            success: function (data)
+            {
+                if (data.Message!=null && data.Message!='')
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                } else
+                {
+                    $('#hdActivityId').val(data[0].IQAC_STAFF_ACTIVITY_ID);
+                    $('#ddlActivity').val(data[0].ACTIVITY_ID);
+                    $('#ddlProgrammeType').val(data[0].PROGRAMME_TYPE_ID);
+                    $('#txtActivityDate').val(data[0].ACTIVITY_DATE);
+                    $('#txtActivityDateTo').val(data[0].ACTIVITY_DATE_TO);
+                    $('#txtActivityTitle').val(data[0].ACTIVITY_TITLE);
+                    $('#txtActivityOrganizer').val(data[0].ORGANIZER);
+                    $('#txtActivityPlace').val(data[0].PLACE);
+                    $('#ddlActivityLevel').val(data[0].LEVEL_ID);
+                    $('#txtActivityPaperTitle').val(data[0].PAPER_TITLE);
+                    $('#txtActivityIsbnNumber').val(data[0].ISBN_NUMBER);
+                    BindFileInfo(data[0].FILE_PATH, 'tbParticipationAndPrasentationUpload', 'ParticipationAndPrasentationUploadData');
+
+                    if (data[0].PUBLISHED_IN_PROCEEDING == "1") {
+                        $('#Proceeding1').click();
+                    } else if (data[0].PUBLISHED_IN_PROCEEDING == "2") {
+                        $('#Proceeding2').click();
+                    }
+                    $('.selectpicker').selectpicker('refresh');
+
+
+                    if (data[0].PRESENTING_AUTHOR == "1")
+                    {
+                        $('#Author1').click();
+                    } else if (data[0].PRESENTING_AUTHOR == "2")
+                    {
+                        $('#Author2').click();
+                    }
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+    function GetConfrim(Id)
+    {
+        if(!confirm('Are you sure to delete ?'))
+        {
+            return false;
+        }
+
+        $.ajax({
+            url:'@Url.Action("DeletePublicationAndPrasentation", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sActivityId: Id },
+            success: function (data)
+            {
+                if (data.ErrorCode == "200")
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    $('#liActivity').click();
+                } else
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+
+    $(function () {
+        $('#Activity-dialog').on('hidden.bs.modal', function (e)
+        {
+            if (formData.has('sJsonData')) 
+            {
+                formData.delete("sJsonData");
+            }
+            var entries = formData.entries();
+            for(var pair of entries)
+            {
+                formData.delete(pair[0]);
+            }
+            nFileCount = 0; nCount = 0;
+            $('#hdActivityId').val('');
+            $('#ddlActivity').val('');
+            $('#ddlProgrammeType').val('');
+            $('#txtActivityDate').val('');
+            $('#txtActivityDateTo').val('');
+            $('#txtActivityTitle').val('');
+            $('#txtActivityOrganizer').val('');
+            $('#txtActivityPlace').val('');
+            $('#ddlActivityLevel').val('');
+            $('#txtActivityPaperTitle').val('');
+            $('#txtActivityIsbnNumber').val('');
+
+            if ($('#Proceeding1').is(':checked'))
+                $('#Proceeding1').attr('checked', false);
+            else if ($('#Proceeding2').is(':checked'))
+                $('#Proceeding2').attr('checked', false);
+
+            if ($('#Author1').is(':checked'))
+                $('#Author1').attr('checked', false);
+            else if ($('#Author2').is(':checked'))
+                $('#Author2').attr('checked', false);
+
+            $('#tbParticipationAndPrasentationUpload').empty();
+            $('.selectpicker').selectpicker('refresh');
+        });
+    });
+</script>

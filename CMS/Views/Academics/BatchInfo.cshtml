@@ -1,0 +1,122 @@
+﻿@model CMS.ViewModel.Model.BatchModel
+
+@{
+    ViewBag.Title = "BatchInfo";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/multi-select/multiselect.css" rel="stylesheet" />
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="content" id="content">
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li><a @*href="@Url.Action("ListBatchInfo","Academics")"*@ href="javascript:;" onclick="loadContent('/Academics/ListBatchInfo')">List Batch</a></li>
+            <li class="active">Add Batch</li>
+        </ol>
+        <h2 class="page-header">Batch Details</h2>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Add Batch</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div class="col-md-6 col-md-offset-3">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.ACADEMIC_YEAR_ID, htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.ACADEMIC_YEAR_ID, Model.ACADEMIC_YEAR_ID, "-- Select --", new { @class = "drop-down form-control input-sm" })
+                                @Html.ValidationMessageFor(model => model.ACADEMIC_YEAR_ID, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.BATCH_ID, htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @*<select class="multiselect form-control input-sm" multiple="multiple" id="BATCH_ID">
+                                    @if (Model.BatchList!=null && Model.BatchList.Count>0)
+                                    {
+                                        foreach (var item in Model.BatchList)
+                                        {
+                                            <option value="@item.BATCH_ID" cms-BatchYear="@item.BATCH_YEAR"> @item.BATCH</option>
+                                        }
+                                    }
+                                </select>*@
+                                @Html.DropDownListFor(model => model.BATCH_ID, Model.BATCH_ID, new { @class = "multiselect form-control input-sm",multiple="multiple" })
+                                @Html.ValidationMessageFor(model => model.BATCH_ID, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group pull-right">
+                            <div class="col-md-12 pull-right">
+                                <a id="btnSubmit" value="Submit" class="btn btn-primary">Submit</a>
+                                <a id="btnCancel" value="Submit" class="btn btn-danger" href="javascript:;" onclick="loadContent('/Academics/ListBatchInfo')" @*href="@Url.Action("ListBatchInfo","Academics")"*@>Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script src="~/Content/assets/plugins/multi-select/multiselect-js.js"></script>
+    <script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+            $('.multiselect').multiselect({
+                includeSelectAllOption: true,
+                enableFiltering: true,
+                enableCaseInsensitiveFiltering: true,
+                maxHeight: 200,
+                numberDisplayed: 1,
+                templates: {
+                    button: '<button type="button" class="multiselect dropdown-toggle form-control input-sm col-md-9 " data-toggle="dropdown"><span class="multiselect-selected-text"></span> <b class="caret"></b></button>',
+                    ul: '<ul class="multiselect-container dropdown-menu" style="max-width:350px;"></ul>'
+                }
+            });
+        }
+        //$(document).ready(function () {
+            
+        //});
+    </script>
+    <script>
+        $("#btnSubmit").on("click", function () {
+            var AcademicYearId = $("#ACADEMIC_YEAR_ID").val();
+            var BatchId = String($("#BATCH_ID").val());
+            
+            var JsonData;
+            if (JsonData == null) {
+                JsonData = '{"BatchList":[';
+                var sArray = BatchId.split(',');
+                for (var i = 0; i < sArray.length; i++) {
+                    JsonData += '{"ACADEMIC_YEAR_ID":"' + AcademicYearId + '","BATCH_ID":"' + sArray[i] + '"},';
+                }
+                JsonData = JsonData.slice(0, -1);
+                JsonData += ']}';
+            }
+            $.ajax({
+                url: "@Url.Action("InsertBatchInfo", "Academics")",
+                method: "POST",
+                datatype: "html",
+                data: { sJsonBatch: JsonData },
+                success: function (data) {
+                    alert(data);
+                }, error: function (error) {
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+    </script>
+

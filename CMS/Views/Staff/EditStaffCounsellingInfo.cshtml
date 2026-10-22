@@ -1,0 +1,293 @@
+﻿@model IEnumerable<CMS.ViewModel.Model.StaffCounseling>
+
+<div id="dvCounseling">
+    <div class="row">
+        <div class="form-group pull-right">
+            <div class="col-md-12 pull-right">
+                <a href="#Counselling-dialog" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="table-responsive">
+            @{int count = 0; }
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Counselling Date</th>
+                        <th>Duration</th>
+                        <th>Reason</th>
+                        <th>Given</th>
+                        <th class="col-md-3">Action Taken</th>
+                        @*<th>
+                                @Html.DisplayNameFor(model => model.REMARK)
+                            </th>*@
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null)
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @{count++;} @count
+                                </td>
+                                <td>@Html.DisplayFor(modelItem => item.DateOfCounsel)</td>
+                                <td>@Html.DisplayFor(modelItem => item.DURATION)</td>
+                                <td>@Html.DisplayFor(modelItem => item.REASON)</td>
+                                <td>@Html.DisplayFor(modelItem => item.GIVEN)</td>
+                                <td>@Html.DisplayFor(modelItem => item.ACTIONTAKEN)</td>
+                                @*<td>
+                                        @Html.DisplayFor(modelItem => item.REMARK)
+                                    </td>*@
+                                <td>
+                                    <a href="#Counselling-dialog" onclick="GetCounselling(@item.CounsellingID)" data-toggle="modal"><i class="fa fa-edit text-primary"></i></a>
+                                    <a href="javascript:;" onclick="GetConfirm(@item.CounsellingID)"><i class="fa fa-trash text-danger"></i></a>
+                                </td>
+                            </tr>
+                       }
+                   }
+                   else
+                   {
+                       <tr>
+                           <td>No Data Found ....!</td>
+                       </tr>
+                   }
+
+                </tbody>
+            </table>
+
+            <script>
+                $(document).ready(function () {
+                    $("#btnEditCounselling").hide();
+                    ////FormMultipleUpload.init();
+                    handleDatePicker = function () {
+                        "use strict";
+                        $("#DateOfcounsel").datepicker({
+                            todayHighlight: true,
+                            autoclose: true,
+                            endDate: new Date(),
+                            format: "dd/mm/yyyy",
+                            orientation: "right bottom"
+                            // 'top': top,
+                            // 'left': left
+                        });
+                    }
+                    handleDatePicker();
+                    GetCounsellingInfo = function () {
+                        $.ajax({
+                            url: "@Url.Action("EditStaffCounsellingInfo", "Staff")",
+                            method: "POST",
+                            datatype: "html",
+                            success: function (data) {
+                                $('#dvCounseling').empty();
+                                $('#dvCounseling').append(data);
+                            }, error: function (error) {
+                                alert('Internal Server Error ! ');
+                            }
+                        });
+                    }
+                    //GetCounselling();
+                });
+
+
+                // Delete Counselling ...
+                function GetConfirm(ID)
+                {
+                    if (!confirm('Are you sure to delete ?'))
+                    {
+                        return false;
+                    } else
+                    {
+                        $.ajax({
+                            url:"@Url.Action("DeleteCounselling", "Staff")",
+                            method: "POST",
+                            datatype:"json",
+                            data: { sCounsellingId: ID },
+                            success:function(data)
+                            {
+                                alert(data);
+                                GetCounsellingInfo();
+                            },error:function(error)
+                            {
+                                alert('Internal Server Error ! ');
+                            }
+                        });
+                    }
+                }
+
+
+                var GetCounselling = function (ID)
+                {
+                    $.ajax({
+                        url: "@Url.Action("BindCounselling", "Staff")",
+                        method: "POST",
+                        datatype: "json",
+                        data: { sCounsellingID: ID },
+                        success: function (data) {
+                            $("#DateOfcounsel").val(data.DateOfCounsel);
+                            $("#txtDuration").val(data.DURATION);
+                            $("#txtReason").val(data.REASON);
+                            $("#txtGiven").val(data.GIVEN);
+                            $("#txtActionTaken").val(data.ACTIONTAKEN);
+                            $("#txtRemark").val(data.REMARK);
+                            $("#btnEditCounselling").show();
+                            $("#btnCounselling").hide();
+                        }, error: function (error) {
+                            alert('Server error try again ...!');
+                        }
+                    });
+                }
+
+
+                // Update Counselling ....
+                $("#btnEditCounselling").on("click", function ()
+                {
+                    var isValid = true;
+                    if ($('#nav-tab2-8').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        //gritter-info,danger,success,warning,default
+                        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    var DateCounsel = $("#DateOfcounsel").val();
+                    var Duration = $("#txtDuration").val();
+                    var Reason = $("#txtReason").val();
+                    var Given = $("#txtGiven").val();
+                    var ActionTaken = $("#txtActionTaken").val();
+                    var Remark = $("#txtRemark").val();
+                    var JsonData;
+                    if (JsonData == null) {
+                        JsonData = '{"DateOfCounsel":"' + DateCounsel + '","DURATION":"' + Duration + '","REASON":"' + Reason + '","GIVEN":"' + Given + '","ACTIONTAKEN":"' + ActionTaken + '","REMARK":"' + Remark + '"}'
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("UpdateCounseling", "Staff")",
+                        mathod: "POST",
+                        datatype: "html",
+                        data: { JsonCounselling: JsonData },
+                        success: function (data) {
+                            alert(data);
+                            GetCounsellingInfo();
+                        }, error: function (error) {
+                            alert('Session time out try again ..!');
+                        }
+                    });
+                });
+
+                // Add Counselling ....
+                $("#btnCounselling").on("click", function ()
+                {
+                    var isValid = true;
+                    if ($('#nav-tab2-8').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        //gritter-info,danger,success,warning,default
+                        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    var DateCounsel = $("#DateOfcounsel").val();
+                    var Duration = $("#txtDuration").val();
+                    var Reason = $("#txtReason").val();
+                    var Given = $("#txtGiven").val();
+                    var ActionTaken = $("#txtActionTaken").val();
+                    var Remark = $("#txtRemark").val();
+                    var JsonData;
+                    if (JsonData == null) {
+                        JsonData = '{"DateOfCounsel":"' + DateCounsel + '","DURATION":"' + Duration + '","REASON":"' + Reason + '","GIVEN":"' + Given + '","ACTIONTAKEN":"' + ActionTaken + '","REMARK":"' + Remark + '"}'
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("Counseling", "Staff")",
+                        mathod: "POST",
+                        datatype: "html",
+                        data: { JsonCounselling: JsonData },
+                        success: function (data) {
+                            alert(data);
+                            GetCounsellingInfo();
+                        }, error: function (error) {
+                            alert('Session time out try again ..!');
+                        }
+                    });
+                });
+            </script>
+        </div>
+    </div>
+
+    <!-- Modal-->
+    <div class="modal" id="Counselling-dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Counselling Information</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <div class="form-horizontal">
+                                <div class="col-md-12">
+                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Date Of Counselling</label>
+                                        <div class="col-md-9">
+                                            <div class="input-group date" id="datetimepicker1">
+                                                <input type="text" class="form-control input-sm" id="DateOfcounsel" placeholder="Select Date" data-parsley-required="true" />
+                                                <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Duration</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtDuration" placeholder="Enter Duration" data-parsley-required="true" data-parsley-length="[5,50]" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Reason</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtReason" placeholder="Enter Reason" data-parsley-required="true" data-parsley-length="[5,45]" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Given</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtGiven" placeholder="Enter Given" data-parsley-required="true" data-parsley-length="[5,35]" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Action Taken</label>
+                                        <div class="col-md-9">
+                                            <textarea id="txtActionTaken" class="form-control" placeholder="Enter Action Taken" rows="3" data-parsley-required="true" data-parsley-length="[5,250]"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Remark</label>
+                                        <div class="col-md-9">
+                                            <textarea id="txtRemark" class="form-control" placeholder="Enter Remarks" rows="3" data-parsley-length="[5,250]"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="btnCounselling" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                    <a id="btnEditCounselling" class="btn btn-sm btn-primary" data-dismiss="modal">Update</a>
+                    <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Modal-->
+</div>

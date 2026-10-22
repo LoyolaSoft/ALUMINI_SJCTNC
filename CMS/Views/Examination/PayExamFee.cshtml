@@ -1,0 +1,1003 @@
+@model CMS.ViewModel.Model.ExamFeePaymentViewModel
+@{
+    ViewBag.Title = "Pay Exam Fee";
+    Layout = null; // Loaded dynamically via SPA container
+    var college = Model.CollegeInfo;
+    var dues = Model.StudentDues;
+}
+
+<!-- Google Fonts and FontAwesome -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<style>
+    .student-receipts-container {
+        padding: 20px 0;
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Profile Banner (Styled identically to PayStudentDues) */
+    .profile-banner {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        border-radius: 16px;
+        padding: 28px 30px;
+        color: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+        border: none;
+    }
+
+        .profile-banner::after {
+            content: '';
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            bottom: -90px;
+            right: -40px;
+            pointer-events: none;
+        }
+
+    .profile-details h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+        letter-spacing: -0.4px;
+        color: #ffffff;
+    }
+
+    .profile-details p {
+        font-size: 13.5px;
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .profile-meta-item {
+        display: inline-block;
+        margin-right: 12px;
+        margin-top: 8px;
+        font-size: 12.5px;
+        background: rgba(255, 255, 255, 0.12);
+        padding: 5px 12px;
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+        .profile-meta-item i {
+            margin-right: 5px;
+            color: #00c6ff;
+        }
+
+    /* Permission Active Banner */
+    .permission-active-banner {
+        background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+        color: #ffffff;
+        border-radius: 14px;
+        padding: 18px 22px;
+        margin-bottom: 22px;
+        box-shadow: 0 6px 20px rgba(4, 120, 87, 0.18);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .permission-icon {
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+
+    /* Dues Blocked Card */
+    .dues-blocked-card {
+        background: #fff;
+        border-radius: 14px;
+        border: 2px solid #ef4444;
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.08);
+        padding: 22px;
+        margin-bottom: 22px;
+    }
+
+    .dues-blocked-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+
+    .dues-blocked-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: #fee2e2;
+        color: #dc2626;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .dues-blocked-title {
+        font-size: 19px;
+        font-weight: 700;
+        color: #991b1b;
+        margin: 0 0 3px 0;
+    }
+
+    .dues-blocked-desc {
+        color: #4b5563;
+        font-size: 13.5px;
+        margin: 0;
+    }
+
+    /* Custom Tables */
+    .custom-receipts-table {
+        width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0 8px !important;
+        margin-top: 5px;
+    }
+
+        .custom-receipts-table th {
+            background: #f8fafc !important;
+            color: #475569 !important;
+            font-weight: 600 !important;
+            text-transform: uppercase !important;
+            font-size: 12px !important;
+            letter-spacing: 0.5px !important;
+            padding: 14px 16px !important;
+            border: none !important;
+        }
+
+        .custom-receipts-table td {
+            padding: 13px 16px !important;
+            font-size: 13.5px !important;
+            color: #334155 !important;
+            vertical-align: middle !important;
+            background: #ffffff !important;
+            border-top: 1px solid #f1f5f9 !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+        }
+
+            .custom-receipts-table td:first-child {
+                border-top-left-radius: 10px;
+                border-bottom-left-radius: 10px;
+                border-left: 1px solid #f1f5f9 !important;
+            }
+
+            .custom-receipts-table td:last-child {
+                border-top-right-radius: 10px;
+                border-bottom-right-radius: 10px;
+                border-right: 1px solid #f1f5f9 !important;
+            }
+
+        .custom-receipts-table tbody tr:hover td {
+            background: #f8fafc !important;
+        }
+
+    .freq-header-row td {
+        background: #f8fafc !important;
+        font-weight: 700 !important;
+        border-top: 2px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    .freq-child-row td {
+        background: #ffffff !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+        font-size: 13.5px !important;
+        border-top: 1px dashed #f1f5f9 !important;
+        border-bottom: none !important;
+    }
+
+    .freq-child-row:hover td {
+        background: #fafafa !important;
+    }
+
+    /* Badges */
+    .badge-unpaid {
+        background: rgba(239, 68, 68, 0.1) !important;
+        color: #ef4444 !important;
+        padding: 5px 12px !important;
+        border-radius: 30px !important;
+        font-size: 11.5px !important;
+        font-weight: 600 !important;
+        display: inline-block !important;
+        border: 1px solid rgba(239, 68, 68, 0.2) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .badge-paid {
+        background: rgba(16, 185, 129, 0.1) !important;
+        color: #10b981 !important;
+        padding: 5px 12px !important;
+        border-radius: 30px !important;
+        font-size: 11.5px !important;
+        font-weight: 600 !important;
+        display: inline-block !important;
+        border: 1px solid rgba(16, 185, 129, 0.2) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    /* Buttons */
+    .btn-pay-now {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 9px 18px !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 13px !important;
+        transition: all 0.25s ease !important;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28) !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+        cursor: pointer;
+    }
+
+        .btn-pay-now i {
+            margin-right: 6px;
+        }
+
+        .btn-pay-now:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4) !important;
+            color: #ffffff !important;
+        }
+
+        .btn-pay-now.disabled, .btn-pay-now:disabled {
+            background: #cbd5e1 !important;
+            box-shadow: none !important;
+            cursor: not-allowed !important;
+            pointer-events: none;
+        }
+
+    .btn-view-receipt {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 12.5px !important;
+        transition: all 0.25s ease !important;
+        box-shadow: 0 3px 12px rgba(59, 130, 246, 0.28) !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+        cursor: pointer;
+    }
+
+        .btn-view-receipt i {
+            margin-right: 5px;
+        }
+
+        .btn-view-receipt:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 5px 16px rgba(59, 130, 246, 0.4) !important;
+            color: #ffffff !important;
+        }
+
+    /* Mobile Cards (Identical style to PayStudentDues mobile layout) */
+    .mobile-fee-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        border-left: 4px solid #ef4444;
+        transition: all 0.2s ease;
+    }
+
+        .mobile-fee-card.paid {
+            border-left: 4px solid #10b981;
+        }
+
+    .mobile-due-item {
+        background: #ffffff;
+        border: 1px solid #fee2e2;
+        border-left: 3.5px solid #ef4444;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-bottom: 10px;
+    }
+
+    /* Responsive utilities */
+    @@media (max-width: 767px) {
+        .hidden-xs-custom {
+            display: none !important;
+        }
+
+        .visible-xs-custom {
+            display: block !important;
+        }
+
+        .profile-banner {
+            padding: 20px 18px !important;
+        }
+
+            .profile-banner h2 {
+                font-size: 20px !important;
+            }
+
+        .profile-meta-item {
+            font-size: 11.5px !important;
+            padding: 4px 10px !important;
+            margin-right: 6px !important;
+            margin-top: 6px !important;
+        }
+
+        .total-pending-highlight-banner {
+            padding: 16px 18px !important;
+        }
+
+            .total-pending-highlight-banner .amount-text {
+                font-size: 26px !important;
+            }
+    }
+
+    @@media (min-width: 768px) {
+        .hidden-xs-custom {
+            display: block !important;
+        }
+
+        .visible-xs-custom {
+            display: none !important;
+        }
+    }
+</style>
+
+<div id="content" class="content student-receipts-container">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">Pay Exam Fee</li>
+    </ol>
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <h4 class="panel-title">Examination Fee Payment</h4>
+        </div>
+        <div class="panel-body">
+
+            <!-- Profile Banner -->
+            <div class="profile-banner">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div class="profile-details" style="flex: 1; min-width: 200px;">
+                        <h2>@Model.StudentName</h2>
+                        <p>Class: <strong>@(string.IsNullOrEmpty(Model.ClassName) ? "N/A" : Model.ClassName)</strong></p>
+                        <div style="margin-top: 6px;">
+                            <span class="profile-meta-item">
+                                <i class="fa fa-id-card-o"></i> Roll No: <strong>@Model.RollNo</strong>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error message from TempData -->
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger" style="border-radius: 10px; font-weight: 500;">
+                    <i class="fa fa-exclamation-triangle m-r-5"></i> @TempData["ErrorMessage"]
+                </div>
+            }
+
+            <!-- 1. EXISTING RESTRICTION AND PAYMENT PERMISSION LOGIC -->
+            @if (Model.HasOutstandingDues)
+            {
+                if (Model.HasActivePermission)
+                {
+                    <!-- Permission Bypass Banner -->
+                    <div class="permission-active-banner">
+                        <div class="permission-icon">
+                            <i class="fa fa-shield"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0 0 4px 0; font-weight: 700; font-size: 16px; color: #ffffff;">Special Exam Fee Permission Granted</h4>
+                            <p style="margin: 0; font-size: 13px; opacity: 0.95;">
+                                An official exception has been approved for you to pay your exam fees despite pending general fee dues of
+                                <strong>&#8377; @Model.StudentDues.TotalOutstandingDue.ToString("N2")</strong>.
+                                @if (Model.ActivePermission != null && !string.IsNullOrEmpty(Model.ActivePermission.remarks))
+                                {
+                                    <span>(Remarks: <em>@Model.ActivePermission.remarks</em>)</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Payment Blocked Due to Dues Card -->
+                    <div class="dues-blocked-card">
+                        <div class="dues-blocked-header">
+                            <div class="dues-blocked-icon">
+                                <i class="fa fa-ban"></i>
+                            </div>
+                            <div>
+                                <h3 class="dues-blocked-title">Exam Fee Payment Restricted</h3>
+                                <p class="dues-blocked-desc">
+                                    You have <strong>&#8377; @Model.StudentDues.TotalOutstandingDue.ToString("N2")</strong> in outstanding dues. College regulations require all pending dues to be cleared before paying examination fees.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div style="font-weight: 700; color: #334155; margin-top: 15px; margin-bottom: 10px; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="fa fa-list-ul text-danger m-r-5"></i> Itemized Outstanding Dues Breakdown:
+                        </div>
+
+                        <!-- Desktop Table of Dues -->
+                        <div class="table-responsive hidden-xs-custom">
+                            <table class="table custom-receipts-table">
+                                <thead>
+                                    <tr>
+                                        <th width="45px" class="text-center">#</th>
+                                        <th width="150px">Fee Category</th>
+                                        <th>Fee Particulars</th>
+                                        <th width="130px" class="text-right">Total Allocated</th>
+                                        <th width="120px" class="text-right">Paid Amount</th>
+                                        <th width="150px" class="text-right">Outstanding Due</th>
+                                        <th width="90px" class="text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ int dIdx = 0; }
+                                    @foreach (var dItem in Model.StudentDues.DueItems)
+                                    {
+                                        dIdx++;
+                                        <tr>
+                                            <td class="text-center" style="font-weight: bold; color: #64748b;">@dIdx</td>
+                                            <td><span class="badge-unpaid" style="font-size: 10.5px !important;">@dItem.FeeCategory</span></td>
+                                            <td><strong>@dItem.Particulars</strong></td>
+                                            <td class="text-right">&#8377; @dItem.AllocatedAmount.ToString("N2")</td>
+                                            <td class="text-right text-success">&#8377; @dItem.PaidAmount.ToString("N2")</td>
+                                            <td class="text-right"><strong style="color: #dc2626; font-size: 14px;">&#8377; @dItem.OutstandingAmount.ToString("N2")</strong></td>
+                                            <td class="text-center"><span class="badge-unpaid">Pending</span></td>
+                                        </tr>
+                                    }
+                                    <tr style="background: #fef2f2 !important; font-weight: 700;">
+                                        <td colspan="5" class="text-right" style="color: #991b1b; font-size: 14px;">Total Outstanding Dues:</td>
+                                        <td class="text-right" style="font-size: 16px; color: #dc2626;">&#8377; @Model.StudentDues.TotalOutstandingDue.ToString("N2")</td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Mobile Cards of Dues -->
+                        <div class="visible-xs-custom">
+                            @foreach (var dItem in Model.StudentDues.DueItems)
+                            {
+                                <div class="mobile-due-item">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div>
+                                            <span style="font-size: 11px; font-weight: 700; color: #dc2626; text-transform: uppercase;">@dItem.FeeCategory</span>
+                                            <div style="font-weight: 700; color: #1e293b; font-size: 14px; margin-top: 2px;">@dItem.Particulars</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-size: 15px; font-weight: 800; color: #dc2626;">&#8377; @dItem.OutstandingAmount.ToString("N2")</div>
+                                            <span class="badge-unpaid" style="font-size: 10px !important; padding: 2px 7px !important;">Pending</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                                <span style="font-weight: 700; color: #991b1b; font-size: 13.5px;">Total Outstanding:</span>
+                                <span style="font-weight: 800; color: #dc2626; font-size: 16px;">&#8377; @Model.StudentDues.TotalOutstandingDue.ToString("N2")</span>
+                            </div>
+                        </div>
+
+                        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 12px 16px; margin-top: 14px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fa fa-info-circle text-warning" style="font-size: 18px;"></i>
+                            <span style="color: #92400e; font-size: 13px; font-weight: 500;">
+                                Please clear all outstanding fees before proceeding with <strong>Exam Fee Payment</strong>.
+                            </span>
+                        </div>
+                    </div>
+                }
+            }
+
+
+            <!-- 2. TOTAL EXAM FEE AMOUNT BANNER (Same highlight style as PayStudentDues) -->
+            <div class="total-pending-highlight-banner" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 14px; padding: 20px 24px; margin-bottom: 20px; color: #ffffff; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <div>
+                    <div style="font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 4px;">Total Exam Fee Amount</div>
+                    <div class="amount-text" style="font-size: 32px; font-weight: 800; color: #10b981; line-height: 1.1;">&#8377; @Model.TotalExamFee.ToString("N2")</div>
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.12); padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                    <i class="fa fa-credit-card" style="font-size: 22px; color: #10b981;"></i>
+                </div>
+            </div>
+
+            <div class="alert-info alert" style="border-radius: 8px; font-weight: 500; font-size: 13.5px;">
+                <span class="label label-inverse m-r-5" style="background: #1e293b;">NOTE!</span>
+                Please do not press the back button or refresh while processing your payment.
+            </div>
+
+            <!-- 3. EXAM FEE HEADS & PAYMENT DETAILS (Taking Head & Amount from FEE_STUDENT_ACCOUNT) -->
+            @if (!Model.CanProceedToPay)
+            {
+                <div class="text-center" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 40px 20px; margin-bottom: 25px;">
+                    <div style="font-size: 50px; color: #cbd5e1; margin-bottom: 12px;">
+                        <i class="fa fa-lock"></i>
+                    </div>
+                    <h4 style="color: #64748b; font-weight: 700; margin-bottom: 8px;">Exam Fee Payment Locked</h4>
+                    <p class="text-muted" style="max-width: 480px; margin: 0 auto 20px auto; font-size: 13.5px;">
+                        Payment is restricted due to outstanding fee balances shown above. Once pending fees are cleared or administrative permission is granted, payment will become available.
+                    </p>
+                    <button type="button" class="btn btn-pay-now disabled" disabled>
+                        <i class="fa fa-lock"></i> Payment Locked
+                    </button>
+                </div>
+            }
+            else if (Model.ExamFeeAccounts != null && Model.ExamFeeAccounts.Count > 0)
+            {
+                var freqGroups = Model.ExamFeeAccounts.GroupBy(x => new
+                {
+                    FREQUENCY_ID = !string.IsNullOrEmpty(x.FREQUENCY_ID) ? x.FREQUENCY_ID : "1",
+                    FREQUENCY_NAME = !string.IsNullOrEmpty(x.FREQUENCY_NAME) ? x.FREQUENCY_NAME : (!string.IsNullOrEmpty(x.FREQUENCY_TYPE) ? x.FREQUENCY_TYPE : (!string.IsNullOrEmpty(Model.ExamSettingName) ? Model.ExamSettingName : "Semester Examination Fee")),
+                    ACADEMIC_YEAR = x.ACADEMIC_YEAR,
+                    FEE_ROOT_ID = !string.IsNullOrEmpty(x.FEE_ROOT_ID) ? x.FEE_ROOT_ID : CMS.Utility.Common.FeeRoot.CollegeFee,
+                    FREQUENCY_TYPE_ID = !string.IsNullOrEmpty(x.FREQUENCY_TYPE_ID) ? x.FREQUENCY_TYPE_ID : CMS.Utility.Common.FrequencyType.ExamFee
+                }).ToList();
+
+                var allUnpaidAccounts = Model.ExamFeeAccounts.Where(x => { double b = 0; double.TryParse(x.BALANCE, out b); return b > 0; }).ToList();
+                var grandTotalUnpaid = allUnpaidAccounts.Sum(x => { double b = 0; double.TryParse(x.BALANCE, out b); return b; });
+
+                <!-- DESKTOP VIEW (Grouped Table View: One Frequency One Pay Button) -->
+                <div class="table-responsive hidden-xs-custom">
+                    <table class="table custom-receipts-table">
+                        <thead>
+                            <tr>
+                                <th>Exam Fee Category / Particular</th>
+                                <th width="180px" class="text-right">Amount Due</th>
+                                <th width="140px" class="text-center">Status</th>
+                                <th width="190px" class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var freqGroup in freqGroups)
+                            {
+                                var freqId = freqGroup.Key.FREQUENCY_ID;
+                                var freqTitle = freqGroup.Key.FREQUENCY_NAME;
+                                var acYear = freqGroup.Key.ACADEMIC_YEAR;
+                                var feeRootId = freqGroup.Key.FEE_ROOT_ID;
+                                var freqTypeId = freqGroup.Key.FREQUENCY_TYPE_ID;
+
+                                var unpaidHeads = freqGroup.Where(x => { double b = 0; double.TryParse(x.BALANCE, out b); return b > 0; }).ToList();
+                                var totalFreqBalance = unpaidHeads.Sum(x => { double b = 0; double.TryParse(x.BALANCE, out b); return b; });
+                                var totalFreqPaid = freqGroup.Sum(x => { double d = 0; double.TryParse(x.DEBIT, out d); return d; });
+                                bool isFreqPaid = (totalFreqBalance <= 0);
+
+                                var headIds = string.Join(",", unpaidHeads.Select(x => x.HEAD_ID));
+                                if (string.IsNullOrEmpty(headIds))
+                                {
+                                    headIds = string.Join(",", freqGroup.Select(x => x.HEAD_ID));
+                                }
+                                var paidItem = freqGroup.FirstOrDefault(x => !string.IsNullOrEmpty(x.TRANSACTION_ID));
+                                var txnId = paidItem != null ? paidItem.TRANSACTION_ID : "";
+
+                                <!-- Frequency Master Row -->
+                                <tr class="freq-header-row">
+                                    <td>
+                                        <div style="font-size: 15px; color: #1e293b; font-weight: 700;">
+                                            <i class="fa fa-folder-open text-primary m-r-5"></i> @freqTitle
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(acYear))
+                                        {
+                                            <span style="font-size: 12px; color: #64748b; margin-left: 20px; font-weight: 500;">Academic Year: @acYear</span>
+                                        }
+                                    </td>
+                                    <td class="text-right">
+                                        <strong style="color: @(isFreqPaid ? "#10b981" : "#0f172a"); font-size: 16px;">
+                                            &#8377; @((isFreqPaid ? totalFreqPaid : totalFreqBalance).ToString("N2"))
+                                        </strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="@(isFreqPaid ? "badge-paid" : "badge-unpaid")">@(isFreqPaid ? "Paid" : "Pending")</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (isFreqPaid)
+                                        {
+                                            <button type="button" class="btn btn-view-receipt" data-txn-id="@txnId" style="width: 100%;">
+                                                <i class="fa fa-file-text-o"></i> View E-Receipt
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <!-- Single Pay Button for Frequency (Exam Fee + Late Fee together) -->
+                                            <form method="get" action="@Url.Action("PaymentModeForAdmin", "PaymentGateway")" style="margin: 0;">
+                                                <input type="hidden" name="sFrequencyTypeId" value="@freqTypeId" />
+                                                <input type="hidden" name="sFrequencyId" value="@freqId" />
+                                                <input type="hidden" name="sFeeRootId" value="@feeRootId" />
+                                                <input type="hidden" name="sStudentId" value="@Model.StudentId" />
+                                                <input type="hidden" name="sAmount" value="@totalFreqBalance.ToString("F2")" />
+                                                <input type="hidden" name="sAcademicyear" value="@acYear" />
+                                                <input type="hidden" name="sHead" value="@headIds" />
+                                                <input type="hidden" name="sSelectionID" value="@headIds" />
+                                                <button type="submit" class="btn btn-pay-now" style="width: 100%;">
+                                                    <i class="fa fa-credit-card"></i> Pay Now (&#8377; @totalFreqBalance.ToString("N2"))
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+
+                                <!-- Head-wise Child Rows (Detailed breakdown: Examination Fees, Late Fee, etc.) -->
+                                foreach (var headItem in freqGroup)
+                                {
+                                    double balVal = 0;
+                                    double.TryParse(headItem.BALANCE, out balVal);
+                                    bool isHeadPaid = (balVal <= 0);
+                                    double debitVal = 0;
+                                    double.TryParse(headItem.DEBIT, out debitVal);
+                                    var headLabel = !string.IsNullOrEmpty(headItem.HEAD_NAME) ? headItem.HEAD_NAME : headItem.HEAD;
+
+                                    <tr class="freq-child-row">
+                                        <td style="padding-left: 35px !important;">
+                                            <i class="fa fa-caret-right text-muted m-r-5"></i>
+                                            <span style="font-weight: 500; color: #334155; font-size: 13.5px;">@headLabel</span>
+                                        </td>
+                                        <td class="text-right">
+                                            <span style="font-weight: 600; color: @(isHeadPaid ? "#10b981" : "#475569"); font-size: 14px;">
+                                                &#8377; @((isHeadPaid ? debitVal : balVal).ToString("N2"))
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="@(isHeadPaid ? "badge-paid" : "badge-unpaid")" style="font-size: 10.5px !important; padding: 2px 8px !important;">
+                                                @(isHeadPaid ? "Paid" : "Pending")
+                                            </span>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                }
+                            }
+
+                            @if (freqGroups.Count > 1 && grandTotalUnpaid > 0)
+                            {
+                                <tr style="background: #f8fafc !important; font-weight: 700; border-top: 2px solid #cbd5e1;">
+                                    <td>
+                                        <strong style="color: #1e293b; font-size: 15px;">Total Outstanding Exam Fee</strong>
+                                    </td>
+                                    <td class="text-right">
+                                        <strong style="color: #dc2626; font-size: 17px;">&#8377; @grandTotalUnpaid.ToString("N2")</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge-unpaid">Pending</span>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MOBILE VIEW (Card Layout: One Frequency One Pay Button) -->
+                <div class="visible-xs-custom">
+                    @{
+                        foreach (var freqGroup in freqGroups)
+                        {
+                            var freqId = freqGroup.Key.FREQUENCY_ID;
+                            var freqTitle = freqGroup.Key.FREQUENCY_NAME;
+                            var acYear = freqGroup.Key.ACADEMIC_YEAR;
+                            var feeRootId = freqGroup.Key.FEE_ROOT_ID;
+                            var freqTypeId = freqGroup.Key.FREQUENCY_TYPE_ID;
+
+                            var unpaidHeads = freqGroup.Where(x => { double b = 0; double.TryParse(x.BALANCE, out b); return b > 0; }).ToList();
+                            var totalFreqBalance = unpaidHeads.Sum(x => { double b = 0; double.TryParse(x.BALANCE, out b); return b; });
+                            var totalFreqPaid = freqGroup.Sum(x => { double d = 0; double.TryParse(x.DEBIT, out d); return d; });
+                            bool isFreqPaid = (totalFreqBalance <= 0);
+
+                            var headIds = string.Join(",", unpaidHeads.Select(x => x.HEAD_ID));
+                            if (string.IsNullOrEmpty(headIds))
+                            {
+                                headIds = string.Join(",", freqGroup.Select(x => x.HEAD_ID));
+                            }
+                            var paidItem = freqGroup.FirstOrDefault(x => !string.IsNullOrEmpty(x.TRANSACTION_ID));
+                            var txnId = paidItem != null ? paidItem.TRANSACTION_ID : "";
+
+                            <div class="mobile-fee-card @(isFreqPaid ? "paid" : "unpaid")" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                                <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center;">
+                                        @if (isFreqPaid)
+                                        {
+                                            <i class="fa fa-check-circle text-success" style="font-size: 20px; margin-right: 12px;"></i>
+                                        }
+                                        <div>
+                                            <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;">@freqTitle</h4>
+                                            @if (!string.IsNullOrEmpty(acYear))
+                                            {
+                                                <span style="font-size: 11.5px; color: #64748b;">Academic Year: @acYear</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 16px; font-weight: 800; color: @(isFreqPaid ? "#10b981" : "#0f172a");">&#8377; @((isFreqPaid ? totalFreqPaid : totalFreqBalance).ToString("N2"))</div>
+                                        <span class="@(isFreqPaid ? "badge-paid" : "badge-unpaid")" style="font-size: 10px !important; padding: 3px 8px !important; margin-top: 4px;">@(isFreqPaid ? "Paid" : "Pending")</span>
+                                    </div>
+                                </div>
+
+                                <!-- Head-wise Breakdown -->
+                                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
+                                    <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        Fee Breakdown:
+                                    </div>
+                                    @foreach (var headItem in freqGroup)
+                                    {
+                                        double balVal = 0;
+                                        double.TryParse(headItem.BALANCE, out balVal);
+                                        bool isHeadPaid = (balVal <= 0);
+                                        double debitVal = 0;
+                                        double.TryParse(headItem.DEBIT, out debitVal);
+                                        var headLabel = !string.IsNullOrEmpty(headItem.HEAD_NAME) ? headItem.HEAD_NAME : headItem.HEAD;
+
+                                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #334155; margin-bottom: 6px;">
+                                            <span><i class="fa fa-caret-right text-muted" style="margin-right: 6px;"></i> @headLabel</span>
+                                            <span style="font-weight: 600; color: @(isHeadPaid ? "#10b981" : "#334155");">&#8377; @((isHeadPaid ? debitVal : balVal).ToString("N2"))</span>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Single Action Button per Frequency -->
+                                <div style="margin-top: 14px;">
+                                    @if (isFreqPaid)
+                                    {
+                                        <button type="button" class="btn btn-view-receipt" data-txn-id="@txnId" style="width: 100%; padding: 10px 16px !important; font-size: 13.5px !important;">
+                                            <i class="fa fa-file-text-o"></i> View E-Receipt
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <form method="get" action="@Url.Action("PaymentModeForAdmin", "PaymentGateway")" style="margin: 0;">
+                                            <input type="hidden" name="sFrequencyTypeId" value="@freqTypeId" />
+                                            <input type="hidden" name="sFrequencyId" value="@freqId" />
+                                            <input type="hidden" name="sFeeRootId" value="@feeRootId" />
+                                            <input type="hidden" name="sStudentId" value="@Model.StudentId" />
+                                            <input type="hidden" name="sAmount" value="@totalFreqBalance.ToString("F2")" />
+                                            <input type="hidden" name="sAcademicyear" value="@acYear" />
+                                            <input type="hidden" name="sHead" value="@headIds" />
+                                            <input type="hidden" name="sSelectionID" value="@headIds" />
+                                            <button type="submit" class="btn btn-pay-now" style="width: 100%; padding: 11px 16px !important; font-size: 14px !important;">
+                                                <i class="fa fa-credit-card"></i> Pay Now (&#8377; @totalFreqBalance.ToString("N2"))
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 50px 20px;">
+                    <div style="font-size: 48px; color: #cbd5e1; margin-bottom: 12px;">
+                        <i class="fa fa-check-circle-o text-success"></i>
+                    </div>
+                    <h4 style="color: #475569; font-weight: 700; margin-bottom: 6px; font-size: 20px;">All Exam Fees Paid!</h4>
+                    <p class="text-muted" style="max-width: 400px; margin: 0 auto; font-size: 14px;">
+                        There are no outstanding examination fees registered on your account at this time.
+                    </p>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<!-- E-Receipt Modal -->
+<div class="modal fade" id="receiptModal" tabindex="-1" role="dialog" aria-labelledby="receiptModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: #1e293b; color: white; padding: 20px; border-bottom: none;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8; font-size: 24px;"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="receiptModalLabel" style="font-weight: 700; font-family: 'Outfit';"><i class="fa fa-file-text-o"></i> Exam Fee E-Receipt</h4>
+            </div>
+            <div class="modal-body" style="padding: 25px; background: #f8fafc;">
+
+                <!-- Printable Receipt Container -->
+                <div id="printableReceipt" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); font-family: 'Outfit';">
+
+                    <!-- College Header -->
+                    <div class="text-center" style="margin-bottom: 20px; border-bottom: 2px dashed #e2e8f0; padding-bottom: 18px;">
+                        <h3 id="receiptCollegeName" style="margin: 0 0 5px 0; font-weight: 700; color: #1e293b; font-size: 20px;">@(college != null ? college.COLLEGE_NAME : "St. Joseph's College")</h3>
+                        <p id="receiptCollegeAddress" style="margin: 0; color: #64748b; font-size: 13.5px;">@(college != null ? college.COLLEGE_ADDRESS : "")</p>
+                    </div>
+
+                    <div style="text-align: center; margin-bottom: 18px;">
+                        <span style="background: #10b981; color: white; padding: 5px 16px; border-radius: 30px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px;">Exam Fee Payment Receipt</span>
+                    </div>
+
+                    <!-- Student & Transaction Meta Grid -->
+                    <div class="row" style="margin-bottom: 20px;">
+                        <div class="col-sm-6 col-xs-12" style="margin-bottom: 15px;">
+                            <h5 style="color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 11px; margin-bottom: 8px; letter-spacing: 0.5px;">Student Details</h5>
+                            <table style="width: 100%; font-size: 13.5px;">
+                                <tr>
+                                    <td style="padding: 3px 0; color: #475569; font-weight: 500;">Name:</td>
+                                    <td id="receiptStudentName" style="padding: 3px 0; color: #0f172a; font-weight: 700; text-align: right;">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #475569; font-weight: 500;">Register No:</td>
+                                    <td id="receiptRegisterNo" style="padding: 3px 0; color: #0f172a; font-weight: 700; text-align: right;">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #475569; font-weight: 500;">Roll No:</td>
+                                    <td id="receiptRollNo" style="padding: 3px 0; color: #0f172a; font-weight: 700; text-align: right;">-</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-sm-6 col-xs-12" style="margin-bottom: 15px;">
+                            <h5 style="color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 11px; margin-bottom: 8px; letter-spacing: 0.5px;">Transaction Details</h5>
+                            <table style="width: 100%; font-size: 13.5px;">
+                                <tr>
+                                    <td style="padding: 3px 0; color: #475569; font-weight: 500;">Receipt No:</td>
+                                    <td id="receiptNo" style="padding: 3px 0; color: #0f172a; font-weight: 700; text-align: right;">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #475569; font-weight: 500;">Transaction ID:</td>
+                                    <td id="receiptTxnId" style="padding: 3px 0; color: #0f172a; font-weight: 700; text-align: right; word-break: break-all;">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #475569; font-weight: 500;">Order ID:</td>
+                                    <td id="receiptOrderId" style="padding: 3px 0; color: #0f172a; font-weight: 700; text-align: right; word-break: break-all;">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #475569; font-weight: 500;">Payment Date:</td>
+                                    <td id="receiptDate" style="padding: 3px 0; color: #0f172a; font-weight: 700; text-align: right;">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #475569; font-weight: 500;">Payment Mode:</td>
+                                    <td id="receiptMode" style="padding: 3px 0; color: #0f172a; font-weight: 700; text-align: right; text-transform: uppercase;">-</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Items Breakdown Table -->
+                    <div class="table-responsive" style="margin-bottom: 20px;">
+                        <table class="table table-bordered" style="width: 100%; margin-bottom: 0;">
+                            <thead style="background: #f8fafc;">
+                                <tr>
+                                    <th style="font-weight: 600; color: #475569; width: 45px;">#</th>
+                                    <th style="font-weight: 600; color: #475569;">Fee Head Description</th>
+                                    <th style="font-weight: 600; color: #475569; text-align: right; width: 140px;">Paid Amount (&#8377;)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="receiptItemsBody">
+                                <!-- Populated via AJAX -->
+                            </tbody>
+                            <tfoot>
+                                <tr style="background: #f8fafc; font-weight: 700;">
+                                    <td colspan="2" style="text-align: right; font-size: 14px;">Total Amount Paid:</td>
+                                    <td id="receiptTotalPaid" style="text-align: right; font-size: 15px; color: #10b981;">&#8377; 0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Footer Notes -->
+                    <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 11.5px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;">
+                        <span>This is a computer-generated receipt and does not require a physical signature.</span>
+                        <span>Payment Verified <i class="fa fa-check-circle text-success"></i></span>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer" style="background: white; border-top: 1px solid #e2e8f0; padding: 14px 25px;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="border-radius: 8px; font-weight: 600;">Close</button>
+                <button type="button" class="btn btn-primary" onclick="printReceipt()" style="border-radius: 8px; font-weight: 600; background: #0f172a; border-color: #0f172a;">
+                    <i class="fa fa-print"></i> Print Receipt
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // Receipt AJAX Loader
+        $(document).on('click', '.btn-view-receipt', function() {
+            var txnId = $(this).attr('data-txn-id');
+            if (!txnId) {
+                alert("Transaction ID not found.");
+                return;
+            }
+
+            var $btn = $(this);
+            var originalHtml = $btn.html();
+            $btn.html('<i class="fa fa-spinner fa-spin"></i> Loading...').prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("GetExamFeeReceipt", "Examination")',
+                type: 'GET',
+                data: { transactionId: txnId },
+                success: function(response) {
+                    $btn.html(originalHtml).prop('disabled', false);
+                    if (response.status) {
+                        $('#receiptCollegeName').text(response.college.name || 'St. Joseph\'s College');
+                        $('#receiptCollegeAddress').text(response.college.address || '');
+
+                        $('#receiptStudentName').text(response.student.name || '');
+                        $('#receiptRegisterNo').text(response.student.registerNo || '-');
+                        $('#receiptRollNo').text(response.student.rollNo || '-');
+
+                        $('#receiptNo').text(response.payment.receiptNo || '-');
+                        $('#receiptTxnId').text(response.payment.transactionId || '-');
+                        $('#receiptOrderId').text(response.payment.orderId || '-');
+                        $('#receiptDate').text(response.payment.date || '-');
+                        $('#receiptMode').text(response.payment.mode || '-');
+
+                        var itemsHtml = '';
+                        var total = 0;
+                        if (response.items && response.items.length > 0) {
+                            response.items.forEach(function(item, idx) {
+                                var amt = parseFloat(item.PAID_AMOUNT || item.paid_amount || 0);
+                                total += amt;
+                                itemsHtml += '<tr>' +
+                                    '<td style="width: 45px;">' + (idx + 1) + '</td>' +
+                                    '<td><strong>' + (item.HEAD_NAME || item.head_name || 'Exam Fee') + '</strong></td>' +
+                                    '<td style="text-align: right;">&#8377; ' + amt.toFixed(2) + '</td>' +
+                                '</tr>';
+                            });
+                        } else {
+                            var amt = parseFloat(response.payment.amount || 0);
+                            total = amt;
+                            itemsHtml = '<tr><td style="width: 45px;">1</td><td><strong>Semester Examination Fee</strong></td><td style="text-align: right;">&#8377; ' + amt.toFixed(2) + '</td></tr>';
+                        }
+
+                        $('#receiptItemsBody').html(itemsHtml);
+                        $('#receiptTotalPaid').html('&#8377; ' + total.toFixed(2));
+
+                        $('#receiptModal').modal('show');
+                    } else {
+                        alert(response.Message || "Failed to load receipt details.");
+                    }
+                },
+                error: function() {
+                    $btn.html(originalHtml).prop('disabled', false);
+                    alert("Error loading receipt details.");
+                }
+            });
+        });
+    })();
+
+    function printReceipt() {
+        var printContents = document.getElementById('printableReceipt').innerHTML;
+        var printWindow = window.open('', '', 'height=800,width=900');
+        printWindow.document.write('<html><head><title>Exam Fee Payment Receipt</title>');
+        printWindow.document.write('<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">');
+        printWindow.document.write('<link rel="stylesheet" href="/Content/assets/plugins/bootstrap/css/bootstrap.min.css" />');
+        printWindow.document.write('<style>');
+        printWindow.document.write('body { font-family: "Outfit", sans-serif; padding: 25px; color: #1e293b; }');
+        printWindow.document.write('.table-bordered th, .table-bordered td { border: 1px solid #cbd5e1 !important; padding: 8px 12px; }');
+        printWindow.document.write('@@media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }');
+        printWindow.document.write('</style></head><body>');
+        printWindow.document.write(printContents);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(function() {
+            printWindow.print();
+            printWindow.close();
+        }, 300);
+    }
+</script>

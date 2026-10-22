@@ -1,0 +1,303 @@
+
+<h2>ConvocationEligiPleStudentReport</h2>
+
+@model CMS.ViewModel.ViewModel.StaffViewModel
+@{
+    ViewBag.Title = "Convocation Eligiple Student Report";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<style>
+    .btn-group .btn.active {
+        background-color: #348fe2 !important;
+        color: white !important;
+    }
+    @@media print {
+        @@page {
+            size: A4;
+            margin: 0.5cm;
+        }
+        .class-report-group {
+            page-break-after: always;
+            page-break-inside: avoid;
+        }
+        .class-report-group:last-child {
+            page-break-after: auto;
+        }
+        .sidebar, .header, .breadcrumb, .page-header, .panel-heading, .row:not(#reportdiv_row), .btn, #page-loader, h2, #footer, .footer {
+            display: none !important;
+        }
+        .content {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .panel {
+            border: none !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Convocation Payment Report</li>
+    </ol>
+    <h1 class="page-header">Convocation Payment Report</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+            </div>
+            <h4 class="panel-title">Report Filters</h4>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="form-group col-md-3">
+                    @Html.LabelFor(model => model.AcademicYear, htmlAttributes: new { @class = "control-labe" })
+
+                    @Html.DropDownListFor(model => model.AcademicYear, (Model.AcademicYear != null) ? Model.AcademicYear : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                    @Html.ValidationMessageFor(model => model.AcademicYear, "", new { @class = "text-danger" })
+
+                </div>
+                <div class="col-md-3 form-group">
+                    @Html.Label("Shift")
+                    @Html.DropDownListFor(m => m.ShiftList, (Model.ShiftList != null) ? Model.ShiftList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @id = "ddlShift", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true" })
+                </div>
+                <div class="col-md-3 form-group">
+                    @Html.Label("Programme Level")
+                    @Html.DropDownListFor(m => m.Programmelevel, (Model.Programmelevel != null) ? Model.Programmelevel : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @id = "ddlLevel", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true" })
+                </div>
+                <div class="col-md-3 form-group">
+                    @Html.Label("Programme")
+                    @Html.DropDownListFor(m => m.Programmelist, (Model.Programmelist != null) ? Model.Programmelist : Enumerable.Empty<SelectListItem>(), new { @class = "selectpicker form-control input-sm", @id = "ddlProgramme", @data_live_search = "true", @multiple = "multiple", @data_selected_text_format = "count > 2", @data_actions_box = "true" })
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="col-md-3 form-group">
+                    @Html.Label("Convocation Setting")
+                    @Html.DropDownListFor(m => m.Convocationsettinglist, (Model.Convocationsettinglist != null) ? Model.Convocationsettinglist : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @id = "ddlSetting", @data_live_search = "true" })
+                </div>
+                <div class="col-md-3 form-group">
+                    @Html.Label("Payment Status")<br />
+                    <div class="btn-group" data-toggle="buttons" id="statusGroup">
+                        <label class="btn btn-sm btn-default active">
+                            <input type="radio" name="rdStatus" value="ALL" checked> Both
+                        </label>
+                        <label class="btn btn-sm btn-default">
+                            <input type="radio" name="rdStatus" value="PAID"> Paid
+                        </label>
+                        <label class="btn btn-sm btn-default">
+                            <input type="radio" name="rdStatus" value="NOT PAID"> Unpaid
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-3 form-group">
+                    <button type="button" class="btn btn-sm btn-primary" style="margin-top:25px;" onclick="loadReport()"><i class="fa fa-search"></i> Search</button>
+                    <a class="btn btn-sm btn-info btnPrint hidden" style="margin-top:25px;" onclick="printData()"><i class="fa fa-print"></i> Print</a>
+                </div>
+            </div>
+
+
+            <div id="reportdiv" style="margin-top:20px;"></div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+
+<script>
+    $('.datepicker').datepicker({
+        format: 'dd/mm/yyyy',
+        autoclose: true,
+        todayHighlight: true
+    });
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $('.selectpicker').selectpicker('refresh');
+
+    function loadProgrammes() {
+        var shiftId = String($('#ddlShift').val());
+        var levelId = String($('#ddlLevel').val());
+        var $programme = $('#ddlProgramme');
+
+        if (!shiftId || shiftId == "" || !levelId || levelId == "") {
+            $programme.empty().selectpicker('refresh');
+            return;
+        }
+
+        $('#page-loader').removeClass('fade in hide').addClass('fade in');
+
+        $.ajax({
+            url: '@Url.Action("GetProgrammesByLevelandShift", "Alumnae")',
+            type: 'POST',
+            data: { shiftId: shiftId, levelId: levelId },
+            success: function (response) {
+                $('#page-loader').removeClass('fade in').addClass('fade in hide');
+                $programme.empty();
+                if (response && response.length > 0) {
+                    $.each(response, function (i, item) {
+                        $programme.append('<option value="' + item.PROGRAMME_GROUP_ID + '">' + item.PROGRAMME_DESCRIPTION + '</option>');
+                    });
+                }
+                $programme.selectpicker('refresh');
+            },
+            error: function () {
+                $('#page-loader').removeClass('fade in').addClass('fade in hide');
+                swal("Error", "Error loading programmes", "error");
+            }
+        });
+    }
+
+    $('#ddlShift, #ddlLevel').on('change', function () {
+        loadProgrammes();
+    });
+
+    var currentFilter = 'ALL';
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            if (currentFilter === 'ALL') return true;
+            var rowStatus = (data[4] || "").trim().toUpperCase();
+            if (currentFilter === 'PAID') {
+                return rowStatus === 'PAID';
+            } else if (currentFilter === 'NOT PAID') {
+                return rowStatus === 'NOT PAID';
+            }
+            return true;
+        }
+    );
+
+    function loadReport() {
+        var pid = $('#ddlProgramme').val();
+        if (pid) {
+            pid = pid.join(',');
+        } else {
+            pid = '0';
+        }
+
+        var setting = $('#ddlSetting').val();
+        //var fromDate = $('#txtFromDate').val();
+        //var toDate = $('#txtToDate').val();
+        var fromDate = "";
+        var toDate = "";
+        if (!setting || setting == "") {
+            swal("Warning", "Please select Convocation Setting", "warning");
+            return;
+        }
+
+        $('#page-loader').removeClass('fade in hide').addClass('fade in');
+
+        $.ajax({
+            url: "@Url.Action("BindConvocationEligibleStudentReport", "Alumnae")",
+            type: "post",
+            data: { sProgrammeId: pid, sSETTING: setting, sFromDate: fromDate, sToDate: toDate },
+            success: function (data) {
+                $('#page-loader').removeClass('fade in').addClass('fade in hide');
+                $('#reportdiv').empty().append(data);
+                $('.btnExport, .btnPrint').removeClass('hidden');
+
+                $('.tblReport').each(function() {
+                    var table = $(this).DataTable({
+                        dom: 'lBfrtip',
+                        buttons: [
+                            { extend: 'copy', className: 'btn-sm' },
+                            { extend: 'csv', className: 'btn-sm' },
+                            { extend: 'excel', className: 'btn-sm' },
+                            { extend: 'pdf', className: 'btn-sm' },
+                            { extend: 'print', className: 'btn-sm' }
+                        ],
+                        responsive: true
+                    });
+
+                    table.on('order.dt search.dt', function () {
+                        table.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                            cell.innerHTML = i + 1;
+                        });
+                    }).draw();
+                });
+
+                applyStatusFilter();
+            },
+            error: function (ex) {
+                $('#page-loader').removeClass('fade in').addClass('fade in hide');
+                swal("Error", "Error loading report", "error");
+            }
+        });
+    }
+
+    $('input[name="rdStatus"]').on('change', function () {
+        applyStatusFilter();
+    });
+
+    function applyStatusFilter() {
+        currentFilter = $('input[name="rdStatus"]:checked').val();
+        $('.tblReport').each(function() {
+            var table = $(this).DataTable();
+            if (table) {
+                table.draw();
+            }
+        });
+    }
+
+    function exportData() {
+        $('.tblReport').each(function() {
+            $(this).DataTable().destroy();
+        });
+
+        var title = "Convocation_Eligible_Student_Report";
+        let file = new Blob([$('#reportdiv').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: title + ".xls"
+        }).appendTo("body").get(0).click();
+
+        $('.tblReport').each(function() {
+            $(this).DataTable({
+                dom: 'lBfrtip',
+                buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+                responsive: true
+            });
+        });
+        applyStatusFilter();
+    }
+
+    function printData() {
+        $('.tblReport').each(function() {
+            $(this).DataTable().destroy();
+        });
+
+        window.print();
+
+        $('.tblReport').each(function() {
+            $(this).DataTable({
+                dom: 'lBfrtip',
+                buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+                responsive: true
+            });
+        });
+        applyStatusFilter();
+    }
+</script>

@@ -1,0 +1,898 @@
+@{
+    ViewBag.Title = "Arrear Registration Report";
+    Layout = null; // Loaded dynamically via Single Page Application (loadContent)
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+
+<style>
+    @@media print {
+        .dt-buttons, .dataTables_filter, .dataTables_length,
+        .dataTables_info, .dataTables_paginate,
+        .nav-tabs, .filter-row, .no-print {
+            display: none !important;
+        }
+        .tab-pane { display: block !important; opacity: 1 !important; }
+        .panel { box-shadow: none !important; border: none !important; }
+        .table th { background-color: #f1f3f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .print-header { display: block !important; }
+    }
+    .print-header { display: none; }
+    .tab-content { padding-top: 15px; }
+    .filter-row { margin-bottom: 15px; }
+</style>
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">Arrear Registration Report</li>
+    </ol>
+    <h1 class="page-header">Arrear Registration Report <small>Academic Year: @ViewBag.AcademicYear</small></h1>
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Arrear Registration Report</h4>
+        </div>
+        <div class="panel-body">
+            <div id="arr-loader" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999;">
+                <img src="~/Content/assets/img/loading-7528_128.gif" alt="Loading..." />
+            </div>
+
+            <div class="col-md-12 form-horizontal">
+                <ul class="nav nav-tabs">
+                    <li class="nav-items active" id="tabAllReg">
+                        <a href="#allRegisteredTab" data-toggle="tab" class="nav-link active">
+                            <span class="d-sm-none">All Registered Students</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabPaidCourse">
+                        <a href="#paidCourseTab" data-toggle="tab" class="nav-link">
+                            <span class="d-sm-none">Paid Course List</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabCourseWise">
+                        <a href="#courseWiseTab" data-toggle="tab" class="nav-link">
+                            <span class="d-sm-none">Course Wise Report</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabPaidStudents">
+                        <a href="#paidStudentsTab" data-toggle="tab" class="nav-link">
+                            <span class="d-sm-none">Paid Students</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+
+                    <!-- ==================== TAB 1: All Registered Students ==================== -->
+                    <div class="tab-pane fade in active" id="allRegisteredTab">
+                        <!-- Printable header (hidden on screen) -->
+                        <div class="print-header text-center" style="border-bottom: 2px solid #2C3E50; padding-bottom: 10px; margin-bottom: 20px;">
+                            <h3 style="margin:0; font-weight:700; text-transform:uppercase;">St. Joseph's College (Autonomous)</h3>
+                            <h5 style="margin:4px 0;">Arrear Registration Report — All Registered Students</h5>
+                            <small>Academic Year: @ViewBag.AcademicYear</small>
+                        </div>
+
+                        <div class="row filter-row no-print">
+                            <div class="form-group col-md-4">
+                                <label class="control-label col-md-4">From Date</label>
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input class="form-control date" id="fromDate" placeholder="Pick Date" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label class="control-label col-md-4">To Date</label>
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input class="form-control date" id="toDate" placeholder="Pick Date" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <div class="col-md-12">
+                                    <button id="btnGetByDate" class="btn btn-sm btn-primary">
+                                        <i class="fa fa-filter m-r-5"></i> Get
+                                    </button>
+                                    <button id="btnClearDate" class="btn btn-sm btn-default m-l-5">
+                                        Clear
+                                    </button>
+                                    <button class="btn btn-sm btn-success m-l-5" onclick="printCurrentTab('allRegisteredTab')">
+                                        <i class="fa fa-print m-r-5"></i> Print
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered table-striped" id="detailedRegistrationsTable" style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px;">#</th>
+                                        <th>Student Name</th>
+                                        <th>Roll No</th>
+                                        <th>Course Details</th>
+                                        <th>Exam Name</th>
+                                        <th>Register Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ==================== TAB 2: Paid Course List ==================== -->
+                    <div class="tab-pane fade" id="paidCourseTab">
+                        <div class="print-header text-center" style="border-bottom: 2px solid #2C3E50; padding-bottom: 10px; margin-bottom: 20px;">
+                            <h3 style="margin:0; font-weight:700; text-transform:uppercase;">St. Joseph's College (Autonomous)</h3>
+                            <h5 style="margin:4px 0;">Arrear Registration Report — Paid Course List</h5>
+                            <small>Academic Year: @ViewBag.AcademicYear</small>
+                        </div>
+
+                        <div class="row filter-row no-print">
+                            <div class="col-md-12 text-right">
+                                <small class="text-muted">Use the date filter on "All Registered Students" tab to populate this list.</small>
+                                <button class="btn btn-sm btn-success m-l-10" onclick="printCurrentTab('paidCourseTab')">
+                                    <i class="fa fa-print m-r-5"></i> Print
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered table-striped" id="paidRegistrationsTable" style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px;">#</th>
+                                        <th>Student Name</th>
+                                        <th>Roll No</th>
+                                        <th>Course Details</th>
+                                        <th>Exam Name</th>
+                                        <th>Register Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ==================== TAB 3: Course Wise Report ==================== -->
+                    <div class="tab-pane fade" id="courseWiseTab">
+                        <div class="print-header text-center" style="border-bottom: 2px solid #2C3E50; padding-bottom: 10px; margin-bottom: 20px;">
+                            <h3 style="margin:0; font-weight:700; text-transform:uppercase;">St. Joseph's College (Autonomous)</h3>
+                            <h5 style="margin:4px 0;">Arrear Registration Report — Course Wise</h5>
+                            <small>Academic Year: @ViewBag.AcademicYear</small>
+                        </div>
+
+                        <div class="row filter-row no-print" style="margin-bottom:10px;">
+                            <div class="col-md-12 text-right">
+                                <button id="btnLoadCourseWise" class="btn btn-sm btn-primary">
+                                    <i class="fa fa-refresh m-r-5"></i> Load Report
+                                </button>
+                                <button class="btn btn-sm btn-success m-l-5" onclick="printCurrentTab('courseWiseTab')">
+                                    <i class="fa fa-print m-r-5"></i> Print
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered table-striped" id="courseWiseTable" style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px;">#</th>
+                                        <th>Course Code</th>
+                                        <th>Course Title</th>
+                                        <th>Semester</th>
+                                        <th>Total Students</th>
+                                        <th>Registered</th>
+                                        <th>Paid</th>
+                                        <th class="no-print" style="width:70px;">View</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Modal: Students by Course -->
+                    <div class="modal fade" id="courseStudentsModal" tabindex="-1" role="dialog" aria-labelledby="courseStudentsModalLabel">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <h4 class="modal-title" id="courseStudentsModalLabel">Registered Students</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-bordered table-striped" id="courseStudentsTable" style="width:100%;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width:50px;">#</th>
+                                                    <th>Student Name</th>
+                                                    <th>Roll No</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==================== TAB 4: Paid Students ==================== -->
+                    <div class="tab-pane fade" id="paidStudentsTab">
+                        <div class="print-header text-center" style="border-bottom: 2px solid #2C3E50; padding-bottom: 10px; margin-bottom: 20px;">
+                            <h3 style="margin:0; font-weight:700; text-transform:uppercase;">St. Joseph's College (Autonomous)</h3>
+                            <h5 style="margin:4px 0;">Arrear Registration Report — Paid Students</h5>
+                            <small>Academic Year: @ViewBag.AcademicYear</small>
+                        </div>
+
+                        <div class="row filter-row no-print" style="margin-bottom:10px;">
+                            <div class="col-md-12 text-right">
+                                <button id="btnLoadPaidStudents" class="btn btn-sm btn-primary">
+                                    <i class="fa fa-refresh m-r-5"></i> Load Report
+                                </button>
+                                <button class="btn btn-sm btn-success m-l-5" onclick="printCurrentTab('paidStudentsTab')">
+                                    <i class="fa fa-print m-r-5"></i> Print
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered table-striped" id="paidStudentsTable" style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px;">#</th>
+                                        <th>Roll No</th>
+                                        <th>Student Name</th>
+                                        <th>Type</th>
+                                        <th>Semester</th>
+                                        <th>Course Code</th>
+                                        <th>Course Title</th>
+                                        <th>Exam Setting</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <br />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+
+<script>
+    var detailedTableInstance;
+    var paidTableInstance;
+    var studentRegTableInstance;
+    var studentAvailTableInstance;
+    var uploadLogTableInstance;
+    var courseWiseTableInstance;
+    var courseStudentsTableInstance;
+    var paidStudentsTableInstance;
+    var isDashboardInitialized = false;
+
+    // SPA loader hook
+    LoadArrearRegistrationReport = function () {
+        loadContent('/Examination/ArrearRegistrationReport');
+    }
+
+    ContentLoad = function () {
+        initializeDashboard();
+        // Activate first tab explicitly
+        $('#tabAllReg').addClass('active');
+        $('#allRegisteredTab').addClass('in active');
+        // Initialize datepickers — same pattern as AttendancePercentageCommon.cshtml
+        $(".date").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            format: "dd/mm/yyyy",
+            orientation: "right bottom"
+        });
+        $('.selectpicker').selectpicker({ size: 6 });
+        $('.selectpicker').selectpicker('refresh');
+    }
+
+    function initializeDashboard() {
+        if (isDashboardInitialized) return;
+        isDashboardInitialized = true;
+
+        // ---- DataTable: All Registered ----
+        detailedTableInstance = $('#detailedRegistrationsTable').DataTable({
+            destroy: true,
+            dom: 'lBfrtip',
+            buttons: [
+                { extend: 'copy', className: 'btn-sm btn-info' },
+                { extend: 'excel', className: 'btn-sm btn-success', title: 'Arrear_Registration_Report' },
+                { extend: 'pdf', className: 'btn-sm btn-danger', title: 'Arrear_Registration_Report' }
+            ],
+            responsive: true,
+            paging: true,
+            pageLength: 25,
+            lengthMenu: [10, 25, 50, 100],
+            ordering: true,
+            columnDefs: [{ orderable: false, targets: [0] }]
+        });
+
+        // ---- DataTable: Paid Course List ----
+        paidTableInstance = $('#paidRegistrationsTable').DataTable({
+            destroy: true,
+            dom: 'lBfrtip',
+            buttons: [
+                { extend: 'copy', className: 'btn-sm btn-info' },
+                { extend: 'excel', className: 'btn-sm btn-success', title: 'Arrear_Paid_Report' },
+                { extend: 'pdf', className: 'btn-sm btn-danger', title: 'Arrear_Paid_Report' }
+            ],
+            responsive: true,
+            paging: true,
+            pageLength: 25,
+            lengthMenu: [10, 25, 50, 100],
+            ordering: true,
+            columnDefs: [{ orderable: false, targets: [0] }]
+        });
+
+        // ---- DataTable: Student Registered Courses ----
+        studentRegTableInstance = $('#studentRegisteredTable').DataTable({
+            destroy: true,
+            dom: 'lBfrtip',
+            buttons: [
+                { extend: 'excel', className: 'btn-sm btn-success', title: 'Student_Registered_Arrear' }
+            ],
+            responsive: true,
+            paging: false,
+            ordering: true,
+            columnDefs: [{ orderable: false, targets: [0] }]
+        });
+
+        // ---- DataTable: Student Available Courses ----
+        studentAvailTableInstance = $('#studentAvailableTable').DataTable({
+            destroy: true,
+            dom: 'frtip',
+            responsive: true,
+            paging: false,
+            ordering: true,
+            columnDefs: [{ orderable: false, targets: [0] }]
+        });
+
+        // ---- DataTable: Course Wise Summary ----
+        courseWiseTableInstance = $('#courseWiseTable').DataTable({
+            destroy: true,
+            dom: 'lBfrtip',
+            buttons: [
+                { extend: 'copy', className: 'btn-sm btn-info' },
+                { extend: 'excel', className: 'btn-sm btn-success', title: 'Arrear_CourseWise_Report' },
+                { extend: 'pdf', className: 'btn-sm btn-danger', title: 'Arrear_CourseWise_Report' }
+            ],
+            responsive: true,
+            paging: true,
+            pageLength: 25,
+            lengthMenu: [10, 25, 50, 100],
+            ordering: true,
+            columnDefs: [{ orderable: false, targets: [0, 7] }]
+        });
+
+        // ---- DataTable: Students in Modal ----
+        courseStudentsTableInstance = $('#courseStudentsTable').DataTable({
+            destroy: true,
+            dom: 'lBfrtip',
+            buttons: [
+                { extend: 'excel', className: 'btn-sm btn-success', title: 'Course_Registered_Students' }
+            ],
+            responsive: true,
+            paging: true,
+            pageLength: 25,
+            ordering: true,
+            columnDefs: [{ orderable: false, targets: [0] }]
+        });
+
+        // ---- DataTable: Paid Students ----
+        paidStudentsTableInstance = $('#paidStudentsTable').DataTable({
+            destroy: true,
+            dom: 'lBfrtip',
+            buttons: [
+                { extend: 'copy', className: 'btn-sm btn-info' },
+                { extend: 'excel', className: 'btn-sm btn-success', title: 'Arrear_Paid_Students' },
+                { extend: 'pdf', className: 'btn-sm btn-danger', title: 'Arrear_Paid_Students' }
+            ],
+            responsive: true,
+            paging: true,
+            pageLength: 25,
+            lengthMenu: [10, 25, 50, 100],
+            ordering: true,
+            columnDefs: [{ orderable: false, targets: [0] }]
+        });
+
+        // ---- DataTable: Upload Log ----
+        uploadLogTableInstance = $('#uploadLogTable').DataTable({
+            destroy: true,
+            dom: 'lBfrtip',
+            buttons: [
+                { extend: 'excel', className: 'btn-sm btn-success', title: 'Upload_Log' }
+            ],
+            responsive: true,
+            paging: true,
+            pageLength: 25,
+            ordering: true
+        });
+
+        // Redraw DataTables on tab show (fixes column width issue)
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $.fn.DataTable.tables({ visible: true, api: true }).columns.adjust();
+        });
+
+        // ==================== Date Filter (Tab 1) ====================
+        $('#btnGetByDate').on('click', function () {
+            var fromVal = $('#fromDate').val();
+            var toVal   = $('#toDate').val();
+
+            if (!fromVal) {
+                alert('Please select a From Date.');
+                return;
+            }
+            if (!toVal) {
+                toVal = fromVal;
+                $('#toDate').val(fromVal);
+            }
+
+            $('#arr-loader').show();
+
+            $.ajax({
+                url: '/Examination/GetArrearRegistrations',
+                type: 'POST',
+                data: { sFromDate: fromVal, sToDate: toVal },
+                success: function (res) {
+                    $('#arr-loader').hide();
+                    if (res.Success) {
+                        var dTable = $('#detailedRegistrationsTable').DataTable();
+                        var pTable = $('#paidRegistrationsTable').DataTable();
+                        dTable.clear();
+                        pTable.clear();
+
+                        var paidIndex = 1;
+                        var rows = res.Detailed || [];
+
+                        $.each(rows, function (i, item) {
+                            var examSettingId = String(item.EXAM_SETTING_ID || '').trim();
+                            var examStr = getExamSettingLabel(examSettingId, item.EXAM_NAME);
+                            var statusStr = getStatusLabel(item.IS_REGISTERED, item.IS_PAID);
+
+                            var rowData = [
+                                i + 1,
+                                '<strong>' + (item.STUDENT_NAME || '') + '</strong>',
+                                item.ROLL_NO || item.REGISTER_NO || '',
+                                '<strong>' + (item.COURSE_CODE || '') + '</strong><br/><small class="text-muted">' + (item.COURSE_TITLE || '') + '</small>',
+                                examStr,
+                                item.REGISTER_DATE_DISPLAY || '',
+                                statusStr
+                            ];
+
+                            dTable.row.add(rowData);
+
+                            if (String(item.IS_REGISTERED || '').trim() === '1' && String(item.IS_PAID || '').trim() === '1') {
+                                var pRow = rowData.slice();
+                                pRow[0] = paidIndex++;
+                                pRow[6] = '<span class="label label-success">Registered &amp; Paid</span>';
+                                pTable.row.add(pRow);
+                            }
+                        });
+
+                        dTable.draw();
+                        pTable.draw();
+                    } else {
+                        alert('Failed to fetch registrations: ' + (res.Message || 'Unknown error'));
+                    }
+                },
+                error: function () {
+                    $('#arr-loader').hide();
+                    alert('An error occurred while fetching registrations.');
+                }
+            });
+        });
+
+        $('#btnClearDate').on('click', function () {
+            $('#fromDate').datepicker('update', '');
+            $('#toDate').datepicker('update', '');
+            $('#detailedRegistrationsTable').DataTable().clear().draw();
+            $('#paidRegistrationsTable').DataTable().clear().draw();
+        });
+
+        // ==================== Excel Upload (Tab 3) ====================
+        $('#ExcelUpload').on('change', function () {
+            var name = $(this).val().split('\\').pop();
+            $('#fileName').text(name);
+        });
+
+        $('#btnUploadSubmit').on('click', function () {
+            var sFile = $('#ExcelUpload').get(0).files;
+            var examSetting = $('#uploadExamSetting').val();
+
+            if (!examSetting) {
+                alert('Please select an Exam Setting.');
+                return;
+            }
+            if (sFile.length === 0) {
+                alert('Please choose an Excel file to upload.');
+                return;
+            }
+
+            var formData = new FormData();
+            for (var i = 0; i < sFile.length; i++) {
+                formData.append(sFile[i].name, sFile[i]);
+            }
+            formData.append('sExamSetting', examSetting);
+
+            $('#arr-loader').show();
+            $('#uploadResultDiv').html('');
+            $('#uploadLogSection').hide();
+
+            $.ajax({
+                url: '/Examination/BindArrearExamRegistrationForSJC',
+                method: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    $('#arr-loader').hide();
+                    alert(data.Message);
+
+                    if (data.sResult && data.sResult !== '') {
+                        $('#btnDownloadLog').attr('href', data.sResult).show();
+                    }
+
+                    // If server returns row-level results, show them in log table
+                    if (data.LogRows && data.LogRows.length > 0) {
+                        var logTable = $('#uploadLogTable').DataTable();
+                        logTable.clear();
+                        $.each(data.LogRows, function (i, row) {
+                            logTable.row.add([
+                                i + 1,
+                                row.RollNo || '',
+                                row.StudentName || '',
+                                row.CourseCode || '',
+                                row.Result || '',
+                                row.Remark || ''
+                            ]);
+                        });
+                        logTable.draw();
+                        $('#uploadLogSection').show();
+                    }
+                },
+                error: function () {
+                    $('#arr-loader').hide();
+                    alert('Internal Server Error! Please try again.');
+                }
+            });
+        });
+
+        // ==================== Student Lookup (Tab 4) ====================
+        $('#btnLookup').on('click', function () {
+            performStudentLookup();
+        });
+
+        $('#txtLookupStudentId').on('keypress', function (e) {
+            if (e.which === 13) performStudentLookup();
+        });
+
+        $('#btnClearLookup').on('click', function () {
+            $('#txtLookupStudentId').val('');
+            $('#studentInfoBanner').hide();
+            $('#studentCoursesDiv').hide();
+            $('#lookupEmptyMsg').hide();
+            $('#studentRegisteredTable').DataTable().clear().draw();
+            $('#studentAvailableTable').DataTable().clear().draw();
+        });
+
+        // ==================== Course Wise Report (Tab 3) ====================
+        $('#btnLoadCourseWise').on('click', function () {
+            loadCourseWiseReport();
+        });
+
+        // Auto-load when tab is first shown
+        $('a[href="#courseWiseTab"]').one('shown.bs.tab', function () {
+            loadCourseWiseReport();
+        });
+
+        // ==================== Paid Students (Tab 4) ====================
+        $('#btnLoadPaidStudents').on('click', function () {
+            loadPaidStudentList();
+        });
+
+        $('a[href="#paidStudentsTab"]').one('shown.bs.tab', function () {
+            loadPaidStudentList();
+        });
+
+        // Modal: view students by course (delegated)
+        $('#courseWiseTable').on('click', '.btn-view-course', function () {
+            var courseCode  = $(this).data('course-code');
+            var courseTitle = $(this).data('course-title');
+            $('#courseStudentsModalLabel').text('Registered Students — ' + courseCode + ': ' + courseTitle);
+            loadStudentsByCourse(courseCode);
+            $('#courseStudentsModal').modal('show');
+        });
+    }
+
+    function performStudentLookup() {
+        var studentId = $('#txtLookupStudentId').val().trim();
+        if (!studentId) {
+            alert('Please enter a Roll No or Student ID.');
+            return;
+        }
+
+        $('#arr-loader').show();
+        $('#studentCoursesDiv').hide();
+        $('#lookupEmptyMsg').hide();
+        $('#studentInfoBanner').hide();
+
+        $.ajax({
+            url: '/Examination/GetStudentArrearCourses',
+            type: 'POST',
+            data: { StudentId: studentId },
+            success: function (res) {
+                $('#arr-loader').hide();
+
+                if (res.sResult !== 'True') {
+                    alert(res.Message || 'Student not found or no arrear data available.');
+                    return;
+                }
+
+                var courses = res.oResult || [];
+                var registered = [];
+                var available  = [];
+                var totalPaid  = parseFloat(res.Message || '0');
+
+                $.each(courses, function (i, c) {
+                    var isReg = (c.IS_REGISTERED === '1' || c.IS_REGISTERED === 'True');
+                    if (isReg) registered.push(c);
+                    else        available.push(c);
+                });
+
+                if (courses.length === 0) {
+                    $('#lookupEmptyMsg').show();
+                    return;
+                }
+
+                // Populate info banner
+                var bannerHtml = '<div class="alert alert-info" style="margin-bottom:0;">' +
+                    '<strong>Student ID / Roll No:</strong> ' + studentId +
+                    ' &nbsp;|&nbsp; <strong>Registered Courses:</strong> ' + registered.length +
+                    ' &nbsp;|&nbsp; <strong>Available Courses:</strong> ' + available.length;
+                if (totalPaid > 0) {
+                    bannerHtml += ' &nbsp;|&nbsp; <strong>Total Paid Amount:</strong> &#8377;' + totalPaid;
+                }
+                bannerHtml += '</div>';
+                $('#studentInfoBanner').html(bannerHtml).show();
+
+                // Populate registered table
+                var regTable = $('#studentRegisteredTable').DataTable();
+                regTable.clear();
+                $.each(registered, function (i, c) {
+                    var isPaid = (c.IS_PAID === '1' || c.IS_PAID === 'True');
+                    regTable.row.add([
+                        i + 1,
+                        c.COURSE_CODE || '',
+                        c.COURSE_TITLE || '',
+                        getExamSettingText(String(c.EXAM_SETTING_ID || '')),
+                        isPaid
+                            ? '<span class="label label-success">Registered &amp; Paid</span>'
+                            : '<span class="label label-info">Registered</span>'
+                    ]);
+                });
+                regTable.draw();
+
+                // Populate available table
+                var availTable = $('#studentAvailableTable').DataTable();
+                availTable.clear();
+                $.each(available, function (i, c) {
+                    availTable.row.add([
+                        i + 1,
+                        c.COURSE_CODE || '',
+                        c.COURSE_TITLE || '',
+                        getExamSettingText(String(c.EXAM_SETTING_ID || ''))
+                    ]);
+                });
+                availTable.draw();
+
+                $('#studentCoursesDiv').show();
+            },
+            error: function () {
+                $('#arr-loader').hide();
+                alert('An error occurred while fetching student data.');
+            }
+        });
+    }
+
+    function loadCourseWiseReport() {
+        $('#arr-loader').show();
+        $.ajax({
+            url: '/Examination/GetArrearCourseWiseSummary',
+            type: 'POST',
+            success: function (res) {
+                $('#arr-loader').hide();
+                if (!res.Success) {
+                    alert('Failed to load course wise report: ' + (res.Message || 'Unknown error'));
+                    return;
+                }
+                var table = $('#courseWiseTable').DataTable();
+                table.clear();
+                var rows = res.Data || [];
+                $.each(rows, function (i, item) {
+                    var viewBtn = '<button class="btn btn-xs btn-info btn-view-course no-print"' +
+                        ' data-course-code="' + (item.COURSE_CODE || '') + '"' +
+                        ' data-course-title="' + ((item.COURSE_TITLE || '').replace(/"/g, '&quot;')) + '">' +
+                        '<i class="fa fa-eye"></i></button>';
+                    table.row.add([
+                        i + 1,
+                        item.COURSE_CODE || '',
+                        item.COURSE_TITLE || '',
+                        item.SEMESTER_ID || '',
+                        item.STUDENT_COUNT || 0,
+                        '<span class="label label-info">' + (item.REGISTERED_STUDENTS || 0) + '</span>',
+                        '<span class="label label-success">' + (item.PAID_STUDENTS || 0) + '</span>',
+                        viewBtn
+                    ]);
+                });
+                table.draw();
+            },
+            error: function () {
+                $('#arr-loader').hide();
+                alert('An error occurred while loading course wise report.');
+            }
+        });
+    }
+
+    function loadPaidStudentList() {
+        $('#arr-loader').show();
+        $.ajax({
+            url: '/Examination/GetArrearPaidStudentList',
+            type: 'POST',
+            success: function (res) {
+                $('#arr-loader').hide();
+                if (!res.Success) {
+                    alert('Failed to load paid students: ' + (res.Message || 'Unknown error'));
+                    return;
+                }
+                var table = $('#paidStudentsTable').DataTable();
+                table.clear();
+                var rows = res.Data || [];
+                $.each(rows, function (i, item) {
+                    table.row.add([
+                        i + 1,
+                        item.ROLL_NO || '',
+                        item.FIRST_NAME || '',
+                        item.APPTYPE_ID || '',
+                        item.SEMESTER_ID || '',
+                        item.COURSE_CODE || '',
+                        item.COURSE_TITLE || '',
+                        getExamSettingText(String(item.EXAM_SETTING_ID || ''))
+                    ]);
+                });
+                table.draw();
+            },
+            error: function () {
+                $('#arr-loader').hide();
+                alert('An error occurred while loading paid students.');
+            }
+        });
+    }
+
+    function loadStudentsByCourse(courseCode) {
+        var table = $('#courseStudentsTable').DataTable();
+        table.clear().draw();
+        $('#arr-loader').show();
+        $.ajax({
+            url: '/Examination/GetArrearStudentsByCourse',
+            type: 'POST',
+            data: { sCourseCode: courseCode },
+            success: function (res) {
+                $('#arr-loader').hide();
+                if (!res.Success) {
+                    alert('Failed to load students: ' + (res.Message || 'Unknown error'));
+                    return;
+                }
+                var rows = res.Data || [];
+                $.each(rows, function (i, item) {
+                    table.row.add([
+                        i + 1,
+                        item.STUDENT_NAME || '',
+                        item.ROLL_NO || '',
+                        getStatusLabel(item.IS_REGISTERED, item.IS_PAID)
+                    ]);
+                });
+                table.draw();
+            },
+            error: function () {
+                $('#arr-loader').hide();
+                alert('An error occurred while loading students.');
+            }
+        });
+    }
+
+    // ==================== Helpers ====================
+    function getExamSettingLabel(id, fallbackName) {
+        if (id === '1') return '<span class="label label-primary">Semester Exam</span>';
+        if (id === '2') return '<span class="label label-warning" style="color:#212529;">CIA</span>';
+        if (id === '3') return '<span class="label label-info">Semester / CIA</span>';
+        return '<span class="label label-default">' + (fallbackName || 'Arrear Exam') + '</span>';
+    }
+
+    function getExamSettingText(id) {
+        if (id === '1') return 'Semester Exam';
+        if (id === '2') return 'CIA';
+        if (id === '3') return 'Semester / CIA';
+        return 'Arrear Exam';
+    }
+
+    function getStatusLabel(isReg, isPaid) {
+        var reg  = String(isReg  || '').trim();
+        var paid = String(isPaid || '').trim();
+        if (reg === '1' && paid === '1')
+            return '<span class="label label-success">Registered &amp; Paid</span>';
+        if (reg === '1')
+            return '<span class="label label-info">Registered</span>';
+        return '<span class="label label-default">Not Registered</span>';
+    }
+
+    function ClickFile() {
+        $('#ExcelUpload').click();
+    }
+
+    function printCurrentTab(tabId) {
+        var printContents = document.getElementById(tabId).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        LoadArrearRegistrationReport();
+    }
+
+    // Auto-initialize on direct page load
+    $(document).ready(function () {
+        initializeDashboard();
+        $(".date").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            format: "dd/mm/yyyy",
+            orientation: "right bottom"
+        });
+        $('.selectpicker').selectpicker({ size: 6 });
+        $('.selectpicker').selectpicker('refresh');
+    });
+</script>

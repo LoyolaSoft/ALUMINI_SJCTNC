@@ -1,0 +1,53 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+
+@{
+    Layout = null;
+    string sCourseIds = string.Empty;
+    
+}
+
+
+@if (Model.liCIA_Total != null && Model.liCIA_Total.Count > 0)
+{
+    foreach (var Courseitem in Model.liCourseInfo)
+    {
+        <div class="col-md-12" id="dv_@Courseitem.COURSE_CODE.Replace(" ", "")">
+            <table class="table table-bordered" id="tblCIACumulative">
+                <thead>
+                    <tr>
+                        <th>Roll No</th>
+                        <th>@Courseitem.COURSE_CODE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        //int nCount = 0;
+                        var liStudentList = Model.liCIA_Total.GroupBy(x => x.STUDENT_ID).OrderBy(x=>x.FirstOrDefault().ROLL_NO).ToList();
+                        if (liStudentList != null && liStudentList.Count > 0)
+                        {
+                            foreach (var item in liStudentList)
+                            {
+                                <tr>
+                                    @{
+                                        var liCIAMark = Model.liCIA_Total.Where(x => x.STUDENT_ID == item.FirstOrDefault().STUDENT_ID && x.COURSE_ID == Courseitem.COURSE_ROOT_ID).ToList();
+                                        if (liCIAMark != null && liCIAMark.Count > 0)
+                                        {
+                                            <td>@item.FirstOrDefault().ROLL_NO</td>
+                                            <td>@liCIAMark.FirstOrDefault().TOTAL</td>
+                                        }
+                                    }
+                                </tr>
+                               }
+                           }
+                       }
+                </tbody>
+            </table>
+        </div>
+        sCourseIds = sCourseIds + Courseitem.COURSE_CODE + ",";
+      }
+      sCourseIds = sCourseIds.TrimEnd(',');
+  }
+
+
+<input type="hidden" id="txtCourse" value="@sCourseIds" />

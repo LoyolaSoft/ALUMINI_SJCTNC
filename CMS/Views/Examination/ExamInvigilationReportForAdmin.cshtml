@@ -1,0 +1,560 @@
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "ExamInvigilationReportForAdmin";
+    Layout = null;
+    string currentDate = DateTime.Now.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+    currentDate = currentDate + ".txt";
+    int count = 0;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<style>
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        margin: 0;
+    }
+
+    .dueListDiv {
+        border: 2px solid #097272;
+        display: flex;
+        justify-content: center;
+        text-align: center;
+        padding-top: 6px;
+    }
+
+    .tab-content {
+        padding: 15px 0;
+    }
+
+    .nav-tabs > li.active > a, 
+    .nav-tabs > li.active > a:focus, 
+    .nav-tabs > li.active > a:hover {
+        background-color: #fff;
+        border-bottom-color: transparent;
+        font-weight: bold;
+    }
+</style>
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">ExamInvigilationForAdmin</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Exam Invigilation For Admin</h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Exam Invigilation For Admin</h4>
+        </div>
+        <div class="panel-body">
+            <!-- Fullscreen Loading Overlay -->
+            <div id="loader" class="no-print" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index:999999;">
+                <div style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; background:#fff; padding:22px 35px; border-radius:10px; box-shadow:0 5px 25px rgba(0,0,0,0.35);">
+                    <img src="@Url.Content("~/Content/assets/img/loading-7528_128.gif")" alt="Loading..." style="width:60px; height:60px;" />
+                    <div style="margin-top:12px; font-weight:bold; font-size:14px; color:#2C3E50;">Loading, please wait...</div>
+                </div>
+            </div>
+
+            <!-- Nav Tabs -->
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#tab-overall" data-toggle="tab"><i class="fa fa-list"></i> Overall Report</a></li>
+                <li><a href="#tab-datesession" data-toggle="tab"><i class="fa fa-calendar-check-o"></i> Date &amp; Session Wise Report</a></li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- ================= TAB 1: OVERALL REPORT ================= -->
+                <div class="tab-pane fade in active" id="tab-overall">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="row">
+                            <div class="form-group col-md-4">
+                                @Html.Label("Ac Year", htmlAttributes: new { @class = "control-label col-md-4" })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(model => model.AcademicYear, (Model.AcademicYear != null) ? Model.AcademicYear : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @id = "AcademicYearDrop" })
+                                    @Html.ValidationMessageFor(model => model.AcademicYear, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-4 form-group">
+                                @Html.Label("Exam Setting", htmlAttributes: new { @class = "control-label col-md-4" })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(model => model.ExamSetting, (Model.ExamSetting != null) ? Model.ExamSetting : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @id = "ExamSettingDrop" })
+                                    @Html.ValidationMessageFor(model => model.ExamSetting, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 text-right">
+                                <button type="button" class="btn btn-sm btn-success" onclick="PrintFormattedFromOverall()" title="Print date & session wise formatted report"><i class="fa fa-print"></i> Print Formatted</button>
+                                <button type="button" class="btn btn-sm btn-default" onclick="printDiv('ExamInvigilationList')" title="Print overall list table"><i class="fa fa-table"></i> Print Table</button>
+                                <a href="javascript:;" id="sExcel" onclick="Export()" class="btn btn-sm btn-primary"><i class="fa fa-file-excel-o"></i> Excel</a>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="form-horizontal">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            <div class="col-md-12" id="divbind"></div>
+                        </div>
+
+                        <div id="ExamInvigilationList">
+                            <div class="col-md-12 table-responsive">
+                                <table class="table table-hover table-bordered" width="100%" id="StudentList">
+                                    <thead>
+                                        <tr>
+                                            <th><b>#</b></th>
+                                            <th><b>Staff Code</b></th>
+                                            <th><b>Name</b></th>
+                                            <th><b>Exam Date</b></th>
+                                            <th><b>Hall Name</b></th>
+                                            <th><b>Session</b></th>
+                                            <th><b>Exam Name</b></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.LiExamInvigilationStaffWise != null)
+                                        {
+                                            foreach (var item in Model.LiExamInvigilationStaffWise)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        @{ count++;} <b>@count</b>
+                                                    </td>
+                                                    <td>@item.STAFF_CODE</td>
+                                                    <td>@item.FIRST_NAME</td>
+                                                    <td>@item.EXAM_DATE</td>
+                                                    <td>@item.HALL_NAME</td>
+                                                    <td>@item.SESSION_NAME</td>
+                                                    <td>@item.EXAM_NAME</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- ================= TAB 2: DATE & SESSION WISE REPORT ================= -->
+                <div class="tab-pane fade" id="tab-datesession">
+                    <div class="row">
+                        <div class="col-md-3 form-group">
+                            <label class="control-label col-md-4">Ac Year</label>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.AcademicYear, (Model.AcademicYear != null) ? Model.AcademicYear : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "selectpicker show-menu-arrow show-tick form-control input-sm", @data_live_search = "true", @id = "dsAcademicYear" })
+                            </div>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label class="control-label col-md-4">Setting</label>
+                            <div class="col-md-8">
+                                <select class="selectpicker show-menu-arrow show-tick form-control input-sm" data-live-search="true" id="dsExamSetting">
+                                    <option value="">--select--</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2 form-group">
+                            <label class="control-label col-md-4">Date</label>
+                            <div class="col-md-8">
+                                <select class="selectpicker show-menu-arrow show-tick form-control input-sm" data-live-search="true" id="dsExamDate">
+                                    <option value="">-- All Dates --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2 form-group">
+                            <label class="control-label col-md-4">Session</label>
+                            <div class="col-md-8">
+                                <select class="selectpicker show-menu-arrow show-tick form-control input-sm" data-live-search="true" id="dsSession">
+                                    <option value="">-- All Sessions --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-right">
+                            <button type="button" class="btn btn-sm btn-primary" id="btnGetDateSessionReport" onclick="LoadDateSessionReport()"><i class="fa fa-search"></i> Get</button>
+                            <button type="button" class="btn btn-sm btn-success" id="btnPrintDateSessionReport" onclick="PrintDateSessionReport()"><i class="fa fa-print"></i> Print</button>
+                            <button type="button" class="btn btn-sm btn-info" id="btnExcelDateSessionReport" onclick="ExportDateSessionExcel()"><i class="fa fa-file-excel-o"></i> Excel</button>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- Report Output Area -->
+                    <div id="divDateSessionReport">
+                        <div class="alert alert-info text-center" style="margin: 20px;">
+                            <i class="fa fa-info-circle"></i> Please select Academic Year and Exam Setting to generate the Date &amp; Session wise report.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $(".date").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            format: "dd/mm/yyyy",
+            orientation: "right bottom"
+        });
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+    });
+
+    // ================= Loader Management =================
+    var activeAjaxCount = 0;
+    function showLoader() {
+        activeAjaxCount++;
+        $('#loader').show();
+        if ($('#page-loader').length > 0) {
+            $('#page-loader').removeClass('fade in hide').addClass('fade in');
+        }
+    }
+
+    function hideLoader() {
+        activeAjaxCount = Math.max(0, activeAjaxCount - 1);
+        if (activeAjaxCount === 0) {
+            $('#loader').hide();
+            if ($('#page-loader').length > 0) {
+                $('#page-loader').removeClass('fade in').addClass('fade in hide');
+            }
+        }
+    }
+
+    function forceHideLoader() {
+        activeAjaxCount = 0;
+        $('#loader').hide();
+        if ($('#page-loader').length > 0) {
+            $('#page-loader').removeClass('fade in').addClass('fade in hide');
+        }
+    }
+
+    // ================= Overall Tab Handlers =================
+    $("#AcademicYearDrop").on('change', function () {
+        LoadExamSetting();
+    });
+
+    function LoadExamSetting() {
+        var acYear = $("#AcademicYearDrop option:selected").text();
+        if (acYear && acYear !== "--- Select ---" && acYear !== "--select--") {
+            showLoader();
+            $.ajax({
+                url: "@Url.Action("GetExamSettingByACYear", "Examination")",
+                method: "POST",
+                dataType: "json",
+                data: { sAcyear: acYear },
+                success: function (data) {
+                    hideLoader();
+                    $("#ExamSettingDrop")
+                        .empty()
+                        .append('<option value="">--- Select ---</option>' + data);
+                    $('#ExamSettingDrop').selectpicker('refresh');
+                },
+                error: function () {
+                    forceHideLoader();
+                    alert('Internal Server Error!');
+                }
+            });
+        }
+    }
+
+    $('#ExamSettingDrop').on('change', function () {
+        var settingVal = $("#ExamSettingDrop").val();
+        if (settingVal && settingVal !== "--- Select ---" && settingVal !== "--select--") {
+            showLoader();
+            $.ajax({
+                url: '@Url.Action("BindSettingwiseInvigilationReportListAdmin", "Examination")',
+                type: "POST",
+                datatype: 'json',
+                data: { sAcYear: $("#AcademicYearDrop option:selected").text(), sSettingId: settingVal },
+                success: function (data) {
+                    $("#ExamInvigilationList").empty();
+                    $("#ExamInvigilationList").append(data);
+                    $("#StudentList").DataTable({
+                        dom: "lBfrtip", buttons: [{
+                            extend: "copy", className: "btn-sm"
+                        }, {
+                            extend: "excel", className: "btn-sm"
+                        }, {
+                            extend: "pdf", className: "btn-sm"
+                        }],
+                        responsive: !0, "paging": true, "ordering": true
+                    });
+                    hideLoader();
+                },
+                error: function (ex) {
+                    forceHideLoader();
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+    });
+
+    function printDiv(divName) {
+        var table = $('#StudentList').DataTable();
+        table.destroy();
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        loadContent('/Examination/ExamInvigilationReportForAdmin');
+    }
+
+    function Export() {
+        var table = $('#StudentList').DataTable();
+        table.destroy();
+        $('.dataTables_filter').addClass('hidden');
+        let file = new Blob([$('#ExamInvigilationList').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: "ExamInvigilation.xls"
+        }).appendTo("body").get(0).click();
+        $("#StudentList").DataTable({
+            dom: "lBfrtip", buttons: [{
+                extend: "copy", className: "btn-sm"
+            }, {
+                extend: "excel", className: "btn-sm"
+            }, {
+                extend: "pdf", className: "btn-sm"
+            }],
+            responsive: !0, "paging": true, "ordering": true
+        });
+    }
+
+    // ================= Date & Session Wise Tab Handlers =================
+
+    // Sync from Tab 1 if switching to Tab 2
+    $('a[href="#tab-datesession"]').on('shown.bs.tab', function () {
+        var overallAcYear = $("#AcademicYearDrop option:selected").text();
+        var overallSetting = $("#ExamSettingDrop").val();
+        if (overallAcYear && overallAcYear !== "--- Select ---" && overallAcYear !== "--select--" && (!$("#dsAcademicYear").val() || $("#dsAcademicYear").val() === "")) {
+            $("#dsAcademicYear option").filter(function () { return $(this).text().trim() === overallAcYear.trim(); }).prop("selected", true);
+            $("#dsAcademicYear").selectpicker('refresh');
+            LoadDateSessionExamSetting(function () {
+                if (overallSetting && overallSetting !== "--- Select ---" && overallSetting !== "--select--") {
+                    $("#dsExamSetting").val(overallSetting).selectpicker('refresh');
+                    LoadDateSessionDates();
+                }
+            });
+        }
+    });
+
+    $("#dsAcademicYear").on('change', function () {
+        LoadDateSessionExamSetting();
+    });
+
+    function LoadDateSessionExamSetting(callback) {
+        var acYear = $("#dsAcademicYear option:selected").text();
+        if (acYear && acYear !== "--- Select ---" && acYear !== "--select--") {
+            showLoader();
+            $.ajax({
+                url: "@Url.Action("GetExamSettingByACYear", "Examination")",
+                method: "POST",
+                dataType: "json",
+                data: { sAcyear: acYear },
+                success: function (data) {
+                    hideLoader();
+                    $("#dsExamSetting").empty().append('<option value="">--select--</option>' + data);
+                    $("#dsExamSetting").selectpicker('refresh');
+                    $("#dsExamDate").empty().append('<option value="">-- All Dates --</option>').selectpicker('refresh');
+                    $("#dsSession").empty().append('<option value="">-- All Sessions --</option>').selectpicker('refresh');
+                    if (typeof callback === "function") callback();
+                },
+                error: function () {
+                    forceHideLoader();
+                    alert('Internal Server Error!');
+                }
+            });
+        }
+    }
+
+    $("#dsExamSetting").on('change', function () {
+        LoadDateSessionDates();
+    });
+
+    function LoadDateSessionDates(callback) {
+        var settingId = $("#dsExamSetting").val();
+        if (settingId && settingId !== "--select--" && settingId !== "--- Select ---") {
+            showLoader();
+            $.ajax({
+                url: "@Url.Action("GetInvigilationDatesBySettingId", "Examination")",
+                method: "POST",
+                dataType: "json",
+                data: { sSettingId: settingId },
+                success: function (data) {
+                    hideLoader();
+                    $("#dsExamDate").empty().append(data);
+                    $("#dsExamDate").selectpicker('refresh');
+                    LoadDateSessionSessions(function () {
+                        LoadDateSessionReport();
+                    });
+                    if (typeof callback === "function") callback();
+                },
+                error: function () {
+                    forceHideLoader();
+                    swal({ title: "Error", text: "Failed to load invigilation dates", type: "error" });
+                }
+            });
+        } else {
+            $("#dsExamDate").empty().append('<option value="">-- All Dates --</option>').selectpicker('refresh');
+            $("#dsSession").empty().append('<option value="">-- All Sessions --</option>').selectpicker('refresh');
+            $("#divDateSessionReport").empty();
+        }
+    }
+
+    $("#dsExamDate").on('change', function () {
+        LoadDateSessionSessions(function () {
+            LoadDateSessionReport();
+        });
+    });
+
+    function LoadDateSessionSessions(callback) {
+        var settingId = $("#dsExamSetting").val();
+        var examDate = $("#dsExamDate").val();
+        if (settingId && settingId !== "--select--" && settingId !== "--- Select ---") {
+            showLoader();
+            $.ajax({
+                url: "@Url.Action("GetInvigilationSessionsBySettingAndDate", "Examination")",
+                method: "POST",
+                dataType: "json",
+                data: { sSettingId: settingId, sExamDate: examDate },
+                success: function (data) {
+                    hideLoader();
+                    $("#dsSession").empty().append(data);
+                    $("#dsSession").selectpicker('refresh');
+                    if (typeof callback === "function") callback();
+                },
+                error: function () {
+                    forceHideLoader();
+                    swal({ title: "Error", text: "Failed to load invigilation sessions", type: "error" });
+                }
+            });
+        }
+    }
+
+    $("#dsSession").on('change', function () {
+        LoadDateSessionReport();
+    });
+
+    function LoadDateSessionReport(callback) {
+        var acYear = $("#dsAcademicYear option:selected").text();
+        var settingId = $("#dsExamSetting").val();
+        var examDate = $("#dsExamDate").val();
+        var sessionVal = $("#dsSession").val();
+
+        if (!settingId || settingId === "--select--" || settingId === "--- Select ---") {
+            return;
+        }
+
+        showLoader();
+        $.ajax({
+            url: '@Url.Action("BindDateAndSessionWiseInvigilationReport", "Examination")',
+            type: 'POST',
+            data: {
+                sAcYear: acYear,
+                sSettingId: settingId,
+                sExamDate: examDate,
+                sSession: sessionVal
+            },
+            success: function (data) {
+                hideLoader();
+                $("#divDateSessionReport").html(data);
+                if (typeof callback === "function") callback();
+            },
+            error: function () {
+                forceHideLoader();
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error' });
+            }
+        });
+    }
+
+    function PrintDateSessionReport() {
+        if ($("#divDateSessionReport").is(':empty') || $("#divDateSessionReport").find(".invigilation-page").length === 0) {
+            LoadDateSessionReport(function () {
+                setTimeout(function () {
+                    window.print();
+                }, 300);
+            });
+        } else {
+            window.print();
+        }
+    }
+
+    function PrintFormattedFromOverall() {
+        var settingId = $("#ExamSettingDrop").val();
+        var acYear = $("#AcademicYearDrop option:selected").text();
+        if (!settingId || settingId === "--- Select ---" || settingId === "--select--") {
+            swal({ title: "Select Exam Setting", text: "Please select an Exam Setting to print the report", type: "warning" });
+            return;
+        }
+
+        showLoader();
+        $('a[href="#tab-datesession"]').tab('show');
+        $("#dsAcademicYear option").filter(function () { return $(this).text().trim() === acYear.trim(); }).prop("selected", true);
+        $("#dsAcademicYear").selectpicker('refresh');
+
+        LoadDateSessionExamSetting(function () {
+            $("#dsExamSetting").val(settingId).selectpicker('refresh');
+            LoadDateSessionDates(function () {
+                $("#dsExamDate").val("").selectpicker('refresh');
+                $("#dsSession").val("").selectpicker('refresh');
+                LoadDateSessionReport(function () {
+                    hideLoader();
+                    setTimeout(function () {
+                        window.print();
+                    }, 350);
+                });
+            });
+        });
+    }
+
+    function ExportDateSessionExcel() {
+        if ($("#divDateSessionReport").is(':empty') || $("#divDateSessionReport").find("table").length === 0) {
+            swal({ title: "No Data", text: "Please generate the report before exporting", type: "warning" });
+            return;
+        }
+        let file = new Blob([$('#divDateSessionReport').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: "InvigilationListDateSessionWise.xls"
+        }).appendTo("body").get(0).click();
+    }
+</script>

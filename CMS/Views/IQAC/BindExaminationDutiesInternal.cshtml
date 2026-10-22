@@ -1,0 +1,111 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+
+
+@{
+    Layout = null;
+    int nCount = 0;
+    string sDomData = string.Empty;
+}
+
+
+<!-- ================== BEGIN PAGE LEVEL CSS STYLE ================== -->
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<!-- ================== END PAGE LEVEL CSS STYLE ================== -->
+<div class="form-group">
+    <table class="table table-bordered table-responsive" id="tblIQAC">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Class Code</th>
+                <th>Semester</th>
+                <th>Paper Setting</th>
+                <th>Examination Date</th>
+                <th>Invigilators</th>
+                <th>Paper</th>
+                <th>Papers</th>
+                <th>Assignments</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @functions{
+                public string BindWorload()
+                {
+                    string sDom = string.Empty;
+                    sDom = @"<td><input type='number' cms-IQACID='' class='form-control' value='' data-parsley-required='true'/></td>
+                             < td>
+                                    <div class='input-group date' id='datetimepicker'>
+                                          <input type ='text' class='form-control' value='' data-parsley-required='true'/>
+                                        <span class='input-group-addon bg-purple'><i class='fa fa-calendar'></i></span>
+                                    </div>
+                             </td>
+                             <td><input type='number' cms-IQACID='' class='form-control' value='' data-parsley-required='true'/> </td>
+                             <td><input type='number' cms-IQACID='' class='form-control' value='' data-parsley-required='true'/> </td>
+                             <td><input type='number' cms-IQACID='' class='form-control' value='' data-parsley-required='true'/> </td>
+                             <td><input type='number' cms-IQACID='' class='form-control' value='' data-parsley-required='true'/> </td>
+                             <td></td>";
+                    return sDom;
+                }
+            }
+            @if (Model.liClassCourseStaff != null && Model.liClassCourseStaff.Count > 0)
+            {
+                foreach (var item in Model.liClassCourseStaff)
+                {
+                    <tr cms-ClassId="@item.CLASS_ID">
+                        <td>@{nCount++;} @nCount</td>
+                        <td>@item.CLASS_CODE</td>
+                        <td>@item.SEMESTER_ID</td>
+                        @if (Model.liExaminationDutiesInternal != null && Model.liExaminationDutiesInternal.Count > 0)
+                        {
+                            var liExaminationDutiesInternal = Model.liExaminationDutiesInternal.Where(x => x.CLASS_ID == item.CLASS_ID).ToList();
+                            if (liExaminationDutiesInternal != null && liExaminationDutiesInternal.Count > 0)
+                            {
+                                <td><input type="number" class="form-control" cms-IQACID="@liExaminationDutiesInternal.FirstOrDefault().IQAC_ID" value="@liExaminationDutiesInternal.FirstOrDefault().PAPER_SETTING" data-parsley-required="true"/> </td>
+                                <td>
+                                    <div class="input-group date" id="datetimepicker">
+                                        <input type="text" class="form-control " value="@liExaminationDutiesInternal.FirstOrDefault().EXAMINATION_DTATE" data-parsley-required="true"/>
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </td>
+                                <td><input type="number" class="form-control" cms-IQACID="@liExaminationDutiesInternal.FirstOrDefault().IQAC_ID" value="@liExaminationDutiesInternal.FirstOrDefault().INVIGILATORS" data-parsley-required="true"/> </td>
+                                <td><input type="number" class="form-control" cms-IQACID="@liExaminationDutiesInternal.FirstOrDefault().IQAC_ID" value="@liExaminationDutiesInternal.FirstOrDefault().PAPER" data-parsley-required="true"/> </td>
+                                <td><input type="number" class="form-control" cms-IQACID="@liExaminationDutiesInternal.FirstOrDefault().IQAC_ID" value="@liExaminationDutiesInternal.FirstOrDefault().PAPERS" data-parsley-required="true"/> </td>
+                                <td><input type="number" class="form-control" cms-IQACID="@liExaminationDutiesInternal.FirstOrDefault().IQAC_ID" value="@liExaminationDutiesInternal.FirstOrDefault().ASSIGNMENTS" data-parsley-required="true"/> </td>
+                                <td><a onclick="GetConfrim(@liExaminationDutiesInternal.FirstOrDefault().IQAC_ID)" href="javascript:;"><i class="fa fa-trash text-danger" title="Click To Delete"></i></a></td>
+                            }
+                            else
+                            {
+                                sDomData = BindWorload();
+                                @Html.Raw(sDomData)
+                            }
+                        }
+                        else
+                        {
+                            sDomData = BindWorload();
+                            @Html.Raw(sDomData)
+                        }
+                    </tr>
+                                }
+                            }
+        </tbody>
+    </table>
+</div>
+
+
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script>
+    handleDatepicker = function ()
+    {
+        "use strict";
+        $(".date").datepicker({
+            todayHighlight: !0,
+            autoclose: !0,
+            format: "dd/mm/yyyy",
+            orientation: "right bottom"
+            // 'top': top,
+            // 'left': left
+        })
+    }
+    handleDatepicker();
+</script>

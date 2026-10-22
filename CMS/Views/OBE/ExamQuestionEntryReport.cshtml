@@ -1,0 +1,354 @@
+@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    ViewBag.Title = "OBE Course Entry Dashboard";
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+
+<style>
+    :root {
+        --primary: #2a5298;
+        --primary-light: #3d6bc8;
+        --secondary: #1e3a6e;
+        --accent: #4fa3e0;
+    }
+
+    @@media print {
+        .no-print, .header, .sidebar, .breadcrumb, .page-header {
+            display: none !important;
+        }
+        #report-container {
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+    }
+
+    .radio-toolbar {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .radio-toolbar input[type="radio"] {
+        display: none;
+    }
+
+    .radio-toolbar label {
+        display: inline-flex;
+        align-items: center;
+        background-color: #f1f5f9;
+        padding: 7px 14px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        color: #64748b;
+        transition: all 0.2s;
+        margin: 0;
+    }
+
+    .radio-toolbar label:hover {
+        background-color: #e2e8f0;
+    }
+
+    .radio-toolbar input[type="radio"]:checked + label {
+        background-color: #eff6ff;
+        border-color: #3b82f6;
+        color: #1d4ed8;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.15);
+    }
+
+    /* Override bootstrap-select for multi-select tags */
+    .bootstrap-select .dropdown-toggle {
+        border-radius: 6px;
+    }
+
+    .filter-section-title {
+        font-weight: 700;
+        color: #1e3a6e;
+        font-size: 1rem;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+</style>
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">OBE</a></li>
+        <li class="active">OBE Course Entry Dashboard</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <h1 class="page-header">OBE Course Entry Dashboard</h1>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-inverse" style="border-radius:12px; overflow:hidden; box-shadow: 0 6px 24px rgba(0,0,0,0.09);">
+                <div class="panel-heading" style="background: linear-gradient(135deg, #1e3a6e 0%, #2a5298 60%, #4fa3e0 100%); border-radius: 0;">
+                    <h4 class="panel-title" style="color:#fff; font-weight:700; margin:0;">
+                        <i class="fa fa-dashboard" style="margin-right:8px;"></i> Course Entry Status Dashboard
+                    </h4>
+                </div>
+                <div class="panel-body">
+
+                    <!-- Filter Section -->
+                    <div class="no-print" style="border-bottom: 2px solid #f1f5f9; padding-bottom: 18px; margin-bottom: 20px;">
+                        <div class="filter-section-title">
+                            <i class="fa fa-filter" style="color:#2a5298;"></i> Filter Options
+                        </div>
+
+                        <div class="row" style="align-items: flex-end;">
+                            <!-- Academic Year -->
+                            <div class="col-md-3 col-sm-6">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-weight:600; font-size:13px; color:#374151;">
+                                        <i class="fa fa-calendar" style="color:var(--primary); margin-right:4px;"></i> Academic Year
+                                    </label>
+                                    <select class="form-control" id="ddlAcademicYear" style="border-radius:6px;">
+                                        <option value="">-- Select Academic Year --</option>
+                                        @if (Model.AcademicYearList != null)
+                                        {
+                                            foreach (System.Web.Mvc.SelectListItem item in Model.AcademicYearList)
+                                            {
+                                                <option value="@item.Value">@item.Text</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Semester Multi-Select -->
+                            <div class="col-md-4 col-sm-6">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-weight:600; font-size:13px; color:#374151;">
+                                        <i class="fa fa-clock-o" style="color:var(--primary); margin-right:4px;"></i> Semester
+                                        <span style="font-size:11px; color:#6b7280; font-weight:400;">(Multiple allowed)</span>
+                                    </label>
+                                    <select class="form-control selectpicker show-menu-arrow show-tick"
+                                            id="ddlSemester"
+                                            multiple
+                                            data-live-search="true"
+                                            data-actions-box="true"
+                                            data-selected-text-format="count > 1"
+                                            data-count-selected-text="{0} Semesters Selected"
+                                            title="-- All Semesters --"
+                                            data-width="100%">
+                                        @if (Model.SemesterList != null)
+                                        {
+                                            foreach (System.Web.Mvc.SelectListItem item in Model.SemesterList)
+                                            {
+                                                <option value="@item.Value">@item.Text</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Entry Status Radio -->
+                            <div class="col-md-3 col-sm-6">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="display:block; font-weight:600; font-size:13px; color:#374151;">
+                                        <i class="fa fa-tasks" style="color:var(--primary); margin-right:4px;"></i> Entry Status
+                                    </label>
+                                    <div class="radio-toolbar">
+                                        <input type="radio" id="status_entered" name="course_status" value="Entered">
+                                        <label for="status_entered">
+                                            <i class="fa fa-check-circle" style="color:#10b981; margin-right:4px;"></i> Entered
+                                        </label>
+
+                                        <input type="radio" id="status_not_entered" name="course_status" value="Not Entered">
+                                        <label for="status_not_entered">
+                                            <i class="fa fa-times-circle" style="color:#ef4444; margin-right:4px;"></i> Not Entered
+                                        </label>
+
+                                        <input type="radio" id="status_both" name="course_status" value="Both" checked>
+                                        <label for="status_both">
+                                            <i class="fa fa-list-ul" style="color:#64748b; margin-right:4px;"></i> Both
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Load Button -->
+                            <div class="col-md-2 col-sm-6" style="text-align:right;">
+                                <button class="btn btn-primary" id="btnSearch" onclick="loadReport()"
+                                        style="border-radius:8px; padding:9px 22px; font-weight:600; margin-top:20px;">
+                                    <i class="fa fa-search"></i> Load
+                                </button>
+                                &nbsp;
+                                <button class="btn btn-success" id="btnPrint" onclick="window.print()"
+                                        style="display:none; border-radius:8px; padding:9px 16px; font-weight:600; margin-top:20px;">
+                                    <i class="fa fa-print"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report Container -->
+                    <div id="report-container">
+                        <div class="text-center" style="padding: 50px 20px; color: #94a3b8;">
+                            <i class="fa fa-dashboard fa-4x" style="margin-bottom: 12px; opacity: 0.4; display:block;"></i>
+                            <p style="font-size:1rem; font-weight:500;">Select Academic Year and click <strong>Load</strong> to view course entry statistics.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Question Paper Preview Modal (same as ExamQuestionEntry) -->
+<div class="modal fade" id="previewQPModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" style="width: 90%; max-width: 1100px; margin: 30px auto;" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color:#fff;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:1;"><span>&times;</span></button>
+                <h4 class="modal-title" style="color:#fff;"><i class="fa fa-file-text-o" style="margin-right:6px;"></i> Question Paper Preview</h4>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <div class="no-print" style="padding: 10px 15px; background:#f8f9fa; border-bottom: 1px solid #ddd;">
+                    <button class="btn btn-primary btn-sm" onclick="PrintPreview()"><i class="fa fa-print"></i> Print</button>
+                    &nbsp;
+                    <button class="btn btn-info btn-sm" onclick="DownloadWord()"><i class="fa fa-file-word-o"></i> Download Word (.doc)</button>
+                </div>
+                <div id="previewModalContent" style="padding: 15px; min-height: 300px; max-height: 75vh; overflow-y: auto;">
+                    <div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading preview...</div>
+                </div>
+            </div>
+            <div class="modal-footer no-print">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Initialize selectpicker
+        $('#ddlSemester').selectpicker('refresh');
+
+        // Reset report when filters change
+        $('#ddlAcademicYear, input[name="course_status"]').on('change', function () {
+            resetReport();
+        });
+
+        $('#ddlSemester').on('changed.bs.select', function () {
+            resetReport();
+        });
+    });
+
+    function resetReport() {
+        $('#report-container').html(
+            '<div class="text-center" style="padding:50px 20px;color:#94a3b8;"><i class="fa fa-dashboard fa-4x" style="margin-bottom:12px;opacity:0.4;display:block;"></i><p style="font-size:1rem;font-weight:500;">Click <strong>Load</strong> to apply your changes.</p></div>'
+        );
+        $('#btnPrint').hide();
+    }
+
+    function loadReport() {
+        var sAcYear = $('#ddlAcademicYear').val();
+        var sSemesterArr = $('#ddlSemester').val();
+        var sStatus = $('input[name="course_status"]:checked').val();
+
+        if (!sAcYear) {
+            swal({ title: 'Validation', text: 'Please select an Academic Year.', type: 'warning', confirmButtonColor: '#2a5298' });
+            return;
+        }
+
+        var sSemester = (sSemesterArr && sSemesterArr.length > 0) ? sSemesterArr.join(',') : '';
+
+        $('#report-container').html(
+            '<div class="text-center" style="padding:60px 20px;">' +
+            '<i class="fa fa-spinner fa-spin fa-3x" style="color:#2a5298;margin-bottom:15px;display:block;"></i>' +
+            '<p style="font-weight:600;color:#64748b;">Loading dashboard, please wait...</p></div>'
+        );
+        $('#btnPrint').hide();
+
+        $.ajax({
+            url: '@Url.Action("BindExamQuestionReport", "OBE")',
+            type: 'GET',
+            data: { sAcYear: sAcYear, sSemester: sSemester, sStatus: sStatus },
+            success: function (response) {
+                $('#report-container').html(response);
+                $('#btnPrint').css('display', 'inline-block');
+            },
+            error: function (xhr) {
+                $('#report-container').html(
+                    '<div class="alert alert-danger" style="margin:20px;">' +
+                    '<i class="fa fa-exclamation-triangle"></i> Error loading dashboard. Please try again. ' +
+                    (xhr.status ? '(HTTP ' + xhr.status + ')' : '') +
+                    '</div>'
+                );
+            }
+        });
+    }
+
+    // ---- Preview functions (identical to ExamQuestionEntry.cshtml) ----
+
+    function PreviewQuestionPaper(courseId, examSettingId) {
+        if (!courseId) {
+            alert('Invalid course. Cannot preview questions.');
+            return;
+        }
+
+        $('#previewModalContent').html('<div class="text-center" style="padding:40px 0;"><i class="fa fa-spinner fa-spin fa-3x"></i><br/><br/>Loading preview...</div>');
+        $('#previewQPModal').modal('show');
+
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("PreviewQuestionPaper", "OBE")',
+            data: { courseId: courseId, examSettingId: examSettingId || 0 },
+            success: function (result) {
+                $('#previewModalContent').html(result);
+                if (typeof MathJax !== 'undefined') {
+                    MathJax.Hub.Queue(['Typeset', MathJax.Hub, 'previewModalContent']);
+                }
+            },
+            error: function () {
+                $('#previewModalContent').html('<div class="alert alert-danger">Failed to load preview. Please try again.</div>');
+            }
+        });
+    }
+
+    function PrintPreview() {
+        var content = document.getElementById('previewModalContent').innerHTML;
+        var printWin = window.open('', '_blank', 'width=900,height=700');
+        printWin.document.write('<html><head><title>Question Paper</title>');
+        printWin.document.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">');
+        printWin.document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML"><\/script>');
+        printWin.document.write('<style>body{font-family:"Times New Roman",Times,serif;font-size:13px;margin:20px;} .no-print{display:none;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #999;padding:5px 8px;} th{background:#e8e8e8;}</style>');
+        printWin.document.write('</head><body>');
+        printWin.document.write(content);
+        printWin.document.write('</body></html>');
+        printWin.document.close();
+        printWin.focus();
+        setTimeout(function () { printWin.print(); }, 1000);
+    }
+
+    function DownloadWord() {
+        var content = document.getElementById('previewModalContent').innerHTML;
+        var header = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Question Paper</title>' +
+            '<style>body{font-family:"Times New Roman",Times,serif;font-size:12pt;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #999;padding:5px 8px;} th{background:#e8e8e8;} .no-print{display:none;}</style></head><body>';
+        var footer = '</body></html>';
+        var blob = new Blob([header + content + footer], { type: 'application/msword' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'QuestionPaper.doc';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+</script>

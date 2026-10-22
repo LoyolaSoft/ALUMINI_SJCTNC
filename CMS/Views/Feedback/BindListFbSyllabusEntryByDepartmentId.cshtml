@@ -1,0 +1,207 @@
+﻿
+@{
+    ViewBag.Title = "BindListFbSyllabusEntryByDepartmentId";
+}
+
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+
+@{
+    Layout = null;
+    string sFilePath = string.Empty;
+}
+
+@*<div class="form-group">
+        @{sFilePath = "/Syllabus/" + Model.Question + ".pdf"; }
+        <a href="@sFilePath" class="btn btn-success pull-right">View Syllabus</a>
+    </div>*@
+
+<div class="form-group row  col-md-12 text-center" id="printDiv">
+
+    <div class="form-group text-center">
+        @*<img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO)" />*@
+        <img src="~/Content/hcc_img/SJCTNC_LOGO.png" style=" height:110px" />
+    </div>
+
+    <div class="form-group text-center">
+        <!--<h4>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME</h4>
+        <h5>
+            CUDDALORE-->
+        @*@Model.liCollegeDetails.FirstOrDefault().UNIVERSITY<br />*@
+        @*@Html.Raw(Model.liCollegeDetails.FirstOrDefault().GRADE.Replace("rd", "<sup>rd</sup>"))<br />*@
+        <!--</h5>-->
+        <h4>Feedback Report on <span id="dvFbSetting"></span></h4>
+
+        @*<div class="form-group col-xs-12">
+                <div class="form-group col-xs-6 pull-left">
+                    <label>Department : <span id="lblDepartment"></span></label>
+                </div>
+                <div class="form-group col-xs-6 pull-right">
+                    <label> Course : <span id="lblCourse"></span></label>
+                </div>
+            </div>*@
+    </div>
+</div>
+<div class="form-group" style="page-break-after:avoid !important;">
+    <div class="text-center ">
+        <h4>Overall Syllabus Report</h4>
+    </div>
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Question</th>
+                @*<th>Total Count</th>*@
+                <th>No of Feedback</th>
+                <th>Answer</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.QuestionList != null && Model.QuestionList.Count > 0 && Model.liOptions != null && Model.liOptions.Count > 0)
+            {
+                foreach (var item in Model.QuestionList)
+                {
+                    var liOptions = Model.liOptions.Where(x => x.QUESTION_ID == item.QUESTION_ID).ToList();
+                    <tr>
+                        <td>@item.QUESTION</td>
+
+                        @if (Model.liSyllabusEvaluationStudent != null && Model.liSyllabusEvaluationStudent.Count > 0)
+                        {
+
+                            foreach (var Countitem in Model.liSyllabusEvaluationStudent)
+                            {
+                                double totalcount = 0;
+
+                                if (Countitem.STU_COUNT != "0")
+                                {
+                                    var liAnswers = Model.liSyllabusEvaluationOption.Where(x => x.QUESTION_ID == item.QUESTION_ID).ToList();
+                                    totalcount = liAnswers.Sum(x => Convert.ToDouble(x.ANS_COUNT));
+                                    @*<td>@Countitem.STU_COUNT</td>*@
+                                    @*<td>@Countitem.ATT_COUNT</td>*@
+                                    <td>@totalcount</td>
+                                    break;
+                                }
+
+                            }
+                        }
+
+                        <td>
+                            @if (liOptions != null && liOptions.Count > 0)
+                            {
+                                foreach (var opitem in liOptions)
+                                {
+                                    double optionCount = 0;
+                                    if (Model.liSyllabusEvaluationOption != null && Model.liSyllabusEvaluationOption.Count > 0)
+                                    {
+                                        var liAnswers = Model.liSyllabusEvaluationOption.Where(x => x.QUESTION_ID == item.QUESTION_ID && x.ANSWER_ID == opitem.OPTION_ID).ToList();
+
+                                        if (liAnswers != null && liAnswers.Count > 0)
+                                        {
+                                            optionCount = liAnswers.Sum(x => Convert.ToDouble(x.ANS_COUNT));
+
+                                            <b>@opitem.OPTION_NAME &nbsp;</b> <label class="label label-primary"> @optionCount</label>
+                                        }
+                                    }
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.liCourseList != null && Model.liCourseList.Count > 0)
+{
+    
+        int recordCount = 0; // Initialize a counter to keep track of records.
+    
+
+    foreach (var courseID in Model.liCourseList)
+    {
+        recordCount++; // Increment the counter at the beginning of each iteration.
+
+        <div style="page-break-inside: avoid;">
+
+            <div class="form-group row col-md-12 text-center">
+                <div class="form-group text-center">
+                    <div class="form-group col-xs-12">
+                        <div class="form-group col-xs-6 pull-left">
+                            <label>Department :<b>@courseID.DEPARTMENT </b> </label>
+                        </div>
+                        <div class="form-group col-xs-6 pull-right">
+                            <label> Course :<b> @courseID.COURSE_TITLE </b> </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Question</th>
+                            <th>No of Feedback</th>
+                            <th>Answer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.QuestionList != null && Model.QuestionList.Count > 0 && Model.liOptions != null && Model.liOptions.Count > 0)
+                        {
+                            foreach (var item in Model.QuestionList)
+                            {
+                                var liOptions = Model.liOptions.Where(x => x.QUESTION_ID == item.QUESTION_ID).ToList();
+                                <tr>
+                                    <td>@item.QUESTION</td>
+
+                                    @if (Model.liSyllabusEvaluationStudent != null && Model.liSyllabusEvaluationStudent.Count > 0)
+                                    {
+                                        foreach (var Countitem in Model.liSyllabusEvaluationStudent)
+                                        {
+                                            double totalcount = 0;
+                                            if (Countitem.COURSE_ID == courseID.COURSE_ROOT_ID)
+                                            {
+                                                if (Countitem.STU_COUNT != "0")
+                                                {
+                                                    var liAnswers = Model.liSyllabusEvaluationOption.Where(x => x.QUESTION_ID == item.QUESTION_ID && x.COURSE_ID == courseID.COURSE_ROOT_ID).ToList();
+                                                    totalcount = liAnswers.Sum(x => Convert.ToDouble(x.ANS_COUNT));
+                                                    <td>@totalcount</td>
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    <td>
+                                        @if (liOptions != null && liOptions.Count > 0)
+                                        {
+                                            foreach (var opitem in liOptions)
+                                            {
+                                                if (Model.liSyllabusEvaluationOption != null && Model.liSyllabusEvaluationOption.Count > 0)
+                                                {
+                                                    var liAnswers = Model.liSyllabusEvaluationOption.Where(x => x.QUESTION_ID == item.QUESTION_ID && x.ANSWER_ID == opitem.OPTION_ID && x.COURSE_ID == courseID.COURSE_ROOT_ID).ToList();
+
+                                                    if (liAnswers != null && liAnswers.Count > 0)
+                                                    {
+                                                        <b>@opitem.OPTION_NAME &nbsp;</b>
+                                                        <label class="label label-primary"> @liAnswers.FirstOrDefault().ANS_COUNT</label>
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @* Add a page break after every two records *@
+        if (recordCount % 2 == 0)
+        {
+            <div style="page-break-after: always;"></div>
+        }
+    }
+
+
+}

@@ -1,0 +1,797 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+@using System.Security.Cryptography
+@using System.Text
+@{
+    Layout = null;
+    int nCount = 0;
+    string sDomData = string.Empty;
+    string sSelected = string.Empty;
+}
+
+<!-- ================== BEGIN PAGE LEVEL CSS STYLE ================== -->
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<!-- ================== END PAGE LEVEL CSS STYLE ================== -->
+<style>
+    .fileinput-button input {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 0;
+        opacity: 0;
+        -ms-filter: 'alpha(opacity=0)';
+        font-size: 200px !important;
+        direction: ltr;
+        cursor: pointer;
+    }
+
+    button, input, optgroup, select, textarea {
+        margin: 0;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+    }
+
+    .btn {
+        font-weight: 600;
+        line-height: 20px;
+        padding: 6px 12px;
+        transition: all .1s ease-in-out;
+        box-shadow: none !important;
+    }
+
+        .btn:not(:disabled):not(.disabled) {
+            cursor: pointer;
+        }
+
+    .fileinput-button {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    .btn, .input-group-addon:focus {
+        outline: 0 !important;
+    }
+</style>
+<style type="text/css">
+    .attached-document {
+        list-style-type: none;
+        margin: 15px 0 0;
+        padding: 0;
+    }
+
+    .bg-white {
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    .attached-document > li {
+        width: 180px;
+        float: left;
+        background: #fff;
+        color: #222;
+        font-weight: 600;
+        position: relative;
+        margin-right: 15px;
+        margin-bottom: 15px;
+        border: 1px solid #d9dfe5;
+    }
+
+    .fa-file:before {
+        /*content: "\f15b";*/
+    }
+
+    .attached-document > li .document-file {
+        height: 70px;
+        background: 0 0;
+        overflow: hidden;
+        text-align: center;
+        line-height: 70px;
+        font-size: 32px;
+        margin: -1px;
+    }
+
+    .attached-document > li .document-name {
+        padding: 5px 10px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        background: #f1f3f4;
+    }
+
+    .fa-camera:before {
+        /*content: "\f030";*/
+    }
+
+    z-depth-1, .grievance, nav, .card-panel, .card, .toast, .dropdown-content, .collapsible, .side-nav {
+        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    .widget-chat .widget-chat-body {
+        padding: 5px;
+        background: #f5f5f5;
+    }
+
+    .widget-chat .widget-chat-media {
+        width: 59px;
+        height: 57px;
+        /*position: absolute;*/
+        bottom: 3px;
+        left: 0;
+        border-radius: 38px;
+        overflow: hidden;
+        text-align: center;
+        line-height: 38px;
+    }
+
+    .widget-chat .with-media .widget-chat-info {
+        /*margin-left: 53px;*/
+        min-width: 60%;
+    }
+
+    .widget-chat .widget-chat-info-container {
+        background: #fff;
+        /*display: inline-block;*/
+        padding: 8px 12px;
+        border-radius: 18px;
+        position: relative;
+        /*color: #fff;*/
+    }
+
+    .widget-chat .widget-chat-item {
+        color: #000;
+        position: relative;
+        min-height: 38px;
+        padding: 3px 0;
+    }
+
+    .widget-chat .widget-chat-name {
+        font-weight: 600;
+        padding: 5px;
+    }
+
+    .text-indigo {
+        color: #5856D6 !important;
+    }
+
+    .widget-chat .widget-chat-message {
+        font-weight: 600;
+        color: #222;
+        padding: 5px;
+    }
+
+    .widget-chat .widget-chat-time {
+        position: absolute;
+        right: 12px;
+        bottom: 8px;
+        font-style: italic;
+        color: #999;
+        font-weight: 500;
+        font-size: 11px;
+    }
+</style>
+@functions
+{
+    int bCount = 0;
+
+    public string BindFileDom(int index)
+    {
+        string fileDom = string.Empty;
+        fileDom = @"<div class='col-md-3'>" +
+                                     "<span class='btn btn-primary fileinput-button m-r-3'>" +
+                                         "<i class='fa fa-plus'></i>" +
+                                         "<span>" +
+                                            " Add File..." +
+                                             "<input type='file' id='fAttachmentForIQAC" + index + "' class='form-control' onchange=readFiles('fAttachmentForIQAC" + index + "','files" + index + "')>" +
+                                         "</span>" +
+                                     "</span>" +
+                                 "</div>" +
+              "<div class='col-md-12 table-responsive'>" +
+              "<table class='table m-b-0'>" +
+              "<thead>" +
+              "<tr>" +
+                        "<th>PREVIEW</th>" +
+                        "<th>FILE INFO</th>" +
+                        "<th>ACTION</th>" +
+               "</tr>" +
+              "</thead>" +
+                "<tbody id='files" + index + "'>" +
+                "</tbody>" +
+            "</table>" +
+        "</div>" +
+    "</div>";
+        return fileDom;
+    }
+
+
+    public string GetuniqueNameForImage(string pathName)
+    {
+        //var fileName = file.name;
+        //var File = fileName.split(".");
+        string sgrievanceCode = string.Empty;
+        sgrievanceCode = pathName;
+        StringBuilder builder = new StringBuilder();
+        byte[] hash;
+        using (HMACSHA1 sha1 = new HMACSHA1(ASCIIEncoding.ASCII.GetBytes(sgrievanceCode)))
+        {
+            hash = sha1.ComputeHash(UTF8Encoding.UTF8.GetBytes(pathName));
+            Random random = new Random();
+            for (int i = 0; i < 4; i++)
+            {
+                builder.Append(random.Next(i, hash.Length));
+            }
+
+        }
+        return builder.ToString();
+    }
+
+
+
+    public string EncryptString(string inputString)
+    {
+        byte[] b = System.Text.ASCIIEncoding.ASCII.GetBytes(inputString);
+        string encrypted = Convert.ToBase64String(b);
+        return encrypted;
+    }
+
+    public string BindFileDom1(string filePath)
+    {
+        string fileDom = string.Empty;
+        string fileDom1 = string.Empty;
+        var TotalPath = filePath.Split(',');
+        var extension = string.Empty;
+        var uniqueName = string.Empty;
+        var UniqueBodyName = string.Empty;
+        var UniqueFileName = string.Empty;
+        var UniqueNameForFileCancel = string.Empty;
+        var EncryptImagePath = string.Empty;
+        int fCount = 0;
+        var result = string.Empty;
+        string Dom1 = string.Empty;
+        Dom1 = @"<div class='col-md-12 table-responsive'>" +
+                   "<table class='table m-b-0'>" +
+                   "<thead>" +
+                   "<tr>" +
+                             "<th>PREVIEW</th>" +
+                             "<th>FILE INFO</th>" +
+                             "<th>ACTION</th>" +
+                    "</tr>" +
+                   "</thead>" +
+                     "<tbody id='thisid'>" +
+                       "dataforbind" +
+                     "</tbody>" +
+                 "</table>" +
+             "</div>";
+
+
+
+        foreach (var path in TotalPath)
+        {
+            var File = path.Split('.');
+            // var filename = path.match(/[-_\w]+[.][\w]+$/i)[0];
+            var filename = System.IO.Path.GetFileName(path);
+
+            extension = File[1];
+            uniqueName = GetuniqueNameForImage(path);
+            uniqueName = uniqueName + bCount;
+            UniqueNameForFileCancel = uniqueName + fCount;
+            UniqueBodyName = uniqueName + "body";
+            UniqueFileName = uniqueName + "fAttachmentForIQAC" + fCount;
+            EncryptImagePath = EncryptString(path);
+            fileDom1 = extension.ToLower() == "jpg" || extension.ToLower() == "png" ? "<li class=''>" +
+                                          "<div class='document-file'>" +
+                                              "<a href='#'>" +
+                                                  "<img src=" + path + "   alt='' cms-update='1' width=77 height=80  height=''>" +
+                                              "</a>" +
+                                          "</div>" +
+                                          "<div class='document-name'><a href='" + path + "' download>" + filename + "</a></div>" +
+                                      "</li>" : "<li class=''>" +
+                                      "<div class='document-file'>" +
+                                      "<a href='#'>" +
+                                          "<i class='fa fa-file'></i>" +
+                                      "</a>" +
+                                      "</div>" +
+                                     "<div class='document-name'><a href='" + path + "' download  title=" + filename + " cms-update='1'>" + filename + "</a></div>" +
+                                "</li>";
+
+            result = "<ul class='attached-document clearfix'>" + fileDom1 + "</ul> ";
+
+
+
+
+
+
+
+            fileDom += "<tr id = " + UniqueNameForFileCancel + " cms-img-path='" + EncryptImagePath + "'> " +
+                                "<td>" +
+                                    "<span class='preview'>" + result + "</span>" +
+                                "</td>" +
+                                "<td>" +
+                                    "<div>" +
+                                        "<dl>" +
+                                            "<dt class=text-inverse>File Name:</dt>" +
+                                            "<dd class=name>" + filename + "</dd>" +
+                                        "</dl>" +
+                                    "</div>" +
+                                    "<strong class='error text-danger'></strong>" +
+                                "</td>" +
+
+                                "<td nowrap=>" +
+                                "<div class='col-md-4'>" +
+                                        "<button class='btn btn-default cancel width-100 p-r-20' onclick=FileCancel('" + UniqueNameForFileCancel + "')>" +
+                                        "<i class='fa fa-trash fa-fw pull-left m-t-2 m-r-5 text-muted'></i>" +
+                                            "<span>Cancel</span>" +
+                                        "</button>" +
+                                  "</div>" +
+                                  "<div class='col-md-4'>" +
+                                        "thisisforfile" +
+                                   "</div>" +
+
+
+                                "</td>" +
+                            "</tr>";
+
+
+
+
+            if (fCount == 0)
+            {
+                var fileDom3 = @"<span class='btn btn-primary fileinput-button m-r-3'>" +
+                                 "<i class='fa fa-plus'></i>" +
+                                 "<span>" +
+                                    " Add File..." +
+                                     "<input type='file' id='" + UniqueFileName + "' class='form-control' onchange=readFiles('" + UniqueFileName + "','" + UniqueBodyName + "')>" +
+                                 "</span>" +
+                             "</span>";
+                fileDom = fileDom.Replace("thisisforfile", fileDom3);
+
+                Dom1 = Dom1.Replace("thisid", UniqueBodyName);
+            }
+            else
+            {
+                fileDom = fileDom.Replace("thisisforfile", "");
+            }
+
+
+
+            fCount = fCount + 1;
+        }
+        Dom1 = Dom1.Replace("dataforbind", fileDom);
+
+
+        bCount++;
+        return Dom1;
+    }
+}
+
+<div class="form-horizontal">
+    <div class="form-group col-md-12">
+        <a class="btn btn-primary text-white pull-right" onclick="AddNewColumn()" href="javascript:;"><i class="fa fa-plus"></i> Click To Add New Row </a>
+    </div>
+
+    <div class="form-group col-md-12 table-responsive">
+        <table class="table table-bordered " id="tblIQAC">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Dept Code</th>
+                    <th>Date</th>
+                    <th>Activity Completed</th>
+                    <th>No Of Participants</th>
+                    <th>Place</th>
+                    <th>Name Of The Program</th>
+                    <th>File <span class="text-danger">(Maximum Files 3)</span></th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tblBody">
+
+                @if (Model.liExtensionWorks != null && Model.liExtensionWorks.Count > 0)
+            {
+                foreach (var item in Model.liExtensionWorks)
+                {
+                        <tr cms-IQACID="@item.IQAC_ID" class="tblclass">
+                            <td>@{nCount++;} @nCount</td>
+                            <td><input type="text" class="form-control" disabled="disabled" value="@item.DEPT_CODE" data-parsley-maxlength="8" data-parsley-required="true"/> </td>
+                            <td>
+                                <div class="input-group date" id="datetimepicker">
+                                    <input type="text" class="form-control " value="@item.ACTIVITY_DATE" data-parsley-required="true"/>
+                                    <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                </div>
+                            </td>
+                            
+                            <td><input type="text" class="form-control" value="@item.ACTIVITY_COMPLETED" data-parsley-required="true" data-parsley-maxlength="150"/> </td>
+                            <td><input type="text" class="form-control" value="@item.NO_OF_PARTICIPANTS" data-parsley-required="true" data-parsley-type="number" maxlength="4"/> </td>
+                            <td><input type="text" class="form-control" value="@item.PLACE" data-parsley-required="true" data-parsley-maxlength="80"/> </td>
+                            <td>
+                                @*<a href="javascript:;" id="Program" data-type="select" data-pk="1" data-value="" data-title="Select Value" class="editable editable-click" data-original-title="Name Of The Program" style="background-color: rgba(0, 0, 0, 0)"></a>*@
+
+                                <div class="radio radio-css">
+                                    <input type="radio" name="cssRadio_@nCount" id="cssRadio1_@nCount" data-parsley-required="true" value="VSL" @if (item.NAME_OF_THE_PROGRAMME == "VSL") { sSelected = "Checked"; } else { sSelected = string.Empty; } @sSelected>
+                                    <label for="cssRadio1_@nCount"> VSL</label>
+                                </div>
+
+                                <div class="radio radio-css radio-success">
+                                    <input type="radio" name="cssRadio_@nCount" id="cssRadio2_@nCount" value="Department Extention Program" @if (item.NAME_OF_THE_PROGRAMME == "Department Extention Program") { sSelected = "Checked"; } else { sSelected = string.Empty; } @sSelected>
+                                    <label for="cssRadio2_@nCount">
+                                        Department Extention Program
+                                    </label>
+                                </div>
+                            </td>
+                          
+                            <td>
+
+                                <div class="col-md-12">
+                                    <div class="panel-group" id="accordionu_@nCount">
+                                        <div class="panel panel-inverse overflow-hidden">
+                                            <div class="panel-heading">
+                                                <h3 class="panel-title">
+                                                    <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordionu_@nCount" href="#cu_@nCount" aria-expanded="false">
+                                                        <i class="fa fa-plus-circle pull-right"></i>
+                                                        File
+                                                    </a>
+                                                </h3>
+                                            </div>
+                                            <div id="cu_@nCount" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                                                <div class="panel-body">
+                                                    <div class="row" id="cur_@nCount">
+                                                        @if (item.FILE_PATH != "" && item.FILE_PATH != null)
+                                                        {
+                                                            sDomData = "";
+                                                            sDomData = BindFileDom1(item.FILE_PATH);
+                                                            @Html.Raw(sDomData)
+                                                        }
+                                                        else
+                                                        {
+                                                            sDomData = BindFileDom(nCount);
+                                                            @Html.Raw(sDomData)
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                            </td>
+                            <td><a onclick="GetConfrim(@item.IQAC_ID)" href="javascript:;"><i class="fa fa-trash text-danger" title="Click To Delete"></i></a></td>
+                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr cms-IQACID="" class="tblclass">
+                                        <td>@{nCount++;} @nCount</td>
+                                        <td><input type="text" class="form-control" value="0" disabled="disabled" data-parsley-maxlength="8" placeholder="Dept Code" data-parsley-required="true" /> </td>
+                                        <td>
+                                            <div class="input-group date" id="datetimepicker">
+                                                <input type="text" class="form-control" value="" data-parsley-required="true" />
+                                                <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </td>
+                                        <td><input type="text" class="form-control" value="" placeholder="Activity Completed"  data-parsley-required="true" data-parsley-maxlength="150"/> </td>
+                                        <td><input type="text" class="form-control" value="" placeholder="No Of Participate" data-parsley-required="true" data-parsley-type="number" maxlength="4"/> </td>
+                                        <td><input type="text" class="form-control" value="" placeholder="Place" data-parsley-required="true" data-parsley-maxlength="80"/> </td>
+                                        <td>
+                                            <div class="radio radio-css">
+                                                <input type="radio" name="cssRadio_@nCount" id="cssRadio1_@nCount" value="VSL"  data-parsley-required="true"/>
+                                                <label for="cssRadio1_@nCount"> VSL</label>
+                                            </div>
+
+                                            <div class="radio radio-css radio-success">
+                                                <input type="radio" name="cssRadio_@nCount" id="cssRadio2_@nCount" value="Department Extention Program" />
+                                                <label for="cssRadio2_@nCount">
+                                                    Department Extention Program
+                                                </label>
+                                            </div>
+                                        </td>
+                                      
+                                        <td>
+                                               
+                                            <div class="col-md-12">
+                                                <div class="panel-group" id="accordion_@nCount">
+                                                    <div class="panel panel-inverse overflow-hidden">
+                                                        <div class="panel-heading">
+                                                            <h3 class="panel-title">
+                                                                <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion_@nCount" href="#c_@nCount" aria-expanded="false">
+                                                                    <i class="fa fa-plus-circle pull-right"></i>
+                                                                    File
+                                                                </a>
+                                                            </h3>
+                                                        </div>
+                                                        <div id="c_@nCount" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                                                            <div class="panel-body">
+                                                                <div class="row" id="cr_@nCount">
+                                                                    @{   sDomData = BindFileDom(nCount);}
+                                                                    @Html.Raw(sDomData)
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<input type="hidden" name="name" value="@nCount" id="hdNumber" />
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script>
+
+    var formData = new FormData();
+    var Dom = "";
+
+
+    handleDatepicker = function () {
+        "use strict";
+        $(".date").datepicker({
+            todayHighlight: !0,
+            autoclose: !0,
+            format: "dd/mm/yyyy",
+            orientation: "right bottom"
+            // 'top': top,
+            // 'left': left
+        })
+    }
+    handleDatepicker();
+    function AddNewColumn() {
+        var nCount = 0;
+        nCount = $('#hdNumber').val();
+        nCount++;
+        $('#hdNumber').val(nCount);
+        var sDom = '<tr cms-IQACID="" class="tblclass">\
+                      <td>' + nCount + '</td>\
+                      <td><input type="text" class="form-control" value="0" disabled="disabled" data-parsley-maxlength="8" data-parsley-required="true" /></td>\
+                      <td><div class="input-group date" id="datetimepicker">\
+                            <input type="text" class="form-control" value="" data-parsley-required="true"/>\
+                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>\
+                        </div></td>\
+                      <td><input type="text" class="form-control" value="" data-parsley-required="true" data-parsley-maxlength="150"/></td>\
+                      <td><input type="text" class="form-control" value="" data-parsley-required="true" data-parsley-type="number" maxlength="4"/></td>\
+                      <td><input type="text" class="form-control" value="" data-parsley-required="true"  placeholder="Place" data-parsley-maxlength="80"/></td>\
+                      <td><div class="radio radio-css">\
+                              <input type="radio" name="cssRadio_' + nCount + '" id="cssRadio1_' + nCount + '" value="VSL" data-parsley-required="true"/>\
+                              <label for="cssRadio1_' + nCount + '"> VSL</label>\
+                           </div>\
+                           <div class="radio radio-css radio-success">\
+                               <input type="radio" name="cssRadio_' + nCount + '" id="cssRadio2_' + nCount + '" value="Department Extention Program" />\
+                               <label for="cssRadio2_' + nCount + '"> Department Extention Program</label>\
+                           </div>\
+                      </td>\
+                     <td>\
+                         <div class="col-md-12">\
+                            <div class="panel-group" id="accordion'+nCount+'">\
+                                <div class="panel panel-inverse overflow-hidden">\
+                                    <div class="panel-heading">\
+                                        <h3 class="panel-title">\
+                                            <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion'+nCount+'" href="#c' + nCount + '" aria-expanded="false">\
+                                                <i class="fa fa-plus-circle pull-right"></i>\
+                                                File\
+                                            </a>\
+                                        </h3>\
+                                    </div>\
+                                    <div id="c'+nCount+'" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">\
+                                        <div class="panel-body">\
+                                            <div class="row" id="cr'+nCount+'">\
+                                            <div class="col-md-3">\
+                                     <span class="btn btn-primary fileinput-button m-r-3"> \
+                                         <i class="fa fa-plus"></i> \
+                                         <span> \
+                                             Add File...\
+                                             <input type="file" id="fAttachmentForIQAC' + nCount + '" class="form-control" onchange=readFiles("fAttachmentForIQAC' + nCount + '","files' + nCount + '")> \
+                                         </span>\
+                                     </span>\
+                                 </div>\
+              <div class="col-md-12 table-responsive">\
+              <table class="table m-b-0">\
+                          <thead> \
+                          <tr>\
+                                    <th>PREVIEW</th> \
+                                    <th>FILE INFO</th>\
+                                    <th>ACTION</th>\
+                           </tr>\
+                          </thead>\
+                <tbody id="files' + nCount + '">\
+                </tbody>\
+            </table>\
+            </div>\
+          </div>\
+                                            </div>\
+                                                    </div>\
+                                                </div>\
+                                            </div>\
+                                        </div>\
+                                    </div>\
+                        </td>\<td></td>\
+                    </tr>';
+        $('#tblBody').append(sDom);
+        handleDatepicker();
+    }
+
+    function readFiles(sourceDiv, focusDiv) {
+        var file = document.getElementById('' + sourceDiv + '').files[0];
+        // Read first file
+        Dom = $('#' + focusDiv + '');
+        setup_reader(file, focusDiv);
+    }
+
+    function setup_reader(file, focusDiv) {
+        //var file = files;
+
+        var name = file.name;
+        var reader = new FileReader();
+        reader.onloadend = function (e) {
+
+            readerLoaded(e, file, name, focusDiv);
+        };
+        reader.readAsBinaryString(file);
+        // After reading, read the next file.
+    }
+
+    function readerLoaded(e, file, name, focusDiv) {
+        var _size = file.size;
+        var extension = GetFileExtension(file);
+        var size = GetFileSize(file);
+
+        var UniqueName;
+        var actualKey;
+        //var iProgress = GetProgressRate(_size);
+
+        if (size != null && size != '') {
+            var actualFileDom;
+            UniqueName = GetuniqueNameForFile(file);
+
+
+
+            if (extension != null && extension != '') {
+                if (extension == 'jpg' || extension == 'png') {
+
+
+                    actualFileDom = "<li class=''>" +
+                                               "<div class='document-file'>" +
+                                                   "<a href='#'>" +
+                                                       "<img src=" + window.URL.createObjectURL(file) + "   alt='' cms-update='1' width=77 height=80  height='' cms-sp=" + UniqueName + ">" +
+                                                   "</a>" +
+                                               "</div>" +
+                                               "<div class='document-name'><a href='" + window.URL.createObjectURL(file) + "' download>" + name + "</a></div>" +
+                                           "</li>";
+
+
+
+                    // actualFileDom = "<img src=" + window.URL.createObjectURL(file) + " width=77 height=80 cms-sp=" + UniqueName + "></img>";
+                }
+                else {
+
+                    actualFileDom = "<li class=''>" +
+                                             "<div class='document-file'>" +
+                                             "<a href='#'>" +
+                                                 "<i class='fa fa-file'></i>" +
+                                             "</a>" +
+                                             "</div>" +
+                                            "<div class='document-name'><a href='" + window.URL.createObjectURL(file) + "' download  title=" + name + " cms-update='1'>" + name + "</a></div>" +
+                                       "</li>";
+
+
+                    //  actualFileDom = "<span style='color:green;'>" + name + "</span> ";
+                }
+                var result = "<ul class='attached-document clearfix'>" + actualFileDom + "</ul> ";
+                var filedom = AppendFileDom(result, name, size, file, UniqueName);
+                //formData.append(actualKey, file);
+                // Dom.html('');
+
+                Dom.append(filedom);
+            }
+        }
+    }
+
+    function GetFileExtension(file) {
+        // Get uploaded file extension  
+        var extension = file.name.split('.').pop().toLowerCase();
+        var validFileExtensions = ['doc', 'docx', 'pdf', 'jpg', 'png', 'txt', 'xlsx'];
+        if ($.inArray(extension, validFileExtensions) == -1) {
+            alert("Sorry!! Upload only 'doc', 'docx', 'pdf','jpf','png','txt','xlsx' file")
+            //$(this).replaceWith($(this).val('').clone(true));
+            return extension = null;
+        }
+        else {
+            return extension;
+        }
+    }
+
+    function GetFileSize(file) {
+        var _size = file.size;
+        var fileSize = _size;
+        var fSExt = new Array('Bytes', 'KB', 'MB', 'GB'),
+        i = 0; while (_size > 900) { _size /= 1024; i++; }
+        var exactSize = (Math.round(_size * 100) / 100) + ' ' + fSExt[i];
+
+        if (fileSize > 1000000) {
+            alert("Sorry!! Max allowed file size is 1 mb");
+            // Clear fileuload control selected file
+            // $(this).replaceWith($(this).val('').clone(true));
+            $('#fAttachment').val('');
+            //Dom.find('img').remove();
+            return exactSize = null;
+
+        }
+        else {
+            return exactSize;
+        }
+
+    }
+
+    function GetuniqueNameForFile(file) {
+        var fileName = file.name;
+        var File = fileName.split(".");
+        var MaxValue = 100;
+        var randomValue = Math.floor((Math.random() * parseInt(MaxValue)) + 1);
+        var Length = File[0].length;
+        var UniqueName = randomString(Length) + randomValue;
+        return UniqueName;
+    }
+
+    function randomString(Length) {
+        var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+
+        var randomstring = '';
+        for (var i = 0; i < Length; i++) {
+            var rnum = Math.floor(Math.random() * chars.length);
+            randomstring += chars.substring(rnum, rnum + 1);
+        }
+        return randomstring;
+    }
+
+    function AppendFileDom(fileDom, fileName, exactSize, file, uniqueName) {
+        var filedom = "<tr id=" + uniqueName + ">" +
+                        "<td>" +
+                            "<span class='preview'>" + fileDom + "</span>" +
+                        "</td>" +
+                        "<td>" +
+                            "<div>" +
+                                "<dl>" +
+                                    "<dt class=text-inverse>File Name:</dt>" +
+                                    "<dd class=name>" + fileName + "</dd>" +
+                                    "<dt class=text-inverse>File Size:</dt>" +
+                                    "<dd class=size>" + exactSize + "</dd>" +
+                                "</dl>" +
+                            "</div>" +
+                            "<strong class='error text-danger'></strong>" +
+                        "</td>" +
+                        "<td nowrap=>" +
+                                "<button class='btn btn-default cancel width-100 p-r-20' onclick=FileCancel('" + uniqueName + "')>" +
+                                "<i class='fa fa-trash fa-fw pull-left m-t-2 m-r-5 text-muted'></i>" +
+                                    "<span>Cancel</span>" +
+                                "</button>" +
+
+                        "</td>" +
+                    "</tr>";
+        formData.append(uniqueName, file);
+        return filedom;
+
+    }
+
+    function FileCancel(rowId) {
+        var row = document.getElementById(rowId);
+        formData.delete(rowId);
+        row.parentNode.removeChild(row);
+    }
+
+
+
+
+
+
+
+</script>

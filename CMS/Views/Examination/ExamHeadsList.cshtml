@@ -1,0 +1,202 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "ExamHeadsList";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    int nCount = 0;
+}
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">Exam Heads List </li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Exam Heads List<small></small></h1>
+    <!-- end page-header -->
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+            <div class="panel panel-primary">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h4 class="panel-title">Exam Heads List</h4>
+                </div>
+                <div class="panel-body">
+                    <div class="form-horizontal">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                               <a class="btn btn-success pull-right" href="javascript:;" onclick="loadContent('/Examination/AddOrEditExamHeads')" ><i class="fa fa-plus"></i> Add</a>
+                            </div>
+                            <div class="form-group col-md-12 table-responsive">
+                                <table class="table table-bordered table-hover" id="tblExamHeads" border="1">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            
+                                            <th>Head</th>
+                                            <th>Frequency</th>
+                                            <th>Programme Type</th>
+                                            <th>Programme Level</th>
+                                            <th>Amount</th>
+                                            <th>Shift</th>
+                                            <th>Programme Mode</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                       @if (Model.liExamHeads!=null && Model.liExamHeads.Count>0)
+                                       {
+                                           foreach (var item in Model.liExamHeads)
+                                           {
+                                               <tr>
+                                                   <td>@{nCount++;} @nCount</td>
+                                                   
+                                                   <td>@item.HEAD</td>
+                                                   <td>@item.FREQUENCY_NAME</td>
+                                                   <td>@item.APPLICATION_TYPE</td>
+                                                   <td>@item.PROGRAMME_LEVEL</td>
+                                                   <td>@item.COST</td>
+                                                   <td>@item.SHIFT_NAME</td>
+                                                   <td>@item.PROGRAMME_MODE</td>
+                                                   <td>
+                                                       <a class="text-danger" href="javascript:;" onclick="GetConfirm(@item.EXAM_HEAD_ID)"><i class="fa fa-trash"></i></a>
+                                                   </td>
+                                               </tr>
+                                           }
+                                       }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th></th>
+                                            <th>Programme Type</th>
+                                            <th>Head</th>
+                                            <th>Frequency</th>
+                                            <th>Amount</th>
+                                            <th>Shift</th>
+                                            <th>Programme Mode</th>
+                                            <th></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div id="dvBindExamHeads"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+    function ContentLoad()
+    {
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        $('.selectpicker').selectpicker('refresh');
+
+        AddDataTable();
+    }
+
+    function AddDataTable()
+    {
+        
+        var nColumnCount = 0;
+        
+        $('#tblExamHeads').DataTable({
+            initComplete: function ()
+            {
+                
+                this.api().columns().every(function ()
+                {
+                    //alert("Out " + nColumnCount);
+                    if (nColumnCount != 0)
+                    {
+                        if (nColumnCount != 8)
+                        {
+                            //alert("In " + nColumnCount);
+                            var column = this;
+                            var select = $('<select class="form-control selectpicker show-menu-arrow show-tick" data-live-search="true"><option value=""></option></select>')
+                                .appendTo($(column.footer()).empty())
+                                .on('change', function () {
+                                    var val = $.fn.dataTable.util.escapeRegex(
+                                        $(this).val()
+                                    );
+
+                                    column
+                                        .search(val ? '^' + val + '$' : '', true, false)
+                                        .draw();
+                                });
+
+                            column.data().unique().sort().each(function (d, j) {
+                                select.append('<option value="' + d + '">' + d + '</option>');
+                            });
+                        }
+                    }
+                    
+                    nColumnCount++;
+
+                });
+            },"bPaginate": false
+        });
+        $('.selectpicker').selectpicker('refresh');
+    }
+    function GetConfirm(Id)
+    {
+        if (!confirm('Are you sure to delete ?'))
+        {
+            return false;
+        } else
+        {
+            $.ajax({
+                url:'@Url.Action("DeleteExamHeads", "Examination")',
+                method:'POST',
+                datatype:'json',
+                data: { sExamHeadId: Id },
+                success: function (data)
+                {
+                    if (data.ErrorCode == "200")
+                    {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'success', animation: true });
+                        loadContent('/Examination/ExamHeadsList');
+                    } else
+                    {
+                        swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+                    }
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });                   
+                }
+            });
+        }
+    }
+
+
+
+</script>
+

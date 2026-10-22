@@ -1,0 +1,171 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "OnlineQuizEntry";
+    Layout = "~/Views/Shared/ExamLayout.cshtml";
+    int nCount = 0;
+}
+<link rel="stylesheet" href="~/Content/assets/plugins/jquery/jquery-1.9.1.min.js" />
+<link rel="stylesheet" href="~/Content/assets/plugins/bootstrap/css/bootstrap.min.css" />
+
+
+<style>
+    .note.note-default,
+    .note.note-secondary {
+        border-color: #bbb;
+        background: #e2e2e3;
+        color: #454548;
+        padding: 5px;
+    }
+
+        .note.note-default .note-icon,
+        .note.note-secondary .note-icon {
+            background: #bbb;
+        }
+
+    .alert-info {
+        color: #31708f;
+        background-color: #ffffff !important;
+        border-color: #ea092a !important;
+    }
+</style>
+
+<div id="content">
+    <div class="form-horizontal" id="dvListOnlineQuizQuestions">
+        <div class="alert alert-info">
+
+            <h4><b>Dear @Model.sName,</b></h4>
+            <p>
+                <ul>
+                    <li>Question pattern are from Objective , Fill In Blanks & Match The Following</li>
+                    <li>Time will be counted after enter into quiz entry</li>
+                    <li>Make sure that course code and course details loaded correctly</li>
+                    <li>It is mandatory to submit the answers with in given minutes</li>
+                    <li>All The Best.Do well</li>
+                </ul>
+            </p>
+        </div>
+
+        <br>
+        <div class="col-md-12 table-responsive">
+            @{
+                <input type="hidden" id="userid" value="@Model.sUserId">
+                <input type="hidden" id="acyear" value="@Model.sAcyear">
+
+                if (Model.liQuizSetting != null && Model.liQuizSetting.Count > 0)
+                {
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Test Title</th>
+                                <th>Exam Type</th>
+                                <th>Course</th>
+                                <th>Incharge</th>
+                                <th>Action</th>
+                                @*<th>Status</th>*@
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                foreach (var item in Model.liQuizSetting)
+                                {
+                                    <tr>
+                                        <td>@{nCount++;} @nCount</td>
+                                        <td>@item.SETTING_NAME</td>
+                                        <td>@item.QUIZ_TYPE_NAME</td>
+                                        <td>@item.COURSE_CODE - @item.COURSE_TITLE</td>
+                                        <td>@item.FIRST_NAME</td>
+                                        <td>
+                                            @{
+                                                @*if (item.STATUS == "1")
+                                                    {
+                                                        <a class="btn btn-success" onclick="GetQuizResult(@item.COURSE_ID,@item.STAFF_ID,@item.SETTING_ID);" href="javascript:;">Quiz Result</a>
+                                                    }
+                                                    else
+                                                    {*@
+                                                <a class="btn btn-primary" onclick="GetQuizQuestions(document.body,'@item.CLASS_ID','@item.COURSE_ID','@item.SETTING_ID','@item.STAFF_ID','@item.TIME');" href="javascript:;">Quiz Entry</a>
+                                                @*}*@
+                                            }
+
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-info">No Exams Available...!</div>
+                }
+            }
+        </div>
+    </div>
+
+
+    <div class="col-md-12" id="dvOnlineQuiz">
+
+    </div>
+</div>
+
+<script type="text/javascript" src="~/Content/assets/plugins/jquery/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="~/Content/assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+
+<script>
+  
+    function GetQuizQuestions(e, n, s, t, l, u) {
+        (void 0 !== document.fullScreenElement && null === document.fullScreenElement || void 0 !== document.msFullscreenElement && null === document.msFullscreenElement || void 0 !== document.mozFullScreen && !document.mozFullScreen || void 0 !== document.webkitIsFullScreen && !document.webkitIsFullScreen) && (e.requestFullScreen ? e.requestFullScreen() : e.mozRequestFullScreen ? e.mozRequestFullScreen() : e.webkitRequestFullScreen ? e.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT) : e.msRequestFullscreen && e.msRequestFullscreen()),
+            $.ajax({
+                url: "/CIAExam/BindOnlineQuizForSetWise",
+                method: "POST",
+                datatype: "json",
+                data: {
+                    sClassId: n,
+                    sCourseId: s,
+                    sSettingId: t,
+                    sStaffId: l,
+                    sTime: u,
+                    sUserId: $('#userid').val(),
+                    sAcademicYear: $('#acyear').val()
+                },
+                success: function (data) {
+                    $("#dvListOnlineQuizQuestions").addClass("hidden");
+                    $("#dvOnlineQuiz").empty(), $("#dvOnlineQuiz").append(data);
+                    
+
+                },
+                error: function (e) {
+                    alert("Internal Server Error !");
+                }
+            });
+    }
+
+
+    function GetQuizData() {
+        $("#panel-expand").click();
+        var e = $("#hdClassId").val(), t = $("#hdCourseId").val(), s = $("#hdStaffId").val(), n = $("#hdSettingId").val();
+        $.ajax({
+            url: "/CIAExam/BindOnlineQuizForSetWise",
+            method: "POST",
+            datatype: "json",
+            data: {
+                sClassId: e,
+                sCourseId: t,
+                sSettingId: n,
+                sStaffId: s
+            },
+            success: function (data) {
+                $("#dvListOnlineQuizQuestions").addClass("hidden");
+                $("#dvOnlineQuiz").empty(), $("#dvOnlineQuiz").append(data);
+            },
+            error: function (e) {
+                alert("Internal Server Error !");
+            }
+        });
+    }
+
+</script>
+
+
+
+
+

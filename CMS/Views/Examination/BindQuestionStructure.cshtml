@@ -1,0 +1,119 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = null;
+    int i = 0;
+    int c = 0;
+}
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<div class="col-md-12" id="pBody" data-parsley-validate="true" >
+    @if (Model.LiOBEQuestionStructure != null && Model.LiOBEQuestionStructure.Count > 0)
+    {
+        <table class="table table-bordered" id="tblquestions">
+
+            @foreach (var item in Model.LiOBEQuestionStructure)
+            {
+                <tr>
+                    <th colspan="2">@item.SECTION</th>
+                </tr>
+                if (Model.LiOBEQuestions != null && Model.LiOBEQuestions.Count > 0)
+                {
+                    var list = Model.LiOBEQuestions.Where(o => o.QUESTION_STRUCTURE_ID == item.QUESTION_STRUCTURE_ID).ToList();
+
+                    if (list != null && list.Count > 0)
+                    {
+                        foreach (var question in list)
+                        {
+
+                        <tr>
+                            <td><textarea style="height:40px" class="form-control questions" qus_stru="@item.QUESTION_STRUCTURE_ID" questionid="@question.QUESTION_ID"  data-parsley-required="true">@question.QUESTION</textarea></td>
+                            <td>
+
+                                <select  class="selectpicker form-control questionlevel" data-live-search="true"   required data-parsley-group="wizard-step-3">
+                                    @foreach (SelectListItem option in Model.QUESTION_LEVEL)
+                                    {
+                                        <option value="@option.Value" @(option.Value ==question.QUESTION_LEVEL_ID ? "selected='selected'" : "")>@option.Text</option>
+
+                                    }
+                                </select>
+                                @*@Html.DropDownListFor(m => m.QUESTION_LEVEL, (Model.QUESTION_LEVEL != null) ? Model.QUESTION_LEVEL : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm questionlevel", @data_live_search = "true", @data_parsley_required = "true" })
+                                @Html.ValidationMessageFor(m => m.QUESTION_LEVEL, "", new { @class = "text-danger" })*@
+
+                            </td>
+                        </tr>
+                            c++;
+                        }
+                    }
+                }
+                for (i = c; i < Convert.ToInt32(item.QUESTION_NO); i++)
+                {
+                    <tr>
+                        <td><textarea class="form-control questions" style="height:40px" qus_stru="@item.QUESTION_STRUCTURE_ID" questionid="" data-parsley-required="true"/></td>
+                        <td>
+
+                            @Html.DropDownListFor(m => m.QUESTION_LEVEL, (Model.QUESTION_LEVEL != null) ? Model.QUESTION_LEVEL : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm questionlevel", @data_live_search = "true", @data_parsley_required = "true" })
+                            @Html.ValidationMessageFor(m => m.QUESTION_LEVEL, "", new { @class = "text-danger" })
+
+                        </td>
+                    </tr>
+                }
+                i = 0;
+                c = 0;
+
+
+            }
+        </table>
+
+        <br>
+        <div class="col-md-12">
+            <button class="col-md-1 col-md-offset-11 btn btn-primary" id="btnsubmit">Submit</button>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            No Question Structure Found...!
+        </div>
+    }
+</div>
+
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+    $('#btnsubmit').click(function ()
+    {
+        var isValid = true;      
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid)
+        {
+          
+            return false;
+        }
+        else {
+            var JsonData = '';
+            JsonData += '{"OBEQuestions":[';
+            $('#tblquestions tr').each(function ()
+            {
+                if ($(this).find('.questions').val() != '' && typeof($(this).find('.questions').val()) != "undefined")
+                {
+                    JsonData += '{"QUESTION":"' + $(this).find('.questions').val() + '","QUESTION_LEVEL_ID":"' + $(this).find('.questionlevel').val() + '","QUESTION_STRUCTURE_ID":"' + $(this).find('.questions').attr('qus_stru') + '","QUESTION_ID":"' + $(this).find('.questions').attr('questionid') + '","COURSE_ID":"' + $('#CourseList').val() + '","EXAM_ID":"' + $('#ExamList').val() + '"},';
+                }
+
+            });
+            JsonData = JsonData.slice(0, -1);
+            JsonData += ']}';
+           
+            var req = $.ajax({
+                url: "@Url.Action("SaveorUpdateOBEQuestions", "Examination")",
+                type: "post",
+                data: { sJsonData: JsonData },
+                success: function (data) {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                    // loadContent('/Examination/ListOBEQuestionStructure');                               
+                },
+                error: function (ex) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+    });
+</script>

@@ -1,0 +1,383 @@
+﻿@model CMS.ViewModel.ViewModel.StaffViewModel
+@{
+    ViewBag.Title = "ListStaffLeaveApply";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="#" onclick="loadContent('@Url.Action("ADMIN","DashBoard")')"></a></li>
+
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <!-- end page-header -->
+    <!-- begin panel -->
+    <div class="panel panel-default panel-with-tabs" data-sortable-id="ui-unlimited-tabs-2">
+        <div class="panel-heading p-0">
+            <div class="panel-heading-btn m-r-10 m-t-10">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-inverse" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+            </div>
+            <!-- begin nav-tabs -->
+            <div class="tab-overflow" data-parsley-validate="true" name="form-wizard">
+                <ul class="nav nav-tabs">
+                    
+
+                    <li class="nav-item active" id="studentlist"><a href="#nav-tab1-1" class="nav-link active" data-toggle="tab">Leave Maitanin Details</a></li>
+                    <li class="" id="stafflist"><a href="#nav-tab1-2" data-toggle="tab">Transaction Details</a></li>
+
+                </ul>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="tab-content">
+                <div class="tab-pane fade active in" id="nav-tab1-1" data-parsley-validate="true">
+                    <div class="form-group col-md-12">
+                        <a class="btn btn-success pull-right form-group m-b-5" href="#applyleave" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add">Apply</i></a>
+                    </div>
+
+                    <div class="form-group col-md-12 table-responsive">
+                        <table class="table table-hover table-bordered" id="tblleaveapply">
+                            <thead>
+                                <tr>
+                                    <th>#</th>                                
+                                    <th>Leave Type</th>
+                                    <th>Date</th>
+                                    <th>Entry Date</th>
+                                    <th>Description</th>
+                                    <th>No Of Days</th>
+                                    <th>Approval-1</th>
+                                    <th>Approval-2</th>                               
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @if (Model.lileaveapply != null && Model.lileaveapply.Count > 0)
+                                {
+                                    var count = 0;
+                                    foreach (var item in Model.lileaveapply)
+                                    {
+                                        count = count + 1;
+
+                                        <tr>
+                                            <td>@count</td>
+
+                                           
+                                            <td>@item.LEAVE_TYPE</td>
+                                            <td>@item.FROM_DATE to @item.TO_DATE</td>
+                                            <td>@item.APPLY_DATE</td>
+
+                                            <td>@item.DESCRIPTION</td>
+                                            <td>@item.NO_OF_DAYS</td>
+                                          <td>
+                                            @if (@item.APPROVAL_STATUS1!="")
+                                            {
+                                                @item.LEAVE_STATUS1
+                                            }
+                                            else
+                                            {
+                                                @("Pending");
+                                            }
+                                             </td>
+                                            <td>
+                                                @if (@item.APPROVAL_STATUS2 != "")
+                                                {
+                                                    @item.LEAVE_STATUS2
+                                                }
+                                                else
+                                                {
+                                                    @("Pending");
+                                                }
+                                            </td>
+                                            @if (@item.APPROVAL_STATUS1 != "" || @item.APPROVAL_STATUS2 !="")
+                                            {
+                                                <td>
+                                                    Viewd
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td>
+                                                    <a href="#applyleave" onclick="FetchLeaveApplied(@item.LEAVE_APPLY_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+                                                    <a href="javascrip:;" onclick="GetConfirm(@item.LEAVE_APPLY_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+                                                </td>
+                                            }
+                                        </tr>
+                                    }
+
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-tab1-2" data-parsley-validate="true">
+                    <div class="form-group col-md-12 table-responsive">
+                        <table class="table table-hover table-bordered" id="tblLiLmTransactionDetails">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Leave Type</th>
+                                    <th>Total Credit Days</th>
+                                    <th>Total Debit Days</th>
+                                   
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @if (Model.liTransactionDetails != null && Model.liTransactionDetails.Count > 0)
+                                {
+                                    var count = 0;
+                                    foreach (var item in Model.liTransactionDetails)
+                                    {
+                                        count = count + 1;
+
+                                        <tr cms-srjob-filter-id="@item.TRANSACTION_ID">
+                                            <td>@count</td>
+
+                                            <td>@item.LEAVE_TYPE</td>
+                                            <td>@item.CREDIT_DAYS</td>
+                                            <td>@item.DEBIT_DAYS</td>
+                                          
+                                        </tr>
+                                    }
+
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+
+
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- end panel -->
+</div>
+
+<div class="modal" id="applyleave">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Apply Leave</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <input type="text" id="leaveapplyid" class="hidden">
+                                    <div class="col-md-12 form-group">
+                                        @Html.Label("Leave Type", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(m => m.LeaveType, (Model.LeaveType != null) ? Model.LeaveType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.LeaveType, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">From Date</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="fromdate" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        @Html.Label("From Session", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(m => m.SESSION, (Model.SESSION != null) ? Model.SESSION : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true",@id="fromsession" })
+                                            @Html.ValidationMessageFor(m => m.SESSION, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">To Date</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="todate" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 form-group">
+                                        @Html.Label("To Session", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(m => m.SESSION, (Model.SESSION != null) ? Model.SESSION : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @id = "tosession" })
+                                            @Html.ValidationMessageFor(m => m.SESSION, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Description</label>
+
+                                        <div class="col-md-8">
+                                            <textarea id="description" class="form-control" data-parsley-required="true" maxlength="250" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+
+        }
+        $("#fromdate").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            //  endDate: new Date(),
+            format: "dd/mm/yyyy",
+            orientation: "right bottom"
+        });
+        $("#todate").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            //endDate: new Date(),
+            format: "dd/mm/yyyy",
+            orientation: "right bottom"
+        });
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('Refresh');
+
+      
+        $('#tblleaveapply').DataTable();
+        $('#tblLiLmTransactionDetails').DataTable();
+        function FetchLeaveApplied(ID)
+        {
+            if (ID != null)
+            {
+                $.ajax({
+                    url: "@Url.Action("FetchLeaveAppliedById", "Staff")",
+                    type:"post",
+                    data: { sleaveid: ID },
+                    success:function(data)
+                    {
+                           if (data != null)
+                           {
+                               $('#leaveapplyid').attr('value', data.LEAVE_APPLY_ID);
+                               $('#LeaveType').val(data.LEAVE_SETTING_ID);
+                               $('#fromdate').attr('value', data.FROM_DATE);
+                               $('#fromsession').attr('value', data.FROM_SESSION);
+                               $('#todate').attr('value', data.TO_DATE);
+                               $('#tosession').attr('value', data.TO_SESSION);
+                               $('#description').attr('value', data.DESCRIPTION);
+                               $('.selectpicker').selectpicker('refresh');
+                            }
+                    },
+                    error:function(ex)
+                    {
+                        alert(ex.Message);
+                    }
+                });
+            }
+        }
+        $('#btnSubmit').click(function ()
+        {
+            var isValid = true;
+            var JsonData = null;
+            if ($('#pBody').parsley().validate() !== true) isValid = false;
+            if (!isValid)
+            {
+
+                return false;
+            }
+            JsonData = '{"LEAVE_APPLY_ID":"' + $('#leaveapplyid').val() + '","LEAVE_SETTING_ID":"' + $('#LeaveType').val() + '","FROM_DATE":"' + $('#fromdate').val() + '","TO_DATE":"' + $('#todate').val() + '","DESCRIPTION":"' + $('#description').val() + '","FROM_SESSION":"' + $('#fromsession').val() + '","TO_SESSION":"' + $('#tosession').val() + '"}';
+              var req=  $.ajax({
+                  url: "@Url.Action("SaveorUpdateStaffLeaveApply", "Staff")",
+                    type: "post",
+                    data: { sJsonData: JsonData },
+                    success: function (data)
+                    {
+                        if (data.ErrorCode == "204") {
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 2800, type: 'error', animation: true });
+                            loadContent('/Staff/ListStaffLeaveApply');
+                        }
+                        else {
+
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 2800, type: 'success', animation: true });
+                            loadContent('/Staff/ListStaffLeaveApply');
+                        }
+
+                    },
+                    error: function (ex)
+                    {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+              });
+        });
+
+    GetConfirm = function (ID)
+        {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+
+function () {
+    $.ajax({
+        url: "@Url.Action("DeleteAppliedLeave", "Staff")",
+        type: "post",
+        data: { sleaveid: ID },
+        success: function (data) {
+            if (data.Message != null && data.Message != "")
+            {
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/Staff/ListStaffLeaveApply');
+            }
+        },
+        error: function (ex) {
+            swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+        }
+
+
+    });
+});
+
+        }
+
+</script>
+

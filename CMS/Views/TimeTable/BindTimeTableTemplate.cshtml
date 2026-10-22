@@ -1,0 +1,61 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+
+@{ 
+    Layout = null;
+}
+
+<table class="table table-bordered" id="TimeTableTemplateList">
+    <thead>
+        <tr>
+            <th></th>
+            @if (Model.lstHours != null)
+            {
+                foreach (var dataitem in Model.lstHours)
+                {
+                    <th><b> Hour- @dataitem.HOUR</b></th>
+                }
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.lstDayOrders != null)
+        {
+            foreach (var dataitem in Model.lstDayOrders)
+            {
+                <tr cms-timetableid="@dataitem.DAY_ORDER_ID">
+                    @{var TimeTableList = Model.lstTimeTableTemplate.Where(s => s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();}
+                    <td><b> Day- @dataitem.DAY</b></td>
+                    @foreach (var item in Model.lstHours)
+                    {
+                        var TimeTable = TimeTableList.Where(s => s.Hour_Id == item.HOUR_ID).ToList();
+                        if (TimeTable != null && TimeTable.Count > 0)
+                        {
+                            <td id="tdTimeTable" cms-graduationtype="@TimeTable.FirstOrDefault().GraduationType" cms-isstatic="@TimeTable.FirstOrDefault().Is_Static" cms-dayid="@TimeTable.FirstOrDefault().Day_Order_Id" cms-papertype="@TimeTable.FirstOrDefault().Paper_Type_Id" cms-settingid="@TimeTable.FirstOrDefault().Setting_Id" class="editable" cms-hourid="@TimeTable.FirstOrDefault().Hour_Id" cms-timetalbetemplateid="@TimeTable.FirstOrDefault().TT_Temp_Id">
+                                @if (TimeTable.Count == 1)
+                                {
+                                    @TimeTable.FirstOrDefault().PAPER_TYPE
+                                    if (TimeTable.FirstOrDefault().Is_Static == "1")
+                                    {
+                                        <p>Static Hour</p>
+                                    }
+                                }
+                            </td>
+                        }
+                        else
+                        {
+                            <td class="editable" cms-dayid="@dataitem.DAY_ORDER_ID" cms-hourid="@item.HOUR_ID"></td>
+                        }
+                    }
+                </tr>
+                            }
+
+                        }
+                        else
+                        {
+                            <tr>
+                                <td><p>No records available !!!</p></td>
+                            </tr>
+                        }
+
+    </tbody>
+</table>

@@ -1,0 +1,137 @@
+﻿
+@{
+    ViewBag.Title = "BindAttendancePercentageCommon";
+}
+
+@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+@{
+    Layout = null;
+    string sExamNotAllowed = string.Empty;
+    string sArrearOnlyAllowed = string.Empty;
+    string sFineAndExamAllowed = string.Empty;
+}
+
+@if (Model.liAttAttendanceReport != null && Model.liAttAttendanceReport.Count > 0)
+{
+    string sMark = string.Empty;
+    int nCount = 0;
+    //int nExamNotAllowed = 0;
+    //int nArrearOnlyAllowed = 0;
+    //int nFineAndExamAllowed = 0;
+    var liGroupClass = Model.liAttAttendanceReport.GroupBy(x => x.CLASS_ID).ToList();
+    foreach (var Classitem in liGroupClass)
+    {
+        nCount = 0;
+        var liAttendance = Model.liAttAttendanceReport.Where(x => x.CLASS_ID == Classitem.FirstOrDefault().CLASS_ID).ToList();
+        if (liAttendance != null && liAttendance.Count > 0)
+        {
+            <div class="form-group table-responsive" style="page-break-after:always !important;">
+                <table class="table table-bordered" border="1">
+                    <thead>
+                        <tr>
+                            <th colspan="5" class="text-center">ST.JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS), CUDDALORE</th>
+
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th colspan="2" class="text-center"><b>@Classitem.FirstOrDefault().CLASS_NAME </b> <br /> Attendance Report (@Classitem.FirstOrDefault().START_DATE - @Classitem.FirstOrDefault().END_DATE) - (0 - 100)%</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                        <tr>
+                            <th><b>#</b></th>
+                            <th><b>Reg.No</b></th>
+                            <th><b>Name</b></th>
+                            <th><b>WorkingDays</b></th>
+                            <th><b>%</b></th>
+                            @*<th>Mark</th>*@
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in liAttendance)
+                        {
+                            <tr>
+                                <td>@{nCount++;} @nCount</td>
+                                <td>@item.ROLL_NO</td>
+                                <td>@item.FIRST_NAME</td>
+                                <td>
+                                    @{var sAbseentCount = Convert.ToInt32(item.DAYS_COUNT) - Convert.ToInt32(item.ABSENT_COUNT);
+                                        var sPercentage = Convert.ToDouble(sAbseentCount) / Convert.ToDouble(item.DAYS_COUNT) * 100;
+                                        if (sPercentage > 74 && sPercentage < 75)
+                                        {
+                                            sPercentage = Math.Ceiling(sPercentage);
+                                        }
+                                        }
+                                    @sAbseentCount / @item.DAYS_COUNT
+                                </td>
+                                <td> @Math.Round(sPercentage, 2)</td>
+                                @*<td>
+                                    @if (Convert.ToInt32(sPercentage) >= 95)
+                                    {
+                                        //5
+                                        sMark = "5";
+                                    }
+                                    else if (Convert.ToInt32(sPercentage) >= 90)
+                                    {
+                                        //4
+                                        sMark = "4";
+                                    }
+                                    else if (Convert.ToInt32(sPercentage) >= 85)
+                                    {
+                                        //3
+                                        sMark = "3";
+                                    }
+                                    else if (Convert.ToInt32(sPercentage) >= 80)
+                                    {
+                                        //2
+                                        sMark = "2";
+                                    }
+                                    else if (Convert.ToInt32(sPercentage) >= 75)
+                                    {
+                                        //1
+                                        sMark = "1";
+                                    }
+                                    else
+                                    {
+                                        //PersentageCheck(Convert.ToInt32(sPercentage));
+                                        //0
+                                        sMark = "0";
+                                        if (Convert.ToInt32(sPercentage) <= 55)
+                                        {
+                                            nExamNotAllowed++;
+                                            sExamNotAllowed += "<tr><td>" + nExamNotAllowed + "</td><td>" + item.ROLL_NO + "</td><td>" + item.FIRST_NAME + "</td><td>" + item.MOBILE + "</td><td>" + sAbseentCount + " /" + item.DAYS_COUNT + "</td><td>" + Math.Round(sPercentage, 2) + "</td><td>" + sMark + "</td></tr>";
+                                        }
+                                        else if (Convert.ToInt32(sPercentage) <= 65)
+                                        {
+                                            nArrearOnlyAllowed++;
+                                            sArrearOnlyAllowed += "<tr><td>" + nArrearOnlyAllowed + "</td><td>" + item.ROLL_NO + "</td><td>" + item.FIRST_NAME + "</td><td>" + item.MOBILE + "</td><td>" + sAbseentCount + " /" + item.DAYS_COUNT + "</td><td>" + Math.Round(sPercentage, 2) + "</td><td>" + sMark + "</td></tr>";
+                                        }
+                                        else
+                                        {
+                                            nFineAndExamAllowed++;
+                                            sFineAndExamAllowed += "<tr><td>" + nFineAndExamAllowed + "</td><td>" + item.ROLL_NO + "</td><td>" + item.FIRST_NAME + "</td><td>" + item.MOBILE + "</td><td>" + sAbseentCount + " /" + item.DAYS_COUNT + "</td><td>" + Math.Round(sPercentage, 2) + "</td><td>" + sMark + "</td></tr>";
+                                        }
+                                    }
+                                    @sMark
+                                </td>*@
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+
+
+}
+else
+{
+    <div class="bg-warning text-center">
+        <h4>No Record's Found</h4>
+    </div>
+}
+
+
+
+

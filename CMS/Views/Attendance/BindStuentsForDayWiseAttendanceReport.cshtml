@@ -1,0 +1,88 @@
+﻿@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+@{ 
+    Layout = null;
+}
+<div class="col-md-12 table-responsive">
+    @if (Model.liAttendanceReport != null && Model.liAttendanceReport.Count > 0)
+    {
+        var liGroupClass = Model.liAttendanceReport.GroupBy(x => x.CLASS_NAME).Select(o => new CMS.ViewModel.Model.ATTENDANCE_REPORT()
+        {
+            CLASS_NAME=o.FirstOrDefault().CLASS_NAME
+        }).ToList();
+        // var liCourseCount = Model.liAttendanceReport.GroupBy(x => x.COURSE_CODE).ToList();
+        //<h4 class="text-center">Student Attendance Report</h4>
+        
+        <div class="">
+            
+            @foreach (var student in liGroupClass)
+            {
+                var liStudent = Model.liAttendanceReport.Where(x => x.CLASS_NAME == student.CLASS_NAME).ToList();
+                if (liStudent != null && liStudent.Count > 0)
+                {
+                    var liGroupStudent = liStudent.GroupBy(x => x.STUDENT_ID).Select(s => new CMS.ViewModel.Model.ATTENDANCE_REPORT()
+                    {
+                        STUDENT_ID = s.FirstOrDefault().STUDENT_ID,
+                        ROLL_NO = s.FirstOrDefault().ROLL_NO,
+                        REGISTER_NO = s.FirstOrDefault().REGISTER_NO,
+                        FIRST_NAME = s.FirstOrDefault().FIRST_NAME,
+                        MOBILE = s.FirstOrDefault().MOBILE,
+                        DOB=s.FirstOrDefault().DOB,
+                        CLASS_NAME = s.FirstOrDefault().CLASS_NAME
+                    }).ToList();
+                    <div style="page-break-after:avoid !important;page-break-inside:avoid !important;">
+
+                        <br />
+                        <div class="form-group"></div>
+                        <div class="invoice-company">
+                            @Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME ,<small>
+                                ATTENDANCE REPORT FOR @student.CLASS_NAME
+                            </small>
+                        </div>
+                        <hr />
+                        @foreach (var item in liGroupStudent)
+                        {
+                            <div class="col-xs-4 form-group"> <b>Roll No : </b> @item.ROLL_NO</div>
+                            <div class="col-xs-4 form-group"> <b>Register No : </b> @item.REGISTER_NO</div>
+                            <div class="col-xs-4 form-group"> <b>Name : </b> @item.FIRST_NAME</div>
+                            <div class="col-xs-4 form-group"> <b>Date : </b> @Model.sDate</div>
+                            <div class="col-xs-4 form-group"> <b>Date Of Birth : </b> @item.DOB</div>
+                            <div class="col-xs-4 form-group"> <b>Mobile : </b> @item.MOBILE</div>
+                            <div>
+                                <table class="table table-bordered table-responsive table-hover">
+                                    <thead>
+                                        <tr>
+                                            @*<th>#</th>*@
+                                            <th>Course</th>
+                                            <th>Hour</th>
+                                            <th>Remark</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{ var liAttendance = Model.liAttendanceReport.Where(x => x.STUDENT_ID == item.STUDENT_ID).ToList();
+                                        if (liAttendance != null && liAttendance.Count > 0)
+                                        {
+                                            foreach (var lst in liAttendance)
+                                            {
+                                    <tr>
+                                        @*<td>@{count++;}@count</td>*@
+                                        <td>@lst.COURSE_CODE</td>
+                                        <td>@lst.HOUR_ID</td>
+                                        <td>@lst.ATTENDANCE_TYPE</td>
+                                    </tr>
+                                            }
+                                        }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <hr />
+                       }
+
+
+                    </div>
+               }
+           }
+        </div>
+    }
+</div>

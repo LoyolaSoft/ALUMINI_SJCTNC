@@ -1,0 +1,122 @@
+﻿@model CMS.ViewModel.ViewModel.AssociationViewModel
+
+@{
+    ViewBag.Title = "AssociationRegistration";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">NME</a></li>
+        <li class="active">Association Registration</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Association <small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Association Registration</h4>
+        </div>
+        <div class="panel-body">
+            <h4 id="">Service oriented course:</h4>
+            <hr />
+            <div id="divRadio" class="form-horizontal col-md-offset-3">
+
+            </div>
+            <div class="col-lg-12">
+                <a href="#" class="btn-success btn" id="btnSubmit">Submit</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+        function ContentLoad() {
+            // Document Ready Function .
+            LoadCourse();
+        }
+
+        function LoadCourse() {
+            $.ajax({
+                url: "@Url.Action("LoadAssociationGroups", "Association")",
+                async: false,
+                success: function (option)
+                {
+                    if (option.indexOf("Your") >= 0)
+                    {
+                        //alert(option);
+                        //$('#btnSubmit').attr('class', 'disabled btn-success btn');
+                        $('#btnSubmit').attr('class', 'hidden');
+                    }
+                    if (option.toString() != '2')
+                    {
+                        var select = $('#divRadio');
+                        select.empty();
+                        select.append(option);
+                    } else
+                    {
+                        alert('Already..! You have choosen service oriented course');
+                        $('#btnSubmit').attr('class', 'disabled btn-success btn');
+                        $('#btnSubmit').attr('class', 'hidden');
+
+                    }
+
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+        }
+
+        $('#btnSubmit').on("click", function () {
+
+            var sSettingid = $('input[name=AssociationGroup]:checked').val();
+            var sCourseid = $('input[name=AssociationGroup]:checked').attr('cms-courseid');
+            var sClassid = $('input[name=AssociationGroup]:checked').attr('cms-classid');
+            //var sSemester = $('input[name=NMECourse]:checked').attr('cms-semester');      
+            if (sCourseid != null) {
+                 $.ajax({
+                url: "@Url.Action("RegisterAssociationGroup", "Association")",
+                async: false,
+                data: { sClassId: sClassid, sCourseId: sCourseid, sSettingId: sSettingid},
+                success: function (option) {
+
+                    if (option =='3') {                      
+                        alert('Choose again the course has been selected by someone..')
+                        LoadCourse();
+                    } else if (option== '1') {
+                        alert('You have choosen your service oriented course Successfully..!');
+                        var select = $('#divRadio');
+                        select.empty();
+                        LoadCourse();
+                        //select.append("You have choosen service oriented course.");
+                    }
+                    else if(option=='0') {
+                        $('#btnSubmit').attr('class', 'disabled btn-success btn');
+                        alert('Try again..!');
+                    }
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+            }else{
+        alert('You have no course assigned.')
+        }
+
+        });
+
+</script>
+
+

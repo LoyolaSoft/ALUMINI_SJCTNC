@@ -1,0 +1,125 @@
+﻿@model CMS.ViewModel.ViewModel.DashboardViewModel
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h3 class="panel-title"><i class="fa fa-calendar"></i> Timetable</h3>
+            </div>
+            <div class="panel-body noPadding">
+                <div class="row table-responsive" id="event">
+                    @if (Model.liTimetable != null && Model.liTimetable.Count > 0)
+                    {
+                        string ttTimeTable = string.Empty;
+                        string CourseCode = string.Empty;
+                        string CourseTitle = string.Empty;
+                        var liGroupShift = Model.liTimetable.GroupBy(x => x.SHIFT).OrderBy(x => x.FirstOrDefault().SHIFT).ToList();
+                        foreach (var Groupitem in liGroupShift)
+                        {
+                            var liTimeTable = Model.liTimetable.Where(x => x.SHIFT == Groupitem.FirstOrDefault().SHIFT).ToList();
+                            <div id="dvTimeTable" class="col-md-12"> Time Table For SHIFT - @Groupitem.FirstOrDefault().SHIFT</div>
+                            <table class="table table-bordered text-center" id="TimeTableClassWiseList">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        @if (Model.lstHours != null && Model.lstHours.Count > 0)
+                                        {
+                                            foreach (var dataitem in Model.lstHours)
+                                            {
+                                                <th><b> Hour- @dataitem.HOUR</b></th>
+                                            }
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.lstDayOrders != null && Model.lstDayOrders.Count > 0)
+                                    {
+                                        foreach (var dataitem in Model.lstDayOrders)
+                                        {
+                                            <tr>
+                                                <td><b> Day- @dataitem.DAY</b></td>
+                                                @foreach (var item in Model.lstHours)
+                                                {
+                                                    if (liTimeTable != null && liTimeTable.Count > 0)
+                                                    {
+                                                        var TimeTableList = liTimeTable.Where(s => s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                                                        var TimeTable = TimeTableList.Where(s => s.Hour_Id == item.HOUR_ID && s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                                                        if (TimeTable != null && TimeTable.Count > 0)
+                                                        {
+                                                            ttTimeTable = string.Join(",", TimeTable.Select(x => x.CLASS_CODE.ToString()).ToArray());
+                                                            <td>
+                                                                @{ CourseCode = "(" + @TimeTable.FirstOrDefault().COURSE_CODE + ")";}
+                                                                @TimeTable.FirstOrDefault().hourType<br />
+                                                                @{ CourseTitle = @TimeTable.FirstOrDefault().COURSE_TITLE; }
+                                                                @CourseTitle - @CourseCode <br />
+                                                                @ttTimeTable
+                                                            </td>
+                                                        }
+                                                        else if (Model.liSubstituteList != null && Model.liSubstituteList.Count > 0)
+                                                        {
+                                                            var liSubstituteList = Model.liSubstituteList.Where(s => s.HOUR_ID == item.HOUR_ID && s.DAY_ORDER_ID == dataitem.DAY_ORDER_ID && s.SHIFT == Groupitem.FirstOrDefault().SHIFT).ToList();
+                                                            if (liSubstituteList != null && liSubstituteList.Count > 0)
+                                                            {
+                                                                <td>
+                                                                    @liSubstituteList.FirstOrDefault().HOUR_TYPE<br />
+                                                                    @liSubstituteList.FirstOrDefault().DAY_ORDER_DATE<br />
+                                                                    @liSubstituteList.FirstOrDefault().CLASS_NAME<br />
+                                                                    @liSubstituteList.FirstOrDefault().STAFF_CODE<br />
+                                                                </td>
+                                                            }
+                                                            else
+                                                            {
+                                                                <td></td>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <td></td>
+                                                        }
+                                                    }
+                                                    else if (Model.liSubstituteList != null && Model.liSubstituteList.Count > 0)
+                                                    {
+                                                        var liSubstituteList = Model.liSubstituteList.Where(s => s.HOUR_ID == item.HOUR_ID && s.DAY_ORDER_ID == dataitem.DAY_ORDER_ID && s.SHIFT == Groupitem.FirstOrDefault().SHIFT).ToList();
+                                                        if (liSubstituteList != null && liSubstituteList.Count > 0)
+                                                        {
+                                                            <td>
+                                                                @liSubstituteList.FirstOrDefault().HOUR_TYPE<br />
+                                                                @liSubstituteList.FirstOrDefault().DAY_ORDER_DATE<br />
+                                                                @liSubstituteList.FirstOrDefault().CLASS_NAME<br />
+                                                                @liSubstituteList.FirstOrDefault().STAFF_CODE<br />
+                                                            </td>
+                                                        }
+                                                        else
+                                                        {
+                                                            <td></td>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <td></td>
+                                                    }
+                                                }
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td><p>No records available !!!</p></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

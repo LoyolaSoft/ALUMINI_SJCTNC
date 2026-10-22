@@ -1,0 +1,121 @@
+﻿@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    /**/
+
+    Layout = null;
+    int Count = 0;
+    string sSelected = string.Empty;
+
+}
+@if (Model.LiOBEQuestionPaperPattern != null && Model.LiOBEQuestionPaperPattern.Count > 0)
+{
+
+
+    <table class="table table-responsive table-bordered" id="tblObePattern">
+        <thead>
+            <tr>
+                <th>S.No.</th>
+                <th>Course Code</th>
+                <th>Course Title</th>
+                <th>Department</th>
+                <th>Pattern</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.LiOBEQuestionPaperPattern != null && Model.LiOBEQuestionPaperPattern.Count > 0)
+            {
+                foreach (var item in Model.LiOBEQuestionPaperPattern)
+                {
+                    Count++;
+                    <tr cms-CourseId="@item.COURSE_ROOT_ID" cms-CPaterrnId="@item.OBE_COURSEPATTERN_ID">
+                        <td>@Count</td>
+                        <td>@item.COURSE_CODE</td>
+                        <td>@item.COURSE_TITLE</td>
+                        <td>@item.DEPARTMENT</td>
+                        <td>
+                            @if (Model.LiOBEPattern != null && Model.LiOBEPattern.Count > 0)
+                            {
+                                <select class="form-control m-b-10 selectpicker" id="liObePattern" data-selected-text-format="count">
+                                    <option value="0">--Select--</option>
+                                    @foreach (var Obepattern in Model.LiOBEPattern)
+                                    {
+                                        if (Obepattern.OBE_QUESTIONPAPERPATTERN_ID == item.PATTERN_ID)
+                                        {
+                                            sSelected = "Selected";
+                                        }
+                                        else
+                                        {
+                                            sSelected = "";
+                                        }
+                                        <option value="@Obepattern.OBE_QUESTIONPAPERPATTERN_ID" @sSelected>@Obepattern.OBE_QUESTIONPAPERPATTERN</option>
+                                    }
+                                </select>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+
+        </tbody>
+    </table>
+
+    <div class="col-md-12 pull-right">
+        <a id="btnsubmit" href="#" class="btn btn-success pull-right">Submit</a>
+    </div>
+
+}
+<script>
+ContentLoad = function () {
+        //Ready Function()
+    }
+    handleDatepicker = function () {
+        "use strict";
+        // $("#datepicker-autoClose").datepicker({todayHighlight:!0,autoclose:!0})}
+        $(".date").datepicker({
+            todayHighlight: !0,
+            autoclose: !0,
+            format: "dd/mm/yyyy",
+            orientation: "left"
+            // 'top': top,
+            // 'left': left
+        });
+    }
+    handleDatepicker();
+
+    $('.selectpicker').selectpicker({ size: 6 });
+    $('.selectpicker').selectpicker('refresh');
+
+    $("#btnsubmit").on("click", function ()
+    {
+         
+        var AcYear = $('#AcademicYearList option:selected').text();
+        var Examsetting = $("#ResultMonth").val();
+        var sCOComponentId= $('#OBECOComponent').val()
+        var JsonData = '{"OBEPattern":[';
+        $('#tblObePattern tbody tr').each(function () {
+            CourseId = $(this).attr('cms-CourseId');
+            cPatternId = $(this).attr('cms-CPaterrnId');
+            if (($(this).find('#liObePattern').val()) != '' && ($(this).find('#liObePattern').val()) != null && ($(this).find('#liObePattern').val()) != "0") {
+                JsonData += '{"EXAM_SETTING_ID":"' + Examsetting + '","OBE_COURSEPATTERN_ID":"' + cPatternId + '","COURSE_ID" :"' + CourseId + '","PATTERN_ID":"' + String($(this).find('#liObePattern').val()) + '","ACADEMIC_YEAR":"' + AcYear + '","OBE_COMPONENT_ID":"' + sCOComponentId + '"},';
+            }
+
+
+        });
+
+        JsonData = JsonData.slice(0, -1) + ']}';
+        $.ajax({
+            url: "@Url.Action("SaveOrUpdateObeCoursePatternMapping", "OBE")",
+            method: "POST",
+            datatype: "json",
+            data: { sJsonData: JsonData },
+            success: function (data) {
+            swal({ title: "Success !",text: 'Record Save Successfuly!', showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                PatternMapping();
+            }
+            , error: function (error) {
+
+            swal({ title: "Error !", text: 'Internal Server Error !', showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+            });
+    });
+</script>

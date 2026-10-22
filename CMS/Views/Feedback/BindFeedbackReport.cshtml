@@ -1,0 +1,246 @@
+﻿
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "BindFeedbackReport";
+}
+
+@functions
+{
+
+    public string GetFeedbackResult(int total)
+    {
+        string sResult = string.Empty;
+
+        if(total>=60 && total<=70)
+        {
+            sResult = Common.FB_RESULT.SATISFACTORY;
+        }
+        else if (total >= 70 && total <= 80)
+        {
+            sResult = Common.FB_RESULT.GOOD;
+        }
+        else if (total >= 80 && total <= 90)
+        {
+            sResult = Common.FB_RESULT.VERY_GOOD;
+        }
+        else if (total >= 90 && total <= 100)
+        {
+            sResult = Common.FB_RESULT.EXCELLENT;
+        }
+        else if (total > 100)
+        {
+            sResult = Common.FB_RESULT.OUTSTANDING;
+        }
+        else
+        {
+
+        }
+        return sResult;
+    }
+}
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+@if(Model.liFeedbackEvaluationForReport != null && Model.liFeedbackEvaluationForReport.Count > 0)
+{
+    <div class="form-group col-md-12 table-responsive">
+        @if (Model.liCollegeDetails != null && Model.liCollegeDetails.Count > 0)
+        {
+        <div class="text-center">
+            <img class="image" />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO)" style="width:100px; height:100px" />
+        </div>
+        <div class="text-center">
+
+            <h3>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME &nbsp;&nbsp; @Model.liCollegeDetails.FirstOrDefault().PLACE .</h3>
+            <h4>@Model.liCollegeDetails.FirstOrDefault().UNIVERSITY.</h4>
+            <h5>
+                FEEDBACK REPORT FOR <label id="lblReportName">@Model.liFeedbackEvaluationForReport.FirstOrDefault().FIRST_NAME </label> &nbsp;-<label style="text-transform:uppercase">@Model.liFeedbackEvaluationForReport.FirstOrDefault().STAFF_CODE </label> &nbsp;-@{
+                    string sAcYear= Session[Common.SESSION_VARIABLES.CUR_ACADEMIC_YEAR] != null ? Session[Common.SESSION_VARIABLES.CUR_ACADEMIC_YEAR].ToString() : (Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR] != null ? Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR].ToString() : string.Empty);
+                    }@sAcYear <br />
+
+            </h5>
+        </div>
+        }
+
+
+        <div class="col-md-8 col-lg-offset-2">
+            <table class="" id="tblLiFbReport" cellpadding="50" width="100%" border="1">
+                <thead>
+                    <tr>
+                        <th width="20%">&nbsp;Component</th>
+                        <th>&nbsp;
+                            Self Appraisal
+                            (FSA+FPI)*50/75
+                        </th>
+                        <th>&nbsp;
+                            Student Appraisal
+                            (Max.points:30)
+                        </th>
+                        <th>&nbsp;
+                            Evaluati
+                            on by
+                            Peer
+                            (Max.
+                            points:
+                            5)
+                        </th>
+                        <th>&nbsp;
+                            Evaluati
+                            on by
+                            HOD
+                            (Max.
+                            points:
+                            5)
+                        </th>
+                        <th>&nbsp;
+                            Evaluati
+                            on by
+                            Principal
+                            (Max.
+                            points:
+                            5)
+                        </th>
+                        <th>&nbsp;
+                            Evaluati
+                            on by
+                            Dean
+                            (Max.
+                            Points:
+                            5)
+                        </th>
+                    </tr>
+                </thead>
+                <tbody style="text-align:center;">
+                    @if (Model.liFeedbackEvaluationForReport != null && Model.liFeedbackEvaluationForReport.Count > 0)
+                    {
+                        int sSelfAppraisal = 0;
+                        int sStudentAppraisal = 0;
+                        int sPeerAppraisal = 0;
+                        int sHodAppraisal = 0;
+                        int sPrincipalAppraisal = 0;
+                        int sDeanAppraisal = 0;
+                        int sTotal = 0;
+
+                        //self appraisal both fsa and fpi
+                        if (Model.liFeedbackPerformanceIndexForReport != null && Model.liFeedbackPerformanceIndexForReport.Count > 0 && Model.liFeedbackSelfAppraisalForReport != null && Model.liFeedbackSelfAppraisalForReport.Count > 0)
+                        {
+
+                            int liItem = Convert.ToInt16(!string.IsNullOrEmpty(Model.liFeedbackPerformanceIndexForReport.FirstOrDefault().PERFORMANCE_INDEX)? Model.liFeedbackPerformanceIndexForReport.FirstOrDefault().PERFORMANCE_INDEX:"0") + Convert.ToInt16(!string.IsNullOrEmpty(Model.liFeedbackSelfAppraisalForReport.FirstOrDefault().SELF_APRAISAL)? Model.liFeedbackSelfAppraisalForReport.FirstOrDefault().SELF_APRAISAL:"0");
+                            if (liItem > 0)
+                            {
+                                sSelfAppraisal = liItem * 50 / 75;
+                            }
+                        }
+
+                        sStudentAppraisal = Model.liFeedbackEvaluationForReport.FirstOrDefault().STUDENT_APPRAISAL != "" && Model.liFeedbackEvaluationForReport.FirstOrDefault().STUDENT_APPRAISAL != null ? int.Parse(Model.liFeedbackEvaluationForReport.FirstOrDefault().STUDENT_APPRAISAL) : 0;
+                        //generate student appraisal
+                        if (sStudentAppraisal > 0)
+                        {
+                            //also divide no student with score
+                            sStudentAppraisal = (!string.IsNullOrEmpty(Model.objFeedbackQuestionFiled.NO_OF_STUDENT) && Convert.ToInt16(Model.objFeedbackQuestionFiled.NO_OF_STUDENT)>0) ?  sStudentAppraisal / Convert.ToInt16(Model.objFeedbackQuestionFiled.NO_OF_STUDENT): sStudentAppraisal;
+
+                            sStudentAppraisal = sStudentAppraisal * 30;
+
+                            sStudentAppraisal = sStudentAppraisal / 100;
+
+                        }
+                        sPeerAppraisal = Model.liFeedbackEvaluationForReport.FirstOrDefault().BY_PEER != "" && Model.liFeedbackEvaluationForReport.FirstOrDefault().BY_PEER != null ? int.Parse(Model.liFeedbackEvaluationForReport.FirstOrDefault().BY_PEER) : 0;
+
+                        //generate peer appraisal
+                        if (sPeerAppraisal > 0)
+                        {
+                            //also divide no student with score
+                            sPeerAppraisal = (!string.IsNullOrEmpty(Model.objFeedbackQuestionFiled.NO_OF_STAFF) && Convert.ToInt16(Model.objFeedbackQuestionFiled.NO_OF_STAFF)> 0) ? sPeerAppraisal / Convert.ToInt16(Model.objFeedbackQuestionFiled.NO_OF_STAFF) : sPeerAppraisal;
+
+
+                            sPeerAppraisal = sPeerAppraisal * 5;
+
+                            sPeerAppraisal = sPeerAppraisal / 50;
+
+                        }
+                        sHodAppraisal = Model.liFeedbackEvaluationForReport.FirstOrDefault().BY_HOD != "" && Model.liFeedbackEvaluationForReport.FirstOrDefault().BY_HOD != null ? int.Parse(Model.liFeedbackEvaluationForReport.FirstOrDefault().BY_HOD) : 0;
+                        //generate hod appraisal
+                        if (sHodAppraisal > 0)
+                        {
+
+                            //also divide no HOD with score
+                            sHodAppraisal = (!string.IsNullOrEmpty(Model.objFeedbackQuestionFiled.NO_OF_HOD) && Convert.ToInt16(Model.objFeedbackQuestionFiled.NO_OF_HOD) > 0) ? sHodAppraisal / Convert.ToInt16(Model.objFeedbackQuestionFiled.NO_OF_HOD) : sHodAppraisal;
+                            sHodAppraisal = sHodAppraisal * 5 / 50;
+                        }
+
+                        sPrincipalAppraisal = Model.liFeedbackEvaluationForReport.FirstOrDefault().BY_PRINCIPAL != "" && Model.liFeedbackEvaluationForReport.FirstOrDefault().BY_PRINCIPAL != null ? int.Parse(Model.liFeedbackEvaluationForReport.FirstOrDefault().BY_PRINCIPAL) : 0;
+                        //generate principal appraisal
+                        if (sPrincipalAppraisal > 0)
+                        {
+                            sPrincipalAppraisal = sPrincipalAppraisal * 5 / 50;
+                        }
+
+                        sDeanAppraisal = Model.liFeedbackEvaluationForReport.FirstOrDefault().BY_DEAN != "" && Model.liFeedbackEvaluationForReport.FirstOrDefault().BY_DEAN != null ? int.Parse(Model.liFeedbackEvaluationForReport.FirstOrDefault().BY_DEAN) : 0;
+                        if (sDeanAppraisal > 0)
+                        {
+                            //also divide no HOD with score
+                            sDeanAppraisal = (!string.IsNullOrEmpty(Model.objFeedbackQuestionFiled.NO_OF_DEAN) && Convert.ToInt16(Model.objFeedbackQuestionFiled.NO_OF_DEAN) > 0) ? sDeanAppraisal / Convert.ToInt16(Model.objFeedbackQuestionFiled.NO_OF_DEAN) : sDeanAppraisal;
+                            sDeanAppraisal = sDeanAppraisal * 5 / 50;
+                        }
+
+
+                        sTotal = sSelfAppraisal + sStudentAppraisal + sPeerAppraisal + sHodAppraisal + sPrincipalAppraisal + sDeanAppraisal;
+
+                        <tr>
+                            <td>
+                                Marks obtained
+                            </td>
+                            <td>@sSelfAppraisal</td>
+                            <td>@sStudentAppraisal</td>
+                            <td>@sPeerAppraisal</td>
+                            <td>@sHodAppraisal</td>
+                            <td>@sPrincipalAppraisal</td>
+                            <td>@sDeanAppraisal</td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"><p align="center"><b>Total:</b></p></td>
+
+                            <td>@sTotal</td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"><p align="center"><b>Result:</b></p></td>
+
+                            <td>@GetFeedbackResult(sTotal)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+         </div>    
+      
+    </div>
+    <div class="col-md-12" id="resultDiv">
+        <h4 style="text-decoration:underline;font-weight:bold">RESULT</h4>
+        <p style="font-weight:bold">60-70:Satisfactory</p>
+        <p style="font-weight:bold">70-80:Good</p>
+        <p style="font-weight:bold">80-90:Very Good</p>
+        <p style="font-weight:bold">90-100:Excellent</p>
+        <p style="font-weight:bold">>100:Out Standing</p>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">No Record(s) Found !</div>
+}
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,157 @@
+﻿@model CMS.ViewModel.Model.DepartmentModel
+@using CMS.Utility;
+@{
+    ViewBag.Title = "EditDepartmentInfo";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="content" id="content">
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li><a @*href="@Url.Action("ListDepartmentInfo","Academics")"*@ href="javascript:;" onclick="loadContent('/Academics/ListDepartmentInfo')">List Department</a></li>
+            <li class="active">Edit Department</li>
+        </ol>
+        <h2 class="page-header">Department Details</h2>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Edit Department</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div class="col-md-6 col-md-offset-3">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.DEPARTMENT, htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.EditorFor(model => model.DEPARTMENT, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Enter Department" } })
+                                @Html.ValidationMessageFor(model => model.DEPARTMENT, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.DEPARTMENT_CODE, htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.EditorFor(model => model.DEPARTMENT_CODE, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Enter Department Code" } })
+                                @Html.ValidationMessageFor(model => model.DEPARTMENT_CODE, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.DEPARTMENT_ORDER, htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.EditorFor(model => model.DEPARTMENT_ORDER, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Enter Department Order" } })
+                                @Html.ValidationMessageFor(model => model.DEPARTMENT_ORDER, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.FACULTY, htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.FACULTY, (Model.FACULTY != null) ? Model.FACULTY : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.FACULTY, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.YEAR_OF_PUBLISHMENT, htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.EditorFor(model => model.YEAR_OF_PUBLISHMENT, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Enter Year Pulishiment", MaxLength = "4" } })
+                                @Html.ValidationMessageFor(model => model.YEAR_OF_PUBLISHMENT, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Is Active", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.CheckBox("IS_ACTIVE", Model.IS_ACTIVE, new { @class = "input-sm" })
+
+                            </div>
+                        </div>
+
+                        <div class="form-group pull-right">
+                            <div class="col-md-12 pull-right">
+                                <a id="btnSubmit" value="Submit" class="btn btn-primary">Submit</a>
+                                <a id="btnCancel" value="Submit" class="btn btn-danger" href="javascript:;" onclick="loadContent('/Academics/ListDepartmentInfo')" @*href="@Url.Action("ListDepartmentInfo","Academics")"*@>Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script>
+        function ContentLoad() 
+        {
+            // Document Ready Function .
+        }
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        $(document).ready(function () {
+            var ID=@Session[Common.SESSION_VARIABLES.DEPARTMENT_ID];
+            $.ajax({
+                url:"@Url.Action("FetchDepartmentInfoById", "Academics")",
+                method:"POST",
+                datatype:"html",
+                data:{id:ID},
+                success:function(data){
+                    $("#DEPARTMENT").val(data.DEPARTMENT);
+                    $("#DEPARTMENT_CODE").val(data.DEPARTMENT_CODE);
+                    $("#DEPARTMENT_ORDER").val(data.DEPARTMENT_ORDER);
+                    $("#FACULTY").val(data.FACULTY);
+                    $("#YEAR_OF_PUBLISHMENT").val(data.YEAR_OF_PUBLISHMENT);
+                    if(data.IS_ACTIVE=="1"){
+                        $('#IS_ACTIVE').prop('checked',true);
+                    }
+                    $("#IS_ACTIVE").val(data.IS_ACTIVE);
+                    $('.selectpicker').selectpicker('refresh');
+                },error:function(error){
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+    </script>
+    <script>
+        $('#btnSubmit').on("click", function () {
+            var Department = $('#DEPARTMENT').val();
+            var DepartmentCode = $('#DEPARTMENT_CODE').val();
+            var DepartmentOrder = $('#DEPARTMENT_ORDER').val();
+            var Faculty = $('#FACULTY').val();
+            var YearOfPulishment = $('#YEAR_OF_PUBLISHMENT').val();
+            var IsActive = $('#IS_ACTIVE').val();
+            var JsonData;
+            JsonData = '{"DEPARTMENT":"' + Department + '","DEPARTMENT_CODE":"' + DepartmentCode + '","DEPARTMENT_ORDER":"' + DepartmentOrder + '","FACULTY":"' + Faculty + '","YEAR_OF_PUBLISHMENT":"' + YearOfPulishment + '","IS_ACTIVE":"' + IsActive + '"}';
+            $.ajax({
+                url: "@Url.Action("UpdateDepartmentInfo", "Academics")",
+                method: "POST",
+                datatype: "html",
+                data: { JsonDepartment: JsonData },
+                success: function (data) 
+                {
+                    alert(data.Message);
+                    
+                }, error: function (error) 
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+    </script>
+

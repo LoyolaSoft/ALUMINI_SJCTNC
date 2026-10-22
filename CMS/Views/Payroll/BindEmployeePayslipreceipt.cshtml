@@ -1,0 +1,225 @@
+﻿@model CMS.ViewModel.ViewModel.PayrollViewModel
+@using CMS.Utility;
+@{
+    Layout = null;
+    double earn = 0;
+    double deduction = 0;
+    double lop = 0;
+    double netpay = 0;
+    double cma = 0;
+}
+<link href="~/Content/assets/css/print.css" rel="stylesheet"/>
+
+@{
+    var liemployee = Model.liemployeesalarygeneration.GroupBy(o => o.EMPLOYEE_ID).ToList();
+    if (liemployee != null && liemployee.Count > 0)
+    {
+
+        foreach (var emp in liemployee)
+        {
+            var lisalearnings = Model.liemployeesalarygeneration.Where(o => o.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Earnings && o.EMPLOYEE_ID == emp.FirstOrDefault().EMPLOYEE_ID).ToList();
+            var lisaldeductins = Model.liemployeesalarygeneration.Where(o => o.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Deductions && o.EMPLOYEE_ID == emp.FirstOrDefault().EMPLOYEE_ID).ToList();
+
+            <div class="" id="divprint" style="page-break-before:always !important;page-break-after:always !important; page-break-inside:avoid !important;">
+              
+                <div class="col-md-10 col-lg-offset-2">
+                    <div class="col-md-10">
+                        @if (Model.liCollegeDetails != null)
+                        {
+                            foreach (var item in Model.liCollegeDetails)
+                            {
+                    <center>
+                        <img src="/Content/assets/img/hcc-img/hcclogo.jpg" width="75px" class="">
+                        <table>
+                            <tr>
+                                <td><center><strong>@item.COLLEGE_NAME</strong></center></td>
+                            </tr>
+                            <tr>
+                                <td><b> @item.GRADE</b></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">
+                                    @item.UNIVERSITY
+                                </td>
+                            </tr>
+
+                        </table>
+                    </center>
+                            }
+                        }
+                    </div>
+                </div>
+                <br>
+                <div class="col-md-10 col-lg-offset-2">
+                    <br>
+                    <div class="col-md-5" id="colmd5_1">
+                        <table class="table-condensed" cellpadding="5">
+                            <tr @*style="background-color:#3997fb;color:white"*@>
+                                <td><b>EMPLOYEE INFORMATION</b></td>
+                            </tr>
+                            <tr>
+                                <td><b>Name:</b>@emp.FirstOrDefault().FIRST_NAME</td>
+
+                            </tr>
+                            <tr>
+                                <td><b>Staff Code:</b>@emp.FirstOrDefault().STAFF_CODE</td>
+                            </tr>
+                            <tr> <td><b>Month:</b>@ViewBag.Month</td></tr>
+                            <tr><td><b>Year:</b>@ViewBag.Year</td></tr>
+
+                        </table>
+                    </div>
+                    <div class="col-md-5 pull-right" id="colmd5_2">
+                        @{
+                            if (emp.FirstOrDefault().PHOTO != null && !string.IsNullOrEmpty(emp.FirstOrDefault().PHOTO))
+                            {
+                                     @*<img src="@emp.FirstOrDefault().PHOTO" alt="Photo" style="height:130px" />*@
+                                <img src="~/Content/hcc_img/emptyicon.png" alt="" style="height:130px" />
+                            }
+                            else
+                            {
+                                 <div src="" style="border:2px solid gray; height:130px;"><p style="text-align:center;">EMPLOYEE PHOTO</p></div>
+                            }
+                        }
+
+                    </div>
+
+                </div>
+
+                @if (lisalearnings != null)
+                {
+
+                    foreach (var item in lisalearnings)
+                    {
+                        if (item.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Earnings && item.IS_GROSS_PAY != "1")
+                        {
+                            earn += Convert.ToInt32(item.AMOUNT);
+                        }
+
+
+
+                    }
+                }
+
+
+                @if (lisaldeductins != null)
+                {
+
+                    foreach (var item1 in lisaldeductins)
+                    {
+                        if (item1.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Deductions)
+                        {
+                            deduction += Convert.ToInt32(item1.AMOUNT);
+                        }
+
+                    }
+                }
+                @{
+                    netpay = earn - deduction;
+                } 
+                @{
+                    var grosspay = lisalearnings.Where(o => o.IS_GROSS_PAY == Common.IsActiveFalg.IsActive).ToList();
+                    if (grosspay != null && grosspay.Count > 0)
+                    {
+                        cma = Convert.ToInt32(grosspay.FirstOrDefault().AMOUNT) - earn;
+                        if (cma != 0)
+                        {
+                            netpay = netpay + cma;
+                        }
+                    }
+                }
+                <div class="col-md-10 col-md-offset-2">
+                    <div class="col-md-12">
+                        <br><br>
+                        <table class="" style="width:100%" id="earnings">
+                            <thead>
+                                <tr>
+                                    <th style="padding:5px"><b>EARNINGS</b></th>
+                                    <th style="padding:5px"><b>AMOUNT</b></th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (lisalearnings != null && lisalearnings.Count > 0)
+                            {
+                                foreach (var item in lisalearnings)
+                                {
+                            <tr>
+                                <td style="padding:5px">@item.NAME_IN_PAYSLIP</td>
+                                <td style="padding:5px;text-align:right">@item.AMOUNT</td>
+                            </tr>
+
+                                }
+                            }
+
+                                <tr>
+                                    <td style="padding:5px">CMA</td>
+                                    <td style="padding:5px;text-align:right">@cma</td>
+                                </tr>
+
+                                <tr>
+                                    <td style="padding:5px"><b>Total Earnings:</b></td>
+                                    <td style="padding:5px;text-align:right">@(earn+cma)</td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+
+                        <br><br>
+
+                        <table class="" style="width:100%" id="deductions">
+                            <thead>
+                                <tr>
+                                    <th style="padding:5px"><b>DEDUCTIONS</b></th>
+                                    <th style="padding:5px"><b>AMOUNT</b></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @if (lisaldeductins != null && lisaldeductins.Count > 0)
+                            {
+                                foreach (var item in lisaldeductins)
+                                {
+                            <tr>
+                                <td style="padding:5px">@item.NAME_IN_PAYSLIP</td>
+                                <td style="padding:5px;text-align:right">@item.AMOUNT</td>
+                            </tr>
+
+                                }
+                            }
+
+                                <tr>
+                                    <td style="padding:5px"><b>Total Deductions:</b></td>
+                                    <td style="padding:5px;text-align:right"> @deduction </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:5px"><b>Loss of Pay:</b></td>
+                                    <td style="padding:5px;text-align:right"> @lop </td>
+                                </tr>
+
+
+                            </tbody>
+                        </table>
+                        <br><br>
+                        <table class="pull-right" style="width:200px;" id="tblnetpay">
+                            <tbody>
+                                <tr>
+                                    <td style="padding:5px"><b>Net Pay</b></td>
+                                    <td style="padding:5px;text-align:right">@netpay</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        
+                         earn = 0;
+                         deduction = 0;
+                         lop = 0;
+                         netpay = 0;
+                         cma = 0;
+                    }
+                   
+  }
+}

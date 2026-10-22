@@ -1,0 +1,419 @@
+@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+@{
+    ViewBag.Title = "Convocation Payment Response";
+    Layout = null;
+    bool isPaid = Model != null && !string.IsNullOrEmpty(Model.Status) && (Model.Status.ToUpper() == "PAID" || Model.Status.ToUpper() == "SUCCESS");
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Status - St Joseph's College, Cuddalore (SJCTNC)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="~/Content/assets/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --primary-color: #0b3c5d;
+            --secondary-color: #328cc1;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --bg-light: #f4f7f6;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: #333;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .response-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        .status-card {
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @@keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .status-header {
+            padding: 40px 20px;
+            text-align: center;
+            color: #fff;
+        }
+
+        .status-header.success {
+            background: linear-gradient(135deg, #1d976c, #93f9b9);
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .status-header.failed {
+            background: linear-gradient(135deg, #eb5757, #000000);
+            color: #fff;
+        }
+
+        .status-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @@keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .details-body {
+            padding: 30px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .detail-value {
+            font-weight: 700;
+            color: #111;
+        }
+
+        .btn-group-custom {
+            padding: 20px 30px 40px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-custom {
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-print {
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+        }
+
+        .btn-print:hover {
+            background: #082b43;
+            transform: translateY(-2px);
+        }
+
+        .btn-home {
+            background: #eee;
+            color: #333;
+            border: none;
+        }
+
+        .btn-home:hover {
+            background: #ddd;
+            transform: translateY(-2px);
+        }
+
+        /* Receipt Styles (Hidden by default, shown for print) */
+        #receipt-area {
+            display: none;
+            padding: 40px;
+            background: #fff;
+            color: #000;
+        }
+
+        @@media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #receipt-area, #receipt-area * {
+                visibility: visible;
+            }
+
+            #receipt-area {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+        }
+
+        .receipt-logo {
+            width: 80px;
+            margin-bottom: 10px;
+        }
+
+        .college-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .receipt-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        .receipt-table th, .receipt-table td {
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .receipt-table th {
+            background: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="response-container no-print">
+        <div class="status-card">
+            <div class="status-header @(isPaid ? "success" : "failed")">
+                <div class="status-icon">
+                    <i class="fa @(isPaid ? "fa-check-circle" : "fa-times-circle")"></i>
+                </div>
+                <h2 style="margin:0; font-weight:700;">@(Model != null ? Model.Message : "Process Completed")</h2>
+                <p style="margin:10px 0 0; opacity:0.9;">Transaction ID: @(Model != null ? Model.TransactionId : "N/A")</p>
+            </div>
+
+            <div class="details-body">
+                <div class="detail-row">
+                    <span class="detail-label">Payment Date</span>
+                    <span class="detail-value">@(Model != null ? Model.PaymentDate : DateTime.Now.ToString("dd-MM-yyyy"))</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Amount Paid</span>
+                    <span class="detail-value" style="color: var(--primary-color); font-size: 20px;">@(Model != null ? Model.Amount : "0.00")</span>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.ReceiptNo))
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">Receipt Number</span>
+                        <span class="detail-value">@Model.ReceiptNo</span>
+                    </div>
+                }
+                <div class="detail-row">
+                    <span class="detail-label">Status</span>
+                    <span class="detail-value" style="color: @(isPaid ? "var(--success-color)" : "var(--danger-color)")">
+                        @(isPaid ? "COMPLETED" : (Model != null && Model.Status != null ? Model.Status.ToUpper() : "FAILED"))
+                    </span>
+                </div>
+            </div>
+
+            <div class="btn-group-custom">
+                @if (isPaid)
+                {
+                    <button class="btn-custom btn-print" onclick="window.print();">
+                        <i class="fa fa-print"></i> Print Receipt
+                    </button>
+                }
+                <a href="@Url.Action("DashBoard", "DashBoard")" class="btn-custom btn-home">
+                    <i class="fa fa-home"></i> Home
+                </a>
+            </div>
+        </div>
+
+        @if (!isPaid)
+        {
+            <div class="alert alert-info text-center" style="margin-top:20px; border-radius:15px; border:none; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <i class="fa fa-info-circle"></i> If your payment was deducted but shows failed, please contact admin with your Transaction ID.
+            </div>
+        }
+    </div>
+
+    <!-- Printable Receipt Area -->
+    <div id="receipt-area">
+        @if (isPaid && Model != null && Model.liFeeTransaction != null && Model.liFeeTransaction.Count > 0)
+        {
+            var dataitem = Model.liFeeTransaction.OrderByDescending(x => x.TRANSACTION_ID).FirstOrDefault();
+            var TransactionList = Model.liFeeTransaction;
+
+            <div class="receipt-header">
+                @if (Model.liCollegeDetails != null && Model.liCollegeDetails.Count > 0)
+                {
+                    foreach (var college in Model.liCollegeDetails)
+                    {
+                        <center>
+                            <img src="@college.COLLEGE_LOGO" width="75" style="margin-bottom:10px;" />
+                            <table style="width:100%; border:none;">
+                                <tr>
+                                    <td><center><strong><span style="font-size:22px;">@college.COLLEGE_NAME</span></strong></center></td>
+                                </tr>
+                                <tr>
+                                    <td><center><b>@college.GRADE</b></center></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">
+                                        <center>@college.UNIVERSITY</center>
+                                    </td>
+                                </tr>
+                            </table>
+                        </center>
+                    }
+                }
+                <h3 style="margin-top:20px; text-decoration: underline; text-align:center; font-weight:700; letter-spacing: 1px;">CONVOCATION FEE RECEIPT</h3>
+            </div>
+
+            <div style="display:flex; justify-content: space-between; margin-bottom:15px; font-size:14px;">
+                <div class="pull-left">
+                    <strong>Receipt No:</strong> @dataitem.RECEIPT_NO
+                </div>
+                <div class="pull-right text-right">
+                    <strong>Date:</strong> @dataitem.PAYMENT_DATE<br />
+                    @if (TransactionList != null && TransactionList.Count > 0 && !string.IsNullOrEmpty(TransactionList.FirstOrDefault().CF_ORDER_ID))
+                    {
+                        <small style="color:#666;">Transaction ID: @TransactionList.FirstOrDefault().CF_ORDER_ID</small>
+                    }
+                </div>
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <table class="table-condensed" cellpadding="6" style="width:100%; border:1px solid #000; padding:10px; font-size: 14px;">
+                    <tr>
+                        <td width="20%"><b>Candidate Name</b></td>
+                        <td width="30%">@dataitem.FIRST_NAME</td>
+                        <td width="20%"><b>Reg. / Roll No</b></td>
+                        <td width="30%">@dataitem.ROLL_NO / @dataitem.REGISTER_NO</td>
+                    </tr>
+                    @*<tr>
+                        <td width="20%"><b>Degree/Prog.</b></td>
+                        <td width="30%">@(ViewBag.ProgrammeName ?? dataitem.PROGRAMME_NAME)</td>
+                        <td width="20%"><b>Department</b></td>
+                        <td width="30%">@(ViewBag.Department ?? "N/A")</td>
+                    </tr>*@
+                    <tr>
+                        <td width="20%"><b>Academic Year</b></td>
+                        <td width="30%">@(ViewBag.YearOfPassing ?? "N/A")</td>
+                        <td width="20%"><b>Transaction No</b></td>
+                        <td width="30%"><b>@dataitem.TRANSACTION_ID</b></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="margin-bottom:25px;">
+                <table class="receipt-table" style="width:100%; border:1px solid #000;">
+                    <thead>
+                        <tr style="background:#f2f2f2;">
+                            <th width="70px" style="border:1px solid #000; text-align:center; padding:8px;">#</th>
+                            <th style="border:1px solid #000; padding:8px;">PARTICULARS</th>
+                            <th width="150px" style="border:1px solid #000; text-align:right; padding:8px;">AMOUNT (Rs.)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (TransactionList != null && TransactionList.Count > 0)
+                        {
+                            int idx = 1;
+                            foreach (var item in TransactionList)
+                            {
+                                <tr>
+                                    <td style="border:1px solid #000; text-align:center; padding:8px;">@(idx++)</td>
+                                    <td style="border:1px solid #000; padding:8px;">@item.MAIN_HEAD</td>
+                                    <td style="border:1px solid #000; text-align:right; padding:8px;">@item.DEBIT &nbsp;</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr style="font-weight:700; background:#f9f9f9;">
+                            <td style="border:1px solid #000;"></td>
+                            <td style="border:1px solid #000; text-align:right; padding:8px;">TOTAL</td>
+                            <td style="border:1px solid #000; text-align:right; padding:8px;">@dataitem.DEBIT &nbsp;</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div style="margin-top:30px; display:flex; justify-content: space-between; align-items: flex-end;">
+                <div style="text-align:center;">
+                    @{
+                        string studentIdVal = string.IsNullOrEmpty(dataitem.REGISTER_NO) ? dataitem.ROLL_NO : dataitem.REGISTER_NO;
+                        string sQRContent = string.Concat("Name:", dataitem.FIRST_NAME, "|", "Reg.No:", studentIdVal, "|PaymentMode:", dataitem.PAYMENT_MODE
+                                                             , "|FeeType:Convocation|PaidAmount:", dataitem.COLLECTED, "|ReceiptNo:", dataitem.RECEIPT_NO, "|PaymentDate:", dataitem.PAYMENT_DATE, "|College:", Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME, "|Key:", dataitem.TRANSACTION_ID);
+                    }
+                    <img src="@CMS.Utility.CommonMethods.GetEncodeQRCodeWithLogo(sQRContent)" width="120px;" style="margin-bottom:5px;" />
+                    <div style="font-size:10px;">Scan to Verify</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="border-top: 1px solid #000; width: 180px; padding-top: 5px; font-weight:600;">
+                        Authorized Signatory
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:40px; font-size:11px; color:#666; text-align:center; font-style:italic;">
+                This is a computer-generated receipt and does not require a physical signature.
+            </div>
+        }
+        else if (!isPaid)
+        {
+            <div style="text-align:center; padding:50px;">
+                <h2 style="color:var(--danger-color);">Payment Failed / Pending</h2>
+                <p>A receipt cannot be generated for this transaction.</p>
+            </div>
+        }
+    </div>
+
+</body>
+</html>

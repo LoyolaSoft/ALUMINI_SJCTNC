@@ -1,0 +1,443 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    Layout = null;
+}
+
+<!-- ================== BEGIN PAGE LEVEL CSS STYLE ================== -->
+<!--<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />-->
+<!-- ================== END PAGE LEVEL CSS STYLE ================== -->
+<!--<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />-->
+
+
+
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightbox2@2.11.3/dist/css/lightbox.min.css">
+<link href="~/Content/assets/plugins/summernote/summernote.css" rel="stylesheet" />
+
+
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">List Exam Setting</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">List Exam Setting<small></small></h1>
+    <!-- end page-header -->
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h3 class="panel-title">List Exam Setting </h3>
+        </div>
+        <div class="panel-body">
+            <div class="col-md-12 pull-right">
+                <a href="#modal-dialog" data-toggle="modal" id="Add" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add</a>
+            </div>
+            <br /><br />
+            <div class="col-md-12 form-group table-responsive">
+
+                <table class="table table-bordered table-hover" id="tblcer">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Exam Name</th>
+                            <th>Pass Month</th>
+                            <th>Exam Type</th>
+                            <th>Semester Type</th>
+                            <th>Year</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Last Date For Payment</th>
+                            <th>Hall Ticket Publication Date</th>
+                            <th>Active</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.liExamSetting != null && Model.liExamSetting.Count > 0)
+                        {
+                            int nCount = 0;
+                            foreach (var item in Model.liExamSetting)
+                            {
+                                <tr>
+                                    <td>@{nCount++;} @nCount</td>
+                                    <td>@item.EXAM_NAME</td>
+                                    <td>@item.M_PASS</td>
+                                    <td>@item.EXAM_TYPE</td>
+                                    <td>@item.SEMESTER_TYPE</td>
+                                    <td>@item.ACADEMIC_YEAR</td>
+                                    <td>@item.START_DATE</td>
+                                    <td>@item.END_DATE</td>
+                                    <td>@item.LAST_DATE_FOR_EXAM_FEE</td>
+                                    <td>@item.HALL_TICKET_PUBLICATION_DATE</td>
+                                    <td>
+                                        @if (item.IS_ACTIVE == "1")
+                                        {
+                                            <a class="text-success" onclick="UpdateActiveExamSetting('@item.EXAM_SETTING_ID','0')"><i class="fa fa-check"></i></a>
+                                        }
+                                        else
+                                        {
+                                            <a class="text-danger" onclick="UpdateActiveExamSetting('@item.EXAM_SETTING_ID','1')"><i class="fa fa-times"></i></a>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="#modal-dialog" data-toggle="modal" class="text-primary" onclick="FetchExamSettingById(@item.EXAM_SETTING_ID)"><i class="fa fa-edit"></i></a>
+                                        <a href="javascript:;" class="text-danger" onclick="GetConfirm(@item.EXAM_SETTING_ID)"><i class="fa fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit </h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="exam">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            <input type="hidden" id="hdRoomId" />
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Ac Year</label>
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true" })
+
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Exam Name</label>
+                                <div class="col-md-9">
+                                    <input type="text" name="name" id="txtExamSetting" class="form-control" />
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Pass Month</label>
+                                <div class="col-md-9">
+                                    <input type="text" name="name" id="txtPassMonth" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Semester Type</label>
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.SessionType, (Model.SessionType != null) ? Model.SessionType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", id = "ddlSemesterType", @data_parsley_required = "true" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Exam Type</label>
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.ExamType, (Model.ExamType != null) ? Model.ExamType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Start Date</label>
+                                <div class="col-md-9">
+                                    <div class="input-group">
+                                        <input type="text" name="name" id="txtStartDate" class="form-control date" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">End Date</label>
+                                <div class="col-md-9">
+                                    <div class="input-group">
+                                        <input type="text" name="name" id="txtEndDate" class="form-control date" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Last Date For Exam Fee</label>
+                                <div class="col-md-9">
+                                    <div class="input-group">
+                                        <input type="text" name="name" id="txtLastDateForExamFee" class="form-control date" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Hall Ticket Publication Date</label>
+                                <div class="col-md-9">
+                                    <div class="input-group">
+                                        <input type="text" name="name" id="txtHallTicketPublicationDate" class="form-control date" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 form-group">
+                                <div class="col-md-8">
+                                    <input type="checkbox" id="chIsActive" /> &nbsp; &nbsp; IsActive
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" onclick="SaveExamSetting()" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+    <input type="hidden" id="hdExamSettingId" />
+
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/Content/assets/plugins/flot/jquery.flot.min.js"></script>
+    <script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+    <script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lightbox2@2.11.3/dist/js/lightbox.min.js"></script>
+    <script src="~/Content/assets/plugins/summernote/summernote.min.js"></script>
+
+
+
+
+    @*<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+        <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+        <script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+        <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+        <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+        <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+        <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+        <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+        <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+        <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+        <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+        <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+        <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>*@
+    <script>
+
+        $(document).ready(function () {
+            // ✅ Initialize DataTable
+            $('#tblcer').DataTable({});
+            //add
+        });
+
+    function ContentLoad() {
+        // Document. Ready Function ...,
+    }
+
+    handleDatepicker = function () {
+        "use strict";
+        // $("#datepicker-autoClose").datepicker({todayHighlight:!0,autoclose:!0})}
+        $(".date").datepicker({
+            todayHighlight: !0,
+            autoclose: !0,
+          //  endDate: new Date,
+            format: "dd/mm/yyyy",
+            //format: "yyyy/mm/dd",
+            orientation: "left"
+            // 'top': top,
+            // 'left': left
+        });
+    }
+    handleDatepicker();
+
+    $('.selectpicker').selectpicker({ size: 6 });
+    $('.selectpicker').selectpicker('refresh');
+
+    function FetchExamSettingById(Id) {
+        $.ajax({
+            url: '/Examination/FetchExamInfoById',
+            method: 'POST',
+            datatype: 'json',
+            data: { sExamSettingId: Id },
+            success: function (data) {
+                $('#hdExamSettingId').val(data[0].EXAM_SETTING_ID);
+                //$('#AcademicYearList').val(data[0].ACADEMIC_YEAR);
+                $('#AcademicYearList option[value="' + data[0].ACADEMIC_YEAR + '"]').attr("selected", "selected");
+
+                $('#txtExamSetting').val(data[0].EXAM_NAME);
+
+                $('#txtPassMonth').val(data[0].M_PASS);
+                //$('#ddlSemesterType').val(data[0].SEMESTER_TYPE);
+                $('#ddlSemesterType option[value="' + data[0].SEMESTER_TYPE + '"]').attr("selected", "selected");
+
+                //$('#ExamType').val(data[0].EXAM_TYPE);
+                $('#ExamType option[value="' + data[0].EXAM_TYPE + '"]').attr("selected", "selected");
+
+                $('#txtStartDate').val(data[0].START_DATE);
+                $('#txtEndDate').val(data[0].END_DATE);
+                $('#txtLastDateForExamFee').val(data[0].LAST_DATE_FOR_EXAM_FEE);
+                $('#txtHallTicketPublicationDate').val(data[0].HALL_TICKET_PUBLICATION_DATE);
+                $('.selectpicker').selectpicker('refresh');
+                if (data[0].IS_ACTIVE == 1) {
+                    $("#chIsActive").prop("checked", true);
+                } else {
+                    $("#chIsActive").prop("checked", false);
+                }
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+
+    function GetConfirm(ID)
+    {
+   swal({
+       title: "Are you sure want to Delete..?",
+       type: "warning",
+       showCancelButton: true,
+       confirmButtonClass: "btn-danger",
+       confirmButtonText: "Yes, I agree!",
+       closeOnConfirm: false
+   }, function () {
+       $.ajax({
+           url: "@Url.Action("DeleteExamSetting", "Examination")",
+           type: "post",
+           data: { sExamSettingId: ID },
+           success: function (data) {
+               if (data.ErrorCode != null && data.ErrorCode == "402") {
+                   swal({ title: "Error..!!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+               } else {
+                   swal({ title: "Success..!!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+               }
+               loadContent('/Examination/ListsemesterExamSetting');
+           },
+           error: function () {
+               swal({ title: "Error..!!", text: "Internal Server Error..!!", showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+           }
+       });
+   });
+ }
+
+    function UpdateActiveExamSetting(Id, IsActive)
+    {
+        $.ajax({
+            url: '/Examination/UpdateActiveExamSetting',
+            method: 'POST',
+            datatype: 'json',
+            data: { sExamSettingId: Id, sActive: IsActive },
+            success: function (data)
+            {
+                alert(data.Message);
+                loadContent('/Examination/ListsemesterExamSetting');
+            },
+            error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+
+    }
+
+    function SaveExamSetting()
+    {
+     
+
+        //var isValid = $('#exam').parsley().validate();
+        var isValid = true;
+        if ($('#exam').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            // gritter-info, danger, success, warning, default
+            myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+            return false;
+        }
+
+        
+        // Continue with save logic here...
+
+        var sJsonData = '{"EXAM_SETTING_ID":"' + $('#hdExamSettingId').val() + '",\
+                          "ACADEMIC_YEAR":"' + $('#AcademicYearList').val() + '",\
+                          "EXAM_NAME":"' + $('#txtExamSetting').val() + '",\
+                          "M_EXAM":"' + $('#txtExamMonth').val() + '",\
+                          "M_PASS":"' + $('#txtPassMonth').val() + '",\
+                          "SEMESTER_TYPE":"' + $('#ddlSemesterType').val() + '",\
+                          "EXAM_TYPE":"' + $('#ExamType').val() + '",\
+                          "START_DATE":"' + $('#txtStartDate').val() + '",\
+                          "END_DATE":"' + $('#txtEndDate').val() + '",\
+                          "LAST_DATE_FOR_EXAM_FEE":"' + $('#txtLastDateForExamFee').val() + '",\
+                          "HALL_TICKET_PUBLICATION_DATE":"' + $('#txtHallTicketPublicationDate').val() + '",\
+                          "IS_ACTIVE":"' + IsActive + '"}';
+
+        $.ajax({
+            url: '/Examination/SaveExamSetting',
+            method: 'POST',
+            dataType: 'json',   // correct casing
+            data: { sJsonData: sJsonData },
+            success: function (data) {
+                if (data.ErrorCode != null && data.ErrorCode == "402") {
+                    swal({ title: "Error..!!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                } else {
+                    swal({ title: "Success..!!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                }
+                // Either call your custom function
+                loadContent('/Examination/ListsemesterExamSetting');
+
+                // Or if you just want to refresh a div with new content:
+                // $("#contentDiv").load('/Examination/ListsemesterExamSetting');
+            },
+            error: function () {
+                alert('Internal Server Error!');
+            }
+        });
+
+    }
+    $("#Add").on('click', function () {
+
+        $('#AcademicYearList option[value=""]').attr("selected", "selected");
+        $('#txtExamSetting').attr('value', '');
+
+        $('#txtPassMonth').attr('value', '');
+        $('#ddlSemesterType option[value=""]').attr("selected", "selected");
+        $('#ExamType option[value=""]').attr("selected", "selected");
+        $('#txtStartDate').attr('value', '');
+        $('#txtEndDate').attr('value', '');
+        $('#txtLastDateForExamFee').attr('value', '');
+        $('#txtHallTicketPublicationDate').attr('value', '');
+
+        $("#IsActive").prop("checked", false);
+        $('.selectpicker').selectpicker('refresh');
+    })
+    </script>

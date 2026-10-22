@@ -1,0 +1,101 @@
+@model List<CMS.ViewModel.Model.QUIZ_RESULT>
+
+@using CMS.ViewModel.Model;
+@using CMS.ViewModel.ViewModel;
+@using System.Text;
+
+@functions {
+    public string GetStrigFromBase64String(string sVal)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(sVal)) return "";
+            byte[] bytes = Convert.FromBase64String(sVal);
+            return Encoding.UTF8.GetString(bytes);
+        }
+        catch
+        {
+            return sVal; // fallback if not valid base64
+        }
+    }
+}
+
+@if (Model != null && Model.Count > 0)
+{
+    int i = 1;
+    foreach (var item in Model)
+    {
+        var question = GetStrigFromBase64String(item.QUESTION);
+        var selectedAnswer = GetStrigFromBase64String(item.SELECTED_ANSWER);
+        var correctAnswer = GetStrigFromBase64String(item.CORRECT_ANSWER);
+
+        bool isCorrect = (item.STATUS == "1");
+
+        <div class="question-item @(isCorrect ? "correct" : "incorrect")">
+
+            <div class="fw-bold mb-2">
+                Q@(i++): @Html.Raw(question)
+            </div>
+
+            <div class="answer-tag">
+                <span class="text-muted">Your Answer:</span>
+                <span class="@(isCorrect ? "text-success" : "text-danger") fw-bold">
+                    @Html.Raw(string.IsNullOrEmpty(item.SELECTED_ANSWER)
+                        ? "Not Attempted"
+                        : selectedAnswer)
+                </span>
+               
+            </div>
+
+            @if (!isCorrect)
+            {
+                <div class="answer-tag">
+                    <span class="text-muted">Correct Answer:</span>
+                    <span class="text-success fw-bold">
+                        @Html.Raw(correctAnswer)
+                    </span>
+                </div>
+            }
+        </div>
+    }
+}
+else
+{
+    <div class="text-center py-3">
+        <p class="text-muted">No details found.</p>
+    </div>
+}
+
+<style>
+    .question-item {
+        border-left: 5px solid transparent;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border-radius: 0 10px 10px 0;
+        background-color: #f8f9fa;
+    }
+
+        .question-item.correct {
+            border-left-color: #28a745;
+            background-color: rgba(40, 167, 69, 0.05);
+        }
+
+        .question-item.incorrect {
+            border-left-color: #dc3545;
+            background-color: rgba(220, 53, 69, 0.05);
+        }
+
+    .answer-tag {
+        font-size: 0.85rem;
+        display: block;
+        margin-top: 0.3rem;
+    }
+
+    .text-success {
+        color: #28a745 !important;
+    }
+
+    .text-danger {
+        color: #dc3545 !important;
+    }
+</style>

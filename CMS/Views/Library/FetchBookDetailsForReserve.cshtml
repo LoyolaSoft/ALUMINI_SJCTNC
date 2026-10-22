@@ -1,0 +1,187 @@
+﻿
+
+
+@model CMS.ViewModel.ViewModel.LibraryViewModel
+@{
+    ViewBag.Title = "FetchBookDetailsForReserve";
+    Layout = null;
+   
+}
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+
+<div class="form-group col-md-12 table-responsive">
+    <table class="table table-hover table-bordered" id="tblLiAvailableBooks" data-parsley-validate="true">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th></th>
+                <th>Access No</th>
+                <th>Class No</th>
+                <th>ISBN</th>
+                <th>Book No</th>
+                <th>Title</th>
+                <th>Language</th>
+                <th>Personal Author1</th>
+                <th>Personal Author2</th>
+                <th>Name of Publisher</th>
+                <th>Place of Publisher</th>
+                <th>Price</th>
+                <th>Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @if (Model.liBookDetails != null && Model.liBookDetails.Count > 0)
+            {
+                var count = 0;
+                foreach (var item in Model.liBookDetails)
+                {
+                    count = count + 1;
+                    <tr cms-BookId="@item.BOOK_ID">
+                        <td>@count</td>
+                        <td>
+                            <div class="checkbox checkbox-css">
+                                <input type="checkbox" id="@count" BookId="@item.BOOK_ID" />
+                                <label for="@count"></label>
+                            </div>
+                        </td>
+                        <td>@item.ACCESS_NO</td>
+                        <td>@item.CLASS_NO</td>
+                        <td>@item.ISBN_NO</td>
+                        <td>@item.BOOK_NO</td>
+                        <td>@item.BOOK_TITLE</td>
+                        <td>@item.LANGUAGE</td>
+                        <td>@item.PERSONAL_AUTHOR1</td>
+                        <td>@item.PERSONAL_AUTHOR2</td>
+                        <td>@item.NAME_OF_PUBLISHER</td>
+                        <td>@item.PLACE_OF_PUBLISHER</td>
+                        <td><i class="fa fa-rupee"></i> @item.PRICE</td>
+                        <td><input type="text" id="txtReason" class="form-control" placeholder="Reason" data-parsley-required="true" data-parsley-validate="true"></td>
+                    </tr>
+                }
+
+            }
+
+        </tbody>
+    </table>
+
+</div>
+<div class="form-group">
+    <a class="btn btn-primary pull-right" href="javascript:;" id="btnSubmit"> Submit </a>
+</div>
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+        SelectOrUnselect = function ()
+        {
+            if (AllchkID.checked == true)
+            {
+                $('#tblLiAvailableBooks tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", true);
+                    });
+                });
+            }
+            else
+            {
+                $('#tblLiAvailableBooks tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", false);
+                    });
+                });
+            }
+        }
+
+
+</script>
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+
+        var tbl = $('#tblLiAvailableBooks').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            var isValid = true;
+            var sStatus = 0;
+
+            var JsonData = '{"liBookReserve":[';
+            var nCount = 0;
+            $('#tblLiAvailableBooks tbody tr').each(function () {
+                if ($(this).find('input[type="checkbox"]').is(':checked')) {
+                    nCount++;
+                    if ($(this).find('input[id="txtReason"]').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        sStatus++;
+                        //gritter-info,danger,success,warning,default
+                        //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    else
+                    {
+                        JsonData += '{"USER_ID":"'+ $('#txtliUserid').val() +' ","BOOK_ID":"' + $(this).attr('cms-BookId') + '","REASON":"' + $(this).find('input[type="text"]').val() + '","STATUS":"5","BOOK_STATUS":"5"},';
+                    }
+
+
+
+                }
+            });
+
+            if (nCount != 0 && sStatus==0) {
+                JsonData = JsonData.slice(0, -1);
+                JsonData = JsonData + "]}";
+                $.ajax({
+                    url: '@Url.Action("SaveBookReservation", "Library")',
+                    method: 'POST',
+                    datatype: 'json',
+                    data: { sJsonReserveDetails: JsonData },
+                    success: function (data) {
+
+
+                        if(data.ErrorCode=="403")
+                        {
+                            swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                        if(data.ErrorCode == "417") {
+                            swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                        }
+                        if (data.ErrorCode == "200") {
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                            $('#anchorReserve').click();
+                            //loadContent("/Library/BookReserve");
+                        }
+
+                    }, error: function (error) {
+                        swal({ title: "Internal Server Error !", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                });
+            }
+            else if(sStatus!=0)
+            {
+
+            }else {
+                swal({ title: "Alert !", text: "Please Select Any One To Continue !", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+            }
+        });
+
+</script>
+
+
+

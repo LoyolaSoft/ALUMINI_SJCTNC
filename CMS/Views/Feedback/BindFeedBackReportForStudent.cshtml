@@ -1,0 +1,94 @@
+﻿
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.Utility;
+@{
+    Layout = null;
+    int nCount = 0;
+    int sStudentTotalCount = 0;
+    int sStudentObjectivecount = 0;
+
+}
+
+<div class="form-group col-md-12">
+    <div class="form-group text-center">
+        <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO)" style="width:150px; height:150px" />
+    </div>
+
+    <div class="form-group text-center">
+        <h4>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME</h4>
+        <h5>
+            @Model.liCollegeDetails.FirstOrDefault().UNIVERSITY<br />
+            @Html.Raw(Model.liCollegeDetails.FirstOrDefault().GRADE.Replace("rd", "<sup>rd</sup>"))<br />
+        </h5>
+
+    </div>
+</div>
+
+<div class="form-group col-md-12 table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Question</th>
+                <th>Description</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.QuestionList != null && Model.QuestionList.Count > 0)
+            {
+
+                foreach (var item in Model.QuestionList)
+                {
+                    // student total count in 
+                    var liEvaluation = Model.LiEvaluation.Where(x => x.QUESTION_ID == item.QUESTION_ID).ToList();
+                    if(liEvaluation!=null && liEvaluation.Count>0)
+                    {
+                        sStudentTotalCount = liEvaluation.Count;
+                    }
+                    else
+                    {
+                        sStudentTotalCount = 0;
+                    }
+                    <tr>
+
+                        
+                        <td><b>@{nCount++;} @nCount .  @item.QUESTION</b></td>
+                        <td>
+                            <b>Total Students : @sStudentTotalCount</b>
+                        </td>
+                    </tr>
+
+                            var liQuestionObjectiveMappingObjectives = Model.LiFeedbackQuestionMapping.Where(x => x.QUESTION_ID == item.QUESTION_ID).ToList();
+
+                            if(liQuestionObjectiveMappingObjectives!=null && liQuestionObjectiveMappingObjectives.Count>0)
+                            {
+
+                                foreach (var item1 in liQuestionObjectiveMappingObjectives)
+                                {
+                                    var liEvaluation1= Model.LiEvaluation.Where(x => x.QUESTION_ID==item1.QUESTION_ID && x.ANSWER == item1.OBJECTIVE_ID).ToList();
+
+                                    if(liEvaluation1!=null && liEvaluation1.Count>0)
+                                    {
+                                        sStudentObjectivecount = liEvaluation1.Count;
+                                    }
+                                    else
+                                    {
+                                        sStudentObjectivecount = 0;
+                                    }
+                                            <tr>
+                                                <td>@item1.OBJECTIVES</td>
+                                                <td>@sStudentObjectivecount / @sStudentTotalCount</td>
+                                            </tr>
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="2"> No Records Found !</td>
+                                </tr>
+                            }
+
+    </table>
+</div>

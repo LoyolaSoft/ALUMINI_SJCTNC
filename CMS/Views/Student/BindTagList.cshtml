@@ -1,0 +1,178 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+@using CMS.Utility;
+@{
+    Layout = null;
+    int count = 0;
+}
+
+@if (Model.StudentTagMapping != null)
+{
+    <div class="row">
+        <div class="form-horizontal">
+            <div class="col-md-12"></div>
+        </div>
+    </div>
+
+    <hr />
+
+    <!-- Overall reason dropdown -->
+    <div class="row text-center">
+        <div class="col-md-12">
+            <div class="col-md-5 form-group" id="btnreasondiv">
+                <div class="col-md-4">
+                    <label><b>Tag Name</b></label>
+                </div>
+                <div class="col-md-6">
+                    <select class="form-control" id="overallReasonID">
+                        <option value="">-- Select Reason --</option>
+                        @foreach (var reason in Model.TagNameLI)
+                        {
+                            <option value="@reason.TAG_ID">@reason.TAG_NAME</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="col-md-12">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="tblTagMapping">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Roll No</th>
+                        <th>First Name</th>
+                        <th>Class</th>
+                        <th>Tag Name</th>
+                        <th>Remark</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var student in Model.StudentTagMapping)
+                    {
+                        count++;
+                        <tr cms-student-id="@student.STUDENT_ID"
+                            cms-class-id="@student.CLASS_ID"
+                            cms-tag="@student.TAG_ID">
+
+                            <td>@count</td>
+                            <td>@student.ROLL_NO</td>
+                            <td>@student.FIRST_NAME</td>
+                            <td>@student.CLASS_NAME</td>
+
+                            <td>
+                                <select class="form-control studentType">
+                                    <option value="">-- Select --</option>
+                                    @foreach (var type in Model.TagNameLI)
+                                    {
+                                        <option value="@type.TAG_ID"
+                                                @(type.TAG_ID == student.TAG_ID ? "selected" : "")>
+                                            @type.TAG_NAME
+                                        </option>
+                                    }
+                                </select>
+                            </td>
+
+                            <td>
+                                <input type="text" class="form-control remarkTxt"
+                                       value="@student.REMARK" />
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+
+        <div class="row col-lg-12">
+            <a href="javascript:void(0)" class="btn btn-success" id="btnSubmit">Submit</a>
+        </div>
+   
+    </div>
+}
+else
+{
+    <div class="alert bg-pink">Sorry! No records available.</div>
+}
+
+<!-- JS Libraries -->
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+       
+
+        // Apply overall reason
+        $('#overallReasonID').change(function () {
+            var selected = $(this).val();
+            $('.studentType').val(selected);
+        });
+
+        // Submit button
+        $('#btnSubmit').click(function () {
+
+            // Prevent submission if searching
+            if ($('input[type="search"]').val().trim() !== "") {
+                alert("Please clear the search box before submitting!");
+                return false;
+            }
+
+            // Build JSON properly
+            var payload = {
+                STUDENT_TAG_MAPPING: []
+            };
+
+            $('#tblTagMapping tbody tr').each(function () {
+
+                var studentId = $(this).attr('cms-student-id');
+                var classId = $(this).attr('cms-class-id');
+                var tagId = $(this).find('.studentType').val();
+                var remark = $(this).find('.remarkTxt').val();
+                var stuTagId = $(this).attr('cms-tag'); // existing if update
+
+                payload.STUDENT_TAG_MAPPING.push({
+                    STUDENT_ID: studentId,
+                    CLASS_ID: classId,
+                    TAG_ID: tagId,
+                    REMARK: remark,
+                    STU_TAG_ID: stuTagId
+                });
+
+            });
+
+            var sJsonString = JSON.stringify(payload);
+
+            $('#btnSubmit').addClass("disabled").text("Processing...");
+
+            $.ajax({
+                url: '@Url.Action("SaveorUpdateStudentTag", "Student")',
+                method: 'POST',
+                dataType: 'json',
+                data: { objInput: sJsonString },
+                success: function (data) {
+                    alert(data.Message);
+                },
+                error: function (xhr, err) {
+                    alert("Error: " + err);
+                },
+                complete: function () {
+                    $('#btnSubmit').removeClass("disabled").text("Submit");
+                }
+            });
+        });
+
+    });
+</script>
+
+
+
+
+
+

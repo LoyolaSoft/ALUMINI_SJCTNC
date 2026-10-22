@@ -1,0 +1,245 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@using CMS.Utility;
+
+@{ 
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">List Syllabus</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">List Syllabus<small></small></h1>
+    <!-- end page-header -->
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h3 class="panel-title">List Syllabus </h3>
+        </div>
+        <div class="panel-body">
+            <div class="col-md-12 form-group table-responsive">
+                <div class="col-md-12 pull-right">
+                    <a href="#modal-dialog" data-toggle="modal" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add</a>
+                </div>
+                <br /><br />
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Unit</th>
+                            <th>Course Code</th>
+                            <th>Course Title</th>
+                            <th>Topic</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.liSyllabus != null && Model.liSyllabus.Count > 0)
+                        {
+                            int nCount = 0;
+                            foreach (var item in Model.liSyllabus)
+                            {
+                                <tr>
+                                    <td>@{nCount++;} @nCount</td>
+                                    <td>@item.UNIT_ID</td>
+                                    <td>@item.COURSE_CODE</td>
+                                    <td>@item.COURSE_TITLE</td>
+                                    <td>@item.TOPIC</td>
+
+                                    <td>
+                                        <a href="#modal-dialog" data-toggle="modal" class="text-primary" onclick="FetchRecordById(@item.COURSE_SYLLABUS_ID)"><i class="fa fa-edit"></i></a>
+                                        <a href="javascript:;" class="text-danger" onclick="GetConfirm(@item.COURSE_SYLLABUS_ID)"><i class="fa fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                                            }
+                                        }
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit </h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group" id="dvValidate" data-parsley-validate="true">
+                        <div class="col-md-12">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Course</label>
+                                <div class="col-md-9">
+                                    @*@Html.DropDownListFor(m => m.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })*@
+                                    <select class="form-control selectpicker" id="CourseList">
+                                        <option value="0"> -- Select --</option>
+                                        @if (Model.liCourseRoot != null && Model.liCourseRoot.Count > 0)
+                                        {
+                                            foreach (var item in Model.liCourseRoot)
+                                            {
+                                                <option value="@item.COURSE_ROOT_ID" cms-CourseCode="@item.COURSE_TITLE" cms-IsApproved="0"> @item.COURSE_CODE</option>
+                                            }
+                                        }
+
+                                        @if (Model.liCourseApproval != null && Model.liCourseApproval.Count > 0)
+                                        {
+                                            foreach (var item in Model.liCourseApproval)
+                                            {
+                                                <option value="@item.COURSE_APPROVAL_ID" cms-CourseCode="@item.COURSE_CODE" cms-IsApproved="1"> @item.COURSE_TITLE</option>
+                                            }
+                                        }
+                                    </select>                                
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Unit</label>
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(m => m.Unit, (Model.Unit != null) ? Model.Unit : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Topic</label>
+                                <div class="col-md-9">
+                                    <textarea cols="50" rows="5" placeholder="Enter Topics" data-parsley-required="true" data-parsley-maxlength="500" id="txtTopic"></textarea>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-toggle="modal" onclick="Save()">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="hdSyllabusId" />
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+
+    $('.selectpicker').selectpicker({ size: 6 });
+    $('.selectpicker').selectpicker('refresh');
+    function ContentLoad()
+    {
+        // Document. Ready Function ...,
+    }
+
+    function Save()
+    {
+        // Validation Check ,...
+        var isValid = true;
+        if ($('#dvValidate').parsley().validate() !== true) isValid = false;
+        if (!isValid) 
+        {
+            //gritter-info,danger,success,warning,default
+            swal({ title: "Warning !", text: 'Something went wrong ! Please check your inputs !', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+
+        var sJsonData = '{"COURSE_SYLLABUS_ID":"' + $('#hdSyllabusId').val() + '","COURSE_ID":"' + $('#CourseList').val() + '","COURSE_APPROVAL_ID":"' + $('#CourseList').val() + '","IS_APPROVAL":"' + $('#CourseList Option:selected').attr('cms-IsApproved') + '","COURSE_CODE":"'+$('#CourseList Option:selected').attr('cms-CourseCode')+'","UNIT_ID":"' + $('#Unit').val() + '","TOPIC":"' + $('#txtTopic').val() + '"}';
+
+        $.ajax({
+            url:'/Examination/SaveSyllabus',
+            method:'POST',
+            datatype:'json',
+            data:{sJson:sJsonData},
+            success:function (data) 
+            {
+                //alert(data.Message);
+                if (data.ErrorCode=="200") 
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    loadContent('/Examination/ListSyllabus');
+                }else 
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });  
+                }
+            },error:function (error) 
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+
+    function FetchRecordById(Id) 
+    {
+        $.ajax({
+            url: '/Examination/FetchSyllabusById',
+            method: 'POST',
+            datatype: 'json',
+            data: { sSyllabusId: Id },
+            success: function (data) 
+            {
+                $('#hdSyllabusId').val(data[0].SYLLABUS_ID);
+                $('#CourseList option:Selected').text(data[0].COURSE_CODE);
+
+                //$('#CourseList').val(data[0].COURSE_ID);
+                $('#Unit').val(data[0].UNIT_ID);
+                $('#txtTopic').val(data[0].TOPIC);
+                $('.selectpicker').selectpicker('refresh');
+            }, error: function (error) 
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+    function GetConfirm(Id) 
+    {
+        if (!confirm('Are you sure to delete ?')) 
+        {
+            return false;
+        }
+        $.ajax({
+            url: '/Examination/DeleteSyllabus',
+            method: 'POST',
+            datatype: 'json',
+            data: { sSyllabusId: Id },
+            success: function (data) 
+            {
+                if (data.ErrorCode=="200") 
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    loadContent('/Examination/ListSyllabus');
+                }else 
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });  
+                }
+            }, error: function (error) 
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+</script>

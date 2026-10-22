@@ -1,0 +1,137 @@
+﻿@model CMS.ViewModel.ViewModel.TaskManagementViewModel
+    @{ 
+        Layout = null;
+    }
+@{ int count = 0;}
+<div class="table-responsive">
+    <table class="table table-hover table-bordered" id="AssignmentSubmittedList">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Submission Date</th>
+                <th>View</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liTaskManagementModel != null)
+            {
+                foreach (var item in Model.liTaskManagementModel)
+                {
+                    <tr>
+                        <td>
+                            @{ count++;}
+                            @count
+                        </td>
+                        <td>@Html.DisplayFor(modelItem => item.ROLL_NO)</td>
+                        <td>@Html.DisplayFor(modelItem => item.FIRST_NAME)</td>
+                        <td>@Html.DisplayFor(modelItem => item.SUBMITTED_DATE)</td>
+                       
+                        <td>
+                          
+                            @*<a href="@Url.Action("ViewAssignment", "TaskManagement", new { id = @item.FILE_PATH })"><i class="fa fc-agenda-view text-primary" title="View"></i></a>*@
+                            <a href="#assignmentdetails" onclick="AssignmentDetails(@item.ASSIGNMENT_ID,@item.STUDENT_ID)" data-toggle="modal" class="text-primary"><i class="glyphicon glyphicon-eye-open" title="View"></i></a>
+                           
+                        </td>
+                    </tr>
+                                }
+                            }
+        </tbody>
+    </table>
+</div>
+<div class="modal" id="assignmentdetails">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Assignment Details</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+              <div class="col-md-12" id="assigndetails">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script>
+    function AssignmentDetails(AID,SID)
+    {      
+        $.ajax({
+            url: "@Url.Action("FetchStudentAssignementdetails", "TaskManagement")",
+            async: false,
+            data: { sAssignmentId: AID, sStudentId: SID },
+            success: function (data)
+            {
+                $('#assigndetails').empty();
+                $('#assigndetails').append(data);
+               
+            },
+            error: function (xhr, textStatus, error) {
+                alert(error + "\n");
+            }
+        });
+    }
+
+</script>
+<div class="modal" id="questionstructure">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+
+                                    <div class="col-md-12 form-group">
+                                        @Html.Label("Application Type", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(m => m.ApplicationType, (Model.ApplicationType != null) ? Model.ApplicationType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @id = "ddlapptype" })
+                                            @Html.ValidationMessageFor(m => m.ApplicationType, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Section Name</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="txtsection" class="form-control" placeholder="Section" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Number of Question</label>
+
+                                        <div class="col-md-8">
+                                            <input type="number" id="txtnoquestion" class="form-control" placeholder="Question Number" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Mark Per Question</label>
+
+                                        <div class="col-md-8">
+                                            <input type="number" id="txtmark" class="form-control" placeholder="Mark" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>

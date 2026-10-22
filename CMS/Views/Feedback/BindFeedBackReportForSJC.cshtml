@@ -1,0 +1,97 @@
+﻿@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.Utility;
+@{
+    Layout = null;
+    int nCount = 0;
+    double nTotal = 0;
+    double nMark = 0;
+    double nTotalMark = 0;
+    double nPercentage = 0;
+    double nTotalPercentage = 0;
+}
+
+<div class="form-group col-md-12">
+    <div class="form-group text-center">
+        <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO)" style="width:150px; height:150px" />
+    </div>
+
+    <div class="form-group text-center">
+        <h4>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME</h4>
+        <h5>
+            @Model.liCollegeDetails.FirstOrDefault().UNIVERSITY<br />
+            @Html.Raw(Model.liCollegeDetails.FirstOrDefault().GRADE.Replace("rd", "<sup>rd</sup>"))<br />
+        </h5>
+        <h4>FeedBack Report For <span id="dvFbSetting"></span></h4>
+
+        <div class="form-group col-xs-12">
+            <div class="form-group col-xs-6 pull-left">
+                <label>Department : <b><span id="lblDepartment"></span></b></label>
+            </div>
+            <div class="form-group col-xs-6 pull-right">
+                <label>Staff : <b><span id="lblStaff"></span></b></label>
+            </div>
+            <div class="form-group col-xs-6 pull-left">
+                <label> Class : <b><span id="lblClass"></span></b></label>
+            </div>
+            <div class="form-group col-xs-6 pull-right">
+                <label> Course : <b><span id="lblCourse"></span></b></label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="form-group col-md-12 table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Question</th>
+                <th>Total Strength</th>
+                <th>Attended</th>
+                <th>Mark</th>
+                <th>Percentage (100%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.QuestionList != null && Model.QuestionList.Count > 0)
+            {
+                foreach (var item in Model.QuestionList)
+                {
+                    <tr>
+                        <td>@{nCount++;} @nCount</td>
+                        <td>@item.QUESTION</td>
+                        @if (Model.liStudentStrength != null && Model.liStudentStrength.Count > 0)
+                        {
+                            <td>
+                                @if (Model.liStudentStrength[0].NO_OF_STUDENT != "0")
+                                {
+                                    @Model.liStudentStrength[0].NO_OF_STUDENT
+                                }
+                                else
+                                {
+                                    @Model.liStudentStrength[1].NO_OF_STUDENT
+                                }
+                            </td>
+                        }
+                        @if (Model.StudentCount != null && Model.StudentCount.Count > 0)
+                        {
+                            var liCount = Model.StudentCount.Where(x => x.QUESTION_ID == item.QUESTION_ID).ToList();
+                            if (liCount != null && liCount.Count > 0)
+                            {
+                                <td>@{nTotal = Convert.ToDouble(liCount[0].NO_OF_STUDENT);} @nTotal</td>
+
+                                <td>@{nMark = Convert.ToDouble(liCount[0].TOTAL); nTotalMark = nTotal * 10;}  @nMark<b>/</b>@nTotalMark</td>
+                                <td>@{nPercentage = Math.Round((nMark / nTotalMark) * 100, 2, MidpointRounding.ToEven); nTotalPercentage += nPercentage;} @nPercentage %</td>
+                            }
+                        }
+                    </tr>
+                }
+                <tr>
+                    <td colspan="4"> </td>
+                    <td><b>Average:</b></td>
+                    <td>@{double nTotalAvg = Math.Round(nTotalPercentage / Model.QuestionList.Count, 2, MidpointRounding.ToEven);} <b>@nTotalAvg %</b> </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

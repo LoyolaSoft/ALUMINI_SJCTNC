@@ -1,0 +1,143 @@
+﻿@model CMS.ViewModel.ViewModel.DashboardViewModel
+@{
+    string ChartType = string.Empty;
+    Layout = null;
+}
+
+<div class="col-md-6">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel ">
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h3 class="panel-title"><i class="fa fa-inbox"></i>Student UnPaid Status Count</h3>
+                </div>
+                <div class="panel-body noPadding">
+                    <div class="col-md-12 table-responsive height-lg">
+                        <div class="col-md-12">
+                            <div class="col-md-4">
+
+                            </div>
+
+                            <div class="col-md-4 text-center" style="width:350px;">
+                                <div class="d-flex flex-wrap">
+                                    @*<button type="button" class="btn btn-success me-1 mb-1" onclick="changelayout('line')">Line</button>
+                                        <button type="button" class="btn btn-danger me-1 mb-1" onclick="changelayout('bar')">Bar</button>*@
+
+                                </div>
+
+                            </div>
+                            <div class="col-md-4">
+
+                            </div>
+                        </div>
+                        <div class="" id="chartsdiv">
+                            <canvas id="FrequncyFeePaidChart"></canvas>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@*<script src="~/Content/assets/js/chart.js"></script>*@
+<script>
+
+
+</script>
+
+<script>
+
+
+    var arrColors = ['#D32F2F', '#AD1457', '#6A1B9A', '#512DA8', '#303F9F', '#1976D2', '#0288D1', '#0097A7', '#00796B', '#388E3C', '#AFB42B', '#FFA000', '#616161','#455A64'];
+    var ChartType = 'bar';
+
+    function getMultipleRandom(arr, num) {
+        const shuffled = [...arr].sort(() => 0.5 - Math.random());
+
+        return shuffled.slice(0, num);
+    }
+
+    function changelayout(e) {
+        var randomColor;
+        config.type = e;
+        randomColor = getMultipleRandom(arrColors, 5)
+        config.data.datasets[0].backgroundColor = randomColor;
+        config.data.datasets[0].borderColor = randomColor;
+        UnpaidChart.update();
+    }
+
+    var ViewFrequecy =@Html.Raw(Json.Encode(ViewBag.Frequecy));
+    var Paid = @Html.Raw(Json.Encode(ViewBag.LiPaid));
+    var NotPaid = @Html.Raw(Json.Encode(ViewBag.LiNotPaid));
+
+    var FrequecyArray = [];
+    var PaidArray = [];
+    var NotPaidArray = [];
+    var FrequecyNameArray = [];
+    var ChartValue = [];
+    var Label = ['Paid','Unpaid'];
+    var JsonData = '[';
+
+
+
+    if (ViewFrequecy != null) {
+        for (var p = 0; p < ViewFrequecy.length; p++) {
+            FrequecyArray.push(ViewFrequecy[p].FREQUENCY_ID);
+        }
+        for (var p = 0; p < ViewFrequecy.length; p++) {
+            FrequecyNameArray.push(ViewFrequecy[p].FREQUENCY_NAME);
+        }
+        var backgroundcolor = '';
+
+        for (var i = 0; i < 2; i++) {
+            ChartValue.length=0;
+            JsonData += '{"label":"' + Label[i]+'",';
+            var random = Math.floor(Math.random() * arrColors.length);
+            JsonData += '"backgroundColor":';
+            JsonData += '"' + arrColors[random] + '"'
+            JsonData += ',"borderColor":"' + arrColors[random] + '", "data":';
+
+            if (i== 0) {
+                for (var r = 0; r < ViewFrequecy.length; r++) {
+                    ChartValue.push(Paid[r].PCOUNT);
+                }
+            }else{
+                for (var p = 0; p < ViewFrequecy.length; p++) {
+                    ChartValue.push(NotPaid[p].FCOUNT);
+                }
+            }
+            JsonData += '[' + ChartValue + '],'
+            JsonData = JsonData.slice(0, -1);
+            JsonData += '},';
+        }
+
+        JsonData = JsonData.slice(0, -1);
+        JsonData += ']';
+        var obj = JSON.parse(JsonData);
+    }
+    var data = {
+        labels: FrequecyNameArray,
+        datasets: obj
+    };
+    var config = {
+        type: ChartType,
+        data: data,
+        options: {}
+    };
+    var UnpaidChart = new Chart(
+        document.getElementById('FrequncyFeePaidChart'),
+            config
+        );
+
+
+</script>
+

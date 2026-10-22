@@ -1,0 +1,225 @@
+﻿
+@model CMS.ViewModel.ViewModel.LibraryViewModel
+@{
+    ViewBag.Title = "BindUserInfoForExtraBooks";
+}
+
+<input type="hidden" id="txtProvisionId" value="@Model.objUserProvision.PROVISION_ID" />
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+
+<div class="form-group col-md-12 table-responsive">
+    <table class="table table-hover table-bordered" id="tblLiProvision" data-parsley-validate="true">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th></th>
+                <th>Boid No</th>
+                <th>Rfid</th>
+                <th>First Name</th>
+                <th>Member Type</th>
+                <th>Date of Birth</th>
+                <th>Extra Books</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @if (Model.LiUserProvisions != null && Model.LiUserProvisions.Count > 0)
+            {
+                var count = 0;
+                foreach (var item in Model.LiUserProvisions)
+                {
+                    count = count + 1;
+                    <tr cms-userid="@item.USER_ID">
+                        <td>@count</td>
+                        <td>
+                            <div class="checkbox checkbox-css">
+                                <input type="checkbox" id="@count" userid="@item.USER_ID" />
+                                <label for="@count"></label>
+                            </div>
+                        </td>
+                        <td>@item.BOID</td>
+                        <td>@item.RFID</td>
+                        <td>@item.FIRST_NAME</td>
+                        <td>@item.MEMBER_TYPE</td>
+                        <td>@item.DATE_OF_BIRTH</td>
+                        <td><input type="text" id="txtExtraBook" class="form-control" placeholder="Extra Book" data-parsley-required="true" data-parsley-validate="true" value="@item.EXTRA_BOOKS"></td>
+                       @if (!string.IsNullOrEmpty(item.PROVISION_ID))
+                       {
+                        <td><a href="javascrip:;" onclick="GetConfirm(@item.PROVISION_ID)" class="text-danger"><i class="fa fa-trash"></i></a></td>
+                       }
+                       else
+                       {
+                        <td></td>
+                       }
+
+                    </tr>
+                }
+
+            }
+
+        </tbody>
+    </table>
+
+</div>
+<div class="form-group">
+    <a class="btn btn-primary pull-right" href="javascript:;" id="btnSubmit"> Submit </a>
+</div>
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+        SelectOrUnselect = function ()
+        {
+            if (AllchkID.checked == true)
+            {
+                $('#tblLiProvision tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", true);
+                    });
+                });
+            }
+            else
+            {
+                $('#tblLiProvision tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", false);
+                    });
+                });
+            }
+        }
+
+
+</script>
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+
+        var tbl = $('#tblLiProvision').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            
+            var isValid = true;
+            var sStatus = 0;
+
+            var JsonData = '{"liUserProvision":[';
+            var nCount = 0;
+            $('#tblLiProvision tbody tr').each(function () {
+                if ($(this).find('input[type="checkbox"]').is(':checked')) {
+                    nCount++;
+                    if ($(this).find('input[id="txtExtraBook"]').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        sStatus++;
+                        //gritter-info,danger,success,warning,default
+                        //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    else
+                    {
+                        
+                        JsonData += '{"PROVISION_ID":"' + $('#txtProvisionId').val() + '","USER_ID":"' + $(this).attr('cms-userid') + '","EXTRA_BOOKS":"' + $(this).find('input[type="text"]').val() + '"},';
+                    }
+
+
+
+                }
+            });
+           
+            if (nCount != 0 && sStatus==0) {
+                JsonData = JsonData.slice(0, -1);
+                JsonData = JsonData + "]}";
+                $.ajax({
+                    url: '@Url.Action("SaveLiUserProvisions", "Library")',
+                    method: 'POST',
+                    datatype: 'json',
+                    data: { sJsonLiUserProvisions: JsonData },
+                    success: function (data) {
+
+
+                        if(data.ErrorCode=="403")
+                        {
+                            swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                        if(data.ErrorCode == "417") {
+                            swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                        }
+                        if (data.ErrorCode == "200") {
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                            loadContent('/Library/UserProvitions');
+                        }
+
+                    }, error: function (error) {
+                        swal({ title: "Internal Server Error !", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                });
+            }
+            else if(sStatus!=0)
+            {
+
+            }else {
+                swal({ title: "Alert !", text: "Please Select Any One To Continue !", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+            }
+        });
+
+    GetConfirm = function (UserId) {
+        swal({
+            title: "Are you sure?",
+            text: "Your will not be able to recover this file!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+      function () {
+          var req = $.ajax({
+              url: "/Library/DeleteLiUserProvisions",
+              type: "post",
+              data: { sProvisionId: UserId },
+              success: function (data) {
+                  if (data.ErrorCode == "403") {
+                      swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                  }
+                  if (data.ErrorCode == "417") {
+                      swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                  }
+                  if (data.ErrorCode == "200") {
+                      swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+
+                      loadContent('/Library/UserProvitions');
+
+                  }
+
+              },
+              error: function (ex) {
+                  alert(ex.Message);
+              }
+
+
+          });
+      });
+    }
+</script>
+
+
+
+
+

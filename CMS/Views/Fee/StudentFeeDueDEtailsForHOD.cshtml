@@ -1,0 +1,435 @@
+@model CMS.ViewModel.ViewModel.FeeStructureViewModel
+@{
+    ViewBag.Title = "StudentFeeDueDEtailsForHOD";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<style>
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #StudentList {
+        width: 100% !important;
+        white-space: nowrap !important;
+    }
+
+    #StudentList thead th {
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+    }
+
+    #StudentList tbody td {
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+        font-size: 13.5px !important;
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        margin: 0;
+    }
+
+    .filter-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .total-due-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        background: #ffffff;
+        border: 2px solid #fee2e2;
+        border-radius: 8px;
+        padding: 12px 20px;
+        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.08);
+    }
+
+    .total-due-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        background: #fee2e2;
+        color: #dc2626;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+
+    .total-due-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .total-due-value {
+        font-size: 22px;
+        font-weight: 800;
+        color: #dc2626;
+        margin-top: 2px;
+    }
+
+    .action-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+
+    .font-bold {
+        font-weight: 700 !important;
+    }
+
+    .loading-overlay {
+        text-align: center;
+        padding: 40px;
+        color: #3b82f6;
+        font-size: 16px;
+        font-weight: 600;
+    }
+</style>
+
+<div id="content" class="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Fee Due List</li>
+    </ol>
+    <h1 class="page-header">Fee Due List</h1>
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" onclick="loadGird()"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title"><i class="fa fa-list-alt"></i> HOD Fee Due Management Panel</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <!-- Top Actions Toolbar -->
+                <div class="action-toolbar">
+                    <div>
+                        <span class="label label-primary" style="font-size: 13px; padding: 6px 12px; border-radius: 4px;">
+                            <i class="fa fa-graduation-cap"></i> Department Fee Due Report
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-sm btn-info btnPrint" onclick="printDiv('dvStudentBind')">
+                            <i class="fa fa-print"></i> Print
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success btnExport" onclick="Export()">
+                            <i class="fa fa-file-excel-o"></i> Export
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter Controls Card -->
+                <div class="filter-card">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div class="row">
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-4">Academic Year</label>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.AcademicyearList, (Model.AcademicyearList != null) ? Model.AcademicyearList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-4">Programme</label>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.ProgrammeGroupList, (Model.ProgrammeGroupList != null) ? Model.ProgrammeGroupList : Enumerable.Empty<SelectListItem>(), null, new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @data_actions_box = "true", multiple = "multiple" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-4">Class Name</label>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.ClassName, (Model.ClassName != null) ? Model.ClassName : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @data_actions_box = "true", multiple = "multiple" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top: 10px;">
+                        <div class="col-md-12 text-right">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="loadGird()" id="btnGetDueList" style="font-weight: 600;">
+                                <i class="fa fa-search"></i> Get Due List
+                            </button>
+                            <button type="button" class="btn btn-sm btn-default" onclick="resetDueFilters()">
+                                <i class="fa fa-refresh"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State Indicator -->
+                <div id="dueLoadingSpinner" style="display: none;" class="loading-overlay">
+                    <i class="fa fa-spinner fa-spin fa-2x"></i>
+                    <div style="margin-top: 10px;">Fetching student fee due details... Please wait.</div>
+                </div>
+
+                <!-- Table Content Placeholder -->
+                <div class="col-md-12 table-responsive" style="padding: 0;">
+                    <div id="dvStudentBind">
+                        <div class="alert alert-info text-center" style="background: #f8fafc; border: 1px dashed #cbd5e1; color: #64748b; padding: 25px;">
+                            <i class="fa fa-filter fa-2x text-primary" style="display: block; margin-bottom: 8px;"></i>
+                            Select filters above and click <b>Get Due List</b> to view students' fee due details.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Due Card at the Bottom (Visible after loading) -->
+                <div class="col-md-12 text-right" id="totalDueBottomRow" style="display: none; padding: 15px 0 25px 0;">
+                    <div class="total-due-card">
+                        <div class="total-due-icon">
+                            <i class="fa fa-money"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="total-due-title">Total Balance Due (&#8377;)</div>
+                            <div class="total-due-value" id="kpiTotalDue">0.00</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+
+<script>
+    var table;
+
+    function ContentLoad() {
+        $('.selectpicker').selectpicker({ size: 6 });
+
+        $(document).on("wheel", "input[type=number]", function (e) {
+            $(this).blur();
+        });
+
+        $("#ProgrammeGroupList").on("change", function () {
+            FetchClass();
+        });
+
+        $("#ClassName").on("change", function () {
+            loadGird();
+        });
+
+        $("#AcademicyearList").on("change", function () {
+            loadGird();
+        });
+
+        loadGird();
+    }
+
+    function resetDueFilters() {
+        $('#ProgrammeGroupList').val([]).selectpicker('refresh');
+        $('#ClassName').val([]).selectpicker('refresh');
+        loadGird();
+    }
+
+    function FetchClass() {
+        var ProgramName = String($("#ProgrammeGroupList").val());
+        if ($("#ProgrammeGroupList").val()) {
+            $.ajax({
+                url: "@Url.Action("BindDDLClassListbyProgramme", "Fee")",
+                method: "POST",
+                datatype: "json",
+                data: { sProgramId: ProgramName },
+                success: function (data) {
+                    $("#ClassName").empty().append(data).selectpicker('refresh');
+                },
+                error: function () {
+                    swal("Error", "Failed to load classes for selected programme.", "error");
+                }
+            });
+        } else {
+            $("#ClassName").empty().selectpicker('refresh');
+        }
+    }
+
+    function loadGird() {
+        var classVal = $('#ClassName').val();
+        var ClassId = classVal ? (Array.isArray(classVal) ? classVal.join(',') : String(classVal)) : "";
+        if (ClassId.includes("--select--") || ClassId === "0") {
+            ClassId = "";
+        }
+        var vAcademicyear = $('#AcademicyearList option:selected').text();
+        if (vAcademicyear.includes("--select--")) {
+            vAcademicyear = "";
+        }
+
+        $('#dueLoadingSpinner').show();
+        $('#dvStudentBind').hide();
+        $('#totalDueBottomRow').hide();
+
+        $.ajax({
+            url: '@Url.Action("BindStudentDueDetailsForHOD", "Fee")',
+            type: 'GET',
+            data: { sClassId: ClassId, Academicyear: vAcademicyear },
+            success: function (option) {
+                $('#dueLoadingSpinner').hide();
+                var dvFeeStructureBind = $('#dvStudentBind');
+                dvFeeStructureBind.html(option).show();
+
+                if ($.fn.DataTable.isDataTable("#StudentList")) {
+                    $("#StudentList").DataTable().destroy();
+                }
+
+                table = $("#StudentList").DataTable({
+                    responsive: false,
+                    autoWidth: false,
+                    pageLength: 25,
+                    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                    order: [[1, "asc"]],
+                    columnDefs: [
+                        {
+                            searchable: false,
+                            orderable: false,
+                            targets: 0
+                        }
+                    ],
+                    drawCallback: function (settings) {
+                        var api = this.api();
+                        var startIndex = api.page.info().start;
+                        api.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                            cell.innerHTML = startIndex + i + 1;
+                        });
+                    }
+                });
+
+                table.on('search.dt', function () {
+                    calculateKpis();
+                });
+
+                calculateKpis();
+            },
+            error: function (xhr, textStatus, error) {
+                $('#dueLoadingSpinner').hide();
+                $('#dvStudentBind').show();
+                swal("Error", "Failed to fetch student due details. Please try again.", "error");
+            }
+        });
+    }
+
+    function calculateKpis() {
+        if (!table) return;
+
+        var totalStudents = 0;
+        var totalBalanceDue = 0;
+
+        function formatIndian(amount) {
+            if (isNaN(amount) || amount === null || amount === undefined) return "0.00";
+            try {
+                return Number(amount).toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            } catch (e) {
+                var parts = Number(amount).toFixed(2).split(".");
+                var intPart = parts[0];
+                var decPart = parts[1];
+                var lastThree = intPart.substring(intPart.length - 3);
+                var otherNumbers = intPart.substring(0, intPart.length - 3);
+                if (otherNumbers !== '') {
+                    lastThree = ',' + lastThree;
+                }
+                return otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + "." + decPart;
+            }
+        }
+
+        function extractAmount(cellHtml) {
+            if (!cellHtml) return 0;
+            var text = String(cellHtml).replace(/<[^>]*>/g, "").trim();
+            if (text === "" || text === "-" || text.toLowerCase().indexOf("paid") !== -1) return 0;
+            var num = parseFloat(text.replace(/[^0-9.]+/g, ""));
+            return isNaN(num) ? 0 : num;
+        }
+
+        var allRows = table.rows({ search: 'applied' }).data();
+        for (var i = 0; i < allRows.length; i++) {
+            var row = allRows[i];
+            if (row && row.length > 23) {
+                totalStudents++;
+                var totDue = extractAmount(row[23]);
+                totalBalanceDue += totDue;
+            }
+        }
+
+        if (totalStudents > 0) {
+            var formattedTotal = formatIndian(totalBalanceDue);
+            $('#kpiTotalDue').text(formattedTotal);
+            $('#tableFooterTotalDue').text(formattedTotal);
+            $('#totalDueBottomRow').slideDown();
+        } else {
+            $('#totalDueBottomRow').hide();
+            $('#tableFooterTotalDue').text('-');
+        }
+    }
+
+    function printDiv(divName) {
+        if (!$.fn.DataTable.isDataTable('#StudentList')) {
+            swal("No Data", "Please load the due list before printing.", "warning");
+            return;
+        }
+        var tableDt = $('#StudentList').DataTable();
+        tableDt.destroy();
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        loadGird();
+    }
+
+    function Export() {
+        if (!$.fn.DataTable.isDataTable('#StudentList')) {
+            swal("No Data", "Please load the due list before exporting.", "warning");
+            return;
+        }
+        var tableDt = $('#StudentList').DataTable();
+        tableDt.destroy();
+        var sAcademicYear = $('#AcademicyearList option:selected').text();
+        var title = sAcademicYear + "_HOD_Fee_DueList";
+        var file = new Blob([$('#dvStudentBind').html()], { type: "application/vnd.ms-excel" });
+        var url = URL.createObjectURL(file);
+        var a = $("<a />", {
+            href: url,
+            download: title + ".xls"
+        }).appendTo("body").get(0).click();
+        loadGird();
+    }
+
+    function numberOnly(id) {
+        var element = document.getElementById(id);
+        if (element) {
+            element.value = element.value.replace(/[^0-9.]/gi, "");
+        }
+    }
+</script>

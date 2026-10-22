@@ -1,0 +1,142 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+@using CMS.Utility;
+@{
+    ViewBag.Title = "EditDepartmentWiseTimeTableTemplate";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="content" id="content">
+        <ol class="breadcrumb pull-right">
+            <li><a @*href="@Url.Action("Admin", "Dashboard")"*@ href="javascript:;">Home</a></li>
+            <li><a @*href="@Url.Action("TimeTableDepartmentWiseTemplateList","TimeTable")"*@ href="javascript:;" onclick="loadContent('/TimeTable/TimeTableDepartmentWiseTemplateList')">List Department Wise TimeTable Template </a></li>
+            <li class="active">Add Department Wise TimeTable Template </li>
+        </ol>
+        <h1 class="page-header">Department Wise TimeTable Template </h1>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Add Department Wise TimeTable Template</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    <div class="col-md-12">
+                        <div class="col-md-6 col-md-offset-3">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.SettingList, htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.SettingList, (Model.SettingList!=null)? Model.SettingList:Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "drop-down form-control input-sm" })
+                                    @Html.ValidationMessageFor(model => model.SettingList, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Departmentlist, htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.Departmentlist, (Model.Departmentlist!=null)? Model.Departmentlist:Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "drop-down form-control input-sm" })
+                                    @Html.ValidationMessageFor(model => model.Departmentlist, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.DepartmentWiseTimeTableTemplate.Academic_Year, "Academic Year", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.EditorFor(model => model.DepartmentWiseTimeTableTemplate.Academic_Year, new { htmlAttributes = new { @class = "form-control input-sm", Type = "Number", placeholder = "Enter Academic Year" } })
+                                    @Html.ValidationMessageFor(model => model.DepartmentWiseTimeTableTemplate.Academic_Year, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.Label("Is Active", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.CheckBox("IS_ACTIVE", new { @class = "input-sm" })
+
+                                </div>
+                            </div>
+
+                            <div class="form-group pull-right ">
+                                <div class="col-md-12">
+                                    <a id="btnSubmit" value="SUBMIT" class="btn btn-primary">Submit</a>
+                                    <a id="" @*href="@Url.Action("TimeTableDepartmentWiseTemplateList","TimeTable")"*@ href="javascript:;" onclick="loadContent('/TimeTable/TimeTableDepartmentWiseTemplateList')" value="SUBMIT" class="btn btn-danger">Cancel</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+    <script>
+        function ContentLoad() 
+        {
+            // Document Ready Function .
+            var ID=@Session[Common.SESSION_VARIABLES.DEPARTMENT_TEMPLATE_ID].ToString();
+            $.ajax({
+                url:"@Url.Action("FetchDepartmentmentWiseTimeTableTemplateById", "TimeTable")",
+                method: "POST",
+                datatype: "html",
+                data: { sDepartmentWiseTimeTableTemplateId: ID },
+                success: function (data) {
+                    $("#SettingList").val(data[0].SETTING_ID);
+                    $("#Departmentlist").val(data[0].DEPARTMENT_ID);
+                    $("#DepartmentWiseTimeTableTemplate_Academic_Year").val(data[0].Academic_Year);
+                    $("#IS_ACTIVE").val(data[0].IS_ACTIVE);
+                    if ($("#IS_ACTIVE").val()==1) {
+                        $("#IS_ACTIVE").prop( "checked", true );
+                    }
+                    else {
+                        $("#IS_ACTIVE").prop( "checked", false );
+                    }
+                }, error: function (error) {
+                    alert('Internal Server Error ..!');
+                }
+            });
+        }
+       
+    </script>
+    <script>
+        $('#btnSubmit').on('click', function () {
+            var Setting = $("#SettingList").val();
+            var AcademicYear = $("#DepartmentWiseTimeTableTemplate_Academic_Year").val();
+            var Department = $("#Departmentlist").val();
+            if ($('#IS_ACTIVE').is(":checked")) {
+                var IsActive = "1";
+            }
+            else {
+                var IsActive = "0";
+            }
+            var JsonData;
+            JsonData = '{"SETTING_ID":"' + Setting + '","Academic_Year":"' + AcademicYear + '","DEPARTMENT_ID":"' + Department + '","IS_ACTIVE":"' + IsActive + '"}';
+            if (Setting != 0 && AcademicYear != null && Department != 0) {
+                if (AcademicYear.length < 5) {
+                    //alert(JsonData);
+                    $.ajax({
+                        url: "@Url.Action("UpdateDepartmentWiseTimeTableTemplate", "TimeTable")",
+                        method: "POST",
+                        datatype: "html",
+                        data: { DepartmentWiseTimeTableTemplate: JsonData },
+                        success: function (data) {
+                            alert(data);
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+                else {
+                    alert('Records Out Of Range..!!!');
+                }
+            }
+            else {
+                alert('Enter correct values...!!!');
+            }
+        });
+    </script>

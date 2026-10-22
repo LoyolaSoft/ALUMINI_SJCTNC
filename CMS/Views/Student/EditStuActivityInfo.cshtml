@@ -1,0 +1,432 @@
+﻿@*@model IEnumerable<CMS.ViewModel.Model.StudentActivity>*@
+@model CMS.ViewModel.ViewModel.StudentViewModel
+
+<div id="dvActivity">
+    <div class="row">
+        <div class="form-group pull-right">
+            <div class="col-md-12 pull-right">
+                <a href="#Activity-dialog" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive row">
+        @{int count = 0; }
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Post Held</th>
+                    <th>Initiative Shown</th>
+                    <th>Participation</th>
+                    <th>Date From</th>
+                    <th>Date To</th>
+                    <th>Extra Activity</th>
+                    <th>Position Obtained</th>
+                    <th>Student Activity</th>
+
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.liActivity != null)
+                {
+                    foreach (var item in Model.liActivity)
+                    {
+                        <tr>
+                            <td>@{count++;} @count</td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.POST_HELD)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.INITIATIVE_SHOWN)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.PARTICIPATION)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DATE_FROM)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DATE_TO)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.EXTRA_ACTIVITY)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.POSITION_OBTAINED)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.ACTIVITY)
+                            </td>
+                            @*<td>
+                                @Html.DisplayFor(modelItem => item.ActivityImg1)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.ActivityImg2)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.ActivityImg3)
+                            </td>*@
+                            <td>
+                                <a href="#Activity-dialog" onclick="BindControles(@item.ACTIVITY_ID)" data-toggle="modal"><i class="fa fa-edit text-primary"></i></a>
+                                <a href="#" onclick='return GetConfirmation(@item.ACTIVITY_ID);'><i class="fa fa-trash text-danger"></i></a>
+                                @*<a id='liBtnActive' href='AcademicYearList?active={0}' onclick='return GetConfirmation(this);'><i class='fa {1}'></i></a>";*@
+                            </td>
+                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td>No Data Found ...!</td>
+                                    </tr>
+                                }
+
+            </tbody>
+        </table>
+        <!--Hidden Field-->
+        <input type="Hidden" id="hdActivityId" />
+        <!--Hidden Field-->
+        <script>
+            $(document).ready(function ()
+            {
+                    $("#btnEditActivity").hide();
+                    ////FormMultipleUpload.init();
+                    handleDatePicker = function ()
+                    {
+                        "use strict";
+                        $("#DateTo,#DateFrom").datepicker({
+                            todayHighlight: true,
+                            autoclose: true,
+                            endDate: new Date(),
+                            format: "dd/mm/yyyy",
+                            orientation: "right bottom"
+                            // 'top': top,
+                            // 'left': left
+                        });
+                    }
+                    handleDatePicker();
+
+                    GetDDLActivity = function ()
+                    {
+                        $.ajax({
+                            url: "@Url.Action("BindActivityDDL", "Student")",
+                            method: "POST",
+                            datatype: "json",
+                            success: function (option)
+                            {
+                                $("#ddlActivity").empty();
+                                $("#ddlActivity").append('<option value="">-- select --</option>' + option);
+
+                            }, error: function (error)
+                            {
+                                myAlert('Internal Server Error ...!', 'gritter-danger', '');
+                            }
+                        });
+                    }
+                    GetDDLActivity();
+            });
+
+            
+                // Get Family List
+                GetActivityList=function()
+                {
+                    $.ajax({
+                        url:"@Url.Action("EditStuActivityInfo", "Student")",
+                        method:"POST",
+                        datatype:"json",
+                        success:function(data)
+                        {
+                            $("#dvActivity").empty();
+                            $("#dvActivity").append(data);
+                        },error:function(error)
+                        {
+                            myAlert('Internal Server Error ...!', 'gritter-danger', '');
+                        }
+                    });
+                }
+
+
+            // Delete Confirm ...
+            function GetConfirmation(ID)
+            {
+                if (!confirm('Are you sure to delete ?'))
+                {
+                    return false;
+                }else {
+                    $.ajax({
+                        url:"@Url.Action("DeleteActivity", "Student")",
+                        method:"POST",
+                        datatype: "json",
+                        data: { sActivityId: ID },
+                        success:function(data)
+                        {
+                            if (data.Message == "200")
+                            {
+                                myAlert('Record Deleted Successfully !', 'gritter-success', '');
+                            } else {
+                                myAlert(data.Message, 'gritter-danger', '');
+                            }
+                            GetActivityList();
+                        },error:function(error)
+                        {
+                            myAlert('Internal Server Error ...!', 'gritter-danger', '');
+                        }
+                    });
+                }
+            }
+                //Bind Activity Details ...
+                var BindControles = function (ID) {
+                    $.ajax({
+                        url: "@Url.Action("FetchActivity", "Student")",
+                        method: "POST",
+                        datatype: "json",
+                        data: { sActivityId: ID },
+                        success: function (data)
+                        {
+                            if (data.Message != null && data.Message != '')
+                            {
+                                myAlert(data.Message, 'gritter-warning', '');
+                            } else {
+                                $("#ddlPostHeld").val(data[0].POST_HELD);
+                                $("#txtInitiativeShown").val(data[0].INITIATIVE_SHOWN);
+                                $("#txtParticipation").val(data[0].PARTICIPATION);
+                                $("#ddlActivity").val(data[0].ACTIVITY);
+                                $("#DateFrom").val(data[0].DATE_FROM);
+                                $("#DateTo").val(data[0].DATE_TO);
+                                $("#ExtraActivity").val(data[0].EXTRA_ACTIVITY);
+                                $("#ddlPositionObtained").val(data[0].POSITION_OBTAINED);
+                                $("#hdActivityId").val(data[0].ACTIVITY_ID);
+                                $("#btnEditActivity").show();
+                                $("#btnStuActivity").hide();
+                            }
+                        }, error: function (error) {
+                            myAlert('Internal Server Error !', 'gritter-warning', '');
+                        }
+                    });
+                }
+            // Add Activity ...
+            $("#btnStuActivity").on("click", function ()
+            {
+                var isValid = true;
+                if ($('#nav-tab2-5').parsley().validate() !== true) isValid = false;
+                if (!isValid) {
+                    //gritter-info,danger,success,warning,default
+                    myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                    return false;
+                }
+               var PostHeld =$("#ddlPostHeld").val();
+               var InitiativeShown = $("#txtInitiativeShown").val();
+               var participation = $("#txtParticipation").val();
+               var Activity = $("#ddlActivity").val();
+               var DateFrom = $("#DateFrom").val();
+               var DateTo = $("#DateTo").val();
+               var ExtraActivity = $("#ExtraActivity").val();
+               var PositionObtained = $("#ddlPositionObtained").val();
+               var ActivityImg1 = $("#ActivityImage1").val();
+               var ActivityImg2 = $("#ActivityImage2").val();
+               var ActivityImg3 = $("#ActivityImage3").val();
+               var ActivityId = $("#hdActivityId").val();
+               var JsonData;
+               if (JsonData==null)
+               {
+                   JsonData = '{"PostHeld":"' + PostHeld + '","InitiativeShown":"' + InitiativeShown + '","participation":"' + participation + '","StuActivity":"' + Activity + '","DateFrom":"' + DateFrom + '","DateTo":"' + DateTo + '","ExtraActivity":"' + ExtraActivity + '","PositionObtained":"' + PositionObtained + '","ActivityImg1":"' + ActivityImg1 + '","ActivityImg2":"' + ActivityImg2 + '","ActivityImg3":"' + ActivityImg3 + '"}';
+               }
+               $.ajax({
+                   url: "@Url.Action("SaveStudentActivity", "Student")",
+                   method: "POST",
+                   datatype: "json",
+                   data: { str: JsonData },
+                   success:function(data)
+                   {
+                       if (data.Message == "200") {
+                           myAlert('Record Saved Successfully !', 'gritter-success', '');
+                       } else {
+                           myAlert(data.Message, 'gritter-danger', '');
+                       }
+                       GetActivityList();
+                   },error:function(error)
+                   {
+                       myAlert('Internal Server Error !', 'gritter-warning', '');
+                   }
+               });
+            });
+
+            // Edit Activity ...
+            $("#btnEditActivity").on("click", function ()
+            {
+                var isValid = true;
+                if ($('#nav-tab2-5').parsley().validate() !== true) isValid = false;
+                if (!isValid) {
+                    //gritter-info,danger,success,warning,default
+                    myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                    return false;
+                }
+                var PostHeld =$("#ddlPostHeld").val();
+                var InitiativeShown = $("#txtInitiativeShown").val();
+                var participation = $("#txtParticipation").val();
+                var Activity = $("#ddlActivity").val();
+                var DateFrom = $("#DateFrom").val();
+                var DateTo = $("#DateTo").val();
+                var ExtraActivity = $("#ExtraActivity").val();
+                var PositionObtained = $("#ddlPositionObtained").val();
+                var ActivityImg1 = $("#ActivityImage1").val();
+                var ActivityImg2 = $("#ActivityImage2").val();
+                var ActivityImg3 = $("#ActivityImage3").val();
+                var JsonData;
+                if (JsonData==null)
+                {
+                    JsonData = '{"PostHeld":"' + PostHeld + '","InitiativeShown":"' + InitiativeShown + '","participation":"' + participation + '","StuActivity":"' + Activity + '","DateFrom":"' + DateFrom + '","DateTo":"' + DateTo + '","ExtraActivity":"' + ExtraActivity + '","PositionObtained":"' + PositionObtained + '","ActivityImg1":"' + ActivityImg1 + '","ActivityImg2":"' + ActivityImg2 + '","ActivityImg3":"' + ActivityImg3 + '"}';
+                }
+                $.ajax({
+                    url: "@Url.Action("EditActivity", "Student")",
+                    method: "POST",
+                    datatype: "json",
+                    data: { str: JsonData },
+                    success:function(data)
+                    {
+                        if (data.Message == "200") {
+                            myAlert('Record Saved Successfully !', 'gritter-success', '');
+                        } else {
+                            myAlert(data.Message, 'gritter-danger', '');
+                        }
+                        GetActivityList();
+                    },error:function(error)
+                    {
+                        myAlert('Internal Server Error !', 'gritter-warning', '');
+                    }
+                });
+            });
+
+            $(".modal").on("hidden.bs.modal", function ()
+            {
+                $("#ddlPostHeld").val("");
+                $("#txtInitiativeShown").val("");
+                $("#txtParticipation").val("");
+                $("#ddlActivity").val("");
+                $("#DateFrom").val("");
+                $("#DateTo").val("");
+                $("#ExtraActivity").val("");
+                $("#ddlPositionObtained").val("");
+            });
+        </script>
+    </div>
+</div>
+
+
+<div class="modal" id="Activity-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Student Activity</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                @*<div class="form-group">
+                                    <label class="control-label col-md-3">Post Held</label>
+                                    <div class="col-md-8">
+                                        <select class="form-control input-sm" id="ddlPostHeld">
+                                            <option value="0"> -- select --</option>
+                                        </select>
+                                    </div>
+                                </div>*@
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Initiative Shown</label>
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control input-sm" id="txtInitiativeShown" placeholder="Initiative Shown" data-parsley-length="[3,50]" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Participation</label>
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control input-sm" id="txtParticipation" placeholder="Participation" data-parsley-length="[3,50]" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Activity</label>
+                                    <div class="col-md-8">
+                                        <select class="form-control input-sm selectpicker" id="ddlActivity" data-parsley-required="true" data-live-search="true">
+                                            <option value=""> -- select --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Date From</label>
+                                    <div class="col-md-8">
+                                        <div class="input-group date" id="datetimepicker1">
+                                            <input type="text" class="form-control input-sm" id="DateFrom" placeholder="Select Date" data-parsley-required="true" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Date To</label>
+                                    <div class="col-md-8">
+                                        <div class="input-group date" id="datetimepicker1">
+                                            <input type="text" class="form-control input-sm" id="DateTo" placeholder="Select Date" data-parsley-required="true" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Extra Activity</label>
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control input-sm" id="ExtraActivity" placeholder="Extra Extra" data-parsley-length="[3,50]" />
+                                    </div>
+                                </div>
+
+                                @*<div class="form-group">
+                                <label class="control-label col-md-3">Position Obtained</label>
+                                <div class="col-md-8">
+                                    <select class="form-control input-sm" id="ddlPositionObtained">
+                                        <option value="0"> -- select --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Activity Image1</label>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control input-sm" id="ActivityImage1" placeholder="Activity Image" required />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Activity Image2</label>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control input-sm" id="ActivityImage2" placeholder="Activity Image" required />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Activity Image3</label>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control input-sm" id="ActivityImage3" placeholder="Activity Image" required />
+                                </div>
+                            </div>*@
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnStuActivity" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" id="btnEditActivity" class="btn btn-sm btn-primary" data-dismiss="modal">Update</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>

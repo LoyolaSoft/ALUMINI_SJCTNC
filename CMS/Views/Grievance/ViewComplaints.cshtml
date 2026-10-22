@@ -1,0 +1,835 @@
+﻿@model CMS.ViewModel.ViewModel.GrievanceViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "ViewComplaints";
+    // Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+    <link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+ 
+    <link href="~/Content/assets/css/animate.min.css" rel="stylesheet" />
+
+<style type="text/css">
+    .attached-document {
+    list-style-type: none;
+    margin: 15px 0 0;
+    padding: 0;
+}
+    .bg-white {
+    background: #fff!important;
+    color: #000!important;
+}
+    .attached-document>li {
+    width: 180px;
+    float: left;
+    background: #fff;
+    color: #222;
+    font-weight: 600;
+    position: relative;
+    margin-right: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #d9dfe5;
+}
+    .fa-file:before {
+    content: "\f15b";
+}
+    .attached-document>li .document-file {
+    height: 70px;
+    background: 0 0;
+    overflow: hidden;
+    text-align: center;
+    line-height: 70px;
+    font-size: 32px;
+    margin: -1px;
+}
+    .attached-document>li .document-name {
+    padding: 5px 10px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: #f1f3f4;
+}
+    .fa-camera:before {
+    content: "\f030";
+}
+
+    z-depth-1,.grievance, nav, .card-panel, .card, .toast,.dropdown-content, .collapsible, .side-nav {
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    .widget-chat .widget-chat-body {
+    padding: 5px;
+    background: #f5f5f5;
+}
+    .widget-chat .widget-chat-media {
+    width: 59px;
+    height: 57px;
+    /*position: absolute;*/
+    bottom: 3px;
+    left: 0;
+    border-radius: 38px;
+    overflow: hidden;
+    text-align: center;
+    line-height: 38px;
+}
+    .widget-chat .with-media .widget-chat-info {
+    /*margin-left: 53px;*/
+    min-width: 60%;
+}
+ .widget-chat .widget-chat-info-container {
+    background: #fff;
+    /*display: inline-block;*/
+    padding: 8px 12px;
+    border-radius: 18px;
+    position: relative;
+    /*color: #fff;*/
+}
+.widget-chat .widget-chat-item {
+    color: #000;
+    position: relative;
+    min-height: 38px;
+    padding: 3px 0;
+}
+.widget-chat .widget-chat-name {
+    font-weight: 600;
+        padding: 5px;
+}
+.text-indigo {
+    color: #5856D6!important;
+}
+.widget-chat .widget-chat-message {
+    font-weight: 600;
+    color: #222;
+        padding: 5px;
+}
+.widget-chat .widget-chat-time {
+    position: absolute;
+    right: 12px;
+    bottom: 8px;
+    font-style: italic;
+    color: #999;
+    font-weight: 500;
+    font-size: 11px;
+}
+</style>
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">UserRolesRightList</li>
+    </ol>
+    <h1 class="page-header">View Complaints</h1>
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">View Complaint</h4>
+        </div>
+        <div class="panel-body" data-parsley-validate="true" id="Pbody">
+    @Html.AntiForgeryToken()
+    <div class="form-horizontal">
+
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        @*<div class="col-md-6">
+            @Html.Label("Select Grievance", htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.DropDownListFor(model => model.liGrievanceinfo.FirstOrDefault().GRIEVANCE_TYPE_ID, (Model.GRIEVANCE_TYPE_ID != null) ? Model.GRIEVANCE_TYPE_ID : Enumerable.Empty<SelectListItem>(), "---Select Grievance Type--", new { @class = "selectpicker form-control input-sm", @id = "ddlGrievanceType", @data_parsley_required = "true", @data_live_search = "true" })
+
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="col-md-12">
+                <a class="btn btn-primary" id="btnGet">Get</a>
+            </div>
+        </div>*@
+        <div class="col-md-3 pull-right">
+            <a href="#" id="NewComplaints">
+                <span class="label label-theme m-l-5" id="Nbadge"></span> 
+            </a>
+        </div>
+    </div>
+    <br />
+    <div class="col-lg-4">
+        <div class="widget widget-stats bg-gradient-blue m-b-10">
+            <div class="stats-icon stats-icon-lg"><i class="fa fa-dollar-sign fa-fw"></i></div>
+            <div class="stats-content">
+                <div class="stats-title">TOTAL COMPLAINTS</div>
+                <div class="stats-number"><p id="pTotalComplaints"></p></div>
+                <div class="stats-progress progress">
+                    <div class="progress-bar" style="width: 40.5%;"></div>
+                </div>
+                <div class="stats-desc">Better than last week (54.9%)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="widget widget-stats bg-gradient-purple m-b-10">
+            <div class="stats-icon stats-icon-lg"><i class="fa fa-archive fa-fw"></i></div>
+            <div class="stats-content">
+                <div class="stats-title">PENDING COMPLAINTS</div>
+                <div class="stats-number"><p id="pPendingComplaints"></p></div>
+                <div class="stats-progress progress">
+                    <div class="progress-bar" style="width: 76.3%;"></div>
+                </div>
+                <div class="stats-desc">Better than last week (54.9%)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="widget widget-stats bg-gradient-green m-b-10">
+            <div class="stats-icon stats-icon-lg"><i class="fa fa-comment-alt fa-fw"></i></div>
+            <div class="stats-content">
+                <div class="stats-title">REPLIED COMPLAINTS</div>
+                <div class="stats-number"><p id="pRepliedComplaints"></p></div>
+                <div class="stats-progress progress">
+                    <div class="progress-bar" style="width: 54.9%;"></div>
+                </div>
+                <div class="stats-desc">Better than last week (54.9%)</div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <br />
+
+
+    @if (Model.liGrievanceViewInfo != null && Model.liGrievanceType!=null)
+    {
+        <div class="col-md-12">
+            <div class="panel-group" id="accordion">
+                @foreach (var typeInfo in Model.liGrievanceType)
+                {
+                    <div class="panel panel-inverse overflow-hidden">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">
+                                <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#@typeInfo.GRIEVANCE_TYPE_ID" aria-expanded="false">
+                                    <i class="fa fa-plus-circle pull-right"></i>
+                                    @typeInfo.GRIEVANCE_TYPE_NAME
+                                </a>
+                            </h3>
+                        </div>
+                        <div id="@typeInfo.GRIEVANCE_TYPE_ID" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                            <div class="panel-body">
+                                <div class="row" id="@typeInfo.GRIEVANCE_TYPE_NAME">
+                                    @*<div class="panel-heading" style="background-color:#19bef7;"><b>Sports</b></div>*@
+                                  <ul id="Spaginationdiv" style="list-style:none;display:block;" class="list-group"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+              
+                @*<div class="panel panel-inverse overflow-hidden">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false">
+                                <i class="fa fa-plus-circle pull-right"></i>
+                                Education
+                            </a>
+                        </h3>
+                    </div>
+                    <div id="collapseTwo" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                        <div class="panel-body">
+                            <div class="row" id="Education">
+                              
+                                <ul id="Epaginationdiv" style="list-style:none;display:block;" class="list-group"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-inverse overflow-hidden">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false">
+                                <i class="fa fa-plus-circle pull-right"></i>
+                                Library
+                            </a>
+                        </h3>
+                    </div>
+                    <div id="collapseThree" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                        <div class="panel-body">
+                            <div class="row" id="Library">
+                            <ul id="Lpaginationdiv" style="list-style:none;display:block;" class="list-group"></ul>
+                          </div>
+                      </div>
+                    </div>
+                </div>
+                <div class="panel panel-inverse overflow-hidden">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseFour" aria-expanded="false">
+                                <i class="fa fa-plus-circle pull-right"></i>
+                                Canteen
+                            </a>
+                        </h3>
+                    </div>
+                    <div id="collapseFour" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                        <div class="panel-body">
+                            <div class="row" id="Canteen">
+                              
+                                <ul id="Cpaginationdiv" style="list-style:none;display:block;" class="list-group"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-inverse overflow-hidden">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseFive" aria-expanded="false">
+                                <i class="fa fa-plus-circle pull-right"></i>
+                                Mess
+                            </a>
+                        </h3>
+                    </div>
+                    <div id="collapseFive" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                        <div class="panel-body">
+                            <div class="row" id="Mess">
+                               
+                                <ul id="Mpaginationdiv" style="list-style:none;display:block;" class="list-group"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-inverse overflow-hidden">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseSix" aria-expanded="false">
+                                <i class="fa fa-plus-circle pull-right"></i>
+                                Staff
+                            </a>
+                        </h3>
+                    </div>
+                    <div id="collapseSix" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                        <div class="panel-body">
+                            <div class="row" id="Staff">
+                                
+                                <ul id="Spaginationdiv" style="list-style:none;display:block;" class="list-group"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-inverse overflow-hidden">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseSeven" aria-expanded="false">
+                                <i class="fa fa-plus-circle pull-right"></i>
+                                College
+                            </a>
+                        </h3>
+                    </div>
+                    <div id="collapseSeven" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                        <div class="panel-body">
+                            <div class="row" id="College">
+                             
+                                <ul id="Cpaginationdiv" style="list-style:none;display:block;" class="list-group"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+            </div>
+        </div>
+    }
+ </div>
+ </div>
+                            
+                  
+
+                 
+          
+</div>
+ <div class="modal modal-success fade" id="modal-success">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title"><label id="lblModal" class="form-group">Attchment Files</label></h4>
+            </div>
+            <div class="modal-body" id="mBody">
+             
+                </div>
+            <div class="modal-footer">
+
+               
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+    <script>
+
+    ;(function($, window, document) {
+
+        'use strict';
+
+        var Paginator = function(element, options) {
+            this.el = $(element);
+            this.options = $.extend({}, $.fn.paginathing.defaults, options);
+
+            this.startPage = 1;
+            this.currentPage = 1;
+            this.totalItems = this.el.children().length;
+            this.totalPages = Math.max(
+              Math.ceil(this.totalItems / this.options.perPage),
+              options.limitPagination
+            );
+            this.container = $('<nav></nav>').addClass(this.options.containerClass);
+            this.ul = $('<ul></ul>').addClass(this.options.ulClass);
+
+            this.show(this.startPage);
+
+            return this;
+        }
+
+        Paginator.prototype = {
+
+            pagination: function(type, page) {
+                var _self = this;
+                var li = $('<li></li>');
+                var a = $('<a></a>').attr('href', '#');
+                var cssClass = type === 'number' ? _self.options.liClass : type;
+                var text = type === 'number' ? page : _self.paginationText(type);
+
+                li.addClass(cssClass);
+                li.data('pagination-type', type);
+                li.data('page', page);
+                li.append(a.html(text));
+
+                return li;
+            },
+
+            paginationText: function(type) {
+                return this.options[type + 'Text'];
+            },
+
+            buildPagination: function() {
+                var _self = this;
+                var pagination = [];
+                var prev = _self.currentPage - 1 < _self.startPage ? _self.startPage : _self.currentPage - 1;
+                var next = _self.currentPage + 1 > _self.totalPages ? _self.totalPages : _self.currentPage + 1;
+
+                var start, end;
+                var limit = _self.options.limitPagination;
+                var interval = 2;
+
+                if(limit) {
+                    if(_self.currentPage <= Math.ceil(limit / 2) + 1) {
+                        start = 1;
+                        end = limit;
+                    } else if (_self.currentPage + Math.floor(limit / 2) >= _self.totalPages) {
+                        start = _self.totalPages + 1 - limit;
+                        end = _self.totalPages;
+                    } else {
+                        start = _self.currentPage - Math.ceil(limit / 2);
+                        end = _self.currentPage + Math.floor(limit / 2);
+                    }
+                } else {
+                    start = _self.startPage;
+                    end = _self.totalPages;
+                }
+
+                // "First" button
+                if(_self.options.firstLast) {
+                    pagination.push(_self.pagination('first', _self.startPage));
+                }
+
+                // "Prev" button
+                if(_self.options.prevNext) {
+                    pagination.push(_self.pagination('prev', prev));
+                }
+
+                // Pagination
+                for(var i = start; i <= end; i++) {
+                    pagination.push(_self.pagination('number', i));
+                }
+
+                // "Next" button
+                if(_self.options.prevNext) {
+                    pagination.push(_self.pagination('next', next));
+                }
+
+                // "Last" button
+                if(_self.options.firstLast) {
+                    pagination.push(_self.pagination('last', _self.totalPages));
+                }
+
+                return pagination;
+            },
+
+            render: function(page) {
+                var _self = this;
+                var options = _self.options;
+                var pagination = _self.buildPagination();
+
+                // Remove children before re-render (prevent duplicate)
+                _self.ul.children().remove();
+                _self.ul.append(pagination);
+
+                // Manage active DOM
+                var startAt = page === 1 ? 0 : (page - 1) * options.perPage;
+                var endAt = page * options.perPage;
+
+                _self.el.children().hide();
+                _self.el.children().slice(startAt, endAt).show();
+
+                // Manage active state
+                _self.ul.children().each(function() {
+                    var _li = $(this);
+                    var type = _li.data('pagination-type');
+
+                    switch (type) {
+                        case 'number':
+                            if(_li.data('page') === page) {
+                                _li.addClass(options.activeClass);
+                            }
+                            break;
+                        case 'first':
+                            page === _self.startPage && _li.toggleClass(options.disabledClass);
+                            break;
+                        case 'last':
+                            page === _self.totalPages && _li.toggleClass(options.disabledClass);
+                            break;
+                        case 'prev':
+                            (page - 1) < _self.startPage && _li.toggleClass(options.disabledClass);
+                            break;
+                        case 'next':
+                            (page + 1) > _self.totalPages && _li.toggleClass(options.disabledClass);
+                            break;
+                        default:
+                            break;
+                    }
+                });
+
+                // If insertAfter is defined
+                if(options.insertAfter) {
+                    _self.container
+                      .append(_self.ul)
+                      .insertAfter($(options.insertAfter));
+                } else {
+                    _self.el
+                      .after(_self.container.append(_self.ul));
+                }
+            },
+
+            handle: function() {
+                var _self = this;
+                _self.container.find('li').each(function(){
+                    var _li = $(this);
+
+                    _li.click(function(e) {
+                        e.preventDefault();
+                        var page = _li.data('page');
+
+                        _self.currentPage = page;
+                        _self.show(page);
+                    });
+                });
+            },
+
+            show: function(page) {
+                var _self = this;
+
+                _self.render(page);
+                _self.handle();
+            }
+        }
+
+        $.fn.paginathing = function(options) {
+            var _self = this;
+            var settings = (typeof options === 'object') ? options : {};
+
+            return _self.each(function(){
+                var paginate = new Paginator(this, options);
+                return paginate;
+            });
+        };
+
+        $.fn.paginathing.defaults = {
+            perPage: 10,
+            limitPagination: false,
+            prevNext: true,
+            firstLast: true,
+            prevText: '&laquo;',
+            nextText: '&raquo;',
+            firstText: 'First',
+            lastText: 'Last',
+            containerClass: 'pagination-container',
+            ulClass: 'pagination',
+            liClass: 'page',
+            activeClass: 'active',
+            disabledClass: 'disabled',
+            insertAfter: null
+        }
+
+    }(jQuery, window, document));
+
+</script>
+    <script>
+        ContentLoad = function () {
+            $('.selectpicker').selectpicker({
+                size: 5
+            });
+            $('.selectpicker').selectpicker('refresh');
+            LoadNewMessages()
+            TotalComplaintViews()
+            var items = @Html.Raw(Json.Encode(Model.liGrievanceViewInfo));            
+            for(var i=0;i<items.length;i++)
+            {
+                var dom = "";
+                var type = items[i].GRIEVANCE_TYPE_ID;                
+                dom="<li>"+
+                    "<div class='panel panel-primary' style='background-color:whitesmoke;'>"+
+                     "<div class='panel-body'>"+
+                         "<div class='row'>"+
+                             "<div class='col-md-6'>"+
+                             "<div class='widget-chat'>"+
+                                     "<div class='widget-chat-body'>"+
+                                          "<div class='widget-chat-item with-media left'>"+
+                                                "<div class='widget-chat-info'>"+
+                                                    "<div class='widget-chat-info-container'>"+
+                                                     (items[i].STATUS=="0" && items[i].IS_READ=="1" ? (items[i].IS_VIEWED=='0'?"<a href='#''><span class='ion-android-notifications-off pull-right' style='font-size:30px;' title='already remainded'></span></a>":
+                                                     "<a href='#' onclick='Remaind("+items[i].GRIEVANCE_ID+")'><span class='ion-ios-bell pull-right' style='font-size:30px;' title='Click to remaind the Admin'></span></a>"):
+                                                     '')+
+
+
+                                             "<strong><span style='color:dodgerblue'>Posted Grievance</span></strong><br><br>"+
+                                              "<span><b>Subject:<div class='widget-chat-name text-indigo'>"+items[i].GRIEVANCE_SUBJECT+"</div></b></span>"+
+                                               "<a href='#modal-success' data-toggle='modal' onclick='Viewattachment("+items[i].GRIEVANCE_ID+",0)' title='View' style='text-decoration:none'><span>Attachment:</span> <i class='glyphicon glyphicon-eye-open'></i></a><br>"+
+                                             "<div class='widget-chat-time'>"+items[i].SUB_DATE_TIME+"</div>"+
+                                               "<span><b>Content:</b></span><div class='widget-chat-message'>"+items[i].GRIEVANCE_CONTENT+"</div>"+
+
+                                                  "</div>"+
+                                              "</div>"+
+                                          "</div>"+
+                                     "</div>"+
+                             "</div>"+
+                              "</div>"+
+                            " </div>"+
+
+                            (items[i].STATUS == "1" ? "<div class='row'>"+
+                                             "<div class='col-md-6 pull-right'>"+
+                                              "<div class='widget-chat'>"+
+                                     "<div class='widget-chat-body'>"+
+                                          "<div class='widget-chat-item with-media left'>"+
+                                           "<div class='widget-chat-media'>"+                                                    
+                                                 "</div>"+
+                                                "<div class='widget-chat-info'>"+
+                                                    "<div class='widget-chat-info-container'>"+
+                                             "<strong><span style='color:dodgerblue'><div class='widget-chat-name text-indigo'>Reply From  "+items[i].STAFF_NAME+"</div></span></strong><br>"+
+                                             "<br>"+
+                                             "<a href='#modal-success' onclick='Viewattachment("+items[i].GRIEVANCE_ID+",1)' data-toggle='modal' title='View' style='text-decoration:none'><span>Attachment:</span> <i class='glyphicon glyphicon-eye-open'></i></a><br>"+
+                                             "<div class='widget-chat-time'>"+items[i].REP_DATE_TIME+""+ "</div>"+
+                                             "<span><b>Message:</b></span>&nbsp;<div class='widget-chat-message'>"+items[i].REDRESSAL_CONTENT+"</div>"+
+                                         "</div></div>"+
+                                         "</div>"+
+                                         "</div>"+
+                                        "</div>"+
+                                     "</div>"+
+                             "</div>":'')+
+                         "</div>" +
+
+                     "</div>"+
+                     "</li>";            
+                $('#' + type + ' ul').append(dom);
+            }
+
+            $('.list-group').paginathing({
+                perPage: 5,
+                limitPagination: 9,
+                containerClass: 'panel-footer'
+            });
+
+        }
+
+
+
+
+        var count = 0;
+
+
+        $(document).ajaxStart(function () {
+
+
+        });
+        $(document).ajaxComplete(function () {
+
+        });
+        function LoadGrievance() {
+            //loadContent('/Grievance/ViewComplaints');
+        }
+
+        function Viewattachment(GrievanceId,flag) {
+            $('#mBody').html('');
+            $.ajax({
+                url: "/Grievance/ViewAttachment",
+                type: "post",
+                data: { sGrievanceId: GrievanceId,sFlag:flag },
+                success: function (data) {
+                    if(data!=null && data!='')
+                    {
+                        var result = "";
+                        var extension="";
+                        var file="";
+                        $('#mBody').html('');
+                        $.each(data, function (id,attchmentInfo) {
+                            count += 1;
+                            var TotalPath = attchmentInfo.ATTACHMENT_PATH.split(",");
+                            $.each(TotalPath, function (id, path) {
+                                var File = path.split(".");
+                                // var filename = path.match(/[-_\w]+[.][\w]+$/i)[0];
+                                var filename = path.replace(/^.*[\\\/]/, '');
+                                extension = File[1];
+                                file += (typeof extension.toLowerCase() == 'jpg' || extension.toLowerCase() == 'png' ? "<li class='fa-camera'>" +
+                                          "<div class='document-file'>" +
+                                              "<a href='#'>" +
+                                                  "<img src=" + path + "   alt=''>" +
+                                              "</a>" +
+                                          "</div>" +
+                                          "<div class='document-name'><a href='" + path + "' download>"+filename+"</a></div>" +
+                                      "</li>" : "<li class='fa-file'>" +
+                                      "<div class='document-file'>" +
+                                      "<a href='#'>" +
+                                          "<i class='fa fa-file'></i>" +
+                                      "</a>" +
+                                      "</div>" +
+                                     "<div class='document-name'><a href='"+path+"' download  title=" + filename + ">"+filename+"</a></div>" +
+                                "</li>")
+
+                            });
+                            result += "<ul class='attached-document clearfix'>" +
+                               file
+                            "</ul>";
+                        });
+                        $('#mBody').append(result);
+                    }
+
+                },
+                error: function (ex) {
+
+                }
+            });
+
+        }
+
+        function LoadNewMessages() {
+            $.ajax({
+                url: "/Grievance/UserNewComplaints",
+                type: "post",
+                success: function (data) {
+                    var count = 0;
+                    if (data.message != null && data.message != '') {
+                        alert(data.message)
+                    }
+                    else {
+                        $.each(data, function (id, value) {
+                            count += 1;
+                        });
+                        $('#Nbadge').text("NEW"+" "+count);
+                    }
+                },
+                error: function (ex) {
+
+                }
+
+            });
+
+          //  setInterval(LoadNewMessages, 5000);
+        }
+        $('#NewComplaints').on("click", function () {
+            $.ajax({
+
+                url: "/Grievance/UserNewComplaintsView",
+                type: "post",
+                success:function(data)
+                {
+                    if(data.message!=null && data.message!='')
+                    {
+                        alert(data.message)
+                    }
+                    else {
+                        LoadNewMessages()
+                        loadContent('/Grievance/ViewComplaints');
+                    }
+                },
+                error:function(ex)
+                {
+
+                }
+            });
+        });
+
+
+        function Remaind(GrievanceId)
+        {
+
+            $.ajax({
+
+                url: "/Grievance/Remaind",
+                type: "post",
+                data:{sGrievanceId:GrievanceId},
+                success:function(data)
+                {
+                    if(data.message!=null && data.message!='')
+                    {
+                        alert(data.message)
+                    }
+                    else {
+                        LoadNewMessages()
+                        loadContent('/Grievance/ViewComplaints');
+                    }
+                },
+                error:function(ex)
+                {
+
+                }
+            });
+
+        }
+
+        function TotalComplaintViews()
+        {
+            $.ajax({
+                url: "/Grievance/FetchTotalComplaintsForUser",
+                type: "post",
+                success: function (data) {
+                    if (data.message != null && data.message != '') {
+                        alert(data.message)
+                    }
+                    else {
+                        $('#pTotalComplaints').text(data[0].TOTAL_COMPLAINT);
+                        $('#pPendingComplaints').text(data[0].PENDING_COMPLAINT);
+                        $('#pRepliedComplaints').text(data[0].REPLIED_COMPLAINT);
+                    }
+                },
+                error: function (ex) {
+
+                }
+            });
+        }
+
+        
+
+    </script>
+    
+
+

@@ -1,0 +1,163 @@
+@model CMS.ViewModel.ViewModel.AttendanceViewModel
+@{
+    Layout = null;
+    var collegeDetails = Session[CMS.Utility.Common.SESSION_VARIABLES.COLLEGE_DETAILS] as List<CMS.ViewModel.Model.CollegeDetails>;
+    string mode = ViewBag.Mode;
+}
+<style>
+    @@media print {
+        .class-print-block:last-child {
+            page-break-after: avoid !important;
+        }
+    }
+</style>
+
+<!-- Pass resolved semester dates back to main view for Eye click handlers -->
+<input type="hidden" id="resolvedStart" value="@ViewBag.StartDate" />
+<input type="hidden" id="resolvedEnd" value="@ViewBag.EndDate" />
+
+@if (Model.liAttAttendanceReport != null && Model.liAttAttendanceReport.Count > 0)
+{
+
+    int nCount = 0;
+
+    <div class="class-print-block" style="page-break-after:always !important; page-break-inside:avoid !important; margin-bottom: 30px;">
+        @if (collegeDetails != null && collegeDetails.Count > 0)
+        {
+            var collegeitem = collegeDetails.FirstOrDefault();
+            <div style="display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;margin-bottom:15px;">
+                <h3>
+                    <img src="https://erp.sjctnc.edu.in/Content/hcc_img/College_logo_bg_remove.png" height="60" width="60" style="vertical-align:middle;margin-right:10px;" />
+                    @collegeitem.COLLEGE_NAME
+                </h3>
+                <h4 style="margin-top:-5px;margin-bottom:5px;">@collegeitem.COLLEGE_ADDRESS</h4>
+            </div>
+        }
+        else
+        {
+            <div style="display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;margin-bottom:15px;">
+                <h3>ST. JOSEPH'S COLLEGE OF ARTS & SCIENCE (AUTONOMOUS)</h3>
+                <h4>CUDDALORE - 1</h4>
+            </div>
+        }
+
+        <div style="display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;margin-bottom:15px;">
+            @if (mode == "daywise")
+            {
+                <h5>Hostel Student Day Wise Absent List (@Model.liAttAttendanceReport.FirstOrDefault().START_DATE)</h5>
+            }
+            else if (mode == "datewise")
+            {
+                <h5>Hostel Student Date Wise Attendance Report (@Model.liAttAttendanceReport.FirstOrDefault().START_DATE - @Model.liAttAttendanceReport.FirstOrDefault().END_DATE)</h5>
+            }
+            else
+            {
+                <h5>Hostel Student Overall Attendance Report (@Model.liAttAttendanceReport.FirstOrDefault().START_DATE - @Model.liAttAttendanceReport.FirstOrDefault().END_DATE)</h5>
+            }
+        </div>
+
+        <table class="table table-bordered table-hover">
+            <thead>
+                @if (mode == "daywise")
+                {
+                    <tr>
+                        <th style="width:5%"><b>#</b></th>
+                        <th style="width:15%"><b>Roll No</b></th>
+                        <th><b>Student Name</b></th>
+                        <th style="width:25%"><b>Hostel</b></th>
+                        <th style="width:20%"><b> Class Name</b></th>
+                        <th style="width:15%;text-align:center;"><b>Status</b></th>
+                    </tr>
+                }
+                else if (mode == "datewise")
+                {
+                    <tr>
+                        <th style="width:5%"><b>#</b></th>
+                        <th style="width:15%"><b>Roll No</b></th>
+                        <th><b>Student Name</b></th>
+                        <th style="width:20%"><b>Hostel</b></th>
+                        <th style="width:15%"><b> Class Name</b></th>
+                        <th style="width:15%;text-align:center;"><b>Working Days</b></th>
+                        <th style="width:10%;text-align:center;"><b>%</b></th>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <th style="width:5%"><b>#</b></th>
+                        <th style="width:15%"><b>Roll No</b></th>
+                        <th><b>Student Name</b></th>
+                        <th style="width:20%"><b>Hostel</b></th>
+                        <th style="width:15%"><b>Class Name</b></th>
+                        <th style="width:15%;text-align:center;"><b>Absent Count</b></th>
+                        <th style="width:10%;text-align:center;"><b>View</b></th>
+                    </tr>
+                }
+            </thead>
+            <tbody>
+                @foreach (var item in Model.liAttAttendanceReport)
+                {
+                    nCount++;
+                    if (mode == "daywise")
+                    {
+                        <tr>
+                            <td>@nCount</td>
+                            <td>@item.ROLL_NO</td>
+                            <td>@item.FIRST_NAME</td>
+                            <td>@item.HOSTEL_NAME</td>
+                            <td>@item.CLASS_NAME</td>
+                            <td style="text-align:center;" class="text-danger"><b>ABSENT</b></td>
+                        </tr>
+                    }
+                    else if (mode == "datewise")
+                    {
+                        var sAbseentCount = Convert.ToInt32(item.DAYS_COUNT) - Convert.ToInt32(item.ABSENT_COUNT);
+                        var sPercentage = Convert.ToDouble(sAbseentCount) / Convert.ToDouble(item.DAYS_COUNT) * 100;
+                        if (sPercentage > 74 && sPercentage < 75)
+                        {
+                            sPercentage = Math.Ceiling(sPercentage);
+                        }
+                        <tr>
+                            <td>@nCount</td>
+                            <td>@item.ROLL_NO</td>
+                            <td>@item.FIRST_NAME</td>
+                            <td>@item.HOSTEL_NAME</td>
+                            <td>@item.CLASS_NAME </td>
+                            <td style="text-align:center;">@sAbseentCount / @item.DAYS_COUNT</td>
+                            <td style="text-align:center;">@Math.Round(sPercentage, 2)</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td>@nCount</td>
+                            <td>@item.ROLL_NO</td>
+                            <td>@item.FIRST_NAME</td>
+                            <td>@item.HOSTEL_NAME</td>
+                            <td>@item.CLASS_NAME</td>
+                            <td style="text-align:center;">@item.ABSENT_COUNT</td>
+                            <td style="text-align:center;">
+                                @if (Convert.ToInt32(item.ABSENT_COUNT) > 0)
+                                {
+                                    <a href="javascript:;" onclick="ViewAbsentDates('@item.STUDENT_ID')" title="View Absent Dates"><i class="fa fa-eye text-primary"></i></a>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+
+}
+else
+{
+    <div class="bg-warning text-center" style="padding: 15px; margin-top: 20px;">
+        <h4>No Records Found</h4>
+    </div>
+}

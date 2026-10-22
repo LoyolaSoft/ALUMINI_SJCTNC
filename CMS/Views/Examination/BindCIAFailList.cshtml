@@ -1,0 +1,143 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    Layout = null;
+}
+
+@if (Model.liCIA_Total != null && Model.liCIA_Total.Count > 0)
+{
+    var groupedclass = Model.liCourseInfo.GroupBy(o => o.CLASS_ID).ToList();
+    <div class="col-md-12">
+        @if (groupedclass != null && groupedclass.Count > 0)
+        {
+            foreach (var classitem in groupedclass)
+            {
+                var licourse = Model.liCourseInfo.Where(o => o.CLASS_ID == classitem.FirstOrDefault().CLASS_ID);
+                var liStudentList = Model.liCIA_Total.Where(O => O.CLASS_ID == classitem.FirstOrDefault().CLASS_ID).GroupBy(x => x.STUDENT_ID).OrderBy(x => x.FirstOrDefault().ROLL_NO).ToList();
+                <table class="table table-bordered" id="tblCIACumulative" border="1">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Roll No</th>
+                            @if (Model.liCourseInfo != null && Model.liCourseInfo.Count > 0)
+                            {
+
+                                foreach (var item in licourse)
+                                {
+                                    <th>@item.COURSE_CODE</th>
+                                }
+                            }
+                            <th>Status</th>
+                        </tr>
+
+                    </thead>
+                    <tbody>
+                        @{
+                            //int nCount = 0;
+
+                            if (liStudentList != null && liStudentList.Count > 0)
+                            {
+                                int nCount = 0;
+                                foreach (var item in liStudentList)
+                                {
+
+
+                                    int fail = 0;
+                                    foreach (var Courseitem in licourse)
+                                    {
+                                        var liCIAMark = Model.liCIA_Total.Where(x => x.STUDENT_ID == item.FirstOrDefault().STUDENT_ID && x.COURSE_ID == Courseitem.COURSE_ROOT_ID).ToList();
+                                        if (liCIAMark != null && liCIAMark.Count > 0)
+                                        {
+                                            if (liCIAMark.FirstOrDefault().TOTAL == "-1")
+                                            {
+
+                                                fail++;
+                                                @*<tr>
+                                                        <td>@{nCount++;} @nCount</td>
+                                                        <td>@item.FirstOrDefault().ROLL_NO</td>
+                                                        <td>@Courseitem.COURSE_CODE</td>
+                                                        <td>@liCIAMark.FirstOrDefault().TOTAL</td>
+                                                    </tr>*@
+                                            }
+                                            else
+                                            {
+
+                                                if (Convert.ToInt32(@liCIAMark.FirstOrDefault().TOTAL) < 10 && classitem.FirstOrDefault().PROGRAMME_LEVEL_ID == "1")
+                                                {
+                                                    fail++;
+                                                }
+                                                else if (Convert.ToInt32(@liCIAMark.FirstOrDefault().TOTAL) < 13 && classitem.FirstOrDefault().PROGRAMME_LEVEL_ID == "2")
+                                                {
+                                                    fail++;
+                                                }
+
+                                            }
+                                        }
+                                        else
+                                        {
+
+                                        }
+                                    }
+                                    if (fail > 0)
+                                    {
+                                        <tr>
+                                            <td>@{nCount++;} @nCount</td>
+                                            <td>@item.FirstOrDefault().ROLL_NO</td>
+                                            @{
+                                                foreach (var Courseitem in licourse)
+                                                {
+                                                    var liCIAMark = Model.liCIA_Total.Where(x => x.STUDENT_ID == item.FirstOrDefault().STUDENT_ID && x.COURSE_ID == Courseitem.COURSE_ROOT_ID).ToList();
+                                                    if (liCIAMark != null && liCIAMark.Count > 0)
+                                                    {
+                                                        if (liCIAMark.FirstOrDefault().TOTAL == "-1")
+                                                        {
+                                                            <td>A</td>
+                                                            fail++;
+                                                        }
+                                                        else
+                                                        {
+
+                                                            if (Convert.ToInt32(@liCIAMark.FirstOrDefault().TOTAL) < 10 && classitem.FirstOrDefault().PROGRAMME_LEVEL_ID == "1")
+                                                            {
+                                                                fail++;
+                                                            }
+                                                            else if (Convert.ToInt32(@liCIAMark.FirstOrDefault().TOTAL) < 13 && classitem.FirstOrDefault().PROGRAMME_LEVEL_ID == "2")
+                                                            {
+                                                                fail++;
+                                                            }
+                                                            <td>@liCIAMark.FirstOrDefault().TOTAL</td>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <td>0</td>
+                                                    }
+                                                }
+
+                                            }
+                                            @if (fail > 0)
+                                            {
+                                                <td>F</td>
+                                            }
+                                            else
+                                            {
+                                                <td>P</td>
+                                            }
+                                        </tr>
+                                    }
+                                }
+                            }
+                        }
+                    </tbody>
+                </table>
+            }
+        }
+    </div>
+}
+
+
+<script>
+    $('#tblCIACumulative > tbody  > tr >td').each(function () {
+
+    });
+</script>

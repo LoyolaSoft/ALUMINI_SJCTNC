@@ -1,0 +1,221 @@
+﻿
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "BindFbFacultyAssessmentByFeedback";
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+@if (Model.liFacultyAssessment != null && Model.liFacultyAssessment.Count > 0)
+{
+    <div class="form-group col-md-12 table-responsive">
+        <table class="table table-hover table-bordered" id="tblLiFbFacultyAssessment">
+            <thead>
+                <tr>
+                    <th>SL.NO</th>
+                    <th>My Lecture</th>
+                    
+                    <th>SCORE</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @if (Model.liFacultyAssessment != null && Model.liFacultyAssessment.Count > 0)
+                {
+                    var count = 0;
+                    foreach (var item in Model.liFacultyAssessment)
+                    {
+                        count = count + 1;
+                        <tr cms-fbfpid="@item.FBFACULTY_ASSESSMENT_ID" class="tblperformance">
+                            <td>@count</td>
+
+                            <td>@item.ITEM</td>
+                            @*<td>
+
+
+                                <div class="col-md-12">
+                                    <input type="number" class="form-control" placeholder="Mark" name="FFIMark" data-parsley-required="true" id="txtFFIMark_@item.FBFACULTY_PERFORMANCE_INDEX_ID">
+                                </div>
+                            </td>*@
+                            @*<td>
+                                <div class="col-md-12">
+                                    <input type="number" class="form-control" placeholder="Number" name="FFINumber" data-parsley-required="true" id="txtFFINumber_@item.FBFACULTY_PERFORMANCE_INDEX_ID">
+                                </div>
+                            </td>*@
+                          
+                            <td>
+                                <div class="col-md-9">
+                                    <select class="selectpicker form-control" data-live-search="true" id="ClassList" name="ClassList" style="display: none;">
+                                        <option value="">-- Select --</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                    </select>
+                                </div>
+                               
+                            </td>
+                        </tr>
+                    }
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+    <div class="form-group col-lg-12 row">
+        <div class="form-group pull-right">
+            <div class="col-md-5">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary">Submit</a>
+            </div>
+            <div class="col-md-5">
+                <a href="javascript:;" class="btn btn-sm btn-danger" id="btnCancel">Cancel</a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+
+}
+
+
+
+
+
+
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+
+        }
+
+        var message=@Html.Raw(Json.Encode(Model.sErrorMessage));
+        if(message!=null && message!="")
+        {
+            alertMessage(message);
+        }
+        function alertMessage(Message)
+        {
+            swal({ title: "error !", text:Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+            //swal({
+
+            //    title: "Feedback!",
+            //    text: Message,
+            //    showConfirmButton: false,
+            //    icon: "success",
+            //    timer: 1500,
+            //    animation: true ,
+            //});
+        }
+
+
+    $('#btnSubmit').click(function(){
+
+        var sCount=0;
+        var FBFacultyAssessmentId;
+        var Score;
+        var Assesse;
+        var jsonData='{"liFBFacultyAssessmentEvaluation":[';
+
+        var rowcount=$('#tblLiFbFacultyAssessment tbody tr.tblperformance').length;
+
+
+        $('#tblLiFbFacultyAssessment tbody tr').each(function(){
+
+
+            if($(this).find('#ClassList').val() )
+            {
+               
+                sCount=parseInt(sCount)+1;
+                Assesse=$('#FeedbackMember').val();
+                FBFacultyAssessmentId=$(this).attr('cms-fbfpid');
+                Score=$(this).find('select').val();
+                jsonData+='{"FBFACULTY_ASSESSMENT_ID":"'+FBFacultyAssessmentId+'","SCORE":"'+Score+'","ASSESSE":"'+Assesse+'"},';
+
+            }
+            else
+            {
+                swal({ title: "Info !", text: "Please fill all the fields!", showConfirmButton: false, timer: 1800, type: 'info', animation: true });
+            }
+        });
+       
+        if(sCount==rowcount)
+        {
+            jsonData = jsonData.slice(0, -1);
+            jsonData += ']}';
+
+            $.ajax({
+                url: "/Feedback/SaveFeedbackFacultyAssessment",
+                type: "post",
+                data: { sJsonData: jsonData },
+                success: function (data) {
+                    if (data.Message != null && data.Message != "" && data.ErrorCode != "" && data.ErrorCode!=null)
+                    {
+
+                        if (data.ErrorCode=="201")
+                        {
+                            swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                        if (data.ErrorCode == "200") {
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                           // loadContent('/Feedback/FacultyPerformanceIndexEvaluation');
+                        }
+                        if (data.ErrorCode == "417") {
+                            swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                        }
+                    }
+                    else {
+                        swal({ title: "Info", text: "Something went wrong so please try again!", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                    }
+                },
+                error: function (ex) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+
+            });
+        }
+        else{
+            //swal({ title: "Info !", text: "Something went wrong!", showConfirmButton: false, timer: 1800, type: 'info', animation: true });
+        }
+    });
+
+
+
+
+
+
+
+
+
+
+
+       // var tbl = $('#tblLiFbFacultyPerformanceIndex').DataTable();
+
+</script>
+
+
+
+
+
+
+
+
+
+

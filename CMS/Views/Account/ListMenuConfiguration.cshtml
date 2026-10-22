@@ -1,0 +1,643 @@
+@model CMS.ViewModel.ViewModel.SupportDataViewModel
+
+@{
+    ViewBag.Title = "ListMenuConfiguration";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Menu Configuration</li>
+    </ol>
+    <h1 class="page-header">Application Menu Configuration</h1>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+            </div>
+            <h3 class="panel-title">Menu Configuration Settings</h3>
+        </div>
+        <div class="panel-body">
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#tab-modules" data-toggle="tab"><i class="fa fa-cubes"></i> Modules</a></li>
+                <li><a href="#tab-menu-items" data-toggle="tab"><i class="fa fa-list"></i> Menu Items</a></li>
+                <li><a href="#tab-roles-rights" data-toggle="tab"><i class="fa fa-key"></i> User Roles & Rights</a></li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                
+                <!-- Tab 1: Modules Management -->
+                <div class="tab-pane fade active in" id="tab-modules">
+                    <div class="form-group clearfix">
+                        <a class="btn bg-green pull-right" title="Add Module" href="#module-dialog" data-toggle="modal" id="AddModuleBtn"><i class="fa fa-plus"></i> Add Module</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered" id="tblModules">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Module Name</th>
+                                    <th>Display Order</th>
+                                    <th>Icon Style</th>
+                                    <th>Has Sub-menu</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.liModules != null)
+                                {
+                                    int countModules = 0;
+                                    foreach (var item in Model.liModules)
+                                    {
+                                        <tr>
+                                            <td>@{countModules++;} @countModules</td>
+                                            <td>@item.MODULE_NAME</td>
+                                            <td>@item.MODULES_ORDER</td>
+                                            <td><i class="@item.STYLE"></i> (@item.STYLE)</td>
+                                            <td>@(item.has_sub == "1" ? "Yes" : "No")</td>
+                                            <td>
+                                                <a href="#module-dialog" onclick="FetchModuleById(@item.MODULES_ID)" data-toggle="modal"><i class="fa fa-edit text-primary" title="Edit"></i></a>
+                                                <a href="javascript:;" onclick="ConfirmDeleteModule(@item.MODULES_ID)" title="Delete"><i class="fa fa-trash text-danger"></i></a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Menu Items Management -->
+                <div class="tab-pane fade" id="tab-menu-items">
+                    <div class="form-group clearfix">
+                        <a class="btn bg-green pull-right" title="Add Menu Item" href="#menu-dialog" data-toggle="modal" id="AddMenuItemBtn"><i class="fa fa-plus"></i> Add Menu Item</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered" id="tblMenuItems">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Menu Name</th>
+                                    <th>Module (Parent)</th>
+                                    <th>Controller</th>
+                                    <th>Action Method</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.liMenuItems != null)
+                                {
+                                    int countMenuItems = 0;
+                                    foreach (var item in Model.liMenuItems)
+                                    {
+                                        <tr>
+                                            <td>@{countMenuItems++;} @countMenuItems</td>
+                                            <td>@item.MENU_NAME</td>
+                                            <td>@item.MODULE_NAME</td>
+                                            <td>@item.CONTROLLER</td>
+                                            <td>@item.ACTION</td>
+                                            <td>
+                                                <a href="#menu-dialog" onclick="FetchMenuItemById(@item.MENU_ID)" data-toggle="modal"><i class="fa fa-edit text-primary" title="Edit"></i></a>
+                                                <a href="javascript:;" onclick="ConfirmDeleteMenuItem(@item.MENU_ID)" title="Delete"><i class="fa fa-trash text-danger"></i></a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab 3: User Roles & Rights -->
+                <div class="tab-pane fade" id="tab-roles-rights">
+                    <div class="form-group clearfix">
+                        <a class="btn bg-green pull-right" title="Assign Role Rights" href="#roles-rights-dialog" data-toggle="modal" id="AddRolesRightsBtn"><i class="fa fa-plus"></i> Add User Role Right</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered" id="tblUserRolesRights">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Menu Name</th>
+                                    <th>Role Name</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.liUserRolesRights != null)
+                                {
+                                    int countRights = 0;
+                                    foreach (var item in Model.liUserRolesRights)
+                                    {
+                                        <tr>
+                                            <td>@{countRights++;} @countRights</td>
+                                            <td>@item.MENU_NAME</td>
+                                            <td>@item.ROLE_NAME</td>
+                                            <td>
+                                                @if (item.IS_ACTIVE == "1")
+                                                {
+                                                    <a href="javascript:;" onclick="ToggleRolesRightsStatus(@item.USER_RIGHTS_ID, 0)" class="text-success"><i class="fa fa-check-circle fa-lg"></i> Active</a>
+                                                }
+                                                else
+                                                {
+                                                    <a href="javascript:;" onclick="ToggleRolesRightsStatus(@item.USER_RIGHTS_ID, 1)" class="text-danger"><i class="fa fa-times-circle fa-lg"></i> Inactive</a>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a href="#roles-rights-dialog" onclick="FetchUserRolesRightsById(@item.USER_RIGHTS_ID)" data-toggle="modal"><i class="fa fa-edit text-primary" title="Edit"></i></a>
+                                                <a href="javascript:;" onclick="ConfirmDeleteRolesRights(@item.USER_RIGHTS_ID)" title="Delete"><i class="fa fa-trash text-danger"></i></a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 1: Modules Dialog -->
+<div class="modal" id="module-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Add / Edit Module</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal" id="moduleForm" data-parsley-validate="true">
+                    <input type="hidden" id="txtModuleId" />
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Module Name</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control input-sm" id="txtModuleName" placeholder="Enter Module Name" data-parsley-required="true" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Display Order</label>
+                        <div class="col-md-9">
+                            <input type="number" class="form-control input-sm" id="txtModuleOrder" placeholder="Enter Numeric Display Order" data-parsley-required="true" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Icon Style Class</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control input-sm" id="txtModuleStyle" placeholder="e.g. fa fa-desktop, fa fa-cog" data-parsley-required="true" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Has Sub-menu?</label>
+                        <div class="col-md-9">
+                            <select id="ddlHasSub" class="form-control input-sm">
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmitModule" class="btn btn-sm btn-primary">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Menu Items Dialog -->
+<div class="modal" id="menu-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Add / Edit Menu Item</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal" id="menuForm" data-parsley-validate="true">
+                    <input type="hidden" id="txtMenuId" />
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Menu Name</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control input-sm" id="txtMenuName" placeholder="Enter Menu Name" data-parsley-required="true" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Module</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model => model.ModuleList, (Model.ModuleList != null) ? Model.ModuleList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @id = "ddlModuleList", @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true" })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Controller</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control input-sm" id="txtController" placeholder="Enter Controller Class Name" data-parsley-required="true" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Action</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control input-sm" id="txtAction" placeholder="Enter Action Method Name" data-parsley-required="true" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmitMenu" class="btn btn-sm btn-primary">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 3: Roles Rights Dialog -->
+<div class="modal" id="roles-rights-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Add / Edit User Roles Rights</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal" id="rolesRightsForm" data-parsley-validate="true">
+                    <input type="hidden" id="txtUserRightsId" />
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Menu Item</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model => model.MenuItemList, (Model.MenuItemList != null) ? Model.MenuItemList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @id = "ddlMenuItemList", @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true" })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Role</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model => model.RoleList, (Model.RoleList != null) ? Model.RoleList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @id = "ddlRoleList", @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true" })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox checkbox-css col-md-9 pull-right">
+                            <input type="checkbox" id="chkIsActive" />
+                            <label for="chkIsActive">Active Status</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmitRolesRights" class="btn btn-sm btn-primary">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+    function ContentLoad() {
+        // Dynamic reload hook if needed.
+    }
+
+    $('.selectpicker').selectpicker('refresh');
+
+    // Initialize Datatables
+    $('#tblModules').DataTable({
+        responsive: true
+    });
+    $('#tblMenuItems').DataTable({
+        responsive: true
+    });
+    $('#tblUserRolesRights').DataTable({
+        responsive: true
+    });
+
+    // ==========================================
+    // MODULES FUNCTIONS
+    // ==========================================
+    $('#AddModuleBtn').click(function () {
+        $('#moduleForm').parsley().destroy();
+        $('#txtModuleId').val('');
+        $('#txtModuleName').val('');
+        $('#txtModuleOrder').val('');
+        $('#txtModuleStyle').val('');
+        $('#ddlHasSub').val('1');
+    });
+
+    function FetchModuleById(moduleId) {
+        $('#moduleForm').parsley().destroy();
+        if (moduleId) {
+            $.ajax({
+                url: "/Account/FetchModuleById",
+                type: "POST",
+                data: { sModuleId: moduleId },
+                success: function (data) {
+                    if (data.oResult && data.oResult[0]) {
+                        var m = data.oResult[0];
+                        $('#txtModuleId').val(m.MODULES_ID);
+                        $('#txtModuleName').val(m.MODULE_NAME);
+                        $('#txtModuleOrder').val(m.MODULES_ORDER);
+                        $('#txtModuleStyle').val(m.STYLE);
+                        $('#ddlHasSub').val(m.has_sub);
+                    } else if (data.Message) {
+                        alert(data.Message);
+                    }
+                },
+                error: function (ex) {
+                    alert("Error loading module: " + ex.statusText);
+                }
+            });
+        }
+    }
+
+    $('#btnSubmitModule').click(function () {
+        if ($('#moduleForm').parsley().validate() !== true) return false;
+
+        var id = $('#txtModuleId').val();
+        var name = $('#txtModuleName').val();
+        var order = $('#txtModuleOrder').val();
+        var style = $('#txtModuleStyle').val();
+        var hasSub = $('#ddlHasSub').val();
+
+        var jsonData = JSON.stringify({
+            MODULES_ID: id,
+            MODULE_NAME: name,
+            MODULES_ORDER: order,
+            STYLE: style,
+            has_sub: hasSub
+        });
+
+        $.ajax({
+            url: "/Account/SaveorUpdateModule",
+            type: "POST",
+            data: { sJsonData: jsonData },
+            success: function (data) {
+                if (data.ErrorCode == "200") {
+                    swal({ title: "Success!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success' });
+                    $('#module-dialog').modal('hide');
+                    loadContent('/Account/ListMenuConfiguration');
+                } else {
+                    swal({ title: "Error", text: data.Message, type: 'error' });
+                }
+            },
+            error: function () {
+                swal({ title: "Error", text: "Something went wrong during submission", type: 'error' });
+            }
+        });
+    });
+
+    function ConfirmDeleteModule(moduleId) {
+        swal({
+            title: "Are you sure you want to delete this Module?",
+            text: "This will not delete sub-menus, but may leave them orphaned.",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, delete it!"
+        }, function () {
+            $.ajax({
+                url: "/Account/DeleteModuleById",
+                type: "POST",
+                data: { sModuleId: moduleId },
+                success: function (data) {
+                    swal({ title: "Deleted!", text: data.Message, type: 'success', timer: 1500, showConfirmButton: false });
+                    loadContent('/Account/ListMenuConfiguration');
+                },
+                error: function () {
+                    swal({ title: "Error", text: "Unable to delete module", type: 'error' });
+                }
+            });
+        });
+    }
+
+    // ==========================================
+    // MENU ITEMS FUNCTIONS
+    // ==========================================
+    $('#AddMenuItemBtn').click(function () {
+        $('#menuForm').parsley().destroy();
+        $('#txtMenuId').val('');
+        $('#txtMenuName').val('');
+        $('#ddlModuleList').val('').selectpicker('refresh');
+        $('#txtController').val('');
+        $('#txtAction').val('');
+    });
+
+    function FetchMenuItemById(menuId) {
+        $('#menuForm').parsley().destroy();
+        if (menuId) {
+            $.ajax({
+                url: "/Account/FetchMenuItemById",
+                type: "POST",
+                data: { sMenuId: menuId },
+                success: function (data) {
+                    if (data.oResult && data.oResult[0]) {
+                        var m = data.oResult[0];
+                        $('#txtMenuId').val(m.MENU_ID);
+                        $('#txtMenuName').val(m.MENU_NAME);
+                        $('#ddlModuleList').val(m.PARENT_ID).selectpicker('refresh');
+                        $('#txtController').val(m.CONTROLLER);
+                        $('#txtAction').val(m.ACTION);
+                    } else if (data.Message) {
+                        alert(data.Message);
+                    }
+                },
+                error: function (ex) {
+                    alert("Error loading menu item: " + ex.statusText);
+                }
+            });
+        }
+    }
+
+    $('#btnSubmitMenu').click(function () {
+        if ($('#menuForm').parsley().validate() !== true) return false;
+
+        var id = $('#txtMenuId').val();
+        var name = $('#txtMenuName').val();
+        var parentId = $('#ddlModuleList').val();
+        var controller = $('#txtController').val();
+        var action = $('#txtAction').val();
+
+        var jsonData = JSON.stringify({
+            MENU_ID: id,
+            MENU_NAME: name,
+            PARENT_ID: parentId,
+            CONTROLLER: controller,
+            ACTION: action
+        });
+
+        $.ajax({
+            url: "/Account/SaveorUpdateMenuItem",
+            type: "POST",
+            data: { sJsonData: jsonData },
+            success: function (data) {
+                if (data.ErrorCode == "200") {
+                    swal({ title: "Success!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success' });
+                    $('#menu-dialog').modal('hide');
+                    loadContent('/Account/ListMenuConfiguration');
+                } else {
+                    swal({ title: "Error", text: data.Message, type: 'error' });
+                }
+            },
+            error: function () {
+                swal({ title: "Error", text: "Something went wrong during submission", type: 'error' });
+            }
+        });
+    });
+
+    function ConfirmDeleteMenuItem(menuId) {
+        swal({
+            title: "Are you sure you want to delete this Menu Item?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, delete it!"
+        }, function () {
+            $.ajax({
+                url: "/Account/DeleteMenuItemById",
+                type: "POST",
+                data: { sMenuId: menuId },
+                success: function (data) {
+                    swal({ title: "Deleted!", text: data.Message, type: 'success', timer: 1500, showConfirmButton: false });
+                    loadContent('/Account/ListMenuConfiguration');
+                },
+                error: function () {
+                    swal({ title: "Error", text: "Unable to delete menu item", type: 'error' });
+                }
+            });
+        });
+    }
+
+    // ==========================================
+    // USER ROLES & RIGHTS FUNCTIONS
+    // ==========================================
+    $('#AddRolesRightsBtn').click(function () {
+        $('#rolesRightsForm').parsley().destroy();
+        $('#txtUserRightsId').val('');
+        $('#ddlMenuItemList').val('').selectpicker('refresh');
+        $('#ddlRoleList').val('').selectpicker('refresh');
+        $('#chkIsActive').prop('checked', false);
+    });
+
+    function FetchUserRolesRightsById(rightsId) {
+        $('#rolesRightsForm').parsley().destroy();
+        if (rightsId) {
+            $.ajax({
+                url: "/Account/FetchUserRolesRightsById",
+                type: "POST",
+                data: { sUserRightsId: rightsId },
+                success: function (data) {
+                    if (data.oResult && data.oResult[0]) {
+                        var r = data.oResult[0];
+                        $('#txtUserRightsId').val(r.USER_RIGHTS_ID);
+                        $('#ddlMenuItemList').val(r.MENU_ITEM_ID).selectpicker('refresh');
+                        $('#ddlRoleList').val(r.ROLE_ID).selectpicker('refresh');
+                        $('#chkIsActive').prop('checked', r.IS_ACTIVE == "1");
+                    } else if (data.Message) {
+                        alert(data.Message);
+                    }
+                },
+                error: function (ex) {
+                    alert("Error loading roles rights: " + ex.statusText);
+                }
+            });
+        }
+    }
+
+    $('#btnSubmitRolesRights').click(function () {
+        if ($('#rolesRightsForm').parsley().validate() !== true) return false;
+
+        var id = $('#txtUserRightsId').val();
+        var menuItemId = $('#ddlMenuItemList').val();
+        var roleId = $('#ddlRoleList').val();
+        var isActive = $('#chkIsActive').is(':checked') ? "1" : "0";
+
+        var jsonData = JSON.stringify({
+            USER_RIGHTS_ID: id,
+            MENU_ITEM_ID: menuItemId,
+            ROLE_ID: roleId,
+            IS_ACTIVE: isActive
+        });
+
+        $.ajax({
+            url: "/Account/SaveorUpdateUserRolesRights",
+            type: "POST",
+            data: { sJsonData: jsonData },
+            success: function (data) {
+                if (data.ErrorCode == "200") {
+                    swal({ title: "Success!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success' });
+                    $('#roles-rights-dialog').modal('hide');
+                    loadContent('/Account/ListMenuConfiguration');
+                } else if (data.ErrorCode == "208") {
+                    swal({ title: "Info", text: data.Message, type: 'info' });
+                } else {
+                    swal({ title: "Error", text: data.Message, type: 'error' });
+                }
+            },
+            error: function () {
+                swal({ title: "Error", text: "Something went wrong during submission", type: 'error' });
+            }
+        });
+    });
+
+    function ToggleRolesRightsStatus(rightsId, nextMode) {
+        swal({
+            title: "Are you sure you want to update the status?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-primary",
+            confirmButtonText: "Yes, change it!"
+        }, function () {
+            $.ajax({
+                url: "/Account/ActivateorDeactivateUserRolesRightsById",
+                type: "POST",
+                data: { sUserRightsId: rightsId, sMode: nextMode },
+                success: function (data) {
+                    swal({ title: "Updated!", text: data.Message, type: 'success', timer: 1500, showConfirmButton: false });
+                    loadContent('/Account/ListMenuConfiguration');
+                },
+                error: function () {
+                    swal({ title: "Error", text: "Unable to update status", type: 'error' });
+                }
+            });
+        });
+    }
+
+    function ConfirmDeleteRolesRights(rightsId) {
+        swal({
+            title: "Are you sure you want to delete this Role Right?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, delete it!"
+        }, function () {
+            $.ajax({
+                url: "/Account/DeleteUserRolesRightsById",
+                type: "POST",
+                data: { sUserRightsId: rightsId },
+                success: function (data) {
+                    swal({ title: "Deleted!", text: data.Message, type: 'success', timer: 1500, showConfirmButton: false });
+                    loadContent('/Account/ListMenuConfiguration');
+                },
+                error: function () {
+                    swal({ title: "Error", text: "Unable to delete role right", type: 'error' });
+                }
+            });
+        });
+    }
+</script>

@@ -1,0 +1,147 @@
+﻿
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "BindFeedbackQuestionGroupByFeedbackId";
+}
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+
+<div class="form-group col-md-12">
+    <a class="btn btn-success pull-right form-group m-b-5" href="javascript:;" onclick="loadContent('/Feedback/AddandUpdateFeedBackQuestionGroup?sFeedbackId='+$('#FeedBackSettingList').val()+'')" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add"> Add</i></a>
+</div>
+
+<div class="form-group col-md-12 table-responsive">
+    <table class="table table-hover table-bordered" id="tblLiFbSetting">
+        <thead>
+            <tr>
+                <th>#</th>
+
+                <th>Feedback Name</th>
+                <th>Date From</th>
+                <th>Date To</th>
+                <th>Group Title</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @if (Model.liFbQuestionGroup != null && Model.liFbQuestionGroup.Count > 0)
+            {
+                var count = 0;
+                foreach (var item in Model.liFbQuestionGroup)
+                {
+                    count = count + 1;
+                    <tr>
+                        <td>@count</td>
+
+                        <td>@item.FEEDBACK_NAME</td>
+                        <td>@item.DATE_FROM</td>
+                        <td>@item.DATE_TO</td>
+                        <td>@item.GROUP_TITLE</td>
+                        @*<td>@item.QUESTION_TYPE</td>*@
+                        @*@<td>@item.NO_OF_QUESTION</td>*@
+                        @*@<td>@item.FEEDBACK_TYPE_NAME</td>*@
+
+                        <td>
+                            <a href="javascript:;" onclick="loadContent('/Feedback/AddandUpdateFeedBackQuestionGroup?sFeedbackId='+$('#FeedBackSettingList').val()+'&sFeedbackQuestionGroup='+@item.QUESTION_GROUP_ID+'')" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+
+                            <a href="javascrip:;" onclick="GetConfirm(@item.QUESTION_GROUP_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+
+                        </td>
+                    </tr>
+                }
+
+            }
+
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+
+        var tbl = $('#tblLiFbSetting').DataTable();
+
+
+
+        var message=@Html.Raw(Json.Encode(Model.sErrorMessage));
+        if(message!=null && message!="")
+        {
+            alertMessage(message);
+        }
+        function alertMessage(Message)
+        {
+            swal({ title: "error !", text:Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+
+         
+        }
+
+
+
+
+
+
+
+
+    GetConfirm = function (sQuestionGroup)
+        {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+        function()
+        {
+            $.ajax({
+                url: "/FeedBack/DeleteFeedBackQuestionGroup",
+                type:"post",
+                data: { sFeedbackQuestionGroup: sQuestionGroup },
+                success:function(data)
+                {
+                    if (data.Message != null && data.Message != "")
+                    {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                        loadContent('/FeedBack/ListFeedbackQuestionGroup?sFeedBackId=' + $('#FeedBackSettingList').val()+'');
+                    }
+                },
+                error:function(ex)
+                {
+                    swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+                }
+
+
+            });
+        });
+        }
+
+</script>
+
+
+

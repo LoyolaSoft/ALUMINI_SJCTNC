@@ -1,0 +1,1813 @@
+@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    ViewBag.Title = "ExamQuestionEntry";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<style>
+    /* Tab Workflow Styles */
+    .card {
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        margin-bottom: 25px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+    }
+
+    .workflow-tabs {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        padding: 5px;
+        list-style: none;
+        background: #f1f4f9;
+        border-radius: 12px;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .workflow-tab {
+        flex: 1;
+        text-align: center;
+        padding: 15px 20px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-right: none;
+        position: relative;
+        background: transparent;
+        color: #555;
+        font-weight: 600;
+        text-decoration: none !important;
+        border-radius: 10px;
+        margin: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 160px;
+    }
+
+    .workflow-tab:last-child {
+        border-right: none;
+    }
+
+    .workflow-tab.active {
+        background: #fff;
+        color: #2a5298;
+        box-shadow: 0 4px 15px rgba(42, 82, 152, 0.2);
+    }
+
+    .workflow-tab.completed {
+        background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%) !important;
+        color: white !important;
+    }
+
+    .workflow-tab.completed .tick-mark {
+        display: inline-block;
+        margin-right: 8px;
+        font-size: 1.2em;
+    }
+
+    .workflow-tab.disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+        filter: grayscale(0.8);
+    }
+
+    .tick-mark {
+        display: none;
+    }
+
+    .tab-content-panel {
+        padding: 30px;
+        min-height: 400px;
+    }
+
+    .btn-workflow {
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .btn-workflow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .instruction-item {
+        margin-bottom: 18px;
+        padding: 15px 20px 15px 45px;
+        position: relative;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #2a5298;
+        transition: all 0.2s;
+    }
+    
+    .instruction-item:hover {
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .instruction-item i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #2a5298;
+        font-size: 1.2em;
+    }
+
+    .bloom-box {
+        text-align: center;
+        padding: 12px 5px;
+        margin-bottom: 8px;
+        color: #fff;
+        font-weight: bold;
+        font-size: 14px;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .bloom-box:hover {
+        transform: scale(1.08) translateX(5px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        z-index: 10;
+    }
+
+    .bloom-k1 { background: linear-gradient(135deg, #f5b041 0%, #d48e1a 100%); }
+    .bloom-k2 { background: linear-gradient(135deg, #5dade2 0%, #2e86c1 100%); }
+    .bloom-k3 { background: linear-gradient(135deg, #58d68d 0%, #28b463 100%); }
+    .bloom-k4 { background: linear-gradient(135deg, #af7ac5 0%, #884ea0 100%); }
+    .bloom-k5 { background: linear-gradient(135deg, #ec7063 0%, #cb4335 100%); }
+    .bloom-k6 { background: linear-gradient(135deg, #aeb6bf 0%, #808b96 100%); }
+
+    .bloom-sidebar {
+        padding-right: 10px;
+    }
+
+    .question-panel {
+        padding-left: 15px;
+        border-left: 1px solid #eee;
+    }
+
+    .ck-editor__editable {
+        min-height: 120px;
+        border-radius: 0 0 8px 8px !important;
+    }
+    
+    .mathjax-sidebar-btn {
+        text-align: center;
+        padding: 10px 5px;
+        margin-bottom: 10px;
+        color: #fff;
+        font-weight: bold;
+        font-size: 12px;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        display: block;
+        width: 100%;
+        border: none;
+    }
+
+    .mathjax-sidebar-btn:hover {
+        transform: scale(1.08) translateX(5px);
+        color: #fff;
+        text-decoration: none;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+    .modal-title {
+        color: white;
+    }
+    /* Mobile adjustments */
+    @@media (max-width: 768px) {
+        .bloom-sidebar {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 15px;
+            border-right: none;
+            border-bottom: 1px solid #eee;
+            width: 100% !important;
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+        
+        .bloom-sidebar h5 {
+            display: none;
+        }
+        
+        .bloom-box, .mathjax-sidebar-btn {
+            min-width: 80px;
+            margin-right: 10px;
+            margin-bottom: 0px;
+            padding: 8px 5px;
+        }
+        
+        .question-panel {
+            padding-left: 0;
+            border-left: none;
+            width: 100% !important;
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+        
+        .tab-content-panel {
+            padding: 15px;
+        }
+        .row > [class*=col-] {
+            padding: 0 4px;
+        }
+        .instruction-item {
+            padding: 12px 15px 12px 40px;
+        }
+    }
+
+
+    /* Print settings */
+    @@media print {
+        .no-print, .header, .sidebar, .breadcrumb, .page-header, .workflow-tabs, .header-college, .instruction-item, .alert, .btn-workflow {
+            display: none !important;
+        }
+        #pane-4, #claimPrintArea {
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+    }
+
+    .modal-preview-xl {
+        width: 90%;
+        max-width: 1100px;
+        margin: 30px auto;
+    }
+
+    /* Syllabus Card Styles */
+    .syllabus-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border: 1px solid #edf2f7;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        min-height: 140px;
+    }
+
+    .syllabus-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+        border-color: #3498db;
+    }
+
+    .syllabus-card .course-code {
+        font-size: 13px;
+        font-weight: 700;
+        color: #3498db;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        background: #ebf8ff;
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 20px;
+    }
+
+    .syllabus-card .course-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #2d3748;
+        line-height: 1.4;
+        margin-bottom: 15px;
+        height: 44px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .syllabus-card .view-icon-box {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-top-left-radius: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .syllabus-card:hover .view-icon-box {
+        width: 55px;
+        height: 55px;
+        background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    }
+
+    .syllabus-card.no-file .view-icon-box {
+        background: #e2e8f0;
+        color: #a0aec0;
+    }
+
+    @@media (max-width: 768px) {
+        .modal-preview-xl {
+            width: 98% !important;
+            margin: 10px auto !important;
+        }
+        
+        #previewModalContent {
+            padding: 10px !important;
+            max-height: 85vh !important;
+        }
+        
+        .modal-header {
+            padding: 12px 15px !important;
+        }
+        
+        .modal-title {
+            font-size: 16px !important;
+        }
+    }
+</style>
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">OBE</a></li>
+        <li class="active">Exam Question Entry</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Exam Question Entry</h1>
+    <!-- end page-header -->
+    <!-- begin row -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="panel-body p-0">
+                    <!-- Workflow Tabs -->
+                    <div class="workflow-tabs" id="workflowTabs">
+                        <a href="javascript:void(0)" class="workflow-tab active" id="tab-1" onclick="showTab(1)">
+                            <span class="tick-mark"><i class="fa fa-check-circle"></i></span>
+                            1. Instructions
+                        </a>
+
+                        <a href="javascript:void(0)" class="workflow-tab" id="tab-2" onclick="showTab(2)">
+                            <span class="tick-mark"><i class="fa fa-check-circle"></i></span>
+                            2. Syllabus Download
+                        </a>
+                        <a href="javascript:void(0)" class="workflow-tab" id="tab-3" onclick="showTab(3)">
+                            <span class="tick-mark"><i class="fa fa-check-circle"></i></span>
+                            3. Question Entry
+                        </a>
+                        <a href="javascript:void(0)" class="workflow-tab" id="tab-4" onclick="showTab(4)">
+                            <span class="tick-mark"><i class="fa fa-check-circle"></i></span>
+                            4. Claim Form
+                        </a>
+                    </div>
+
+                    <!-- Tab Content Panes -->
+                    <div class="tab-content-panel">
+                        <!-- Pane 1: Instructions -->
+                        <div id="pane-1" class="workflow-pane">
+                            <div class="header-college text-center mb-4">
+                                <h3>Instructions to the Question Setters:</h3>
+                                <hr />
+                            </div>
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="instruction-list" style="max-height: 500px; overflow-y: auto; padding-right: 15px;">
+                                        <div class="instruction-item"><i class="fa fa-caret-right"></i> 1. This appointment must be treated as strictly confidential.</div>
+                                        <div class="instruction-item"><i class="fa fa-caret-right"></i> 2. For any clarification, contact only the Controller of Examinations.</div>
+                                        <div class="instruction-item"><i class="fa fa-caret-right"></i> 3. Carefully study the <b>syllabus, blueprint, and question paper pattern</b> before setting the paper.</div>
+                                        <div class="instruction-item"><i class="fa fa-caret-right"></i> 4. Provide all <b>required particulars</b> such as <b>Title of the Paper, Semester Number, Set Number</b>, etc., accurately.</div>
+                                        <div class="instruction-item"><i class="fa fa-caret-right"></i> 5. Questions must be drawn strictly from the <b>prescribed syllabus</b> and distributed fairly across all units, in line with the <b>blueprint</b>.</div>
+                                        <div class="instruction-item"><i class="fa fa-caret-right"></i> 6. Frame questions in accordance with <b>Bloom's Taxonomy</b>. Use the prescribed <b>action verbs</b>, and indicate the <b>knowledge level (K1-K6)</b> at the end of each question.</div>
+                                        <div class="instruction-item"><i class="fa fa-caret-right"></i> 7. Ensure all <b>technical terms, notations, and symbols</b> are written with precision.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-4 bg-light rounded text-center border">
+                                        <i class="fa fa-file-text-o fa-4x text-primary mb-3"></i>
+                                        <p class="font-weight-bold">Acknowledgement</p>
+                                        <p class="small">I have read and understood all the instructions mentioned above.</p>
+                                        <button class="btn btn-primary btn-workflow btn-block mt-3" onclick="completeStep(1)">Accept & Proceed</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pane 2: Syllabus -->
+                        <div id="pane-2" class="workflow-pane" style="display:none">
+                            <div class="row align-items-center mb-4">
+                                <div class="col-md-6">
+                                    <h3 class="m-0">Syllabus Download</h3>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <div class="form-inline" style="display: inline-block;">
+                                        <label class="mr-2">Exam Name:</label>
+                                        @Html.DropDownList("ddlExamSettingSyllabus", ViewBag.ExamSettings as SelectList ?? Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control selectpicker show-menu-arrow show-tick", @id="ddlExamSettingSyllabus", @data_live_search = "true" })
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fa fa-info-circle mr-2"></i> Please click on a course card to view and download its syllabus.
+                            </div>
+
+                            <div id="syllabusCourseCards" class="row mt-4" style="min-height: 200px;">
+                                <div class="col-md-12 text-center text-muted p-5">
+                                    <i class="fa fa-book fa-3x mb-3 opacity-50"></i>
+                                    <p>Please select an Exam Setting to view the assigned courses.</p>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-4">
+                                <button class="btn btn-primary btn-workflow px-5" id="btnNextSyllabus" onclick="completeStep(2)">Proceed to Question Entry <i class="fa fa-arrow-right ml-2"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Pane 3: Question Entry -->
+                        <div id="pane-3" class="workflow-pane" style="display:none">
+                            <div class="form-horizontal">
+                                <div class="row" style="margin-bottom: 20px;">
+                                    <div class="col-md-4 form-group">
+                                        @Html.Label("Exam Name", htmlAttributes: new { @class = "control-label col-md-4" })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(model => model.ExamSetting, ViewBag.ExamSettings as SelectList ?? Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control selectpicker show-menu-arrow show-tick", @id="ddlExamSetting", @data_live_search = "true" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 form-group">
+                                        @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-3" })
+                                        <div class="col-md-9">
+                                            @Html.DropDownListFor(model => model.Course, ViewBag.Courses as SelectList ?? Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control selectpicker show-menu-arrow show-tick", @id="ddlCourse", @data_live_search = "true" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 form-group">
+                                        <a class="btn btn-primary" id="btnGet" onclick="GetPattern()"><i class="fa fa-search"></i> Get Pattern</a>
+                                        &nbsp;
+                                        <a class="btn btn-success" id="btnPreview" onclick="PreviewQuestionPaper()" style="display:none;"><i class="fa fa-eye"></i> Preview</a>
+                                    </div>
+                                </div>
+
+                                <div class="row" id="divMainContent" style="display:none;">
+                                    <!-- Left Column: Blooms Taxonomy Sidebar -->
+                                    <div class="col-md-1 bloom-sidebar">
+                                        <h5 class="text-center" style="font-weight:bold; font-size:12px;">Taxonomy</h5>
+                                        
+                                        <div class="mathjax-sidebar-btn" onclick="OpenMathModal()" style="background-color: #5bc0de; margin-bottom: 10px;">
+                                            <i class="fa fa-superscript fa-lg"></i><br /><span style="font-size: 11px;">Maths</span>
+                                        </div>
+                                        <div class="mathjax-sidebar-btn" onclick="OpenChemModal()" style="background-color: #f0ad4e; margin-bottom: 10px;">
+                                            <i class="fa fa-flask fa-lg"></i><br /><span style="font-size: 11px;">Chem</span>
+                                        </div>
+                                        <div class="mathjax-sidebar-btn" onclick="OpenImagePicker()" style="background-color: #43a047; margin-bottom: 20px;">
+                                            <i class="fa fa-image fa-lg"></i><br /><span style="font-size: 11px;">Image</span>
+                                        </div>
+
+                                        @if(ViewBag.BloomsTaxonomy != null)
+                                        {
+                                            int counter = 1;
+                                            foreach (var bloom in (IEnumerable<CMS.ViewModel.Model.BLOOMS_TAXONOMY_MASTER>)ViewBag.BloomsTaxonomy)
+                                            {
+                                                var cssClass = "bloom-k" + ((counter > 6) ? 6 : counter);
+                                                <div class="bloom-box @cssClass" onclick="showBloomDetails('@bloom.k_level', '@Html.Raw(HttpUtility.JavaScriptStringEncode(bloom.cognitive_process))', '@Html.Raw(HttpUtility.JavaScriptStringEncode(bloom.description))', '@Html.Raw(HttpUtility.JavaScriptStringEncode(bloom.action_verbs))', '@Html.Raw(HttpUtility.JavaScriptStringEncode(bloom.sample_question_stems))')">
+                                                   K @bloom.k_level
+                                                </div>
+                                                counter++;
+                                            }
+                                        }
+                                    </div>
+                                    
+                                    <!-- Right Column: Question Entry Panel -->
+                                    <div class="col-md-11 question-panel" id="divPatternDetails">
+                                        <!-- Content loaded via Ajax -->
+                                    </div>
+                                </div>
+
+                                <div class="text-center mt-4" id="divCompleteEntry" style="display:none;">
+                                    <button class="btn btn-success btn-workflow" onclick="handleStep3Finish()">Complete & Finalize Entry</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pane 4: Claim Form -->
+                        <div id="pane-4" class="workflow-pane" style="display:none">
+                            <div class="card shadow-sm border-0 mb-4">
+                                <div class="card-header bg-gradient-blue text-white p-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);">
+                                    <h4 class="m-0 text-white"><i class="fa fa-money mr-2"></i> Claim for Question Paper Setting</h4>
+                                    <div id="claimStatusBadge"></div>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div id="claimLoading" class="text-center p-5" style="display:none;">
+                                        <i class="fa fa-spinner fa-spin fa-3x text-primary mb-3"></i>
+                                        <p>Loading claim details...</p>
+                                    </div>
+                                    <form id="claimForm">
+                                        <input type="hidden" id="hdnClaimId" name="CLAIM_ID" />
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-12">
+                                                <div class="form-group" style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;">
+                                                    <label class="font-weight-bold text-primary"><i class="fa fa-list-ul mr-2"></i> Select Finalized Course</label>
+                                            <div class="input-group">
+                                                <select id="ddlClaimCourse" name="COURSE_ID" class="form-control" onchange="loadClaim()" style="border: 2px solid #3498db; font-weight: bold;">
+                                                    <option value="">--Select Finalized Course--</option>
+                                                </select>
+                                                <div class="input-group-btn">
+                                                    <button type="button" class="btn btn-default" onclick="fetchFinalizedCourses()" title="Refresh List"><i class="fa fa-refresh"></i></button>
+                                                </div>
+                                            </div>
+                                                    <small class="text-muted">Only courses with finalized question entries are listed here.</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <!-- Exam & Course Info (Readonly) -->
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">Programme</label>
+                                                    <input type="text" id="claimProgramme" name="PROGRAMME" class="form-control" readonly style="background-color: #f8f9fa;" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">Course Code</label>
+                                                    <input type="text" id="claimCourseCode" name="COURSE_CODE" class="form-control" readonly style="background-color: #f8f9fa;" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">Course Title</label>
+                                                    <input type="text" id="claimCourseTitle" name="COURSE_TITLE" class="form-control" readonly style="background-color: #f8f9fa;" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr />
+                                        <h5 class="text-primary mb-3"><i class="fa fa-calculator mr-2"></i> Remuneration Details</h5>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">Type</label>
+                                                    <select id="claimRemunType" name="REMUNERATION_TYPE" class="form-control" onchange="calculateClaim()">
+                                                        <option value="UG">UG (Rs. 400)</option>
+                                                        <option value="PG">PG (Rs. 600)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">No. of Q.Ps</label>
+                                                    <input type="number" id="claimNoOfQp" name="NO_OF_QUESTION" class="form-control" value="1" oninput="calculateClaim()" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">QP Amount</label>
+                                                    <input type="text" id="claimQpAmt" name="QUESTION_AMOUNT" class="form-control" readonly />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">Scheme Amt</label>
+                                                    <input type="number" id="claimSchemeAmt" name="SCHEME_AMOUNT" class="form-control" value="100" oninput="calculateClaim()" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">Postal Charges</label>
+                                                    <input type="number" id="claimPostalAmt" name="POSTAL_CHARGES" class="form-control" value="0" oninput="calculateClaim()" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row bg-light p-3 rounded mb-4 border mx-0" style="background-color: #f8f9fa !important;">
+                                            <div class="col-md-4">
+                                                <h4 class="m-0 text-success">Total Claim: ₹ <span id="spanTotalClaim">0.00</span></h4>
+                                                <input type="hidden" id="hdnTotalClaim" name="TOTAL_CLAIM" />
+                                            </div>
+                                            <div class="col-md-8">
+                                                <p class="mb-0 font-italic text-muted">Rupees in Words: <span id="spanWords" class="text-dark font-weight-bold" style="color: #2c3e50 !important;">Zero Only</span></p>
+                                                <input type="hidden" id="hdnRupeesInWords" name="RUPEES_IN_WORDS" />
+                                            </div>
+                                        </div>
+
+                                        <hr />
+                                        <h5 class="text-primary mb-3"><i class="fa fa-user mr-2"></i> Personal & Bank Details</h5>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">Name of the Staff</label>
+                                                    <input type="text" id="claimStaffName" name="STAFF_NAME" class="form-control" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">Designation</label>
+                                                    <input type="text" id="claimDesignation" name="DESIGNATION" class="form-control" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">Mobile No</label>
+                                                    <input type="text" id="claimMobile" name="MOBILE_NO" class="form-control" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="font-weight-bold">Official Address</label>
+                                            <textarea id="claimAddress" name="OFFICIAL_ADDRESS" class="form-control" rows="2"></textarea>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">Account No</label>
+                                                    <input type="text" id="claimAccNo" name="AC_NO" class="form-control" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">Bank Name</label>
+                                                    <input type="text" id="claimBank" name="BANK" class="form-control" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">Branch</label>
+                                                    <input type="text" id="claimBranch" name="BRANCH" class="form-control" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="font-weight-bold">IFSC Code</label>
+                                                    <input type="text" id="claimIfsc" name="IFS_CODE" class="form-control" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-right mt-4">
+                                            <button type="button" class="btn btn-default mr-2 btn-workflow" onclick="showTab(3)" style="background: #e2e8f0; color: #4a5568;"><i class="fa fa-arrow-left"></i> Back</button>
+                                            <button type="button" class="btn btn-primary btn-workflow" onclick="saveClaim('DRAFT')" id="btnSaveClaimDraft" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;"><i class="fa fa-save"></i> Save Draft</button>
+                                            <button type="button" class="btn btn-success btn-workflow" onclick="saveClaim('SUBMITTED')" id="btnSubmitClaim" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;"><i class="fa fa-check-circle"></i> Final Submit</button>
+                                            <button type="button" class="btn btn-info ml-2 btn-workflow" id="btnPreviewClaim" style="display:none; background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%); color: white;" onclick="previewClaim()"><i class="fa fa-eye"></i> View Claim Form</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- end row -->
+</div>
+
+<!-- Bloom's Taxonomy Modal -->
+<div class="modal fade" id="BloomModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="bloomModalTitle">Bloom's Taxonomy Details</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th style="width: 30%;">Cognitive Process</th><td id="tdCognitiveProcess"></td></tr>
+                        <tr><th>Description</th><td id="tdDescription"></td></tr>
+                        <tr><th>Action Verbs</th><td id="tdActionVerbs"></td></tr>
+                        <tr><th>Sample Questions</th><td id="tdSampleQuestions"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Question Paper Preview Modal -->
+<div class="modal fade" id="previewQPModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-preview-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color:#fff;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:1;"><span>&times;</span></button>
+                <h4 class="modal-title"><i class="fa fa-file-text-o m-r-5"></i> Question Paper Preview</h4>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <div class="no-print" style="padding: 10px 15px; background:#f8f9fa; border-bottom: 1px solid #ddd;">
+                    <button class="btn btn-primary btn-sm" onclick="PrintPreview()"><i class="fa fa-print"></i> Print</button>
+                    &nbsp;
+                    <button class="btn btn-info btn-sm" onclick="DownloadWord()"><i class="fa fa-file-word-o"></i> Download Word (.doc)</button>
+                </div>
+                <div id="previewModalContent" style="padding: 15px; min-height: 300px; max-height: 75vh; overflow-y: auto;">
+                    <div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading preview...</div>
+                </div>
+            </div>
+            <div class="modal-footer no-print">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Syllabus View Modal -->
+<div class="modal fade" id="syllabusViewModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" style="width: 90%; max-width: 1100px;" role="document">
+        <div class="modal-content" style="border-radius: 12px; border: none; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%); color:white; padding: 15px 20px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:white; opacity: 1;"><span>&times;</span></button>
+                <h4 class="modal-title" id="syllabusModalLabel"><i class="fa fa-file-text-o mr-2"></i> Syllabus Viewer</h4>
+            </div>
+            <div class="modal-body" style="padding: 0; height: 82vh; background: #525659;">
+                <iframe id="syllabusIframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+
+<!-- MathJax / CKEditor -->
+<script src="https://cdn.ckeditor.com/4.22.1/standard-all/ckeditor.js"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        TeX: { extensions: ["mhchem.js"] }
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML"></script>
+
+<script>
+    var currentStep = 1;
+    var completedSteps = {
+        1: false,
+        2: false,
+        3: false,
+        4: false
+    };
+    var lastFinalizedCourse = null; // Failsafe: Track the course finalized in this session
+
+    function loadProgress() {
+        var userId = '@Session[CMS.Utility.Common.SESSION_VARIABLES.USER_ID]';
+        var saved = localStorage.getItem('ExamQuestionEntryWorkflow_' + userId);
+        if (saved) {
+            completedSteps = JSON.parse(saved);
+        }
+        
+        // Failsafe recovery: check if we have a recently finalized course in this session
+        var savedCourse = localStorage.getItem('OBE_LastFinalized_' + userId);
+        if (savedCourse) {
+            lastFinalizedCourse = JSON.parse(savedCourse);
+        }
+        
+        updateTabStates();
+
+        var furthest = 1;
+        for (var i = 1; i <= 4; i++) {
+            if (completedSteps[i]) {
+                furthest = (i < 4) ? i + 1 : 4;
+            }
+        }
+        showTab(furthest);
+    }
+
+    function saveProgress() {
+        var userId = '@Session[CMS.Utility.Common.SESSION_VARIABLES.USER_ID]';
+        localStorage.setItem('ExamQuestionEntryWorkflow_' + userId, JSON.stringify(completedSteps));
+    }
+
+    function showTab(step) {
+        if (step > 1 && !completedSteps[step - 1] && step > currentStep) {
+            swal("Wait!", "Please complete the previous step first.", "warning");
+            return;
+        }
+        
+        // Finalized check for Pane 4
+        if (step === 4 && !completedSteps[3]) {
+            swal("Notice", "Please finalize the Question Entry (Step 3) before proceeding to the Claim Form.", "info");
+            return;
+        }
+
+        $('.workflow-pane').hide();
+        $('#pane-' + step).show();
+        $('.workflow-tab').removeClass('active');
+        $('#tab-' + step).addClass('active');
+
+        currentStep = step;
+        updateTabStates();
+
+        if (step === 4) {
+            fetchFinalizedCourses();
+        }
+    }
+
+    function calculateClaim() {
+        var type = $('#claimRemunType').val();
+        var noOfQp = parseInt($('#claimNoOfQp').val()) || 0;
+        var schemeAmt = parseFloat($('#claimSchemeAmt').val()) || 0;
+        var postalAmt = parseFloat($('#claimPostalAmt').val()) || 0;
+
+        var qpRate = (type === 'UG') ? 400 : 600;
+        var totalQpAmt = qpRate * noOfQp;
+
+        $('#claimQpAmt').val(totalQpAmt.toFixed(2));
+
+        var totalClaim = totalQpAmt + schemeAmt + postalAmt;
+        $('#spanTotalClaim').text(totalClaim.toFixed(2));
+        $('#hdnTotalClaim').val(totalClaim.toFixed(2));
+
+        var words = NumberToWords(totalClaim);
+        $('#spanWords').text(words);
+        $('#hdnRupeesInWords').val(words);
+    }
+
+    function NumberToWords(amount) {
+        var words = "";
+        var amount_parts = amount.toString().split(".");
+        var whole_amount = parseInt(amount_parts[0]);
+        var decimal_amount = amount_parts.length > 1 ? parseInt(amount_parts[1]) : 0;
+
+        if (whole_amount == 0) return "Zero Only";
+
+        var units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+        var tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+
+        function convert(n) {
+            if (n < 20) return units[n];
+            if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + units[n % 10] : "");
+            if (n < 1000) return units[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " and " + convert(n % 100) : "");
+            if (n < 100000) return convert(Math.floor(n / 1000)) + " Thousand" + (n % 1000 !== 0 ? " " + convert(n % 1000) : "");
+            if (n < 10000000) return convert(Math.floor(n / 100000)) + " Lakh" + (n % 100000 !== 0 ? " " + convert(n % 100000) : "");
+            return convert(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 !== 0 ? " " + convert(n % 10000000) : "");
+        }
+
+        words = convert(whole_amount) + " Only";
+        return words;
+    }
+
+    function fetchFinalizedCourses() {
+        var examSettingId = $('#ddlExamSetting').val();
+        if (!examSettingId) {
+            swal("Wait", "Please select an Exam in Step 3 first.", "warning");
+            showTab(3);
+            return;
+        }
+
+        $('#ddlClaimCourse').empty().append('<option value="">-- Loading Courses... --</option>');
+        
+        $.ajax({
+            url: '@Url.Action("GetFinalizedCourses", "OBE")',
+            type: 'POST',
+            data: { examSettingId: examSettingId },
+            success: function (response) {
+                console.log("OBE DEBUG: fetchFinalizedCourses response received", response);
+                var ddl = $('#ddlClaimCourse');
+                ddl.empty();
+                ddl.append('<option value="">--Select Finalized Course--</option>');
+                
+                var finalCourseList = [];
+                var courseIdsMap = {}; // Use plain object for maximum browser compatibility
+
+                // 1. Add courses from server
+                if (response.success && response.data && response.data.length > 0) {
+                    $.each(response.data, function (i, item) {
+                        var cid = String(item.COURSE_ID || "");
+                        if (cid && !courseIdsMap[cid]) {
+                            finalCourseList.push({
+                                id: cid,
+                                text: item.COURSE_CODE + ' - ' + item.COURSE_TITLE
+                            });
+                            courseIdsMap[cid] = true;
+                        }
+                    });
+                }
+                console.log("OBE DEBUG: After server merge, count:", finalCourseList.length);
+
+                // 2. Merge with session failsafe if missing from server list
+                if (lastFinalizedCourse && lastFinalizedCourse.COURSE_ID) {
+                    var fid = String(lastFinalizedCourse.COURSE_ID);
+                    if (fid && !courseIdsMap[fid]) {
+                        console.log("OBE DEBUG: Injecting session course into list:", fid);
+                        finalCourseList.push({
+                            id: fid,
+                            text: lastFinalizedCourse.COURSE_TEXT
+                        });
+                        courseIdsMap[fid] = true;
+                    }
+                }
+
+                // 3. Render unified list
+                if (finalCourseList.length > 0) {
+                    $.each(finalCourseList, function (i, item) {
+                        ddl.append('<option value="' + item.id + '">' + item.text + '</option>');
+                    });
+
+                    // 4. Smart Auto-selection
+                    if (lastFinalizedCourse && lastFinalizedCourse.COURSE_ID) {
+                        var autoId = String(lastFinalizedCourse.COURSE_ID);
+                        console.log("OBE DEBUG: Auto-selecting session course:", autoId);
+                        ddl.val(autoId);
+                        loadClaim();
+                    } else if (finalCourseList.length === 1) {
+                        console.log("OBE DEBUG: Auto-selecting only available course:", finalCourseList[0].id);
+                        ddl.val(finalCourseList[0].id);
+                        loadClaim();
+                    }
+                } else {
+                    console.log("OBE DEBUG: No courses found anywhere.");
+                    swal({
+                        title: "No Finalized Courses Found",
+                        text: "If you just finalized questions in Step 3, please wait a moment and click 'Try Again'. You can also manually import the current course.",
+                        type: "info",
+                        showCancelButton: true,
+                        confirmButtonText: "Try Again",
+                        cancelButtonText: "Close"
+                    }, function(isConfirm) {
+                        if (isConfirm) fetchFinalizedCourses();
+                    });
+                }
+            },
+            error: function () {
+                swal("Error", "Failed to fetch finalized courses.", "error");
+            }
+        });
+    }
+
+
+    function loadClaim() {
+        var courseId = $('#ddlClaimCourse').val();
+        var examSettingId = $('#ddlExamSetting').val();
+
+        if (!courseId) {
+            $('#claimForm').hide();
+            return;
+        }
+
+        if (!examSettingId) {
+            swal("Selection Required", "Please select an Exam Setting.", "info");
+            return;
+        }
+
+        $('#claimLoading').show();
+        $('#claimForm').hide();
+
+        $.ajax({
+            url: '@Url.Action("GetClaimEntry", "OBE")',
+            type: 'POST',
+            data: { courseId: courseId, examSettingId: examSettingId },
+            success: function (response) {
+                $('#claimLoading').hide();
+                $('#claimForm').show();
+
+                // Prefill basic info if fields are empty
+                var courseText = $('#ddlClaimCourse option:selected').text();
+                var exploded = courseText.split('-');
+                var code = exploded[0] ? exploded[0].trim() : "";
+                var title = exploded[1] ? exploded[1].trim() : "";
+
+                if (!$('#claimCourseCode').val()) $('#claimCourseCode').val(code);
+                if (!$('#claimCourseTitle').val()) $('#claimCourseTitle').val(title);
+
+                if (response.data) {
+                    var data = response.data;
+                    
+                    // Priority prefill from backend if available
+                    if (data.COURSE_CODE) $('#claimCourseCode').val(data.COURSE_CODE);
+                    if (data.COURSE_TITLE) $('#claimCourseTitle').val(data.COURSE_TITLE);
+                    if (data.PROGRAMME) $('#claimProgramme').val(data.PROGRAMME);
+
+                    if (response.success) {
+                        $('#hdnClaimId').val(data.CLAIM_ID);
+                        $('#claimRemunType').val(data.REMUNERATION_TYPE);
+                        $('#claimNoOfQp').val(data.NO_OF_QUESTION);
+                        $('#claimSchemeAmt').val(data.SCHEME_AMOUNT);
+                        $('#claimPostalAmt').val(data.POSTAL_CHARGES);
+                        $('#claimStaffName').val(data.STAFF_NAME);
+                        if (data.MOBILE_NO) $('#claimMobile').val(data.MOBILE_NO);
+                        if (data.DESIGNATION) $('#claimDesignation').val(data.DESIGNATION);
+                        if (data.OFFICIAL_ADDRESS) $('#claimAddress').val(data.OFFICIAL_ADDRESS);
+                        if (data.AC_NO) $('#claimAccNo').val(data.AC_NO);
+                        if (data.BANK) $('#claimBank').val(data.BANK);
+                        if (data.BRANCH) $('#claimBranch').val(data.BRANCH);
+                        if (data.IFS_CODE) $('#claimIfsc').val(data.IFS_CODE);
+                        
+                        if (data.SUBMISSION_STATUS === '2' || data.SUBMISSION_STATUS === 'SUBMITTED') {
+                            $('#claimStatusBadge').html('<span class="label label-success p-5" style="font-size:14px;"><i class="fa fa-check"></i> Final Submitted</span>');
+                            $('#claimForm input, #claimForm select, #claimForm textarea').prop('disabled', true);
+                            $('#btnSaveClaimDraft, #btnSubmitClaim').hide();
+                            $('#btnPreviewClaim').show();
+                        } else {
+                            $('#claimStatusBadge').html('<span class="label label-warning p-5" style="font-size:14px;">Draft</span>');
+                            $('#claimForm input, #claimForm select, #claimForm textarea').prop('disabled', false);
+                            $('#btnSaveClaimDraft, #btnSubmitClaim').show();
+                            $('#btnPreviewClaim').show();
+                        }
+                    }
+                } else {
+                    $('#hdnClaimId').val('');
+                    $('#claimStatusBadge').html('<span class="label label-info p-5" style="font-size:14px;">New Claim</span>');
+                    $('#claimStaffName').val('@Session[CMS.Utility.Common.SESSION_VARIABLES.USER_NAME]');
+                }
+                calculateClaim();
+            },
+            error: function () {
+                $('#claimLoading').hide();
+                $('#claimForm').show();
+                swal("Error", "Failed to load claim details.", "error");
+            }
+        });
+    }
+
+    function saveClaim(status) {
+        var formData = {};
+        $('#claimForm').serializeArray().forEach(function(item) {
+            formData[item.name] = item.value;
+        });
+        
+        formData.SUBMISSION_STATUS = status;
+        formData.COURSE_ID = $('#ddlClaimCourse').val();
+        formData.EXAM_SETTING_ID = $('#ddlExamSetting').val();
+
+        if (status === 'SUBMITTED') {
+            swal({
+                title: "Are you sure?",
+                text: "Once submitted, you cannot edit the claim form!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, Final Submit!",
+                closeOnConfirm: false
+            }, function () {
+                performSaveClaim(formData);
+            });
+        } else {
+            performSaveClaim(formData);
+        }
+    }
+
+    function performSaveClaim(formData) {
+        $.ajax({
+            url: '@Url.Action("SaveClaimEntry", "OBE")',
+            type: 'POST',
+            data: { sJsonData: JSON.stringify(formData) },
+            success: function (response) {
+                if (response.success) {
+                    swal("Success", response.message, "success");
+                    loadClaim();
+                    if (formData.SUBMISSION_STATUS === 'SUBMITTED') {
+                        completedSteps[4] = true;
+                        saveProgress();
+                        updateTabStates();
+                    }
+                } else {
+                    swal("Error", response.message, "error");
+                }
+            },
+            error: function () {
+                swal("Error", "Failed to save claim.", "error");
+            }
+        });
+    }
+
+    function previewClaim() {
+        var claimId = $('#hdnClaimId').val();
+        if (!claimId) {
+            swal("Error", "Please save the claim first.", "error");
+            return;
+        }
+        window.open('@Url.Action("PrintClaimForm", "OBE")?claimId=' + claimId, '_blank');
+    }
+    function SubmitCourseFinalStatus(callback) {
+        var courseId = $('#ddlCourse').val();
+        var examSettingId = $('#ddlExamSetting').val();
+        
+        if(courseId && examSettingId) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("SaveCourseFinalStatus", "OBE")',
+                data: { courseId: courseId, examSettingId: examSettingId },
+                success: function(res) {
+                    if(callback) callback();
+                },
+                error: function() {
+                    if(callback) callback();
+                }
+            });
+        } else {
+            if(callback) callback();
+        }
+    }
+
+    function handleStep3Finish() {
+        // MANDATORY: Capture current course info for Step 4 failsafe immediately
+        var currentCourseId = $('#ddlCourse').val();
+        var currentCourseText = $('#ddlCourse option:selected').text();
+        
+        if (currentCourseId) {
+            lastFinalizedCourse = {
+                COURSE_ID: currentCourseId,
+                COURSE_TEXT: currentCourseText
+            };
+            // Persist to localStorage for robustness across any unintentional refreshes
+            var userId = '@Session[CMS.Utility.Common.SESSION_VARIABLES.USER_ID]';
+            localStorage.setItem('OBE_LastFinalized_' + userId, JSON.stringify(lastFinalizedCourse));
+        }
+
+        // Check if there are any rows that are NOT finalized yet
+        var unfinalizedRowsData = [];
+        var allRowsFinalized = true;
+
+        $('.tblQusEntryStructure tbody tr').each(function () {
+            var row = $(this);
+            if (row.find('.locked-label').is(':hidden')) {
+                allRowsFinalized = false;
+            }
+        });
+
+        if (!allRowsFinalized) {
+            swal({
+                title: "Finalize Questions?",
+                text: "You have unfinalized questions for this course. You must finalize them to proceed to the Claim Form correctly. Finalize now?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                confirmButtonText: "Yes, Finalize & Proceed",
+                cancelButtonText: "No, Just Proceed",
+                closeOnConfirm: false
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    FinalSubmitAllQuestions(function() {
+                        SubmitCourseFinalStatus(function() {
+                            // Small delay to ensure DB commit is visible to next request
+                            setTimeout(function() {
+                                completeStep(3);
+                            }, 500);
+                        });
+                    });
+                } else {
+                    completeStep(3);
+                }
+            });
+        } else {
+            SubmitCourseFinalStatus(function() {
+                completeStep(3);
+            });
+        }
+    }
+
+    function completeStep(step) {
+        completedSteps[step] = true;
+        saveProgress();
+        updateTabStates();
+
+        if (step < 4) {
+            showTab(step + 1);
+        }
+    }
+
+    function updateTabStates() {
+        $('.workflow-tab').each(function (index) {
+            var step = index + 1;
+            var $tab = $(this);
+            
+            if (completedSteps[step]) {
+                $tab.addClass('completed').removeClass('disabled');
+                $tab.find('.tick-mark').show();
+            } else {
+                $tab.removeClass('completed');
+                $tab.find('.tick-mark').hide();
+                
+                if (step > 1 && !completedSteps[step - 1]) {
+                    $tab.addClass('disabled');
+                } else {
+                    $tab.removeClass('disabled');
+                }
+            }
+        });
+    }
+
+    // Required by Dashboard's loadContent() - must be defined for every page
+    function ContentLoad() {
+    }
+
+    // Initialize on startup
+    $(document).ready(function() {
+        loadProgress();
+        $('.selectpicker').selectpicker();
+
+        // Sync Exam Setting dropdowns and load syllabus cards
+        $('#ddlExamSetting').on('change', function() {
+            var val = $(this).val();
+            $('#ddlExamSettingSyllabus').val(val).selectpicker('refresh');
+            LoadSyllabusCards();
+        });
+
+        $('#ddlExamSettingSyllabus').on('change', function() {
+            var val = $(this).val();
+            $('#ddlExamSetting').val(val).selectpicker('refresh');
+            LoadSyllabusCards();
+        });
+    });
+
+    function LoadSyllabusCards() {
+        var examSettingId = $('#ddlExamSettingSyllabus').val();
+        if (!examSettingId) {
+            $('#syllabusCourseCards').html('<div class="col-md-12 text-center text-muted p-5"><i class="fa fa-book fa-3x mb-3 opacity-50"></i><p>Please select an Exam Setting to view the assigned courses.</p></div>');
+            return;
+        }
+
+        $('#syllabusCourseCards').html('<div class="col-md-12 text-center p-5"><i class="fa fa-spinner fa-spin fa-3x text-primary"></i><br/><br/>Loading assigned courses...</div>');
+
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetStaffCourseSyllabusList", "OBE")",
+            data: { examSettingId: examSettingId },
+            success: function (result) {
+                if (result.ErrorCode == 202) {
+                    var html = '';
+                    if (result.oResult && result.oResult.length > 0) {
+                        result.oResult.forEach(function (item) {
+                            var hasSyllabus = item.FILE_PATH != null && item.FILE_PATH != '';
+                            var cardClass = hasSyllabus ? "" : "no-file";
+                            
+                            html += '<div class="col-md-4 col-sm-6">';
+                            html += '   <div class="syllabus-card ' + cardClass + '" onclick="' + (hasSyllabus ? "OpenSyllabusViewer('" + item.FILE_PATH + "', '" + item.COURSE_CODE + "')" : "swal(\"Not Available\", \"Syllabus for this course has not been uploaded yet.\", \"info\")") + '">';
+                            html += '       <div class="course-code">' + item.COURSE_CODE + '</div>';
+                            html += '       <div class="course-title">' + item.COURSE_TITLE + '</div>';
+                            html += '       <div class="view-icon-box" title="' + (hasSyllabus ? 'View Syllabus' : 'Not Available') + '">';
+                            html += '           <i class="fa ' + (hasSyllabus ? 'fa-eye' : 'fa-exclamation-triangle') + '"></i>';
+                            html += '       </div>';
+                            html += '   </div>';
+                            html += '</div>';
+                        });
+                    } else {
+                        html = '<div class="col-md-12 text-center text-muted p-5"><i class="fa fa-folder-open-o fa-3x mb-3 opacity-50"></i><p>No courses found for the selected exam setting.</p></div>';
+                    }
+                    $('#syllabusCourseCards').html(html);
+                } else {
+                    swal('Error', 'Failed to load courses.', 'error');
+                }
+            },
+            error: function () {
+                swal('Error', 'An error occurred while fetching data.', 'error');
+            }
+        });
+    }
+
+    function OpenSyllabusViewer(path, code) {
+        var baseUrl = "@Url.Content("~/")";
+        if (path.startsWith('/')) {
+            path = path.substring(1);
+        }
+        var url = baseUrl + path;
+        $('#syllabusModalLabel').html('<i class="fa fa-file-text-o mr-2"></i> Syllabus: ' + code);
+        $('#syllabusIframe').attr('src', url);
+        $('#syllabusViewModal').modal('show');
+    }
+
+    function showBloomDetails(klevel, process, desc, verbs, sample) {
+        $('#bloomModalTitle').text(klevel + ' Details');
+        $('#tdCognitiveProcess').text(process);
+        $('#tdDescription').text(desc);
+        $('#tdActionVerbs').text(verbs);
+        $('#tdSampleQuestions').text(sample);
+        $('#BloomModal').modal('show');
+    }
+
+    function GetPattern() {
+        var courseId = $('#ddlCourse').val();
+        var examSettingId = $('#ddlExamSetting').val();
+
+        if (courseId == "" || examSettingId == "") {
+            swal('Warning', 'Please select both Exam Name and Course.', 'warning');
+            return;
+        }
+
+        $('#divMainContent').show();
+        $('#btnPreview').show();
+        $('#divCompleteEntry').show(); // Show finalize button once pattern loaded
+        $('#divPatternDetails').html('<div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+        
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("BindExamQuestionEntryStructure", "OBE")",
+            data: { courseId: courseId, examSettingId: examSettingId },
+            success: function (result) {
+                $('#divPatternDetails').html(result);
+                $('.selectpicker').selectpicker('refresh');
+            },
+            error: function () {
+                swal('Error', 'An error occurred while fetching question paper structure.', 'error');
+            }
+        });
+    }
+
+    var currentActiveEditor = null;
+
+    function OpenMathModal() {
+        if (!currentActiveEditor) {
+            var firstEditorId = $('.editor-textarea').first().attr('id');
+            if (firstEditorId && CKEDITOR.instances[firstEditorId]) {
+                currentActiveEditor = CKEDITOR.instances[firstEditorId];
+            } else {
+                swal('Warning', 'Please click inside a Question Entry box first to select where to insert.', 'warning');
+                return;
+            }
+        }
+        $('#txtMathInput').val('');
+        $('#divMathPreview').html('');
+        $('#MathFormModal').modal('show');
+    }
+
+    function OpenChemModal() {
+        if (!currentActiveEditor) {
+            var firstEditorId = $('.editor-textarea').first().attr('id');
+            if (firstEditorId && CKEDITOR.instances[firstEditorId]) {
+                currentActiveEditor = CKEDITOR.instances[firstEditorId];
+            } else {
+                swal('Warning', 'Please click inside a Question Entry box first to select where to insert.', 'warning');
+                return;
+            }
+        }
+        $('#txtChemInput').val('');
+        $('#divChemPreview').html('');
+        $('#ChemFormModal').modal('show');
+    }
+
+    function UpdateMathPreview() {
+        var input = $('#txtMathInput').val();
+        $('#divMathPreview').html('\\(' + input + '\\)');
+        if (typeof MathJax !== 'undefined') {
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "divMathPreview"]);
+        }
+    }
+
+    function UpdateChemPreview() {
+        var input = $('#txtChemInput').val();
+        $('#divChemPreview').html('\\(\\ce{' + input + '}\\)');
+        if (typeof MathJax !== 'undefined') {
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "divChemPreview"]);
+        }
+    }
+
+    function InsertMathEquation() {
+        var input = $('#txtMathInput').val();
+        if (input.trim() == '') {
+            swal('Warning', 'Please enter a formula', 'warning');
+            return;
+        }
+        if (currentActiveEditor) {
+            var html = '<span class="math-tex">\\(' + input + '\\)</span>&nbsp;';
+            currentActiveEditor.insertHtml(html);
+            $('#MathFormModal').modal('hide');
+        }
+    }
+
+    function InsertChemFormula() {
+        var input = $('#txtChemInput').val();
+        if (input.trim() == '') {
+            swal('Warning', 'Please enter a formula', 'warning');
+            return;
+        }
+        if (currentActiveEditor) {
+            var html = '<span class="math-tex">\\(\\ce{' + input + '}\\)</span>&nbsp;';
+            currentActiveEditor.insertHtml(html);
+            $('#ChemFormModal').modal('hide');
+        }
+    }
+
+    function OpenImagePicker() {
+        if (!currentActiveEditor) {
+            var firstEditorId = $('.editor-textarea').first().attr('id');
+            if (firstEditorId && CKEDITOR.instances[firstEditorId]) {
+                currentActiveEditor = CKEDITOR.instances[firstEditorId];
+            } else {
+                swal('Warning', 'Please click inside a Question Entry box first to select where to insert.', 'warning');
+                return;
+            }
+        }
+        $('#hdnImageInput').click();
+    }
+
+    function HandleImageUpload(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var base64Image = e.target.result;
+                var html = '<div style="margin:10px 0;"><img src="' + base64Image + '" style="max-width: 100%; height: auto;" /></div>&nbsp;';
+                if (currentActiveEditor) {
+                    currentActiveEditor.insertHtml(html);
+                }
+                $(input).val(''); // Reset
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+
+    function PreviewQuestionPaper() {
+        var courseId = $('#ddlCourse').val();
+        var examSettingId = $('#ddlExamSetting').val();
+
+        if (!courseId || !examSettingId) {
+            swal('Warning', 'Please select Exam Name and Course first.', 'warning');
+            return;
+        }
+
+        $('#previewModalContent').html('<div class="text-center" style="padding:40px 0;"><i class="fa fa-spinner fa-spin fa-3x"></i><br/><br/>Loading preview...</div>');
+        $('#previewQPModal').modal('show');
+
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("PreviewQuestionPaper", "OBE")',
+            data: { courseId: courseId, examSettingId: examSettingId },
+            success: function(result) {
+                $('#previewModalContent').html(result);
+                // Re-render MathJax if available
+                if (typeof MathJax !== 'undefined') {
+                    MathJax.Hub.Queue(['Typeset', MathJax.Hub, 'previewModalContent']);
+                }
+            },
+            error: function() {
+                $('#previewModalContent').html('<div class="alert alert-danger">Failed to load preview. Please try again.</div>');
+            }
+        });
+    }
+
+    function PrintPreview() {
+        var content = document.getElementById('previewModalContent').innerHTML;
+        var printWin = window.open('', '_blank', 'width=900,height=700');
+        printWin.document.write('<html><head><title>Question Paper</title>');
+        printWin.document.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">');
+        printWin.document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML"><\/script>');
+        printWin.document.write('<style>body{font-family:"Times New Roman",Times,serif;font-size:13px;margin:20px;} .no-print{display:none;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #999;padding:5px 8px;} th{background:#e8e8e8;}</style>');
+        printWin.document.write('</head><body>');
+        printWin.document.write(content);
+        printWin.document.write('</body></html>');
+        printWin.document.close();
+        printWin.focus();
+        setTimeout(function() { printWin.print(); }, 1000);
+    }
+
+    function DownloadWord() {
+        var content = document.getElementById('previewModalContent').innerHTML;
+        var header = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Question Paper</title>' +
+            '<style>body{font-family:"Times New Roman",Times,serif;font-size:12pt;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #999;padding:5px 8px;} th{background:#e8e8e8;} .no-print{display:none;}</style></head><body>';
+        var footer = '</body></html>';
+        var blob = new Blob([header + content + footer], { type: 'application/msword' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'QuestionPaper.doc';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Function to handle saving per grid row
+    function SaveQuestionData(btn, isFinalSubmit) {
+        debugger;
+        var row = $(btn).closest('tr');
+        var qidSelector = row.find('.hdnQuestionId');
+        var questionId = qidSelector.val(); 
+        var unitId = row.find('.liObeUnit').val();
+        var levelId = row.find('.liObeQus').val();
+        var questionNo = row.find('td:eq(0)').text().trim(); // E.g. "1.A"
+
+        var editorId = row.find('.editor-textarea').attr('id');
+        var questionHtml = '';
+        if (CKEDITOR.instances[editorId]) {
+            questionHtml = CKEDITOR.instances[editorId].getData();
+            $('#' + editorId).val(questionHtml); // Fix: Sync the raw textarea value
+        }
+
+        var courseId = $('#ddlCourse').val();
+        var examSettingId = $('#ddlExamSetting').val();
+
+        var isValid = true;
+        
+        if (unitId == "" || unitId == "0" || typeof unitId === "undefined") {
+            row.find('.liObeUnit').closest('div').addClass('has-error');
+            isValid = false;
+        } else {
+            row.find('.liObeUnit').closest('div').removeClass('has-error');
+        }
+
+        if (levelId == "" || levelId == "0" || typeof levelId === "undefined") {
+            row.find('.liObeQus').closest('div').addClass('has-error');
+            isValid = false;
+        } else {
+            row.find('.liObeQus').closest('div').removeClass('has-error');
+        }
+
+        var rawText = questionHtml.replace(/(<([^>]+)>)/gi, "").replace(/&nbsp;/g, '').trim();
+        if (rawText == "" && questionHtml.indexOf('<img') === -1 && questionHtml.indexOf('<span class="math-tex"') === -1) {
+            swal("Warning", "Question text cannot be empty. Please enter the question", "warning");
+            isValid = false;
+        }
+
+        if (!isValid) {
+            swal('Warning', 'Please fill all mandatory fields (Unit, Level, Question Text) for this row.', 'warning');
+            return false;
+        }
+
+        var obj = {
+            QUESTION_ID: questionId,
+            QUESTION: questionHtml,
+            OBE_UNIT_ID: unitId,
+            QUESTION_LEVEL_ID: levelId,
+            COURSE_ID: courseId,
+            EXAM_SETTING_ID: examSettingId,
+            FORMULA_EQUATION: questionNo // Using FORMULA_EQUATION slot to temporarily hold the qNum logic to identify it for update if needed.
+        };
+
+        if (isFinalSubmit) {
+            swal({
+                title: 'Final Submit?',
+                text: "You won't be able to edit this question after final submission!",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, submit it!'
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    processAjaxSave(row, btn, obj, true, qidSelector);
+                }
+            });
+        } else {
+            processAjaxSave(row, btn, obj, false, qidSelector);
+        }
+    }
+
+    function processAjaxSave(row, btn, obj, finalSubmit, qidSelector) {
+        var thisBtn = $(btn);
+        var oldHtml = thisBtn.html();
+        thisBtn.html('<i class="fa fa-spinner fa-spin"></i>');
+        thisBtn.prop('disabled', true);
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("SaveQuestionEntry", "OBE")",
+            data: { sJsonData: JSON.stringify(obj), IsFinalSubmit: finalSubmit },
+            success: function (result) {
+                thisBtn.prop('disabled', false);
+                thisBtn.html(oldHtml);
+                if (result.ErrorCode == 202) {
+                    if (finalSubmit) {
+                        swal('Success', result.Message, 'success');
+                        row.find('.btn-draft').hide();
+                        row.find('.label-success').show();
+                        
+                        // Disable dropdowns
+                        row.find('.liObeUnit, .liObeQus').prop('disabled', true);
+                        row.find('.liObeUnit, .liObeQus').selectpicker('refresh');
+                        
+                        // Set editor readonly
+                        var editorId = row.find('.editor-textarea').attr('id');
+                        CKEDITOR.instances[editorId].setReadOnly(true);
+                    } else {
+                        if (result.sResult) {
+                            qidSelector.val(result.sResult);
+                            swal('Success', 'Draft saved successfully.', 'success');
+                        }
+                    }
+                } else {
+                    swal('Error', result.Message || "Operation failed", 'error');
+                }
+            },
+            error: function () {
+                thisBtn.prop('disabled', false);
+                thisBtn.html(oldHtml);
+                swal('Error', 'An error occurred while saving data.', 'error');
+            }
+        });
+    }
+
+    function FinalSubmitAllQuestions(callback) {
+        var courseId = $('#ddlCourse').val();
+        var examSettingId = $('#ddlExamSetting').val();
+        var allValid = true;
+        var questionsData = [];
+        
+        $('.tblQusEntryStructure tbody tr').each(function () {
+            var row = $(this);
+            // Skip already submitted ones
+            if (row.find('.locked-label').is(':visible')) return;
+
+            var qidSelector = row.find('.hdnQuestionId');
+            var questionId = qidSelector.val(); 
+            var unitId = row.find('.liObeUnit').val();
+            var levelId = row.find('.liObeQus').val();
+            var questionNo = row.find('td:eq(0)').text().trim();
+            
+            var editorId = row.find('.editor-textarea').attr('id');
+            var questionHtml = '';
+            if (CKEDITOR.instances[editorId]) {
+                questionHtml = CKEDITOR.instances[editorId].getData();
+                $('#' + editorId).val(questionHtml); // Fix: Sync the raw textarea value
+            }
+
+            var rowValid = true;
+            if (unitId == "" || unitId == "0" || typeof unitId === "undefined") {
+                row.find('.liObeUnit').closest('div').addClass('has-error');
+                rowValid = false;
+            } else {
+                row.find('.liObeUnit').closest('div').removeClass('has-error');
+            }
+
+            if (levelId == "" || levelId == "0" || typeof levelId === "undefined") {
+                row.find('.liObeQus').closest('div').addClass('has-error');
+                rowValid = false;
+            } else {
+                row.find('.liObeQus').closest('div').removeClass('has-error');
+            }
+
+            var rawText = questionHtml.replace(/(<([^>]+)>)/gi, "").replace(/&nbsp;/g, '').trim();
+            if (rawText == "" && questionHtml.indexOf('<img') === -1 && questionHtml.indexOf('<span class="math-tex"') === -1) {
+                rowValid = false;
+            }
+
+            if (!rowValid) {
+                allValid = false;
+                row.css('background-color', '#fff3f3');
+            } else {
+                row.css('background-color', '');
+                questionsData.push({
+                    row: row,
+                    qidSelector: qidSelector,
+                    obj: {
+                        QUESTION_ID: questionId,
+                        QUESTION: questionHtml,
+                        OBE_UNIT_ID: unitId,
+                        QUESTION_LEVEL_ID: levelId,
+                        COURSE_ID: courseId,
+                        EXAM_SETTING_ID: examSettingId,
+                        FORMULA_EQUATION: questionNo
+                    }
+                });
+            }
+        });
+
+        if (!allValid) {
+            swal('Warning', 'Please fill all mandatory fields (Unit, Level, Question Text) for all pending rows. The invalid rows have been highlighted red.', 'warning');
+            return;
+        }
+
+        if (questionsData.length === 0) {
+            swal('Info', 'All questions are already submitted.', 'info');
+            return;
+        }
+
+        swal({
+            title: 'Final Submit All?',
+            text: "You won't be able to edit these questions after final submission!",
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, submit all!'
+        }, function (isConfirm) {
+            if (isConfirm) {
+                // start batch submit
+                submitQueue(questionsData, 0, callback);
+            }
+        });
+    }
+
+    function submitQueue(queue, index, callback) {
+        if (index >= queue.length) {
+            if (callback && typeof callback === 'function') {
+                callback();
+            } else {
+                swal('Success', 'All questions have been successfully submitted.', 'success');
+            }
+            return;
+        }
+        var item = queue[index];
+        var row = item.row;
+        
+        row.find('.btn-draft').html('<i class="fa fa-spinner fa-spin"></i>');
+        row.find('.btn-draft').prop('disabled', true);
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("SaveQuestionEntry", "OBE")",
+            data: { sJsonData: JSON.stringify(item.obj), IsFinalSubmit: true },
+            success: function (result) {
+                if (result.ErrorCode == 202) {
+                    row.find('.btn-draft').hide();
+                    row.find('.label-success').show();
+                    
+                    row.find('.liObeUnit, .liObeQus').prop('disabled', true);
+                    row.find('.liObeUnit, .liObeQus').selectpicker('refresh');
+                    
+                    var editorId = row.find('.editor-textarea').attr('id');
+                    CKEDITOR.instances[editorId].setReadOnly(true);
+                    
+                    submitQueue(queue, index + 1, callback);
+                } else {
+                    swal('Error', 'Failed processing question ' + item.obj.FORMULA_EQUATION + ': ' + result.Message, 'error');
+                    row.find('.btn-draft').html('<i class="fa fa-save"></i>');
+                    row.find('.btn-draft').prop('disabled', false);
+                }
+            },
+            error: function () {
+                swal('Error', 'An error occurred while saving data for question ' + item.obj.FORMULA_EQUATION, 'error');
+                row.find('.btn-draft').html('<i class="fa fa-save"></i>');
+                row.find('.btn-draft').prop('disabled', false);
+            }
+        });
+    }
+</script>
+
+<!-- Maths Modal -->
+<div class="modal fade" id="MathFormModal">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 15px; border: none; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 20px;">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="color: #fff; opacity: 0.8;">×</button>
+                <h4 class="modal-title" style="font-weight: 700;"><i class="fa fa-square-root-alt"></i> Insert Maths Equation</h4>
+            </div>
+            <div class="modal-body" style="padding: 25px;">
+                <div class="form-group">
+                    <label style="font-weight: 600; color: #2a5298; margin-bottom: 10px;">Enter LaTeX Equation (e.g., \sqrt{x^2+1} )</label>
+                    <p class="text-muted" style="font-size: 11px; margin-bottom: 10px;">Note: Do NOT wrap inside $$ or \(\)</p>
+                    <textarea id="txtMathInput" class="form-control" rows="3" onkeyup="UpdateMathPreview()" style="border-radius: 10px; border: 1px solid #ddd; padding: 12px; font-family: monospace;"></textarea>
+                </div>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label style="font-weight: 600; color: #2a5298;">Live Preview:</label>
+                    <div id="divMathPreview" style="min-height: 80px; border: 2px dashed #eee; border-radius: 10px; padding: 15px; font-size: 18px; display: flex; align-items: center; justify-content: center; background: #fafafa;"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa; border-top: none; padding: 15px 25px;">
+                <button type="button" class="btn btn-default btn-workflow" data-dismiss="modal" style="background: #fff; color: #555;">Cancel</button>
+                <button type="button" class="btn btn-success btn-workflow" onclick="InsertMathEquation()" style="background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);">Insert Equation</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chem Modal -->
+<div class="modal fade" id="ChemFormModal">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 15px; border: none; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 20px;">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="color: #fff; opacity: 0.8;">×</button>
+                <h4 class="modal-title" style="font-weight: 700;"><i class="fa fa-flask"></i> Insert Chemical Formula</h4>
+            </div>
+            <div class="modal-body" style="padding: 25px;">
+                <div class="form-group">
+                    <label style="font-weight: 600; color: #2a5298; margin-bottom: 10px;">Enter Chemical Formula (e.g., H2O)</label>
+                    <p class="text-muted" style="font-size: 11px; margin-bottom: 10px;">Note: Do NOT wrap inside \ce{}</p>
+                    <textarea id="txtChemInput" class="form-control" rows="3" onkeyup="UpdateChemPreview()" style="border-radius: 10px; border: 1px solid #ddd; padding: 12px; font-family: monospace;"></textarea>
+                </div>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label style="font-weight: 600; color: #2a5298;">Live Preview:</label>
+                    <div id="divChemPreview" style="min-height: 80px; border: 2px dashed #eee; border-radius: 10px; padding: 15px; font-size: 18px; display: flex; align-items: center; justify-content: center; background: #fafafa;"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa; border-top: none; padding: 15px 25px;">
+                <button type="button" class="btn btn-default btn-workflow" data-dismiss="modal" style="background: #fff; color: #555;">Cancel</button>
+                <button type="button" class="btn btn-success btn-workflow" onclick="InsertChemFormula()" style="background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);">Insert Formula</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="file" id="hdnImageInput" accept="image/*" onchange="HandleImageUpload(this)" style="display:none;" />

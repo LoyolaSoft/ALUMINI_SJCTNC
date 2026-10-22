@@ -1,0 +1,252 @@
+@model CMS.ViewModel.ViewModel.StaffViewModel
+@{
+    ViewBag.Title = "ClassStudentAttendanceMarkProfile";
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">ClassWise Convocation Report</li>
+    </ol>
+    <h1 class="page-header">ClassWise Convocation Report</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">ClassWise Convocation Report</h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="col-md-3 form-group">
+                <label class="col-md-4 control-label">Field type</label>
+                <div class="col-md-8">
+                    <select class="selectpicker show-menu-arrow show-tick drop-down form-control input-sm" data_live_search="true" id="fieldfor">
+                        <option>--select--</option>
+                        <option value="1">STATUS</option>
+                        <option value="2">APPLICATION TYPE</option>
+                        <option value="3">PROGRAMME</option>
+                        <option value="4">BATCH</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3 form-group">
+                <label class="col-md-4 control-label">Stats type</label>
+                <div class="col-md-8">
+                    <select class="selectpicker show-menu-arrow show-tick drop-down form-control input-sm" data_live_search="true" id="reporttype">
+                        <option>--select--</option>
+                        <option value="1">TABLE</option>
+                        <option value="2">Bar Chart</option>
+                        <option value="3">Pie Chart</option>
+                        <option value="4">Line Chart</option>
+                        <option value="6">Donut Chart</option>
+                        <option value="8">Area Chart</option>
+                        <option value="9">Radar Chart</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3 form-group">
+                @Html.Label("Setting", htmlAttributes: new { @class = "col-md-4 control-label " })
+                <div class="col-md-8">
+                    @Html.DropDownListFor(m => m.Convocationsettinglist, (Model.Convocationsettinglist != null) ? Model.Convocationsettinglist : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                    @Html.ValidationMessageFor(m => m.Convocationsettinglist, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-3 form-group">
+                <label class="col-md-4 control-label">Ignore arrear</label>
+                <div class="col-md-8">
+                    <input type="checkbox" name="ignorearrear" id="ignorearrears" checked />
+                </div>
+            </div>
+            <div class="col-md-3 form-group">
+                <div class="col-md-8">
+                    <button type="button" id="btnget" class="btn btn-primary" name="get">Get</button>
+                </div>
+            </div>
+            <div class="col-md-3 form-group">
+                <div class="col-md-8">
+                    <button type="button" onclick="PrintDiv();" class="btn btn-primary" name="get">Print</button>
+                </div>
+            </div>
+            <div class="col-md-12" id="binddiv">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script>
+    function ContentLoad() {
+
+    }
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $('.selectpicker').selectpicker('refresh');
+
+   function bindApprovalForConvocation() {
+    $('#page-loader').removeClass('fade in hide').addClass('fade in');
+
+       var setting = $('#Convocationsettinglist').val();
+       var ignorearrear = $('#ignorearrears').prop('checked') ? 1 : 0;
+       var fieldfor = $('#fieldfor').val();
+       var reporttype = $('#reporttype').val();
+
+    $.ajax({
+        url: '@Url.Action("BindConvocationStarts", "Alumnae")',
+        type: "post",
+        data: { sSETTING: setting, ignorearrear: ignorearrear, fieldfor: fieldfor, reporttype: reporttype },
+        success: function (data) {
+            $('#page-loader').removeClass('fade in').addClass('fade in hide');
+            $('#binddiv').empty().append(data);
+        },
+        error: function (xhr, status, error) {
+            $('#page-loader').removeClass('fade in').addClass('fade in hide');
+            swal("Error", "An error occurred: " + (xhr.statusText || error || "Internal Server Error"), "error");
+        }
+    });
+}
+
+    $('#btnget').on('click', bindApprovalForConvocation);
+
+
+    function showAlert(type, message, callback) {
+        $('#page-loader').removeClass('fade in').addClass('fade in hide');
+        const titles = {
+            success: "Success!",
+            error: "Error!",
+            warning: "Warning!"
+        };
+
+        const swalOptions = {
+            title: titles[type] || "Notification",
+            text: message,
+            animation: true,
+            type: type
+        };
+
+        if (type === "success") {
+            swalOptions.showConfirmButton = true;
+            swalOptions.confirmButtonText = 'OK';
+            swalOptions.timer = 5000;
+        } else if (type === "warning") {
+            swalOptions.showConfirmButton = true;
+            swalOptions.confirmButtonText = 'OK';
+        } else {
+            swalOptions.timer = 1500;
+            swalOptions.showConfirmButton = false;
+        }
+
+        swal(swalOptions, function () {
+            if (callback) {
+                callback();
+            }
+        });
+
+        if (swalOptions.timer) {
+            setTimeout(() => {
+                swal.close();
+                if (callback) {
+                    callback();
+                }
+            }, swalOptions.timer);
+        }
+    }
+
+
+
+    function showConfirmationAlert(message, callback) {
+        const swalOptions = {
+            title: "Confirmation",
+            text: message,
+            animation: true,
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No',
+            closeOnConfirm: false,
+            closeOnCancel: true
+        };
+
+        swal(swalOptions, function (isConfirm) {
+            if (isConfirm) {
+                if (callback) {
+                    callback();
+                }
+            } else {
+                showAlert('info', 'Action cancelled.');
+            }
+        });
+    }
+
+    function PrintDiv() {
+        debugger;
+        var printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            console.error("Error: Unable to open new window for printing. Please check if pop-up blockers are disabled.");
+            return;
+        }
+
+        var printDiv = document.getElementById('binddiv');
+        if (!printDiv) {
+            console.error("Error: Element with ID 'binddiv' not found.");
+            return;
+        }
+        var printContents = printDiv.innerHTML;
+        var canvases = document.getElementsByClassName('sendforprint');
+        for (let i = 0; i < canvases.length; i++) {
+            const canvas = canvases[i];
+            if (canvas) {
+                const imgData = canvas.toDataURL("image/png");
+                const imgElement = `<img src="${imgData}" alt="Chart">`;
+                printContents = printContents.replace(canvas.outerHTML, imgElement);
+            } else {
+                console.warn(`Warning: No canvas found with class 'sendforprint' at index ${i}.`);
+            }
+        }
+        printWindow.document.open();
+        printWindow.document.write(`
+    <html>
+        <head>
+            <title>Print Preview</title>
+            <style>
+                body {
+                    font-family: 'Verdana', Times, serif;
+                    text-align: center;
+                    margin: 20px;
+                }
+                h4, h5 { margin: 0; }
+                .text-center { text-align: center; }
+            </style>
+        </head>
+        <body>
+            ${printContents}
+            <script>
+                window.print();
+                window.onafterprint = function() { window.close(); };
+            <\/script>
+        </body>
+    </html>
+`);
+        printWindow.document.close();
+    }
+
+
+
+</script>
+

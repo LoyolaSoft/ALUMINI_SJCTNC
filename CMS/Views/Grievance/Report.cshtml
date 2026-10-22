@@ -1,0 +1,377 @@
+﻿@model CMS.ViewModel.ViewModel.GrievanceViewModel
+@{
+    ViewBag.Title = "Report";
+    Layout = null;
+}
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Grievance Report</li>
+    </ol>
+    <h1 class="page-header">Grievance Report</h1>
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Grievance Report</h4>
+        </div>
+        <div class="panel-body noPadding" id="maindiv">
+            <div class="form-horizontal">
+
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        <label class="col-md-3 control-label">Type</label>
+                        <div class="form-group ">
+                            <div class="col-md-8 col-lg-8">
+                              <select id="category" class="form-control">
+                                <option value="">Select</option>                                  
+                                <option value="0">Pending</option>
+                                <option value="1">Closed</option>                               
+                              </select>
+                            </div>
+                        </div>
+                    </div>
+                        <div class="col-md-3">
+                            <div class="form-group ">
+                                <label class="col-md-3 control-label">From</label>
+                                <div class="col-md-9 col-lg-9">
+                                    <div class="input-group date" id="fromdate" data-date-format="yyyy-mm-dd" @*data-date-start-date="Date.default"*@>
+                                        <input type="text" class="form-control" placeholder="Select Date" id="from">
+                                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                    @*@Html.Editor("fromdate", new { htmlAttributes = new { @class = "form-control", placeholder = "Select Date " } })*@
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group ">
+                                <label class="col-md-3 control-label">To</label>
+                                <div class="col-md-9 col-lg-9">
+                                    <div class="input-group date" id="todate" data-date-format="yyyy-mm-dd" @*data-date-start-date="Date.default"*@>
+                                        <input type="text" class="form-control" placeholder="Select Date" id="to">
+                                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                    @*@Html.Editor("todate", new { htmlAttributes = new { @class = "form-control", placeholder = "Select Date " } })*@
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                @Html.Label("Grievance Type", htmlAttributes: new { @class = "control-label col-md-4" })
+                                <div class="col-md-6">
+                                    @Html.DropDownListFor(model => model.GrievanceType, (Model.GrievanceType != null) ? Model.GrievanceType : Enumerable.Empty<SelectListItem>(), new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @multiple = "multiple", @id = "grievancetype" })
+                                    @Html.ValidationMessageFor(model => model.GrievanceType, "", new { @class = "text-danger" })
+                                </div>
+                                <div class="col-md-2">
+                                    <button name="get" class="btn btn-success" id="getbtn">Get</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <div class="col-md-12">
+                    <div class="form-group table-responsive" id="loaddiv">
+                        <div class="col-md-8 col-lg-offset-2" id="printheader" hidden>
+                            <div class="form-group col-xs-5">
+                                <h6>
+                                    <label>Grievance Recport</label>
+                                </h6> 
+                            </div>
+                            
+                            <div class="form-group col-xs-3">
+                                <h6>
+                                    <label>Date:</label>@DateTime.Now.Date;
+                                </h6>
+                            </div>
+                        </div>
+
+                        @if (Model != null)
+                        {
+                            int count = 0;
+                            <table class="table table-hover table-bordered" border="1"  id="Grievancetbl">
+                                <thead>
+                                    <tr>
+                                        <th>S.No</th>
+                                        <th>Sender Name</th>
+                                        <th>Title</th>
+                                        <th>Subject</th>
+                                        <th>Content</th>
+                                        <th>Submission Date</th>
+                                        <th>Repiler Name</th>
+                                        <th>Reply Messages</th>
+                                        <th>Relpy Date</th>                                      
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.GrievanceType != null)
+                                    {
+                                        foreach (var item in Model.liGrievanceandredrassalinfo)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @{count++;} @count
+                                                </td>
+                                                <td>@Html.DisplayFor(modelItem => item.SENDER_NAME)</td>
+                                                <td>
+
+                                                    @Html.DisplayFor(modelItem => item.GRIEVANCE_TYPE_NAME)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(modelItem => item.GRIEVANCE_SUBJECT)
+                                                </td>
+                                                <td>
+                                                    @(new HtmlString(item.GRIEVANCE_CONTENT))
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(modelItem => item.SUB_DATE_TIME)
+                                                </td>
+                                                <td>@if (!string.IsNullOrEmpty(item.FIRST_NAME))
+                                                {
+                                                    @Html.DisplayFor(modelItem => item.FIRST_NAME)
+                                                }
+                                                else
+                                                {
+                                                    <span>Not Yet Assigned</span>
+                                                }</td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(item.REDRESSAL_CONTENT))
+                                                    {
+                                                       @(new HtmlString(item.REDRESSAL_CONTENT))
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>No Reply</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(item.REPLY_DATE_TIME))
+                                                        {
+                                                            @Html.DisplayFor(modelItem => item.REPLY_DATE_TIME)
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>No Reply</span>
+                                                    }
+                                                </td>
+
+                                            </tr>
+                                                            }
+                                                        }
+
+
+                                </tbody>
+                            </table>
+                                                        }
+                    </div>
+                </div>
+                <div class="col-md-12 col-md-offset-11">
+                <button class="btn btn-primary" id="print">Print</button>
+               
+                <div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+    <script src="~/Content/assets/plugins/flot/jquery.flot.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>   
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+    function ContentLoad()
+    {
+        $("#fromdate").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            inline: true,
+            endDate: new Date(),
+            format: "dd/mm/yyyy",
+            orientation: "bottom",           
+        });
+        $("#todate").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            endDate: new Date(),
+            format: "dd/mm/yyyy",
+            orientation: "bottom",
+           
+        });
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        $("#Grievancetbl").DataTable({
+            dom: "lBfrtip", buttons: [{
+                extend: "copy", className: "btn-sm"
+               
+            }
+            , {
+                extend: "excel", className: "btn-sm"
+            }
+            , {
+                extend: "pdf", className: "btn-sm"
+            }
+            ], responsive: 0,
+            "bPaginate": false,
+            "bLengthChange": false
+        });
+    }
+        $('#getbtn').click(function () {
+                       
+            var fromdate = $('#from').val();
+            var todate = $('#to').val();
+            var category = $('#category').val();
+            var grievancetype = String($('#grievancetype').val());
+            
+            if (category == '')
+            {
+                category = "0,1";
+            }                                                       
+                if (fromdate !='' && todate != '' && grievancetype != '' && category!='')
+                {
+                    var JsonData = '{"GRIEVANCE_TYPE_ID":"' + grievancetype + '","FROM_DATE":"' + fromdate + '","TO_DATE":"' + todate + '","STATUS":"'+category+'"}';
+
+                    $.ajax({
+                    url: "@Url.Action("BindgrievanceReport", "Grievance")",
+                    method: "POST",
+                    type: "JSON",
+                    data: { sGrievance: JsonData },
+                    success: function (data) {
+
+                        $('#loaddiv').empty();
+                        $('#loaddiv').html(data);
+                        $("#Grievancetbl").DataTable({
+                            dom: "lBfrtip", buttons: [{
+                                extend: "copy", className: "btn-sm"
+                            }
+                            , {
+                                extend: "excel", className: "btn-sm"
+                            }
+                            , {
+                                extend: "pdf", className: "btn-sm"
+                            }
+                            ], responsive: !0,
+                            "bPaginate": false,
+                            "bLengthChange": false
+                        });
+                    },
+                    error: function ()
+                    {
+                        alert('Internal Server Error');
+                    }
+                })
+            }
+            else
+            {
+                alert('Please Select All The Option');
+            }
+            //}
+            //else
+            //{
+            //    alert('To Should Greaterthen From Date');
+            //}
+            
+        });
+        $('#print').on('click', function ()
+        {
+            var table = $('#Grievancetbl').DataTable();
+
+            table.destroy();
+            $('#printheader').removeAttr('hidden');
+            var divToPrint = document.getElementById('loaddiv');
+
+            var newWin = window.open('', 'Print-Window');
+
+            newWin.document.open();
+
+            newWin.document.write('<html><title>Report</title><head><center></center></head><body onload="window.print()">' + divToPrint.innerHTML + '</body></html>');
+
+            newWin.document.close();
+            newWin.onafterprint = ContentLoad(), $('#printheader').attr('hidden',true);
+            setTimeout(function () { newWin.close(); }, 10);
+
+
+
+        })
+        $('#category').on('change', function ()
+        {
+            $('#from').val('');
+            $('#to').val('');
+           
+            var category = $('#category').val();
+
+            if ($('#category').val())
+            {
+                $.ajax({
+                    url: "@Url.Action("BindGrievanceBycategory", "Grievance")",
+                    method: "POST",
+                type: "JSON",
+                data: { sCategroy: category },
+                success: function (data) {
+                    $('#loaddiv').empty();
+                    $('#loaddiv').html(data);
+                    $("#Grievancetbl").DataTable({
+                        dom: "lBfrtip", buttons: [{
+                            extend: "copy", className: "btn-sm"
+                        }
+                        , {
+                            extend: "excel", className: "btn-sm"
+                        }
+                        , {
+                            extend: "pdf", className: "btn-sm"
+                        }
+                        ], responsive: !0,
+                    });
+                },
+                error: function () {
+
+                }
+            })
+                //loadContent('/Grievance/Report');
+            }
+            else {
+                
+            }
+        })
+    $('.btn-sm copy').live('click', function (e) {
+       
+        var value = $('.dataTables_filter input').val();
+        
+        if (value != '')
+        {           
+            alert('Please Clear The Searchbox');
+                     
+            return false;                      
+        }
+       
+    });
+    
+</script>
+       
+           
+        
+   
+
+
+

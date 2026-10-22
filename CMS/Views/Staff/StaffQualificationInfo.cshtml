@@ -1,0 +1,345 @@
+﻿@model IEnumerable<CMS.ViewModel.Model.StaffQualification>
+
+<div id="dvQualificationInfo">
+    <div class="row">
+        <div class="form-group pull-right">
+            <div class="col-md-12 pull-right">
+                <a href="#Qualification-dialog" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="table-responsive">
+            @{int count = 0; }
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Main Subject</th>
+                        <th>Ailled Subject</th>
+                        @*<th>
+                                @Html.DisplayNameFor(model => model.Completion)
+                            </th>*@
+                        <th>Institute Of Study</th>
+                        <th>University</th>
+                        @*<th>
+                                @Html.DisplayNameFor(model => model.Percentange)
+                            </th>*@
+                        <th>Completion Year</th>
+                        <th>Completion Month</th>
+                        @*<th>
+                                @Html.DisplayNameFor(model => model.Degree)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.DegreeType)
+                            </th>*@
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+            @if (Model != null)
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@{count++;} @count</td>
+                        <td>@Html.DisplayFor(modelItem => item.MainSubject)</td>
+                        <td>@Html.DisplayFor(modelItem => item.AilledSubject)</td>
+                        @*<td>
+                                @Html.DisplayFor(modelItem => item.Completion)
+                            </td>*@
+                        <td>@Html.DisplayFor(modelItem => item.InstituteOfStudy)</td>
+                        <td>@Html.DisplayFor(modelItem => item.University)</td>
+                        @*<td>
+                                @Html.DisplayFor(modelItem => item.Percentange)
+                            </td>*@
+                        <td>@Html.DisplayFor(modelItem => item.CompletionYear)</td>
+                        <td>@Html.DisplayFor(modelItem => item.CompletionMonth)</td>
+                        @*<td>
+                                @Html.DisplayFor(modelItem => item.Degree)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DegreeType)
+                            </td>*@
+                        <td>
+                            <a href="#Qualification-dialog" onclick="GetQualification(@item.QualificationId)" data-toggle="modal"><i class="fa fa-edit text-primary"></i></a>
+                            <a href="#" onclick="GetConfirm(@item.QualificationId);"><i class="fa fa-trash text-danger"></i></a>
+                        </td>
+                    </tr>
+                 }
+             }
+             else
+             {
+                  <tr>
+                      <td>No Data Found ...!</td>
+                  </tr>
+              }
+                </tbody>
+            </table>
+
+            <script>
+                $(document).ready(function () {
+                    $("#btnEditQualification").hide();
+                    ////FormMultipleUpload.init();
+                    handleDatePicker = function () {
+                        "use strict";
+                        $("#CompletionYear").datepicker({
+                            todayHighlight: true,
+                            autoclose: true,
+                            endDate: new Date(),
+                            format: "dd/mm/yyyy",
+                            orientation: "right bottom"
+                            // 'top': top,
+                            // 'left': left
+                        });
+                    }
+                    handleDatePicker();
+                    DDLQualification = function () {
+                        $.ajax({
+                            url: "@Url.Action("DDLQualification", "Staff")",
+                            method: "POST",
+                            datatype: "json",
+                            success: function (option) {
+                                $('#ddlDegree').empty();
+                                $('#ddlDegree').append('<option value="">-- select --</option>' + option);
+                            }, error: function (error) {
+                                alert('Internal Server Error ..!');
+                            }
+                        });
+                    }
+                    DDLQualification();
+                });
+
+                GetQualificationInfo = function ()
+                {
+                    $.ajax({
+                        url: "@Url.Action("StaffQualificationInfo", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        success: function (data) {
+                            $('#dvQualificationInfo').empty();
+                            $('#dvQualificationInfo').append(data);
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+
+
+                // Delete Qualification ...
+                function GetConfirm(ID)
+                {
+                    if (!confirm('Are you sure to delete ?'))
+                    {
+                        return false;
+                    } else
+                    {
+                        $.ajax({
+                            url:"@Url.Action("DeleteQualification", "Staff")",
+                            method: "POST",
+                            datatype:"json",
+                            data: { sQualificationId: ID },
+                            success:function(data)
+                            {
+                                alert(data);
+                                GetQualificationInfo();
+                            },error:function(error)
+                            {
+                                alert('Internal Server Error ..!');
+                            }
+                        });
+                    }
+                }
+
+                // Bind Qualification ...
+                var GetQualification = function (ID) {
+                    $.ajax({
+                        url: "@Url.Action("BindQualification", "Staff")",
+                        method: "POST",
+                        datatype: "json",
+                        data: { sQualification: ID },
+                        success: function (data) {
+                            $("#txtMainSubject").val(data.MainSubject);
+                            $("#txtAlliedSubject").val(data.AilledSubject);
+                            $("#CompletionYear").val(data.CompletionYear);
+                            $("#CompletionMonth").val(data.CompletionMonth);
+                            $("#txtInstituteOfStudy").val(data.InstituteOfStudy);
+                            $("#ddlDegree").val(data.Degree);
+                            $("#txtUniversity").val(data.University);
+                            $("#txtPercentage").val(data.Percentange);
+                            $("#btnEditQualification").show();
+                            $("#btnQualification").hide();
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+
+                //Update Qualification ..
+                $("#btnEditQualification").on("click", function ()
+                {
+                    var isValid = true;
+                    if ($('#nav-tab1-4').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        //gritter-info,danger,success,warning,default
+                        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    var txtMainSubject = $("#txtMainSubject").val();
+                    var txtAlliedSubject = $("#txtAlliedSubject").val();
+                    var CompletionYear = $("#CompletionYear").val();
+                    var CompletionMonth = $("#CompletionMonth").val();
+                    var txtInstituteOfStudy = $("#txtInstituteOfStudy").val();
+                    var Degree = $("#ddlDegree").val();
+                    var txtUniversity = $("#txtUniversity").val();
+                    var txtPercentage = $("#txtPercentage").val();
+                    var JsonData;
+                    if (JsonData == null) {
+                        JsonData = '{"MainSubject":"' + txtMainSubject + '","AilledSubject":"' + txtAlliedSubject + '","CompletionYear":"' + CompletionYear + '","Completion":"' + CompletionMonth + '","InstituteOfStudy":"' + txtInstituteOfStudy + '","Degree":"' + Degree + '","University":"' + txtUniversity + '","Percentange":"' + txtPercentage + '"}'
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("UpdateStaffQualification", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        data: { JsonQualification: JsonData },
+                        success: function (data) {
+                            alert(data);
+                            GetQualificationInfo();
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                });
+
+                //Add Qualification ..
+                $("#btnQualification").on("click", function ()
+                {
+                    var isValid = true;
+                    if ($('#nav-tab1-4').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        //gritter-info,danger,success,warning,default
+                        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    var txtMainSubject = $("#txtMainSubject").val();
+                    var txtAlliedSubject = $("#txtAlliedSubject").val();
+                    var CompletionYear = $("#CompletionYear").val();
+                    var CompletionMonth = $("#CompletionMonth").val();
+                    var txtInstituteOfStudy = $("#txtInstituteOfStudy").val();
+                    var Degree = $("#ddlDegree").val();
+                    var txtUniversity = $("#txtUniversity").val();
+                    var txtPercentage = $("#txtPercentage").val();
+                    var JsonData;
+                    if (JsonData == null) {
+                        JsonData = '{"MainSubject":"' + txtMainSubject + '","AilledSubject":"' + txtAlliedSubject + '","CompletionYear":"' + CompletionYear + '","Completion":"' + CompletionMonth + '","InstituteOfStudy":"' + txtInstituteOfStudy + '","Degree":"' + Degree + '","University":"' + txtUniversity + '","Percentange":"' + txtPercentage + '"}'
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("Qualification", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        data: { JsonQualification: JsonData },
+                        success: function (data) {
+                            alert(data);
+                            GetQualificationInfo();
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                });
+            </script>
+        </div>
+    </div>
+    <!-- Modal-->
+    <div class="modal" id="Qualification-dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Qualification </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <div class="form-horizontal">
+                                <div class="col-md-12">
+                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Main Subject</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtMainSubject" placeholder="Enter MainSubject" data-parsley-required="true" data-parsley-length="[5,250]" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Allied Subject</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtAlliedSubject" placeholder="Enter AlliedSubject" data-parsley-length="[5,250]" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Completion Year</label>
+                                        <div class="col-md-9">
+                                            <div class="input-group date" id="datetimepicker1">
+                                                <input type="text" class="form-control input-sm" id="CompletionYear" placeholder="Select Date" data-parsley-required="true" />
+                                                <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Completion Month</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="CompletionMonth" placeholder="Enter Complete Month" data-parsley-length="[3,50]" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Institute Of Study</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtInstituteOfStudy" placeholder="Enter InstituteOfStudy" data-parsley-length="[5,100]" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Degree</label>
+                                        <div class="col-md-9">
+                                            <select id="ddlDegree" class="form-control input-sm" data-parsley-required="true">
+                                                <option value="">-- select --</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">University</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtUniversity" placeholder="Enter University" data-parsley-length="[5,100]" data-parsley-required="true" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Percentage</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtPercentage" placeholder="Enter Percentage" data-parsley-length="[2,50]" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                       
+                </div>
+                <div class="modal-footer">
+                    <a id="btnQualification" class="btn btn-sm btn-primary"  data-dismiss="modal">Submit</a>
+                    <a id="btnEditQualification" class="btn btn-sm btn-primary"  data-dismiss="modal">Update</a>
+                    <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Modal-->
+</div>

@@ -1,0 +1,360 @@
+﻿@model CMS.ViewModel.ViewModel.CertificateCoursesViewModel
+
+@{
+    ViewBag.Title = "BindCertificateCourseStudentList";
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<div class="col-md-12">
+    <a class="btn btn-success pull-right form-group m-b-5" href="#Registration-dialog" data-toggle="modal"><i class="fa fa-plus" title="Add" id="btnAdd"> Add</i></a>
+</div>
+<br />
+
+@{ int count = 0;}
+<div class="table-responsive col-md-12">
+    <table class="table table-hover table-bordered" id="tblCourses">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Roll No</th>
+                <th>Register No</th>
+                <th>Name</th>
+                <th>Class</th>
+                <th>Course</th>
+                <th>Date Of Birth</th>
+                <th>Mobile</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liStudent != null && Model.liStudent.Count > 0)
+            {
+                foreach (var item in Model.liStudent)
+                {
+                    <tr>
+                        <td>@{ count++;}@count</td>
+                        <td>@item.ROLL_NO</td>
+                        <td>@item.REGISTER_NO</td>
+                        <td>@item.FIRST_NAME</td>
+                        <td>@item.CLASS_NAME</td>
+                        <td>@item.COURSE_TITLE</td>
+                        <td>@item.DATE_OF_BIRTH</td>
+                        <td>@item.STU_MOBILENO</td>
+                        <td>
+                            <a href="#Registration-dialog" onclick="FetchRegistration(@item.REGISTRATION_ID);" data-toggle="modal"><i class="fa fa-edit text-primary" title="Update"></i></a>
+                            <a onclick="DeleteRegistration(@item.REGISTRATION_ID);"><i class="fa fa-trash text-danger" title="Delete"></i></a>
+                        </td>
+                    </tr>
+                                }
+                            }
+        </tbody>
+    </table>
+</div>
+
+
+<!-- Begin Modal -->
+
+<div class="modal" id="Registration-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit Student Registration</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Class, htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Class, (Model.Class != null) ? Model.Class : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @data_live_search = "true", @data_parsley_required = "true" })
+                                        @Html.ValidationMessageFor(model => model.Class, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Student, htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Student, (Model.Student != null) ? Model.Student : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @data_live_search = "true", @data_parsley_required = "true" })
+                                        @Html.ValidationMessageFor(model => model.Student, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Course, htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Course, (Model.Course != null) ? Model.Course : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @data_live_search = "true", @data_parsley_required = "true" })
+                                        @Html.ValidationMessageFor(model => model.Course, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                @*<div class="form-group">
+                                    @Html.LabelFor(model => model.Semester, htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Semester, (Model.Semester != null) ? Model.Semester : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @data_live_search = "true" })
+                                        @Html.ValidationMessageFor(model => model.Semester, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- End Modal -->
+<!-- Hidden Filed -->
+<input type="hidden" id="txtRegistrationId" value="" />
+<!-- End Hidden Filed -->
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+    $("#tblCourses").DataTable({
+        dom: "lBfrtip", buttons: [{ extend: "copy", className: "btn-sm" },
+            { extend: "csv", className: "btn-sm" },
+            { extend: "excel", className: "btn-sm" },
+            { extend: "pdf", className: "btn-sm" },
+            { extend: "print", className: "btn-sm" }
+        ]
+    });
+
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+
+    $('.selectpicker').selectpicker('refresh');
+
+
+</script>
+<script>
+        function DeleteRegistration(ID)
+        {
+            if (!confirm('Are you sure to delete ?')) {
+                return false;
+            }
+            else
+            {
+                $.ajax({
+                    url: "@Url.Action("DeleteRegistration", "CertificateCourse")",
+                    method: "POST",
+                datatype: "json",
+                data: { sRegistrationId: ID },
+                success: function (data) {
+                    if(data.ErrorCode =="200")
+                    {
+                        //swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 5000, type: 'success', animation: true });
+                        alert(data.Message);
+                        //$('#SettingList option[value="' + SettingId + '"]').trigger("change");
+                        loadContent1('/CertificateCourse/BindCertificateCourseStudentList?sSettingId=' + $('#SettingList').val() + '', "divQuestionView");
+                    }
+                    if (data.ErrorCode == "417") {
+                        //swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+                        alert(data.Message);
+                    }
+
+                       
+                }, error: function (error) {
+                    alert('Internal Server Error !');
+                }
+            });
+            }          
+    }
+
+    function FetchRegistration(ID)
+    {
+        $.ajax({
+            url:'@Url.Action("FetchStudentRegistration", "CertificateCourse")',
+            method:'POST',
+            datatype:'json',
+            data: { sRegistrationId: ID },
+            success: function (data)
+            {
+                if (data.Message != null && data.Message != '')
+                {
+                    alert(data.Message);
+                } else
+                {
+                    $('#Class option[value="' + data[0].CLASS_ID + '"]').prop("selected", true);
+                   
+                    $('#Class').trigger("change");
+                    
+                    $('#Student option[value="' + data[0].STUDENT_ID + '"]').prop("selected", true);
+                    $('#Course option[value="' + data[0].COURSE_ID + '"]').prop("selected", true);
+                   
+                    $('#txtRegistrationId').val(data[0].REGISTRATION_ID);
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+        LoadCertificateCourseList = function () {
+            loadContent('/CertificateCourse/ListCertificateCourseStudent');
+        }
+
+
+
+
+    $('#btnSubmit').on('click', function ()
+    {
+        var isValid = true;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            //gritter-info,danger,success,warning,default
+            //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+            return false;
+        }
+
+
+        $.ajax({
+            url:'@Url.Action("SaveStudentRegisration", "CertificateCourse")',
+            method: 'POST',
+            datatype: 'json',
+            data: {sRegistrationId: $('#txtRegistrationId').val(),sCourseId: $('#Course').val(), sClassId: $('#Class').val(), sStudentId: $('#Student').val(), sSettingId: $('#SettingList').val() },
+            success: function (data)
+            {
+                if (data.Message == '2') {
+                    alert('Sorry ! No Quota Available For This Course ...');
+                }
+                else if (data.Message == '5') {
+                    //swal({ title: "Info !", text: "Record exists already", showConfirmButton: false, timer: 5000, type: 'info', animation: true });
+                    alert('Record exists already');
+                }
+
+                else if (data.Message == '3') {
+
+                    //swal({ title: "Info !", text: "Sorry ! This course already chosen in previous semester", showConfirmButton: false, timer: 5000, type: 'info', animation: true });
+                    alert('Sorry ! This course already chosen in previous semester');
+                }
+                else if (data.Message == '4') {
+                    //swal({ title: "Info !", text: "Session has expired!", showConfirmButton: false, timer: 5000, type: 'info', animation: true });
+                    alert('Session has expired!');
+
+                } else if (data.Message == '1') {
+                   
+                    //swal({ title: "Success !", text: " successfully saved records.", showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    //var select = $('#CertificateCourse');
+                    //select.empty();
+                    alert('Successfully saved records.');
+                    //var SettingId = $('#SettingList').val();
+                    //$('#SettingList option[value="' + SettingId + '"]').trigger("change");
+                    loadContent1('/CertificateCourse/BindCertificateCourseStudentList?sSettingId=' + $('#SettingList').val() + '', "divQuestionView");
+
+                    // select.append("You have chosen CertificateCourse " + sCourseTitle);
+                }
+                else if (data.Message == '0') {
+                    //swal({ title: "Failed !", text: "Failed to save records!", showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+                    alert('Failed to save records!');
+                }
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+    });
+
+
+        $('#Class').on('change', function ()
+        {
+            $.ajax({
+                url: '@Url.Action("FetchStudentByClassId", "CertificateCourse")',
+                method: 'POST',
+                datatype: 'json',
+                async: false,
+                data: {  sClassId: $('#Class').val() },
+                success: function (data)
+                {
+                    if (data.Message != null && data.Message != '')
+                    {
+                        alert(data.Message);
+                    } else {
+                        //$('#Course').empty();
+                        //$('#Course').append('<option value=""> -- Select -- </option>' + data.ErrorCode);
+                        $('#Student').empty();
+                        $('#Student').append('<option value=""> -- Select -- </option>' + data.sResult);
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+
+            $.ajax({
+                url: '@Url.Action("FetchCertificateCoursesByClassId", "CertificateCourse")',
+                method: 'POST',
+                datatype: 'json',
+                async: false,
+                data: { sClassId: $('#Class').val(), sSettingId: $('#SettingList').val() },
+                success: function (data) {
+                    if (data.Message != null && data.Message != '') {
+                        alert(data.Message);
+                    } else {
+                        //$('#Course').empty();
+                        //$('#Course').append('<option value=""> -- Select -- </option>' + data.ErrorCode);
+                        $('#Course').empty();
+                        $('#Course').append('<option value=""> -- Select -- </option>' + data.sResult);
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+
+                }, error: function (error) {
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+    
+
+    $('#btnAdd').click(function () {
+        $('#Class option[value=""]').prop("selected", true);
+        $('#Student option[value=""]').prop("selected", true);
+        $('#Course option[value=""]').prop("selected", true);
+       
+        $('#txtRegistrationId').val('');
+        $('.selectpicker').selectpicker('refresh');
+    });
+
+
+        $(function ()
+        {
+            $('#Registration-dialog').on('hidden.bs.modal', function (e)
+            {
+                $('#Class').val(0);
+                $('#Student').val(0);
+                $('#Course').val(0);
+                $('#Semester').val(0);
+                $('.selectpicker').selectpicker('refresh');
+            });
+        });
+</script>

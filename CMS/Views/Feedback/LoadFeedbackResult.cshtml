@@ -1,0 +1,166 @@
+﻿-@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.Utility
+
+<!-- begin invoice -->
+<div class="invoice" style="background-color:#F6F6F6 !important;">
+    <div class="invoice-company">
+
+        @*@Model.objFBSetting.FEEDBACK_NAME*@
+    </div>
+    <div class="invoice-header">
+        <div class="invoice-from">
+            <small></small>
+            <address class="m-t-5 m-b-5">
+                @*<strong>@Session[Common.SESSION_VARIABLES.USERNAME]</strong><br />
+                    @Session[Common.SESSION_VARIABLES.USER_CODE]<br />
+                    @Model.objCourseAndClassInfo.CLASS_NAME<br />
+                    @Model.objCourseAndClassInfo.DEPARTMENT<br />*@
+            </address>
+        </div>
+        <div class="invoice-to">
+            <small></small>
+            <address class="m-t-5 m-b-5">
+                @*<strong>@Model.objCourseAndClassInfo.COURSE_CODE</strong><br />
+                      @Model.objCourseAndClassInfo.COURSE_TITLE<br />
+                      @Model.objCourseAndClassInfo.COURSE_TYPE<br />
+
+                    @Model.objRating[0].ASSESSOR/ @Model.objCourseAndClassInfo.TOTAL_STUDENTS*@
+            </address>
+        </div>
+        <div class="invoice-date">
+            <small></small>
+            <div class="date m-t-5">@DateTime.Now.ToLongDateString()</div>
+            <div class="invoice-detail">
+                VG - Very Good<br />
+                G - Good<br />
+                S - Satisfactory <br />
+                P - Poor<br />
+                VP- Very Poor
+            </div>
+        </div>
+    </div>
+    <div class="invoice-content">
+        <div class="table-responsive">
+            <table class="table table-invoice table-hover">
+                <thead>
+                    <tr>
+                        <th>Questions</th>
+                        <th>Given feedbacks</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @{
+                        if (Model.objRating != null)
+                        {
+                            string sQuestionType = string.Empty;
+                            bool bFlag = true;
+                            var groubquestionID = Model.objRating.GroupBy(x => x.QUESTION_ID).ToList();
+                            foreach (var QuestionItem in groubquestionID)
+                            {
+                                if (bFlag)
+                                {
+                                    sQuestionType = QuestionItem.FirstOrDefault().GROUP_TITLE;
+                                    <tr>
+                                        <td><b>@sQuestionType </b> @{ bFlag = false; } </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    if (!sQuestionType.Equals(QuestionItem.FirstOrDefault().GROUP_TITLE))
+                                    {
+                                        <tr>
+                                            <td> @{ sQuestionType = QuestionItem.FirstOrDefault().GROUP_TITLE; } <b>@sQuestionType </b></td>
+                                        </tr>
+                                    }
+                                }
+
+                                <tr>
+                                    <td width="35%">
+                                        <div class="">
+                                            @if (!string.IsNullOrEmpty(QuestionItem.FirstOrDefault().QUESTION))
+                                            {@QuestionItem.FirstOrDefault().QUESTION}
+                                        </div>
+                                    </td>
+                                    <td width="35%">
+                                        <div class="">
+                                            @{
+                                                var questionGroup = Model.LiFeedbackQuestionMapping.GroupBy(x => x.QUESTION_ID);
+                                                var questionCount = 0;
+                                                foreach (var question in Model.objRating)
+                                                {
+
+                                                    if (question.QUESTION_ID == QuestionItem.FirstOrDefault().QUESTION_ID)
+                                                    {
+                                                        questionCount++;
+                                                        if (questionCount == 1)
+                                                        {
+                                                            <strong class="label label-success" style="font-size:12px;">@question.OBJECTIVES - @question.RATING</strong>
+                                                        }
+                                                        else if (questionCount == 2)
+                                                        {
+                                                            <strong class="label label-info" style="font-size:12px;">@question.OBJECTIVES - @question.RATING</strong>
+
+                                                        }
+                                                        else if (questionCount == 3)
+                                                        {
+                                                            <strong class="label label-primary" style="font-size:12px;">@question.OBJECTIVES - @question.RATING</strong>
+
+                                                        }
+                                                        else if (questionCount == 4)
+                                                        {
+                                                            <strong class="label label-warning" style="font-size:12px;">@question.OBJECTIVES - @question.RATING</strong>
+
+                                                        }
+                                                        else
+                                                        {
+                                                            <strong class="label label-danger" style="font-size:12px;">@question.OBJECTIVES - @question.RATING</strong>
+
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            @*<strong class="label label-success" style="font-size:12px;">VG - @QuestionItem.VERY_GOOD</strong>
+                                                <strong class="label label-info" style="font-size:12px;">G - @QuestionItem.GOOD</strong>
+                                                <strong class="label label-primary" style="font-size:12px;">S - @QuestionItem.SATISFACTORY</strong>
+                                                <strong class="label label-warning" style="font-size:12px;">P - @QuestionItem.POOR</strong>
+                                                <strong class="label label-danger" style="font-size:12px;">VP -@QuestionItem.VERY_POOR</strong>*@
+
+                                        </div>
+                                    </td>
+
+                                </tr>
+
+                            }
+                        }
+                        else
+                        {
+                            <tr><td><p class="text-yellow">No Records avilable </p></td></tr>
+
+                        }
+
+
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="invoice-note">
+            @** Make all cheques payable to [Your Company Name]<br />
+                * Payment is due within 30 days<br />
+                * If you have any questions concerning this invoice, contact  [Name, Phone Number, Email]*@
+        </div>
+        <div class="invoice-footer text-muted">
+            <p class="text-center m-b-5">
+                @*Holy Cross College(Autonomous)-@Model.objFBSetting.ACADEMIC_YEAR*@
+
+            </p>
+            <p class="text-center">
+                @*<span class="m-r-10"><i class="fa fa-globe"></i> matiasgallipoli.com</span>
+                    <span class="m-r-10"><i class="fa fa-phone"></i> T:016-18192302</span>
+                    <span class="m-r-10"><i class="fa fa-envelope"></i> rtiemps@gmail.com</span>*@
+            </p>
+        </div>
+    </div>
+    <!-- end invoice -->

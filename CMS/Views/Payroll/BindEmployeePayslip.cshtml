@@ -1,0 +1,254 @@
+﻿@model CMS.ViewModel.ViewModel.PayrollViewModel
+@using CMS.Utility;
+@{
+    Layout = null;
+    double earn = 0;
+    double deduction = 0;
+    double lop = 0;
+    double netpay = 0;
+    double cma = 0;
+}
+<link href="~/Content/assets/css/print.css" rel="stylesheet" />
+
+@if (Model.liemployee != null && Model.liemployee.Count > 0)
+{
+    var days = @System.DateTime.DaysInMonth(Convert.ToInt32(ViewBag.Year), Convert.ToInt32(ViewBag.Monthinnumber));
+    var lisalearnings = Model.lisalarycomponentdetails.Where(o => o.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Earnings).ToList();
+    var lisaldeductins = Model.lisalarycomponentdetails.Where(o => o.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Deductions).ToList();
+    var lipfearnings = Model.lipfcomponents.Where(o => o.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Earnings).ToList();
+    var lipfdeductins = Model.lipfcomponents.Where(o => o.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Deductions).ToList();
+    <div class="" id="divprint">
+        <div class="col-md-10 col-lg-offset-2">
+            <div class="col-md-10">
+                @if (Model.liCollegeDetails != null)
+                {
+                    foreach (var item in Model.liCollegeDetails)
+                    {
+                        <center>
+                            <img src="/Content/assets/img/hcc-img/hcclogo.jpg" width="75px;" class="">
+                            <table>
+                                <tr>
+                                    <td><center><strong>@item.COLLEGE_NAME</strong></center></td>
+                                </tr>
+                                <tr>
+                                    <td><b> @item.GRADE</b></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">
+                                        @item.UNIVERSITY
+                                    </td>
+                                </tr>
+
+                            </table>
+                        </center>
+                    }
+                }
+            </div>
+        </div>
+        <br>
+        <div class="col-md-10 col-lg-offset-2">
+            <br>
+            <div class="col-md-5" id="colmd5_1">
+            <table class="table-condensed" cellpadding="5">
+                <tr @*style="background-color:#3997fb;color:white"*@>
+                    <td><b>EMPLOYEE INFORMATION</b></td>
+                </tr>
+                <tr>
+                    <td><b>Name:</b>@Model.liemployee.FirstOrDefault().FIRST_NAME</td>
+
+                </tr>
+                <tr>
+                    <td><b>Staff Code:</b>@Model.liemployee.FirstOrDefault().STAFF_CODE</td>
+                </tr>
+                <tr> <td><b>Month:</b>@ViewBag.Month</td></tr>
+                <tr><td><b>Year:</b>@ViewBag.Year</td></tr>
+
+            </table>
+            </div>
+            <div class="col-md-5 pull-right" id="colmd5_2">          
+                @{
+                    if (Model.liemployee.FirstOrDefault().PHOTO != null && !string.IsNullOrEmpty(Model.liemployee.FirstOrDefault().PHOTO))
+                    {
+                        <img src="~/Content/hcc_img/emptyicon.png" alt="" style="height:130px" />
+                        @*<img src="@Model.liemployee.FirstOrDefault().PHOTO" alt="Photo" style="height:130px" />*@
+                    }
+                    else
+                    {
+                        <img src="~/Content/hcc_img/emptyicon.png" alt="Photo" style="height:130px" />
+                        @*<div src="" style="border:2px solid gray; height:130px;"><p style="text-align:center;">EMPLOYEE PHOTO</p></div>*@
+                    }
+                }
+           
+                </div>
+
+        </div>
+
+        @if (Model.lisalarycomponentdetails != null)
+        {
+
+            foreach (var item in Model.lisalarycomponentdetails)
+            {
+                if (item.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Earnings && item.IS_GROSS_PAY != "1")
+                {
+                    earn += Convert.ToInt32(item.FLAT_AMOUNT);
+                }
+
+                else if (item.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Deductions)
+                {
+                    deduction += Convert.ToInt32(item.FLAT_AMOUNT);
+                }
+
+            }
+        }
+
+
+        @if (Model.lipfcomponents != null)
+        {
+
+            foreach (var item1 in Model.lipfcomponents)
+            {
+                if (item1.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Earnings)
+                {
+                    earn += Convert.ToInt32(item1.FLAT_AMOUNT);
+                }
+                else if (item1.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Deductions)
+                {
+                    deduction += Convert.ToInt32(item1.FLAT_AMOUNT);
+                }
+
+
+            }
+        }
+        @if (Model.listaffattendance != null && Model.listaffattendance.Count > 0)
+        {
+            double total;
+            total = @earn - @deduction;
+            netpay = total / Convert.ToInt32(Model.listaffattendance.FirstOrDefault().COUNT) * days;
+            lop = (total / days) * Convert.ToInt32(Model.listaffattendance.FirstOrDefault().COUNT);
+        }
+        else
+        {
+            netpay = @earn - @deduction;
+        }
+        @{
+            var grosspay = Model.lisalarycomponentdetails.Where(o => o.IS_GROSS_PAY == "1").ToList();
+            if (grosspay != null && grosspay.Count > 0)
+            {
+                cma = Convert.ToInt32(grosspay.FirstOrDefault().FLAT_AMOUNT) - earn;
+                if (cma != 0)
+                {
+                    netpay = netpay + cma;
+                }
+            }
+        }
+        <div class="col-md-10 col-md-offset-2">
+            <div class="col-md-12">
+                <br><br>
+                <table class="" style="width:100%" id="earnings">
+                    <thead>
+                        <tr>
+                            <th style="padding:5px"><b>EARNINGS</b></th>
+                            <th style="padding:5px"><b>AMOUNT</b></th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (lisalearnings != null && lisalearnings.Count > 0)
+                {
+                    foreach (var item in lisalearnings)
+                    {
+                                <tr>
+                                    <td style="padding:5px">@item.NAME_IN_PAYSLIP</td>
+                                    <td style="padding:5px;text-align:right">@item.FLAT_AMOUNT</td>
+                                </tr>
+
+                            }
+                        }
+                        @if (lipfearnings != null && lipfearnings.Count > 0)
+                {
+                    foreach (var item in lipfearnings)
+                    {
+                                <tr>
+                                    <td style="padding:5px">@item.NAME_IN_PAYSLIP</td>
+                                    <td style="padding:5px;text-align:right">@item.FLAT_AMOUNT</td>
+                                </tr>
+
+                            }
+                        }
+                        <tr>
+                            <td style="padding:5px">CMA</td>
+                            <td style="padding:5px;text-align:right">@cma</td>
+                        </tr>
+
+                        <tr>
+                            <td style="padding:5px"><b>Total Earnings:</b></td>
+                            <td style="padding:5px;text-align:right">@earn+@cma</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+
+                <br><br>
+
+                <table class="" style="width:100%" id="deductions">
+                    <thead>
+                        <tr>
+                            <th style="padding:5px"><b>DEDUCTIONS</b></th>
+                            <th style="padding:5px"><b>AMOUNT</b></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @if (lisaldeductins != null && lisaldeductins.Count > 0)
+                {
+                    foreach (var item in lisaldeductins)
+                    {
+                                <tr>
+                                    <td style="padding:5px">@item.NAME_IN_PAYSLIP</td>
+                                    <td style="padding:5px;text-align:right">@item.FLAT_AMOUNT</td>
+                                </tr>
+
+                            }
+                        }
+                        @if (lipfdeductins != null && lipfdeductins.Count > 0)
+                {
+                    foreach (var item in lipfdeductins)
+                    {
+                                <tr>
+                                    <td style="padding:5px">@item.NAME_IN_PAYSLIP</td>
+                                    <td style="padding:5px;text-align:right">@item.FLAT_AMOUNT</td>
+                                </tr>
+
+                            }
+                        }
+                        <tr>
+                            <td style="padding:5px"><b>Total Deductions:</b></td>
+                            <td style="padding:5px;text-align:right"> @deduction </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:5px"><b>Loss of Pay:</b></td>
+                            <td style="padding:5px;text-align:right"> @lop </td>
+                        </tr>
+
+
+                    </tbody>
+                </table>
+                <br><br>
+                <table class="pull-right" style="width:200px;" id="tblnetpay">
+                    <tbody>
+                        <tr>
+                            <td style="padding:5px"><b>Net Pay</b></td>
+                            <td style="padding:5px;text-align:right">@netpay</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+   
+    <div class="col-md-12" >
+        <br><br>
+        <div class="col-md-1 col-md-offset-11"><button id="btnpring" class="btn btn-success" onclick="printDiv('divprint')">Print</button></div>
+    </div>
+            }

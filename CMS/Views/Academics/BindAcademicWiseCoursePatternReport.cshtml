@@ -1,0 +1,91 @@
+﻿
+
+@model CMS.ViewModel.ViewModel.AcademicsViewModel
+    @using CMS.Utility
+@{
+    ViewBag.Title = "BindAcademicWiseCoursePatternReport";
+    Layout = null;
+}
+
+
+
+
+    <div class="invoice" style="background-color:#F6F6F6 !important;">
+        @if (Model.liCoursePatternDetails != null)
+        {
+        <div class="col-md-1 pull-right">
+            <button class="btn btn-success" onclick="" id="btnExport"> Export </button>
+        </div>
+        <div class="invoice-company" id="dvHead">
+            @Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME ,<small>
+                COURSE PATTERN REPORT(@{if (Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] != null)
+                        { @Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] } })
+            </small>
+        </div>
+        <table class="table table-bordered table-hover" id="tblReportForStudentWise" border="1">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Ugc Course Type</th>
+                    <th>Faculty</th>
+                    <th>ProgrammeLevel</th>
+                    <th>ProgrammeYear</th>
+                    <th>ProgrammeName</th>
+                    <th>CourseTitle</th>
+                    <th>Syllabus</th>
+                </tr>
+            </thead>
+            <tbody id="tBodyForStudent">
+                @{ var count = 0; string sFilePath = string.Empty;}
+                @foreach (var item in Model.liCoursePatternDetails)
+                {
+                    count += 1; sFilePath = "/Syllabus/" + @item.COURSE_CODE + ".pdf";
+                    <tr>
+                        <td>@count</td>
+                        <td>@item.UGC_COURSE_TYPE</td>
+                        <td>@item.FACULTY</td>
+                        <td>@item.PROGRAMME_LEVEL</td>
+                        <td>@item.PROGRAMME_YEAR</td>
+                        <td>@item.PROGRAMME_NAME</td>
+                        <td>@item.COURSE_TITLE</td>
+                        <td><a target="_blank" href="@sFilePath"><i class="fa fa-file-pdf-o text-danger"></i></a></td>
+                    </tr>
+
+
+                    }
+            </tbody>
+
+
+        </table>
+
+
+        }
+        else
+        {   
+        <div class="alert alert-danger">No Record(s) Found !</div>
+        }
+    </div>
+
+
+
+
+
+
+
+
+        <script>
+            $("#btnExport").click(function (e) {
+
+                var printContents = document.getElementById('divBind');
+                var sAcademic = $('#dAcademicYear Option:selected').text();
+                var sShift = $('#dShift option:selected').text();
+                var sProgrammeMode = $('#dProgrammeMode option:selected').text();
+                let file = new Blob([$(printContents).html()], { type: "application/vnd.ms-excel" });
+                let url = URL.createObjectURL(file);
+                let a = $("<a />", {
+                    href: url,
+                    download: "CoursePatterReport" + "_" + sProgrammeMode + "_" + sAcademic + "_Year.xls"
+                }).appendTo("body").get(0).click();
+                e.preventDefault();
+            });
+        </script>

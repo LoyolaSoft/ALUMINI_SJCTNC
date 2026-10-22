@@ -1,0 +1,74 @@
+@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    Layout = null;
+}
+
+@if (Model.liStudent != null && Model.liStudent.Count > 0)
+{
+    int nCount = 0;
+    <div>
+        @if (Model.liCollegeDetails != null)
+        {
+            foreach (var collegeitem in Model.liCollegeDetails)
+            {
+                <div style="display:flex;align-items:center;justify-content:center;">
+                    <h3><img src="https://erp.sjctnc.edu.in/Content/hcc_img/College_logo_bg_remove.png" height="60" width="60" /> @collegeitem.COLLEGE_NAME</h3>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: center; margin-top: -30px;">
+                    <h3>@collegeitem.COLLEGE_ADDRESS</h3>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:center;">
+                    <h4>Student Detail Report - @ViewBag.AcYear</h4>
+                </div>
+            }
+        }
+    </div>
+    <div style="page-break-after:always !important;page-break-inside:avoid !important;">
+        <table class="table table-bordered" id="studentlist">
+            <thead>
+                <tr>
+                    <th><b>S.No.</b></th>
+                    <th><b>Student Name</b></th>
+                    <th><b>Roll No</b></th>
+                    <th><b>Register No</b></th>
+                    <th><b>Date of Birth</b></th>
+                    <th><b>Name in Native</b></th>
+                    <th><b>Class Name</b></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.liStudent)
+                {
+                    var studenttamilName = string.Empty;
+                    if (!string.IsNullOrEmpty(item.NAME_IN_NATIVE))
+                    {
+                        try
+                        {
+                            studenttamilName = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(item.NAME_IN_NATIVE.Trim()));
+                        }
+                        catch
+                        {
+                            // Legacy/plain-text values aren't Base64 encoded — show them as-is instead of crashing the report.
+                            studenttamilName = item.NAME_IN_NATIVE;
+                        }
+                    }
+                    <tr>
+                        <td><b>@{nCount++;}@nCount</b></td>
+                        <td>@item.FIRST_NAME</td>
+                        <td>@item.ROLL_NO</td>
+                        <td>@item.REGISTER_NO</td>
+                        <td>@item.DATE_OF_BIRTH</td>
+                        <td>@studenttamilName</td>
+                        <td>@item.CLASS_NAME</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="bg-warning text-center p-2">
+        <h4>No Record's Found </h4>
+    </div>
+}

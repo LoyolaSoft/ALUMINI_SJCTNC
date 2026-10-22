@@ -1,0 +1,998 @@
+
+@model CMS.ViewModel.ViewModel.WebsiteViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "StuPlacementEntryPage";
+    Layout = null;
+}
+<style>
+    .upload-btn-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    #btnImage {
+        border: 1px solid gray;
+        color: gray;
+        background-color: white;
+        padding: 7px 15px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .upload-btn-wrapper input[type=file] {
+        font-size: 100px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+    }
+</style>
+
+<style>
+    .city {
+        display: none;
+    }
+    /* Hide all elements with class 'city' by default */
+</style>
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightbox2@2.11.3/dist/css/lightbox.min.css">
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Placement</a></li>
+        <li class="active">Placement News</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Placement News<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Placement News</h4>
+        </div>
+        <div class="panel-body">
+
+
+            <style>
+                @@media (min-width: 768px) {
+                    .projcard-container {
+                        margin: 50px 0;
+                    }
+
+
+                        .projcard-container,
+                        .projcard-container * {
+                            box-sizing: border-box;
+                        }
+
+                    .projcard-container {
+                        margin-left: auto;
+                        margin-right: auto;
+                        width: 100%;
+                    }
+
+                    .projcard {
+                        position: relative;
+                        width: 100%;
+                        height: 300px;
+                        margin-bottom: 40px;
+                        border-radius: 10px;
+                        background-color: #fff;
+                        border: 2px solid #ddd;
+                        font-size: 18px;
+                        overflow: hidden;
+                        cursor: pointer;
+                        box-shadow: 0 4px 21px -12px rgba(0, 0, 0, .66);
+                        transition: box-shadow 0.2s ease, transform 0.2s ease;
+                    }
+
+                        .projcard:hover {
+                            box-shadow: 0 34px 32px -33px rgba(0, 0, 0, .18);
+                            transform: translate(0px, -3px);
+                        }
+
+                        .projcard::before {
+                            content: "";
+                            position: absolute;
+                            top: 0;
+                            right: 0;
+                            bottom: 0;
+                            left: 0;
+                            background-image: linear-gradient(-70deg, #424242, transparent 50%);
+                            opacity: 0.07;
+                        }
+
+                        .projcard:nth-child(2n)::before {
+                            background-image: linear-gradient(-250deg, #424242, transparent 50%);
+                        }
+
+                    .projcard-innerbox {
+                        position: absolute;
+                        top: 0;
+                        right: 0;
+                        bottom: 0;
+                        left: 0;
+                    }
+
+                    .projcard-img {
+                        position: absolute;
+                        height: 300px;
+                        width: 400px;
+                        top: 0;
+                        left: 0;
+                        transition: transform 0.2s ease;
+                    }
+
+                    .projcard:nth-child(2n) .projcard-img {
+                        left: initial;
+                        right: 0;
+                    }
+
+                    .projcard:hover .projcard-img {
+                        transform: scale(1.05) rotate(1deg);
+                    }
+
+                    .projcard:hover .projcard-bar {
+                        width: 70px;
+                    }
+
+                    .projcard-textbox {
+                        position: absolute;
+                        top: 7%;
+                        bottom: 7%;
+                        left: 430px;
+                        width: calc(100% - 470px);
+                        font-size: 17px;
+                    }
+
+                    .projcard:nth-child(2n) .projcard-textbox {
+                        left: initial;
+                        right: 430px;
+                    }
+
+                    .projcard-textbox::before,
+                    .projcard-textbox::after {
+                        content: "";
+                        position: absolute;
+                        display: block;
+                        background: #ff0000bb;
+                        background: #fff;
+                        top: -20%;
+                        left: -55px;
+                        height: 140%;
+                        width: 60px;
+                        transform: rotate(8deg);
+                    }
+
+                    .projcard:nth-child(2n) .projcard-textbox::before {
+                        display: none;
+                    }
+
+                    .projcard-textbox::after {
+                        display: none;
+                        left: initial;
+                        right: -55px;
+                    }
+
+                    .projcard:nth-child(2n) .projcard-textbox::after {
+                        display: block;
+                    }
+
+                    .projcard-textbox * {
+                        position: relative;
+                    }
+
+                    .projcard-title {
+                        font-family: 'Voces', 'Open Sans', arial, sans-serif;
+                        font-size: 24px;
+                    }
+
+                    .projcard-subtitle {
+                        font-family: 'Voces', 'Open Sans', arial, sans-serif;
+                        color: #888;
+                    }
+
+                    .projcard-bar {
+                        left: -2px;
+                        width: 50px;
+                        height: 5px;
+                        margin: 10px 0;
+                        border-radius: 5px;
+                        background-color: #424242;
+                        transition: width 0.2s ease;
+                    }
+
+                    .projcard-blue .projcard-bar {
+                        background-color: #0088FF;
+                    }
+
+                    .projcard-blue::before {
+                        background-image: linear-gradient(-70deg, #0088FF, transparent 50%);
+                    }
+
+                    .projcard-blue:nth-child(2n)::before {
+                        background-image: linear-gradient(-250deg, #0088FF, transparent 50%);
+                    }
+
+                    .projcard-red .projcard-bar {
+                        background-color: #D62F1F;
+                    }
+
+                    .projcard-red::before {
+                        background-image: linear-gradient(-70deg, #D62F1F, transparent 50%);
+                    }
+
+                    .projcard-red:nth-child(2n)::before {
+                        background-image: linear-gradient(-250deg, #D62F1F, transparent 50%);
+                    }
+
+                    .projcard-green .projcard-bar {
+                        background-color: #40BD00;
+                    }
+
+                    .projcard-green::before {
+                        background-image: linear-gradient(-70deg, #40BD00, transparent 50%);
+                    }
+
+                    .projcard-green:nth-child(2n)::before {
+                        background-image: linear-gradient(-250deg, #40BD00, transparent 50%);
+                    }
+
+                    .projcard-yellow .projcard-bar {
+                        background-color: #F5AF41;
+                    }
+
+                    .projcard-yellow::before {
+                        background-image: linear-gradient(-70deg, #F5AF41, transparent 50%);
+                    }
+
+                    .projcard-yellow:nth-child(2n)::before {
+                        background-image: linear-gradient(-250deg, #F5AF41, transparent 50%);
+                    }
+
+                    .projcard-orange .projcard-bar {
+                        background-color: #FF5722;
+                    }
+
+                    .projcard-orange::before {
+                        background-image: linear-gradient(-70deg, #FF5722, transparent 50%);
+                    }
+
+                    .projcard-orange:nth-child(2n)::before {
+                        background-image: linear-gradient(-250deg, #FF5722, transparent 50%);
+                    }
+
+                    .projcard-brown .projcard-bar {
+                        background-color: #C49863;
+                    }
+
+                    .projcard-brown::before {
+                        background-image: linear-gradient(-70deg, #C49863, transparent 50%);
+                    }
+
+                    .projcard-brown:nth-child(2n)::before {
+                        background-image: linear-gradient(-250deg, #C49863, transparent 50%);
+                    }
+
+                    .projcard-grey .projcard-bar {
+                        background-color: #424242;
+                    }
+
+                    .projcard-grey::before {
+                        background-image: linear-gradient(-70deg, #424242, transparent 50%);
+                    }
+
+                    .projcard-grey:nth-child(2n)::before {
+                        background-image: linear-gradient(-250deg, #424242, transparent 50%);
+                    }
+
+                    .projcard-customcolor .projcard-bar {
+                        background-color: var(--projcard-color);
+                    }
+
+                    .projcard-customcolor::before {
+                        background-image: linear-gradient(-70deg, var(--projcard-color), transparent 50%);
+                    }
+
+                    .projcard-customcolor:nth-child(2n)::before {
+                        background-image: linear-gradient(-250deg, var(--projcard-color), transparent 50%);
+                    }
+
+                    .projcard-description {
+                        z-index: 10;
+                        font-size: 15px;
+                        color: #424242;
+                        height: 125px;
+                        overflow: auto;
+                        text-overflow: ellipsis;
+                    }
+
+                    .projcard-tagbox button {
+                        bottom: 3%;
+                        font-size: 25px;
+                        cursor: default;
+                        user-select: none;
+                        padding: 10px 20px;
+                        border-radius: 25px;
+                        text-decoration: none;
+                        border: none;
+                        outline: none;
+                        background: purple;
+                        box-shadow: 0 4px 21px -12px rgba(0, 0, 0, .66);
+                        transition: box-shadow 0.2s ease, transform 0.2s ease;
+                    }
+
+                    .projcard-tagbox a {
+                        text-decoration: none;
+                        color: #ddd;
+                    }
+                }
+            </style>
+
+            <style>
+                .category-box {
+                    border: 1px solid #ddd;
+                    padding: 20px;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    transition: all 0.3s ease-in-out;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    background-color: #f8f9fa;
+                }
+
+                    .category-box:hover {
+                        background-color: #e9ecef;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                        transform: scale(1.05);
+                    }
+
+                .fade-content {
+                    display: none; /* Initially hidden */
+                    transition: opacity 0.5s ease-in-out;
+                    opacity: 0; /* Hidden by opacity */
+                }
+
+                    .fade-content.show {
+                        display: block; /* Show element */
+                        opacity: 1; /* Full opacity */
+                    }
+
+                @@media (max-width: 768px) {
+                    .projcard {
+                        margin-bottom: 20px;
+                        box-shadow: 0 2px 10px -6px rgba(0, 0, 0, .66);
+                    }
+
+                    .projcard-innerbox {
+                        flex-direction: column;
+                    }
+
+                    .projcard-img {
+                        max-height: 200px;
+                    }
+
+                    .projcard-textbox {
+                        padding: 10px;
+                    }
+
+                    .projcard-title {
+                        font-size: 18px;
+                    }
+
+                    .projcard-bar {
+                        width: 30px;
+                    }
+
+                    .projcard-description {
+                        font-size: 14px;
+                    }
+
+                    .projcard-tagbox button {
+                        font-size: 14px;
+                        padding: 8px 12px;
+                    }
+
+                    .projcard-container {
+                        margin: 20px 0;
+                    }
+
+                    .projcard {
+                        position: relative;
+                        width: 100%;
+                        margin-bottom: 40px;
+                        border-radius: 10px;
+                        background-color: #fff;
+                        border: 2px solid #ddd;
+                        font-size: 18px;
+                        overflow: hidden;
+                        cursor: pointer;
+                        box-shadow: 0 4px 21px -12px rgba(0, 0, 0, .66);
+                        transition: box-shadow 0.2s ease, transform 0.2s ease;
+                    }
+
+                        .projcard:hover {
+                            box-shadow: 0 34px 32px -33px rgba(0, 0, 0, .18);
+                            transform: translate(0px, -3px);
+                        }
+
+                    .projcard-innerbox {
+                        display: flex;
+                        flex-direction: row;
+                        flex-wrap: wrap;
+                    }
+
+                    .projcard-img {
+                        width: 100%;
+                        height: auto;
+                        max-height: 300px;
+                    }
+
+                    .projcard-textbox {
+                        padding: 15px;
+                        flex: 1;
+                    }
+
+                    .projcard-title {
+                        font-size: 22px;
+                        font-weight: bold;
+                    }
+
+                    .projcard-bar {
+                        width: 50px;
+                        height: 5px;
+                        margin: 10px 0;
+                        background-color: #424242;
+                    }
+
+                    .projcard-tagbox button {
+                        font-size: 16px;
+                        padding: 10px 15px;
+                        border-radius: 5px;
+                        border: none;
+                        background: #0088FF;
+                        color: #fff;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+
+                        .projcard-tagbox button:hover {
+                            background: #0055cc;
+                        }
+
+                    .projcard-tagbox a {
+                        text-decoration: none;
+                        color: inherit;
+                    }
+                }
+            </style>
+            <style>
+                @@media (max-width: 768px) {
+                    .projcard-container {
+                        margin: 20px 0;
+                    }
+
+                    .projcard {
+                        position: relative;
+                        width: 100%;
+                        margin-bottom: 40px;
+                        border-radius: 10px;
+                        background-color: #fff;
+                        border: 2px solid #ddd;
+                        font-size: 18px;
+                        overflow: hidden;
+                        cursor: pointer;
+                        box-shadow: 0 4px 21px -12px rgba(0, 0, 0, .66);
+                        transition: box-shadow 0.2s ease, transform 0.2s ease;
+                    }
+
+                        .projcard:hover {
+                            box-shadow: 0 34px 32px -33px rgba(0, 0, 0, .18);
+                            transform: translate(0px, -3px);
+                        }
+
+                    .projcard-innerbox {
+                        display: flex;
+                        flex-direction: row;
+                        flex-wrap: wrap;
+                    }
+
+                    .projcard-img {
+                        width: 100%;
+                        height: auto;
+                        max-height: 300px;
+                    }
+
+                    .projcard-textbox {
+                        padding: 15px;
+                        flex: 1;
+                    }
+
+                    .projcard-title {
+                        font-size: 22px;
+                        font-weight: bold;
+                    }
+
+                    .projcard-bar {
+                        width: 50px;
+                        height: 5px;
+                        margin: 10px 0;
+                        background-color: #424242;
+                    }
+
+                    .projcard-tagbox button {
+                        font-size: 16px;
+                        padding: 10px 15px;
+                        border-radius: 5px;
+                        border: none;
+                        background: #0088FF;
+                        color: #fff;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+
+                        .projcard-tagbox button:hover {
+                            background: #0055cc;
+                        }
+
+                    .projcard-tagbox a {
+                        text-decoration: none;
+                        color: inherit;
+                    }
+                    /* Mobile View Enhancements */
+
+                    .projcard {
+                        margin-bottom: 20px;
+                        box-shadow: 0 2px 10px -6px rgba(0, 0, 0, .66);
+                    }
+
+                    .projcard-innerbox {
+                        flex-direction: column;
+                    }
+
+                    .projcard-img {
+                        max-height: 200px;
+                    }
+
+                    .projcard-textbox {
+                        padding: 10px;
+                    }
+
+                    .projcard-title {
+                        font-size: 18px;
+                    }
+
+                    .projcard-bar {
+                        width: 30px;
+                    }
+
+                    .projcard-description {
+                        font-size: 14px;
+                    }
+
+                    .projcard-tagbox button {
+                        font-size: 14px;
+                        padding: 8px 12px;
+                    }
+                    /* Tablet View Enhancements */
+                }
+
+                @@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,700;1,400&display=swap");
+
+
+
+                .tab-container {
+                    border-radius: 8px;
+                    display: flex;
+                    justify-content: center;
+                    flex-direction: column;
+                    filter: drop-shadow(2px 4px 6px #e0e0e0);
+                }
+
+                .tabs {
+                    /*display: flex;*/
+
+                    gap: 10px;
+                }
+
+                    .tabs .tab {
+                        flex: 1;
+                        padding: 10px 20px;
+                        text-align: center;
+                        cursor: pointer;
+                        background: #f1f1f1;
+                        border: none;
+                        outline: none;
+                        font-size: 15px;
+                        color: #989797;
+                        border-top-left-radius: 8px;
+                        border-top-right-radius: 8px;
+                        margin-right: 2px;
+                        border: 1px solid #e7e7e7;
+                    }
+
+
+
+                        .tabs .tab.active {
+                            background: #fff;
+                            border: 1px solid transparent;
+                            border-bottom: 2px solid #007bff;
+                            font-weight: bold;
+                            color: #333;
+                            position: relative;
+                            top: 1px;
+                        }
+
+                        .tabs .tab:hover:not(.active) {
+                            border: 1px solid transparent;
+                            background-color: #e2e1e1;
+                            border-bottom: 2px solid #989797;
+                        }
+
+
+
+                .tab-content .filters {
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                }
+
+                    .tab-content .filters .filter {
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                        .tab-content .filters .filter label {
+                            font-size: 15px;
+                            padding-bottom: 2px;
+                        }
+
+                        .tab-content .filters .filter select {
+                            padding: 10px;
+                            border: 1px solid #ccc;
+                            border-radius: 4px;
+                            background: #fff;
+                            font-size: 14px;
+                            color: #333;
+                            width: 200px;
+                        }
+
+                    .tab-content .filters .btn {
+                        padding: 10px 20px;
+                        font-size: 16px;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        outline: none;
+                        margin-left: auto;
+                        margin-top: 20px;
+                    }
+
+                        .tab-content .filters .btn.primary {
+                            background: #007bff;
+                            color: #fff;
+                            margin-right: 20px;
+                        }
+
+                        .tab-content .filters .btn.clear {
+                            background: transparent;
+                            color: #007bff;
+                            text-decoration: underline;
+                        }
+            </style>
+            <style>
+
+                .placRegisterbtn {
+                    padding: 8px 20px;
+                    width: 200px;
+                    height: 50px;
+                    color: #fff;
+                    font-weight: 700;
+                    border-radius: 10px; /* Added rounded corners */
+                    margin: 25px;
+                    overflow: hidden;
+                    position: relative;
+                    background-color: #007bff;
+                    border-left: 2px solid white; /* Set initial border */
+                    box-sizing: border-box;
+                    display: inline-block;
+                    transition: box-shadow 0.3s ease;
+                    /* animation: borderRotate 3s linear infinite;*/ /* Apply animation */
+                }
+
+                /* Animation for rotating border */
+                @@keyframes borderRotate {
+                    0% {
+                        border-left: 6px solid #0058b7;
+                    }
+
+                    30% {
+                        border-top: 6px solid #0058b7;
+                    }
+
+                    65% {
+                        border-right: 6px solid #0058b7;
+                    }
+
+                    100% {
+                        border-bottom: 6px solid #0058b7;
+                    }
+                }
+
+                .placRegisterbtn a {
+                    position: relative;
+                    display: inline-block;
+                    font-size: 16px;
+                    text-decoration: none;
+                    color: #fff;
+                    z-index: 1;
+                }
+
+                .placRegisterbtn a {
+                    display: block;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                .lastDate {
+                    color: #e90d87;
+                }
+                .NoRecord {
+                    background-color: #c50632;
+                    color: whitesmoke;
+                    background-size: 100px;
+                    align-items: center;
+                    text-align: center;
+                    padding: 10px;
+                }
+            </style>
+
+            <div>
+                <section class="">
+                    <!-- Add Bootstrap 5 CSS and Font Awesome for Icons -->
+                    <div class=" py-5">
+                        <div class="row g-4 text-center justify-content-center">
+                            <div class="tab-container">
+                                <div class="tabs col-md-12">
+                                    <div class="col-md-3" style=" margin-bottom: 20px; ">
+                                        <button class="tab active" data-tab="active" onclick="stuInterviewCategory('1')">Active Interviews</button>
+                                    </div>
+                                    <div class="col-md-3" style=" margin-bottom: 20px; ">
+
+                                        <button class="tab" data-tab="completed" onclick="stuInterviewCategory('2')">Completed Interviews</button>
+                                    </div>
+                                    <div class="col-md-3" style=" margin-bottom: 20px; ">
+                                        <button class="tab" data-tab="other" onclick="stuInterviewCategory('3')">Other Advertisements</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="" id="defaultPage">
+                            <div style="padding-top:0px;">
+                                <div class="tab-content">
+                                    <div class="tabcontent">
+                                        <div class="" id="Students">
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-content" style="" id="defaultDiv">
+                                    @{
+                                        if (Model.liPlacementnews != null && Model.liPlacementnews.Count > 0)
+                                        {
+                                            int count = 0;
+
+                                            <div class="tabcontent" id="General">
+                                                @*<div style="border-bottom:2px solid white">
+                                                        <div style="border-bottom:2px solid white;" class="achievementCenterAlign headerfontstyle">
+
+                                                            <h3 style="background-color: #002147; color: white; align-items: center; text-align: center; padding: 5px 10px; border-radius: 5px; "><span style="color:#FFF">Campus News</span> </h3>
+
+                                                        </div>
+
+                                                    </div>*@
+
+                                                <div class="projcard-container">
+                                                    @foreach (var items in Model.liPlacementnews)
+                                                    {
+                                                        var splitImgPath = items.IMG_PATH.Split(',');
+                                                        count++;
+                                                        int imgcount = 0;
+
+                                                        <div class="projcard projcard-blue">
+                                                            <div class="projcard-innerbox" style="display:flex; flex-direction: column;">
+                                                                <div class="projcard-img-section">
+                                                                    @foreach (var item in splitImgPath)
+                                                                    {
+                                                                        imgcount++;
+                                                                        var imgpath = item.Replace(@"\", "/");
+
+                                                                        if (imgcount == 1)
+                                                                        {
+                                                                            <a href="@imgpath" data-lightbox="image-@items.PLACEMENT_ID" data-title="Image @items.PLACEMENT_ID">
+                                                                                <div class="img-container">
+                                                                                    <img class="projcard-img" src="@imgpath" alt="Image @imgcount">
+                                                                                </div>
+                                                                            </a>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <a href="@imgpath" data-lightbox="image-@items.PLACEMENT_ID" data-title="Image @items.PLACEMENT_ID" style="display:none">
+                                                                                <div class="img-container">
+                                                                                    <img class="projcard-img" src="@imgpath" alt="Image @imgcount">
+                                                                                </div>
+                                                                            </a>
+                                                                        }
+                                                                    }
+                                                                </div>
+
+                                                                <div class="projcard-textbox">
+                                                                    <div class="projcard-title">@items.TITLE</div>
+                                                                    <div class="projcard-bar"></div>
+                                                                    <div class="projcard-description">@items.DESCRIPTION</div>
+                                                                    <div class="projcard-tagbox">
+                                                                        <button class="placRegisterbtn">
+                                                                            <a href="@items.LINK" target="_blank"><span>@items.LINKTEXT</span> </a>
+                                                                        </button>
+                                                                        <span class="lastDate">Last_Date: @items.TO_DATE</span>
+                                                                        <span>
+                                                                            @if (items.FILE_PATH != null)
+                                                                            {
+                                                                                int fileCount = 0;
+                                                                                var file = items.FILE_PATH.Split(',');
+                                                                                if (file != null)
+                                                                                {
+                                                                                    foreach (var fi in file)
+                                                                                    {
+                                                                                        fileCount++;
+
+                                                                                        if (fi != "," && fi != "")
+                                                                                        {
+                                                                                            <a target="_BLANK" href="@fi">
+                                                                                                <i class="fa fa-file" style="font-size:40px;color:red"></i>
+                                                                                            </a>
+
+                                                                                        }
+
+                                                                                    }
+                                                                                }
+                                                                                else
+                                                                                {
+
+
+                                                                                }
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <a target="_BLANK" href="@items.FILE_PATH">
+                                                                                    <i class="fa fa-file-pdf-o" style="font-size:48px;color:red">else part
+                                                                                </a>
+                                                                            }
+                                                                        </span>
+
+                                                                    </div>
+
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                        }
+                                        else
+                                        {
+                                            <div>
+                                                <br />
+                                                <h3 class="NoRecord">No record's Found </h3>
+                                                <br />
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/flot/jquery.flot.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lightbox2@2.11.3/dist/js/lightbox.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+        $('.selectpicker').selectpicker('refresh');
+        $("#tblPlacementList").DataTable({
+            dom: "lBfrtip", buttons: [{
+                extend: "copy", className: "btn-sm"
+            }
+                , {
+                extend: "excel", className: "btn-sm"
+            }
+                , {
+                extend: "pdf", className: "btn-sm"
+            }
+            ], responsive: !0, "paging": true, "ordering": true
+        });
+    });
+     function stuInterviewCategory(status)
+    {
+    $.ajax({
+        url: '@Url.Action("BindplacmentDetailsCategoryWise", "PlaceMent")',
+        method: 'POST',
+        datatype: 'json',
+        data: { CategoryStatus: status, },
+        success: function (data)
+        {
+            $('#Students').empty();
+            $('#defaultDiv').empty();
+            $('#Students').append(data);
+
+        },
+        error: function (error)
+        {
+            alert('Internal Server Error !');
+        }
+    });
+}
+
+    // Select all tab buttons
+    const tabButtons = document.querySelectorAll('.tab');
+
+    // Add click event listener to each button
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            // Remove active class from all buttons
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+
+            // Add active class to the clicked button
+            this.classList.add('active');
+        });
+    });
+
+
+</script>

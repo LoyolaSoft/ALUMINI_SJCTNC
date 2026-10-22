@@ -1,0 +1,157 @@
+@using CMS.Controllers
+@if (ViewBag.IsSummary == true)
+{
+    var summaryList = Model as List<CMS.ViewModel.Model.ConsolidatedSemesterAttendance>;
+
+    <div class="table-responsive">
+        <h4 class="m-b-15" style="font-weight: 800; font-size: 1.25rem; color: #1e3a8a;"><i class="fa fa-calendar"></i> Semester Wise Attendance Summary</h4>
+        
+        @if (summaryList != null && summaryList.Count > 0)
+        {
+            <table class="table table-bordered table-striped" id="tblConsolidatedAttendanceSummary" width="100%" style="font-size: 1.05rem; color: #0f172a;">
+                <thead>
+                    <tr style="background-color: #f8fafc; font-weight: 700; color: #1e293b;">
+                        <th><b>Academic Year</b></th>
+                        <th><b>Semester</b></th>
+                        <th><b>Duration</b></th>
+                        <th><b>Working Days</b></th>
+                        <th><b>Present Days</b></th>
+                        <th><b>Absent Days</b></th>
+                        <th><b>Percentage</b></th>
+                        <th><b>Action</b></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in summaryList)
+                    {
+                        <tr>
+                            <td><b>@item.ACADEMIC_YEAR</b></td>
+                            <td>@item.SEMESTER_NAME</td>
+                            <td><small>@item.DATE_FROM - @item.DATE_TO</small></td>
+                            <td>@item.DAYS_COUNT</td>
+                            <td class="text-success"><b>@item.PRESENT_COUNT</b></td>
+                            <td class="text-danger"><b>@item.ABSENT_COUNT</b></td>
+                            <td>
+                                @if (item.PERCENTAGE >= 75)
+                                {
+                                    <span class="label label-success" style="font-size: 0.85rem; padding: 4px 8px; border-radius: 4px;">@item.PERCENTAGE%</span>
+                                }
+                                else
+                                {
+                                    <span class="label label-danger" style="font-size: 0.85rem; padding: 4px 8px; border-radius: 4px;">@item.PERCENTAGE%</span>
+                                }
+                            </td>
+                            <td>
+                                <button class="btn btn-xs btn-primary btn-view-absent" onclick="ShowAbsentDatesModal('@item.SEMESTER_ID', '@item.ACADEMIC_YEAR')">
+                                    <i class="fa fa-eye"></i> View Dates
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="text-center text-muted p-5">
+                <i class="fa fa-info-circle fa-2x m-b-10"></i>
+                <p>No semesters or attendance records found for this student.</p>
+            </div>
+        }
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            if ($.fn.DataTable.isDataTable('#tblConsolidatedAttendanceSummary')) {
+                $('#tblConsolidatedAttendanceSummary').DataTable().destroy();
+            }
+            $('#tblConsolidatedAttendanceSummary').DataTable({
+                responsive: true,
+                paging: false,
+                ordering: true,
+                searching: false,
+                info: false
+            });
+        });
+    </script>
+}
+else
+{
+    var absentList = Model as List<CMS.ViewModel.Model.ConsolidatedAbsentRecord>;
+
+    <div>
+        <div class="m-b-15">
+            <button class="btn btn-default btn-sm" onclick="LoadSemesterAttendance('')">
+                <i class="fa fa-arrow-left"></i> Back to Semester Summary
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <h4 class="m-b-15" style="font-weight: 800; font-size: 1.25rem; color: #1e3a8a;"><i class="fa fa-calendar-minus-o"></i> Absent Dates Detail</h4>
+            
+            @if (absentList != null && absentList.Count > 0)
+            {
+                <table class="table table-bordered table-striped" id="tblConsolidatedAbsentList" width="100%" style="font-size: 1.05rem; color: #0f172a;">
+                    <thead>
+                        <tr style="background-color: #f8fafc; font-weight: 700; color: #1e293b;">
+                            <th><b>#</b></th>
+                            <th><b>Absent Date</b></th>
+                            <th><b>Roll No</b></th>
+                            <th><b>Student Name</b></th>
+                            <th><b>Class Name</b></th>
+                            <th><b>Parent Mobile</b></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ int idx = 0; }
+                        @foreach (var item in absentList)
+                        {
+                            idx++;
+                            DateTime dt;
+                            string sortDate = DateTime.TryParseExact(item.ATTENDENCE_DATE, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out dt)
+                                              ? dt.ToString("yyyyMMdd")
+                                              : "";
+                            <tr>
+                                <td>@idx</td>
+                                <td data-order="@sortDate"><b class="text-danger">@item.ATTENDENCE_DATE</b></td>
+                                <td>@item.ROLL_NO</td>
+                                <td>@item.FIRST_NAME</td>
+                                <td>@item.CLASS_NAME</td>
+                                <td>@item.MOBILE</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="bg-success text-center p-4 text-white" style="border-radius: 8px; background-color: #10b981;">
+                    <h5 class="m-0"><i class="fa fa-check-circle"></i> Excellent! No absents recorded in this semester.</h5>
+                </div>
+            }
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            if ($.fn.DataTable.isDataTable('#tblConsolidatedAbsentList')) {
+                $('#tblConsolidatedAbsentList').DataTable().destroy();
+            }
+            $('#tblConsolidatedAbsentList').DataTable({
+                responsive: true,
+                paging: true,
+                pageLength: 10,
+                ordering: true,
+                order: [[1, "desc"]],
+                dom: 'lBfrtip',
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fa fa-file-excel-o"></i> Export Absents',
+                        className: 'btn btn-primary btn-sm'
+                    }
+                ]
+            });
+        });
+    </script>
+}

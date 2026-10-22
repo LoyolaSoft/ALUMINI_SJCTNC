@@ -1,0 +1,391 @@
+﻿@model CMS.ViewModel.ViewModel.TaskManagementViewModel
+@{
+    ViewBag.Title = "HallReservation";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/css/jquery.jqGauges.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/morris/morris.css" rel="stylesheet" />
+<link href="~/Content/assets/css/timepicki.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="#" onclick="loadContent('@Url.Action("ADMIN","DashBoard")')"></a></li>
+
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <!-- end page-header -->
+    <!-- begin panel -->
+    <div class="panel panel-default panel-with-tabs" data-sortable-id="ui-unlimited-tabs-2">
+        <div class="panel-heading p-0">
+            <div class="panel-heading-btn m-r-10 m-t-10">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-inverse" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+            </div>
+            <!-- begin nav-tabs -->
+            <div class="tab-overflow" data-parsley-validate="true" name="form-wizard">
+                <ul class="nav nav-tabs">
+                    @*<li class="prev-button"><a href="javascript:;" data-click="prev-tab" aria-controls="first" class="text-inverse"><i class="fa fa-arrow-left"></i></a></li>*@
+
+                    <li class="nav-item active" id="bookedlist"><a href="#nav-tab1-1" class="nav-link active" data-toggle="tab">Hall Reserved</a></li>
+                    <li class="" id=""><a href="#nav-tab1-2" data-toggle="tab">Hall  Details</a></li>
+
+                </ul>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="tab-content">
+                <div class="tab-pane fade active in" id="nav-tab1-1" data-parsley-validate="true">
+                    <div class="form-group col-md-12">
+                        <a class="btn btn-success pull-right form-group m-b-5" href="#hallreservation" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add">Add</i></a>
+                    </div>
+                    <div class="col-md-12" id="hallreserved">
+
+                        <table class="table table-hover table-bordered" id="tblhallreserved">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Hall Name</th>
+                                    <th>From&To Date</th>
+                                    <th>From&To Time</th>
+                                    <th>Apply Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @if (Model.lihallreservation != null && Model.lihallreservation.Count > 0)
+                                {
+                                    var count = 0;
+                                    foreach (var item in Model.lihallreservation)
+                                    {
+                                        count = count + 1;
+
+                                        <tr>
+                                            <td>@count</td>
+                                            <td>@item.HALL_NAME</td>
+                                            <td>@item.FROM_DATE & @item.TO_DATE</td>
+                                            <td>@item.FROM_TIME & @item.TO_TIME</td>
+                                            <td>@item.APPLY_DATE</td>
+                                            @if (@item.STATUS == "0")
+                                            {
+                                                <td>
+                                                    <label class="label label-primary">Pending</label>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td><label class="label label-success">@item.STATUS_NAME</label></td>
+                                            }
+                                            @if (item.STATUS != "0")
+                                            {
+                                                <td><label class="label label-primary">Viewd</label></td>
+                                            }
+                                            else
+                                            {
+
+                                                <td><a href="#hallreservation" onclick="FetchHallreservation(@item.HALL_BOOK_ID)" data-toggle="modal" class="btn btn-primary text-primary"><i style="color:white" class="glyphicon glyphicon-edit" title="EDIT"></i></a></td>
+                                            }
+
+                                        </tr>
+                                    }
+
+                                }
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-tab1-2" data-parsley-validate="true">
+                    <div class="col-md-12" >
+                        <div class="col-md-4">
+                            <label class="col-md-4 control-label">From Date</label>
+
+                            <div class="col-md-8">
+                                <input type="text" id="sdate" class="form-control" data-parsley-required="true">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="col-md-4 control-label">To Date</label>
+
+                            <div class="col-md-8">
+                                <input type="text" id="edate" class="form-control" data-parsley-required="true">
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                           <button class="btn btn-primary" id="btnget">Get</button>
+                        </div>
+                    </div>
+                    <div class="col-md-12" id="bindhalldetails">
+                    </div>
+                    
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- end panel -->
+</div>
+<div class="modal" id="hallreservation">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <input type="text" id="autosche" class="hidden">
+                                    <input type="text" id="autosms" class="hidden">
+
+
+                                    <input type="text" id="hallbookid" class="hidden">
+                                    <div class="form-group col-md-12">
+                                        @Html.Label("Hall", htmlAttributes: new { @class = "control-label col-md-4" })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(model => model.HallList, (Model.HallList != null) ? Model.HallList : Enumerable.Empty<SelectListItem>(), new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @multiple = "multiple", @data_selected_text_format = "count", @data_action_box = "true" })
+                                            @Html.ValidationMessageFor(model => model.HallList, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">From Date</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="fromdate" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">To Date</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="todate" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">From Time</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="fromtime" class="form-control" data-parsley-required="true" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">To Time</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="totime" class="form-control" data-parsley-required="true" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Purpose</label>
+                                        <div class="col-md-8">
+                                            <textarea id="purpose" style="height:100px" class="form-control" data-parsley-required="true" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal" id="bookedmodal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Hall Booked Details</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div id="bookeddetails">
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<script src="~/Content/assets/plugins/morris/raphael.min.js"></script>
+<script src="~/Content/assets/plugins/morris/morris.js"></script>
+<script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap.min.js"></script>
+<script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap-world-merc-en.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="~/Content/assets/js/timepicki.js"></script>
+
+<script>
+
+    $('#fromtime').timepicki();
+    $('#totime').timepicki();
+    $('.selectpicker').selectpicker({});
+    $("#fromdate,#todate").datepicker({
+        todayHighlight: true,
+        autoclose: true,
+        startDate: new Date(),
+        //endDate: new Date(),
+        format: "dd/mm/yyyy",
+        orientation: "right bottom"
+    });
+    $("#sdate,#edate").datepicker({
+        todayHighlight: true,
+        autoclose: true,     
+        //endDate: new Date(),
+        format: "dd/mm/yyyy",
+        orientation: "right bottom"
+    });
+    $('#tblhallreserved').DataTable({});
+    $('#tblhalldetails').DataTable({});
+
+    function ContentLoad() {
+
+        ValidateHallReservationSetting();
+    }
+
+    function ValidateHallReservationSetting()
+    {
+        $.ajax({
+            url: "@Url.Action("ValidateHallReservationSetting", "TaskManagement")",
+            type: "post",
+            data: {},
+            success: function (data)
+            {
+                if (data.SETTING_ID != '' && data.SETTING_ID != null)
+                {
+                    $('#autosche').val(data.IS_AUTO_SCHEDULE);
+                    $('#autosms').val(data.IS_AUTO_SMS_SEND);
+                    $('#Add').removeAttr('disabled');
+                }
+                else
+                {
+                    swal({ title: "Error !", text: 'Hall Reservation Setting Has to  Verifiy meet Admin...!', showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                    $('#Add').attr('disabled', true);
+                }
+
+
+            },
+            error: function (ex) {
+                alert(ex.Message);
+            }
+        });
+    }
+    function FetchHallreservation(ID)
+    {
+        if (ID != null) {
+            $.ajax({
+                url: "@Url.Action("FetchHallReservationById", "TaskManagement")",
+                type: "post",
+                data: { shallbookid: ID },
+                success: function (data)
+                {
+                    if (data != null)
+                    {
+                        $('#hallbookid').val(data.HALL_BOOK_ID);
+                        $('#HallList').attr('value', data.HALL_ID);
+                        $('#fromdate').val(data.FROM_DATE);
+                        $('#todate').attr('value', data.TO_DATE);
+                        $('#fromtime').attr('value', data.FROM_TIME);
+                        $('#totime').val(data.TO_TIME);
+                        
+                        $('#purpose').val(data.PURPOSE);
+
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                },
+                error: function (ex) {
+                    alert(ex.Message);
+                }
+            });
+        }
+    }
+    $('#btnSubmit').click(function ()
+    {
+        var hallname = $('#HallList option:selected').text();
+        var isValid = true;
+        var JsonData = null;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            return false;
+        }
+        JsonData = '{"HALL_BOOK_ID":"' + $('#hallbookid').val() + '","HALL_ID":"' + $('#HallList').val() + '","FROM_DATE":"' + $('#fromdate').val() + '","TO_DATE":"' + $('#todate').val() + '","FROM_TIME":"' + $('#fromtime').val() + '","TO_TIME":"' + $('#totime').val() + '","PURPOSE":"' + $('#purpose').val() + '","IS_AUTO_SCHEDULE":"' + $('#autosche').val() + '","IS_AUTO_SMS_SEND":"' + $('#autosms').val() + '","HALL_NAME":"'+hallname+'"}';
+        var req = $.ajax({
+            url: "@Url.Action("ValidateHallIsAvilable", "TaskManagement")",
+            type: "post",
+            data: { sJsonData: JsonData },
+            success: function (data) {
+                if (data != null && data != '') {
+                    swal({ title: "Error !", text: data, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                }
+                else {
+
+                    var req = $.ajax({
+                        url: "@Url.Action("SaveorUpdateHallreservation", "TaskManagement")",
+                        type: "post",
+                        data: { sJsonData: JsonData },
+                        success: function (data) {
+
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                            loadContent('/TaskManagement/HallReservation');
+
+                        },
+                        error: function (ex) {
+                            swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                        }
+                    });
+                }
+
+            },
+            error: function (ex) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+
+    });
+    $('#btnget').on('click', function ()
+    {
+        var startdate=$('#sdate').val();
+        var enddate = $('#edate').val();
+        $.ajax({
+        url: "@Url.Action("BindHallReservationDetails", "TaskManagement")",
+        type: "post",
+        data: { sStartDate: startdate, sEnddate: enddate },
+        success: function (data)
+        {
+
+            $('#bindhalldetails').empty();
+            $('#bindhalldetails').append(data);
+            $('#tblhalldetails').DataTable({});
+        },
+        error: function (ex) {
+            alert(ex.Message);
+        }
+    });
+    });
+
+
+</script>

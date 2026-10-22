@@ -1,0 +1,258 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+    int n = 0;
+}
+
+<input type="hidden" id="STUDENT_ID" value="@ViewBag.StudentId" />
+
+<div class="container mt-3">
+    <h4 class="text-center mb-3"><b>Parent Meeting Details</b></h4>
+
+    <div class="text-right mb-2">
+        <button class="btn btn-success btn-sm"
+                id="btnOpenAddParent"
+                data-toggle="modal"
+                data-target="#parentModal">
+            <i class="fa fa-plus"></i> Add Meeting
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover" id="tblParentMeeting">
+            <thead class="text-center">
+                <tr>
+                    <th>S.No</th>
+                    <th>Semester</th>
+                    <th>Feedback</th>
+                    <th>Date</th>
+                    <th width="100">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.liParentMeeting != null && Model.liParentMeeting.Any())
+                {
+                    foreach (var item in Model.liParentMeeting)
+                    {
+                        n++;
+                        <tr>
+                            <td class="text-center">@n</td>
+                            <td class="text-center">@(item.SEMESTER_NAME ?? item.SEM)</td>
+                            <td>@item.FEEDBACK</td>
+                            <td class="text-center">@item.MEETING_DATE</td>
+                            <td class="text-center">
+                                <button class="btn btn-warning btn-xs parent-meet-edit"
+                                        data-id="@item.PARENT_ID">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger btn-xs parent-meet-delete"
+                                        data-id="@item.PARENT_ID">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="parentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="parentModalTitle">Add Meeting</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="PARENT_MEET_RECORD_ID" />
+
+                <div class="mb-3">
+                    <label class="form-label">Semester <span class="text-danger">*</span></label>
+                    @Html.DropDownList("PARENT_MEET_SEM",
+                        (Model.SemesterList != null) ? Model.SemesterList : Enumerable.Empty<SelectListItem>(),
+                        "-- Select Semester --",
+                        new
+                        {
+                            @class = "form-control",
+                            id = "PARENT_MEET_SEM"
+                        })
+                </div>
+
+                <div class="form-group">
+                    <label>Feedback <span class="text-danger">*</span></label>
+                    <textarea id="PARENT_MEET_FEEDBACK" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Meeting Date <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="text" id="PARENT_MEET_DATE" class="form-control" autocomplete="off" />
+                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                    </div>
+                </div>
+
+               
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-success" id="btnSaveParent">Save</button>
+                <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Initialize DataTable
+        if (!$.fn.DataTable.isDataTable('#tblParentMeeting')) {
+            $('#tblParentMeeting').DataTable({
+                "pageLength": 10,
+                "ordering": true,
+                "searching": true
+            });
+        }
+
+        $('#PARENT_MEET_DATE').datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            format: "dd/mm/yyyy",
+            orientation: "bottom"
+        });
+
+        // Open datepicker on icon click
+        $('#PARENT_MEET_DATE').closest('.input-group').find('.input-group-addon').on('click', function(){
+            $('#PARENT_MEET_DATE').focus();
+        });
+
+        // ADD - Clear Form
+        $('#btnOpenAddParent').click(function () {
+            $('#parentModalTitle').text('Add Meeting');
+            $('#PARENT_MEET_RECORD_ID').val('');
+            $('#PARENT_MEET_SEM').val('');
+            $('#PARENT_MEET_FEEDBACK').val('');
+            $('#PARENT_MEET_DATE').datepicker('update', '');
+            $('#PARENT_MEET_TIME').val('');
+        });
+
+        // EDIT - Load Data via AJAX
+        $('#tblParentMeeting').on('click', '.parent-meet-edit', function () {
+            var id = $(this).data('id');
+            $('#parentModalTitle').text('Edit Meeting');
+
+            $.ajax({
+                url: '@Url.Action("GetParentMeetingById", "Mentoring")',
+                type: 'GET',
+                data: { id: id },
+                success: function (res) {
+                    if (res) {
+                        $('#PARENT_MEET_RECORD_ID').val(res.PARENT_ID);
+                        $('#PARENT_MEET_SEM').val(res.SEM);
+                        $('#PARENT_MEET_FEEDBACK').val(res.FEEDBACK);
+                        if (res.MEETING_DATE) {
+                             $('#PARENT_MEET_DATE').datepicker('update', new Date(res.MEETING_DATE));
+                        } else {
+                             $('#PARENT_MEET_DATE').datepicker('update', '');
+                        }
+                        $('#PARENT_MEET_TIME').val(res.MEETING_TIME);
+                        $('#parentModal').modal('show');
+                    } else {
+                        swal('Error', 'Unable to load details', 'error');
+                    }
+                },
+                error: function () {
+                    swal('Error', 'Server error', 'error');
+                }
+            });
+        });
+
+        // SAVE / UPDATE
+        $('#btnSaveParent').click(function () {
+            var splitDate = $('#PARENT_MEET_DATE').val();
+            if(splitDate) splitDate = splitDate.split("/").reverse().join("-");
+
+            var data = {
+                PARENT_ID: $('#PARENT_MEET_RECORD_ID').val(),
+                STUDENT_ID: $('#STUDENT_ID').val(),
+                SEM: $('#PARENT_MEET_SEM').val(),
+                FEEDBACK: $('#PARENT_MEET_FEEDBACK').val(),
+                MEETING_DATE: splitDate,
+                MEETING_TIME: $('#PARENT_MEET_TIME').val()
+            };
+
+            if (!data.SEM || !data.FEEDBACK || !data.MEETING_DATE) {
+                swal('Warning', 'Semester, Feedback, and Date are required', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("SaveParentMeeting", "Mentoring")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (res) {
+                    if (res && res.success) {
+                        $('#parentModal').modal('hide');
+                        $('.modal-backdrop').remove();
+                        $('body').removeClass('modal-open');
+
+                        swal('Success', res.message || 'Saved successfully', 'success');
+
+                        setTimeout(function () {
+                            if (typeof BindMentorParentMeeting === 'function') {
+                                BindMentorParentMeeting();
+                            } else {
+                                $('#stuMentorParentMeeting').click();
+                            }
+                        }, 300);
+                    } else {
+                        swal('Error', res.message || 'Error occurred', 'error');
+                    }
+                },
+                error: function () {
+                    swal('Error', 'Server error', 'error');
+                }
+            });
+        });
+
+        // DELETE
+        $('#tblParentMeeting').on('click', '.parent-meet-delete', function () {
+            var id = $(this).data('id');
+
+            swal({
+                title: 'Delete this meeting record?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    $.post('@Url.Action("DeleteParentMeeting", "Mentoring")', { id: id }, function (res) {
+                        if (res && res.success) {
+                            swal('Deleted', 'Meeting record removed successfully', 'success');
+                            setTimeout(function () {
+                                if (typeof BindMentorParentMeeting === 'function') {
+                                    BindMentorParentMeeting();
+                                } else {
+                                    $('#stuMentorParentMeeting').click();
+                                }
+                            }, 300);
+                        } else {
+                            swal('Error', 'Delete failed', 'error');
+                        }
+                    }).fail(function () {
+                        swal('Error', 'Server error', 'error');
+                    });
+                }
+            });
+        });
+
+    });
+</script>

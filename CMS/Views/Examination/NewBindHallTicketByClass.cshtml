@@ -1,0 +1,158 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@using CMS.Utility;
+
+@{
+    Layout = null;
+
+}
+@if (Model.liStudentList != null && Model.liStudentList.Count > 0)
+{
+    foreach (var Stuitem in Model.liStudentList)
+    {
+       // var blockgroup = Model.liFetchHallTicket.GroupBy(x => x.BLOCK_CODE).Select(x => new CMS.ViewModel.Model.FetchHallTicket() { BLOCK_CODE = x.FirstOrDefault().BLOCK_CODE, BLOCK_NAME = x.FirstOrDefault().BLOCK_NAME }).ToList();
+       <div class="col-md-12"  style ="page-break-after:always !important;page-break-inside:avoid !important;">
+
+          <div class="form-horizontal" id="dvHallticket">
+
+            <div class="form-group col-md-12">
+                <div class="col-xs-2">
+                    <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO)" style="width:150px; height:150px" />
+                </div>
+
+                <div class="form-group col-xs-8 text-center">
+                    <h4>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME</h4>
+                    <h5>@Model.liCollegeDetails.FirstOrDefault().PLACE .</h5>
+                    <h5>@Model.liCollegeDetails.FirstOrDefault().UNIVERSITY</h5>
+                    <h6>
+                        @Html.Raw(Model.liCollegeDetails.FirstOrDefault().GRADE.Replace("rd", "<sup>rd</sup>")) <br />
+                    </h6>
+                    <h5>EXTERNAL EXAMINATION HALL TICKET - @Model.Month_Year</h5>
+                </div>
+
+                <div class="form-group col-xs-2 pull-left">
+                    @{
+                        if (Session[Common.SESSION_VARIABLES.PHOTO] != null && !string.IsNullOrEmpty(Session[Common.SESSION_VARIABLES.PHOTO].ToString()))
+                        {
+                            <img src="@Url.Content(Session[Common.SESSION_VARIABLES.PHOTO].ToString())" alt="Photo" style="width:150px; height:150px" />
+                        }
+                        else
+                        {
+                            <div src="" style="border:2px solid gray;width:100px; height:130px;"><p style="text-align:center;">AFFIX HERE YOUR PASSPORT SIZE PHOTOGRAPH TAKEN WITHIN A PERIOD OF THREE MONTHS</p></div>
+                        }
+                    }
+                </div>
+
+            </div>
+
+            <div class="form-group col-md-12">
+                <div class="form-group col-xs-4">
+                    <label> Name : @Stuitem.FIRST_NAME</label>
+                </div>
+                <div class="form-group col-xs-4">
+                    <label> Roll No : @Stuitem.ROLL_NO</label>
+                </div>
+                <div class="form-group col-xs-4">
+                    <label> Register No : @Stuitem.REGISTER_NO</label>
+                </div>
+            </div>
+
+            <div class="form-group col-md-12">
+                <div class="form-group col-xs-8">
+                    <label> Major : @Stuitem.DEPARTMENT</label>
+                </div>
+                <div class="form-group col-xs-4">
+                    <label>Date of Birth : @Stuitem.DATE_OF_BIRTH</label>
+                </div>
+            </div>
+
+            <div class="form-group col-xs-12 table-responsive">
+                <table align="left" style="width:100%; border:1px solid; table-layout:fixed;">
+                    <thead>
+                        <tr>
+                            <th width="8% !important" style="border:1px solid; padding:8px;" align="left">Sem</th>
+                            <th width="16% !important" style="border:1px solid; padding:8px;" align="left">Date</th>
+                            <th width="27% !important" style="border:1px solid; padding:8px;" align="left">Time</th>
+                            <th width="32% !important" style="border:1px solid; padding:8px;" align="left">Course Tittle</th>
+                            <th width="20% !important" style="border:1px solid; padding:8px;" align="left">Course Code</th>
+                            <th width="18% !important" style="border:1px solid; padding:8px;" align="left">Seat</th>
+                            <th width="5% !important" style="border:1px solid; padding:8px;" align="left">S</th>
+                            <th width="10% !important" style="border:1px solid; padding:8px;" align="left">
+                                Sign
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.liFetchHallTicket != null && Model.liFetchHallTicket.Count > 0)
+                        {
+                            var liExamRegistration = Model.liFetchHallTicket.Where(x => x.STUDENT_ID == Stuitem.STUDENT_ID).ToList();
+                            string sStartStrike = string.Empty;
+                            string sEndStrike = string.Empty;
+                            bool sFalg = false;
+                            if (liExamRegistration != null && liExamRegistration.Count > 0)
+                            {
+                                foreach (var item in liExamRegistration)
+                                {
+                                    sStartStrike = string.Empty;
+                                    sEndStrike = string.Empty;
+                                    if (Model.liCIA_Total != null && Model.liCIA_Total.Count > 0)
+                                    {
+                                        var liFail = Model.liCIA_Total.Where(x => x.STUDENT_ID == item.STUDENT_ID && x.COURSE_ID == item.COURSE_ID).ToList();
+                                        sFalg = (liFail != null && liFail.Count > 0) ? true : false;
+                                        if (sFalg)
+                                        {
+                                            //sStartStrike = "<strike class='text-danger'>"; sEndStrike = "</strike>";
+                                        }
+                                    }
+                                    <tr>
+                                        <td class="semi-bold" width="8% !important" style="border:1px solid; padding:8px;" align="left"> @Html.Raw(sStartStrike) @Html.DisplayFor(modelItem => item.SEMESTER_ID) @Html.Raw(sEndStrike)</td>
+                                        <td class="semi-bold" width="16% !important" style="border:1px solid; padding:8px;" align="left">@Html.Raw(sStartStrike) @Html.DisplayFor(modelItem => item.EXAM_DATE) @Html.Raw(sEndStrike)</td>
+                                        <td class="semi-bold" width="27% !important" style="border:1px solid; padding:8px;" align="left">@Html.Raw(sStartStrike) @Html.DisplayFor(modelItem => item.EXAM_TIME) @Html.Raw(sEndStrike)</td>
+                                        <td class="semi-bold" width="32% !important" style="border:1px solid; padding:8px;" align="left">@Html.Raw(sStartStrike) @Html.DisplayFor(modelItem => item.COURSE_TITLE) @Html.Raw(sEndStrike)</td>
+                                        <td class="semi-bold" width="20% !important" style="border:1px solid; padding:8px;" align="left">@Html.Raw(sStartStrike) @Html.DisplayFor(modelItem => item.COURSE_CODE) @Html.Raw(sEndStrike)</td>
+                                        <td class="semi-bold" width="18% !important" style="border:1px solid; padding:8px;" align="left">@Html.Raw(sStartStrike) @Html.DisplayFor(modelItem => item.SEAT_CODE) @Html.Raw(sEndStrike)</td>
+                                        <td class="semi-bold" width="5% !important" style="border:1px solid; padding:8px;" align="left"> @Html.Raw(sStartStrike) @Html.DisplayFor(modelItem => item.STATUS) @Html.Raw(sEndStrike)</td>
+                                        <td width="10% !important" style="border:1px solid; padding:10px;" align="left"></td>
+                                    </tr>
+                                }
+                            }
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="form-group col-xs-12">
+                <div class="col-xs-6 pull-left">
+                    <p>
+                        <b>SeatDescription</b> : &nbsp;
+                        BlockCode - RoomNo - Position
+                    </p>
+                </div>
+                <div class="col-xs-6 pull-right">
+                    <label>R - Regular &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;  A - Arrear </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-xs-12">&nbsp; <small>1. VB: Venmani Block  &nbsp; &nbsp; &nbsp; 2. TB: Terbes Block &nbsp; &nbsp; &nbsp; 3. SB (MB) : South Block (Micro Biology) &nbsp; &nbsp; &nbsp; 4. SB (CS) : South Block (Computer Science) &nbsp; &nbsp; &nbsp; 5. AL : Arul Block </small></label>
+            </div>
+
+            <div class="form-group col-xs-12">
+                <div class="col-xs-4"></div>
+                <div class="col-xs-4"><img src="~/Content/hcc_img/sign/SJC_PRINCIPAL_SIGN.jpg" width="100px" /></div>
+                <div class="col-xs-4"><img src="~/Content/hcc_img/sign/SJC_COE_SIGN1.jpg" width="100px" /></div>
+            </div>
+
+            <div class="form-group col-xs-12" style="margin-top:-22px">
+                <div class="col-xs-4">Student Sign</div>
+                <div class="col-xs-4">Principal</div>
+
+                <div class="col-xs-4">Examination</div>
+            </div>
+
+        </div>
+
+       </div>    
+    }
+}

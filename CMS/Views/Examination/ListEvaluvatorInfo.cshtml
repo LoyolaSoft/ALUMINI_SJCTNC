@@ -1,0 +1,583 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "ListEvaluvatorInfo";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">List Evaluator </li>
+    </ol>
+    <h1 class="page-header">List Evaluator</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Evaluator</h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="form-group col-md-12">
+                <a class="btn btn-success pull-right form-group m-b-5" href="#addevaluatorinfo" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add"> Add</i></a>
+            </div>
+
+            <div class="form-group col-md-12 table-responsive">
+                <table class="table table-hover table-bordered" id="tblevalutorinfo">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Evalutor Name</th>
+                            <th>Phone</th>
+                            <th>User Name</th>                         
+                            <th>Password</th>
+                            <th>Is Active</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @if (Model.liEvaluatorInfo != null && Model.liEvaluatorInfo.Count > 0)
+                        {
+                            var count = 0;
+                            foreach (var item in Model.liEvaluatorInfo)
+                            {
+                                count = count + 1;
+
+                                <tr>
+                                    <td>@count</td>
+
+                                    <td>@item.NAME</td>
+                                    <td>@item.PHONE</td>
+                                    <td>@item.USERNAME</td>
+                                    <td>@item.PASSWORD</td>
+                                  
+                                    <td>
+                                        @if (item.IS_ACTIVE == "0")
+                                        {
+                                            <a href="javascrip:;" onclick="SetActive(@item.EXAM_EVALUATOR_STAFF_ID,1)" class="text-success"><i class="fa fa-check"></i></a>             }
+                                        else
+                                        {
+                                            <a href="javascrip:;" onclick="SetActive(@item.EXAM_EVALUATOR_STAFF_ID,0)" class="text-danger"><i class="fa fa-times"></i></a>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <a href="#updateevalutorinfo" onclick="FetchEvaluatorInfoById(@item.EXAM_EVALUATOR_STAFF_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+
+                                        <a href="javascrip:;" onclick="GetConfirm(@item.EXAM_EVALUATOR_STAFF_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+
+                                    </td>
+                                </tr>
+                            }
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="addevaluatorinfo">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add Evalutors</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+
+                                    @*<div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Role</label>
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(model => model.Roles, (Model.Roles != null) ? Model.Roles : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true" })
+                                        </div>
+                                    </div>*@
+                                    <div class="col-md-12 form-group">
+                                        <div class="form-group col-md-4">
+                                            <div class="radio radio-inline radio-css">
+                                                <input type="radio" name="cssRadio" id="cssRadio1" onchange="HideOrShow()" value="1" />
+                                                <label for="cssRadio1">
+                                                   External
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-md-offset-2 col-md-4">
+                                            <div class="radio radio-inline radio-css">
+                                                <input type="radio" name="cssRadio" id="cssRadio2" onchange="HideOrShow()" value="2" />
+                                                <label for="cssRadio2">
+                                                   Internal
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group hidden" id="external">
+                                        <div class="col-md-12 form-group">
+                                            <label class="col-md-4 control-label">Number</label>
+                                            <div class="col-md-8">
+                                                <input type="number" id="txtOption" max="10" class="form-control input-sm"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group hidden" id="internal">
+                                        <div class="col-md-8 form-group">
+                                            <label class="col-md-4 control-label">Staff List</label>
+
+                                            <div class="col-md-8">
+                                                @Html.DropDownListFor(model => model.StaffList, (Model.StaffList != null) ? Model.StaffList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true",@multiple="multiple" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 form-group">
+                                           <button id="btnget" class="btn btn-primary">Get</button>
+                                        </div>
+                                    </div>
+                                  <div class="col-md-12" id="bindevalutordiv">
+
+                                   </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<div class="modal" id="updateevalutorinfo">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Edit EvalutorInfo</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody1">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Evaluator Name</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="txtname" class="form-control" placeholder="Name" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Phone</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="txtphone" class="form-control" placeholder="Phone No" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Password</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="txtpassword" class="form-control" placeholder="Password" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="txtstaffcode" class="form-control">
+                                    <div class="col-md-12 col-md-offset-4 form-group">
+
+                                        <div class="form-group col-md-4">
+                                            <div class="radio radio-inline radio-css">
+                                                <input type="radio" name="Radio" id="Radio1"  value="1" />
+                                                <label for="Radio1">
+                                                    External
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-md-offset-2 col-md-4">
+                                            <div class="radio radio-inline radio-css">
+                                                <input type="radio" name="Radio" id="Radio2"  value="2" />
+                                                <label for="Radio2">
+                                                    Internal
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnUpdate" class="btn btn-sm btn-primary" data-dismiss="modal">Update</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+        <input type="hidden" id="evaluator_staffid" value="" />
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+            
+        }
+
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+
+        $('.selectpicker').selectpicker('Refresh');
+        var tbl = $('#tblevalutorinfo').DataTable();
+        $('#tblevalutor').DataTable();
+
+        handleDatepicker = function () {
+            "use strict";
+
+
+            $("#txtStartDate").datepicker({
+                todayHighlight: true,
+                autoclose: true,
+              //  endDate: new Date(),
+                format: "dd/mm/yyyy",
+                orientation: "right bottom"
+            });
+            $("#txtEndDate").datepicker({
+                todayHighlight: true,
+                autoclose: true,
+                //endDate: new Date(),
+                format: "dd/mm/yyyy",
+                orientation: "right bottom"
+            });
+
+
+        }
+        handleDatepicker();
+
+
+        function FetchEvaluatorInfoById(ID)
+        {
+           
+            if (ID != null)
+            {
+                $.ajax({
+                    url: "@Url.Action("FetchEvaluvatorInfoByID", "Examination")",
+                    type:"post",
+                    data: { EvaluatorstaffinfoId: ID },
+                    success:function(data)
+                    {
+                        if(data.MESSAGE!=null)
+                        {
+                            alert(data.MESSAGE);
+                        }
+                        else
+                        {
+                            if (data != null)
+                            {
+                                $('#txtname').attr('value', data.NAME);
+                                $('#txtphone').attr('value', data.PHONE);
+                                $('#txtpassword').attr('value', data.PASSWORD);
+                                $('#txtstaffcode').attr('value', data.USERNAME);
+                                $('#evaluator_staffid').attr('value', data.EXAM_EVALUATOR_STAFF_ID);
+                                if (data.ROLE == "1")
+                                {
+                                    
+                                    $('#Radio1').prop('checked',true);
+                                }
+                                else if (data.ROLE == "2")
+                                {
+                                    $('#Radio2').prop('checked',true);
+                                }
+                                $('.selectpicker').selectpicker('refresh');
+                            }
+
+
+                        }
+
+                    },
+                    error:function(ex)
+                    {
+                        alert(ex.Message);
+                    }
+                });
+            }
+        }
+
+        $('#btnSubmit').click(function () 
+        {                        
+            var Is_external_internal;
+            var isValid = true;
+            if ($('#pBody').parsley().validate() !== true) isValid = false;
+            if (!isValid) 
+            {
+              
+                return false;
+            }    
+            if (cssRadio1.checked == true) 
+            {
+                Is_external_internal=1;
+            }
+            if(cssRadio2.checked == true)
+            {
+                Is_external_internal=2;    
+            }
+            var JsonData='';
+            JsonData += '{"LiEvaluatorInfo":[';
+            $('.tblevalutor tbody tr').each(function ()
+            {                            
+                JsonData += '{"NAME":"' + $(this).find('.name').val() + '","PHONE":"' + $(this).find('.phone').val() + '","ROLE":"' + Is_external_internal + '"},';
+                
+            });
+            JsonData = JsonData.slice(0, -1);
+            JsonData +=']}';
+           
+              var req=  $.ajax({
+                  url: "@Url.Action("SaveExamEvaluatorStaffInfo","Examination")",
+                    type: "post",
+                    data: { sJsonData: JsonData },
+                    success: function (data) {
+                        if (data.Message != null && data.Message != "")
+                        {
+                            if (data.ErrorCode == "200")
+                            {
+                                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                                loadContent('/Examination/ListEvaluvatorInfo');
+                            }
+                            if (data.ErrorCode == "417") {
+                                swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                            }
+                            if (data.ErrorCode == "503") {
+                                swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                            }
+
+
+                        }
+                    },
+                    error: function (ex) {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+              });           
+        });
+    $('#btnUpdate').click(function ()
+    {
+        var JsonData=null;
+       
+        var Is_external_internal;
+        var isValid = true;
+        if ($('#pBody1').parsley().validate() !== true) isValid = false;
+        if (!isValid) 
+        {
+            return false;
+        }    
+        if (Radio1.checked == true) 
+        {
+            Is_external_internal=1;
+        }
+        if(Radio2.checked == true)
+        {
+            Is_external_internal=2;    
+        }
+                                              
+        JsonData = '{"EXAM_EVALUATOR_STAFF_ID":"' + $('#evaluator_staffid').val() + '","NAME":"' + $('#txtname').val() + '","STAFF_CODE":"' + $('#txtstaffcode').val() + '","PHONE":"' + $('#txtphone').val() + '","PASSWORD":"' + $('#txtpassword').val() + '","ROLE":"' + Is_external_internal + '"}';
+          var req=  $.ajax({
+            url: "@Url.Action("UpdateEvaluatorStaffInfo", "Examination")",
+            type: "post",
+            data: { sJsonData: JsonData },
+             success: function (data) {
+            if (data.Message != null && data.Message != "")
+            {
+                if (data.ErrorCode == "200")
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                    loadContent('/Examination/ListEvaluvatorInfo');
+                }
+                if (data.ErrorCode == "417") {
+                    swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+                if (data.ErrorCode == "503") {
+                    swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                }
+
+
+            }
+        },
+        error: function (ex) {
+            swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+        }
+
+    });
+            
+
+
+    });
+    function SetActive(ID,Mode)
+    {
+        swal({
+            title: "Are you sure want to Activate/Deactivate?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+        function () {
+            $.ajax({
+                url: "@Url.Action("ActiveorDeactiveEvaluatorUserAccount","Examination")",
+                type: "post",
+                data: { EvaluatorstaffinfoId:ID,sMode:Mode},
+                success: function (data) {
+                    if (data.Message != null && data.Message != "")
+                    {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                        loadContent('/Examination/ListEvaluvatorInfo');
+                    }
+                },
+                error: function (ex) {
+                    swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+                }
+
+            });
+        });
+
+    }
+
+
+    GetConfirm = function (ID)
+        {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+
+function () {
+    $.ajax({
+        url: "@Url.Action("DeleteExamEvaluatorSatffInfo","Examination")",
+        type: "post",
+        data: { EvaluatorstaffinfoId: ID },
+        success: function (data) {
+            if (data.Message != null && data.Message != "")
+            {
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/Examination/ListEvaluvatorInfo');
+            }
+        },
+        error: function (ex) {
+            swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+        }
+
+
+    });
+});
+
+        }
+
+</script>
+<script>
+    HideOrShow = function () {
+        if (cssRadio1.checked == true) 
+        {
+            
+            $('#external').removeClass('hidden');
+            $('#internal').addClass('hidden');
+            $('#bindevalutordiv').empty();
+                            
+        }
+        if (cssRadio2.checked == true)
+        {
+            $('#internal').removeClass('hidden');
+           
+            $('#external').addClass('hidden');
+            $('#bindevalutordiv').empty();
+          
+           
+        }
+    }
+    $("#txtOption").focusout(function ()
+    {
+        
+        var number=$(this).val();
+        if(number!='' && number>0)
+        {
+            var dom='';
+            dom += "<table class='table table-bordered tblevalutor' id='tblevalutor'>";
+            dom += "<thead>";
+            dom += "<tr><th>Name</th><th>Phone Number</th></tr>";
+            dom += "</thead>";
+            dom += "<tbody>";
+            
+            for (var i = 0; i < number; i++)
+            {
+                var j = 0;
+                j = i + 1;
+                dom += "<tr><td><input type='text' id='name" + i + "' class='form-control name' placeholder='Enter Name' maxlength='145' data-parsley-required='true'></td><td><input type='text' id='Phone" + i + "' class='form-control phone' placeholder='Phone' maxlength='145' data-parsley-required='true' data-parsley-type='number'></td></tr>";
+                              
+            }
+            dom += "<tbody>";
+            dom += "</table>";
+            
+            $('#bindevalutordiv').html(dom);
+        }
+    });
+    $('#btnget').on('click',function()
+    {
+        var staffid=$('#StaffList').val();
+        $.ajax({
+            url:"@Url.Action("FetchInternalStaffInfo", "Examination")",
+            type: "post",
+            data: { sStaffIds:staffid.toString()},
+            success:function(data)            
+            {
+                $('#bindevalutordiv').empty();
+                $('#bindevalutordiv').append(data);
+            },
+            error:function(data)
+            {
+                alert('Internal Server Error..!');
+            }
+        })
+    });
+</script>
+
+
+
+
+
+
+

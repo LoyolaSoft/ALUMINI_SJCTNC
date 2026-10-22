@@ -1,0 +1,267 @@
+﻿@model CMS.ViewModel.ViewModel.DashboardViewModel
+@{
+    ViewBag.Title = "GetActivityByUserId";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<style>
+    .upload-btn-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    #btnImage {
+        border: 1px solid gray;
+        color: gray;
+        background-color: white;
+        padding: 7px 15px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .upload-btn-wrapper input[type=file] {
+        font-size: 100px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+    }
+</style>
+
+
+    <div class="content" id="content">
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li><a @*href="@Url.Action("ListActivityStatusForStaff","TaskManagement")"*@ href="javascript:;" onclick="loadContent('/TaskManagement/ListActivityStatusForStaff')">List Activity</a></li>
+            <li class="active">Activity</li>
+        </ol>
+        <h1 class="page-header">Activity</h1>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Activity</h4>
+            </div>
+            <div class="panel-body noPadding">
+                <div class="form-horizontal">
+                    <div class="col-md-12">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        @if (Model.liActivity != null && Model.liActivity.Count > 0)
+                        {
+                            foreach (var item in Model.liActivity)
+                            {
+                                <div class="form-group">
+                                    <div class="media media-sm col-md-8 col-md-offset-2 table-bordered">
+                                        <br />
+                                        <br />
+                                        
+                                        <a class="media-left" href="javascript:;">
+                                            <img src="~/Content/assets/img/transparent/e-user.jpg" alt="" class="media-object" />
+                                        </a>
+                                        <div class="media-body">
+                                            <h3 class="media-heading">@item.ACTIVITY_TITLE.ToUpper()</h3>
+                                            <p><b>Description:</b> @item.DESCRIPTION</p>
+                                            <p><b>Last Date:</b> @item.SUBMISSION_DATE</p>
+                                            <div class="col-md-4">
+                                                <div class="fileupload fileupload-new" data-provides="fileupload">
+                                                    <div class="fileupload-new thumbnail" style="width: 150px; height: 195px;">
+                                                        <img class="img-responsive" src="@item.PHOTO_PATH" id="@item.ACTIVITY_ID" style="width: 145px; height: 185px;" accesskey=".jpg,.jpeg,.png" />
+                                                    </div>
+                                                    <div class="upload-btn-wrapper">
+                                                        <button class="btn" id="btnImage1">Select Image</button>
+                                                        <input type="file" class="btn bg-purple" imageid="imgid1" cms-Image="Image_@item.ACTIVITY_ID" name="@item.ACTIVITY_ID" id="inputimg" onchange="encodeImagetoBase64(this,this.name,this.id)" accept=".jpg,.png,.jpeg">
+
+                                                        @*<button class="btn" id="btnImage1">Select Image</button>
+                                                        <input type="file" class="btn bg-purple" imageid="imgid1" name="@item.ACTIVITY_ID" id="inputimg" onchange="encodeImagetoBase64(this,this.name,this.id)" accept=".jpg,.png,.jpeg">*@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="">
+                                                    @*<div style="height: 200px;" ></div>*@                                                    
+                                                    <input type="file"  cms-File="File_@item.ACTIVITY_ID" name="@item.ACTIVITY_ID" @*onchange="FileName(this,this.name,this.id)"*@ id="">
+                                                    @*<label class="form-control">@item.FILE_PATH</label>*@
+                                                    @*<input type="file" name="fileupload" value="fileupload" id="fileupload">*@
+                                                </div>
+                                            </div>
+                                            @*<div class="col-md-2">
+                                                <div class="">
+                                                   <label class="label-info" id="lblFile"></label>
+                                                </div>
+                                            </div>*@
+
+                                            <div class="col-md-2 pull-right">
+                                                @*<div style="height: 215px;"></div>*@
+                                                <input type="button" id="btnUpload" onclick="SaveFileAndImage(@item.ACTIVITY_ID,'@item.ACTIVITY_TITLE');" class="btn btn-primary" value="Submit" />
+                                            </div>
+
+                                            
+
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+        var extension;
+        var baseimage64;
+        
+        function SaveFileAndImage(ActivityId,ActivityTitle) 
+        {
+            var File = $("input[cms-File=File_" + ActivityId + "]").get(0);
+            var Image = $("input[cms-Image=Image_" + ActivityId + "]").get(0);
+          //  alert("File" + File + " \\" + "Image " + Image);
+            if (File!=null && Image!=null) 
+            {
+                var fileData = new FormData();
+                var file = File.files;
+                if (file.length<=0) {
+                   
+
+                    swal({ title: "Info !", text: "Please Upload Your File !", showConfirmButton: false, timer: 1800, type: 'info', animation: true });
+
+                    return false;
+                }
+                // File Append ...
+                for (var j = 0; j < file.length; j++) 
+                {
+                    fileData.append(file[j].name, file[j]);
+                }
+                file = Image.files;
+                if (file.length <= 0) {
+                  
+                    swal({ title: "Info !", text: "Please Upload Your Image !", showConfirmButton: false, timer: 1800, type: 'info', animation: true });
+                    return false;
+                }
+                //if (!$('#' + ActivityId).attr('src')) {                   
+                //    alert('Please Upload Your Image');
+                //    return false;
+                //} 
+                // Image Append ...
+                for (var j = 0; j < file.length; j++) 
+                {
+                    fileData.append(file[j].name, file[j]);
+                }
+                fileData.append("ACTIVITY_ID", ActivityId);
+                fileData.append("ACTIVITY_TITLE", ActivityTitle);
+                $.ajax({
+                    url: "@Url.Action("SaveUploadedFiles", "TaskManagement")",
+                    method: "POST",
+                    contentType: false, // Not to set any content header
+                    processData: false,
+                    data: fileData,
+                    success: function (data)
+                    {
+                        //myAlert(data.Message, 'gritter-success', '');
+                     
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                    }, error: function (error)
+                    {
+                        swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                        return false;
+                    }
+                });
+            } else
+            {
+               
+                swal({ title: "Info !", text: "Please Upload Your Documents To Continue !", showConfirmButton: false, timer: 1800, type: 'info', animation: true });
+            }
+        }
+
+        @*$("#btnUpload").click(function ()
+        {
+            var File=$("input[cms-id=" + count + "]").attr('name');
+            var Image='';
+            var count = $('#hdActivity').attr('cms-id');
+
+            
+            var fileUpload = $("#inputimg").get(0);
+            var file = fileUpload.files;
+
+            // Looping over all files and add it to FormData object
+            for (var j = 0; j < file.length; j++) {
+                Activityid += $("input[cms-id=" + count + "]").attr('name') + ',' + file[j].name + '|';
+                fileData.append(file[j].name, file[j]);
+            }
+            
+            fileData.append("ImageActivityId",Activityid);
+            $.ajax({
+                url: "@Url.Action("SaveUploadedFiles", "TaskManagement")",
+                method: "POST",
+                contentType: false, // Not to set any content header
+                processData: false,
+                data: fileData,
+                success: function (data)
+                {
+                    myAlert(data.Message, 'gritter-success', '');
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                    return false;
+                }
+
+            });
+        });*@
+        //function encodeImagetoBase64(element, imageid, id)
+        //{
+        //    if (element != null && element != "") {
+        //        var file = element.files[0];
+        //        extension = String(file.value).substr(String(file.value).lastIndexOf('.') + 1);
+        //        var reader = new FileReader();
+        //        reader.onloadend = function () {
+        //            $(".link").attr("href", reader.result);
+        //            $(".link").text(reader.result);
+        //            $('#' + imageid).attr("src", reader.result);
+        //            //only this is required to send file in ajax
+        //            baseimage64 = reader.result;
+        //        }
+        //    }
+        //    //this is method call
+        //    reader.readAsDataURL(file);
+        //}
+
+        function encodeImagetoBase64(element, imageid, id)
+        {
+            if (element != null && element != "")
+            {
+                var file = element.files[0];
+                extension = String(file.value).substr(String(file.value).lastIndexOf('.') + 1);
+                var reader = new FileReader();
+                reader.onloadend = function ()
+                {
+                    $(".link").attr("href", reader.result);
+                    $(".link").text(reader.result);
+                    $('#' + imageid).attr("src", reader.result);
+                    //only this is required to send file in ajax
+                    baseimage64 = reader.result;
+                }
+            }
+            //this is method call
+            reader.readAsDataURL(file);
+        }
+        //function FileName(element, Filename) {
+        //    if (element != null && element != "") {
+        //        $('#lblFile').val(Filename);
+        //    }
+        //    //this is method call
+        //    reader.readAsDataURL(file);
+        //}
+    </script>

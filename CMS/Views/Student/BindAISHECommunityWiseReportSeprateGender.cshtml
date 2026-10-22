@@ -1,0 +1,218 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    Layout = null;
+    int Count = 0;
+
+
+}
+
+@if (Model.liCommunityReport != null && Model.liCommunityReport.Count > 0)
+{
+
+
+    var communityMap = new Dictionary<string, List<string>> {
+    { "OC", new List<string>{ "OC","FC" } },
+    { "OBC", new List<string>{ "BC", "MBC", "OBC", "DNC", "OB","BCM" } },
+    { "SC", new List<string>{ "SC", "SCA", "SCC - DHALITH CRISH" } },
+    { "ST", new List<string>{ "ST" } }
+};
+
+    var communityGroup = communityMap.Select(cm => new { COMMUNITY = cm.Key, IDs = cm.Value }).ToList();
+
+    var religionMap = new Dictionary<string, List<string>> {
+    { "Muslim", new List<string>{ "MUSLIM" } },
+    { "Christian", new List<string>{ "CHRISTIAN", "ROMAN CATHOLIC", "OTHER CHRISTIAN", "OTHERS" } },
+    { "Jain", new List<string>{ "JAIN" } },
+    { "Hindu", new List<string>{ "HINDU" } },
+    { "Other Minority", new List<string>{ "CHRISTIAN", "ROMAN CATHOLIC", "OTHER CHRISTIAN", "JAIN", "OTHERS" } }
+};
+
+    var religionGroup = religionMap.Select(rm => new { RELIGION = rm.Key, IDs = rm.Value }).ToList();
+
+    var classYears = Model.liCommunityReport.Select(x => x.CLASS_YEAR).Distinct().OrderBy(x => x).ToList();
+
+    var groupedByProgrammeLevel = Model.liCommunityReport.GroupBy(x => x.CLASSLEVELID).OrderBy(g => g.Key).ToList();
+
+    int colsPerYear = (communityGroup.Count + religionGroup.Count) * 3 + 3;
+    int totalDynamicCols = classYears.Count * colsPerYear + 2;
+    <div class="table-responsive">
+        <table class="table table-bordered text-center" style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead>
+                <tr>
+                    <th colspan="@totalDynamicCols" style="text-align:center; font-weight:bold;">
+                        ST. JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS), CUDDALORE
+                    </th>
+                </tr>
+                <tr>
+                    <th colspan="@totalDynamicCols" style="text-align:center; font-weight:bold;">
+                        Student Community Report (@ViewBag.AcademicYear)
+                    </th>
+                </tr>
+                <tr>
+                    <th rowspan="3" style="font-weight: bold;">S.No</th>
+                    <th rowspan="3" style="padding-left:40px; padding-right:40px;font-weight: bold;">Programme Name</th>
+                    @foreach (var year in classYears)
+                    {
+                        <th colspan="@colsPerYear" class="text-center" style="font-weight: bold;">@year - YEAR</th>
+                    }
+                    <th></th>
+
+                </tr>
+                <tr>
+                    @foreach (var year in classYears)
+                    {
+                        foreach (var com in communityGroup)
+                        {
+                            <th colspan="3" style="font-weight: bold;">@com.COMMUNITY</th>
+                        }
+                        <th colspan="3"  class="text-center" style="font-weight: bold;">TOTAL</th>
+                        foreach (var rel in religionGroup)
+                        {
+                            <th colspan="3" style="font-weight: bold;">@rel.RELIGION</th>
+                        }
+                    }
+                    <th></th>
+                </tr>
+                <tr>
+                    @foreach (var year in classYears)
+                    {
+                        foreach (var com in communityGroup)
+                        {
+                            <th style="font-weight: bold;">M</th>
+                            <th style="font-weight: bold;">F</th>
+                            <th style="font-weight: bold;">T</th>
+                        }
+                        <th style="font-weight: bold;">M</th>
+                        <th style="font-weight: bold;">F</th>
+                        <th style="font-weight: bold;">T</th>
+                        foreach (var rel in religionGroup)
+                        {
+                            <th style="font-weight: bold;">M</th>
+                            <th style="font-weight: bold;">F</th>
+                            <th style="font-weight: bold;">T</th>
+                        }
+                    }
+                    <th style="font-weight: bold;">G.T</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    double grandTotal = 0;
+                    var grandYearTotals = classYears.ToDictionary(y => y, y => new { M = 0, F = 0, T = 0 });
+                }
+                @foreach (var levelGroup in groupedByProgrammeLevel)
+                {
+                    <tr>
+                        <th colspan="@totalDynamicCols" style="text-align:left;">Programme Level: <b>@levelGroup.First().CLASSLEVEL</b></th>
+                    </tr>
+
+                    var groupedByProgramme = levelGroup.GroupBy(x => x.PROGRAMME_NAME).OrderBy(g => g.Key).ToList();
+                    Count = 0;
+
+                    // Level totals
+                    var levelYearTotals = classYears.ToDictionary(y => y, y => new { M = 0, F = 0, T = 0 });
+                    double levelTotal = 0;
+
+                    foreach (var progGroup in groupedByProgramme)
+                    {
+                        Count++;
+                        <tr>
+                            <td>@Count</td>
+                            <td style="text-align: left; font-weight: bold;">@progGroup.Key</td>
+                            @foreach (var year in classYears)
+                            {
+                                double progComM = 0, progComF = 0, progComT = 0;
+                                foreach (var com in communityGroup)
+                                {
+                                    var male = progGroup.Where(x => x.CLASS_YEAR == year && com.IDs.Contains(x.COMMUNITY) && x.GENDER_ID == "1").Sum(x => Convert.ToInt32(x.COUNT));
+                                    var female = progGroup.Where(x => x.CLASS_YEAR == year && com.IDs.Contains(x.COMMUNITY) && x.GENDER_ID == "2").Sum(x => Convert.ToInt32(x.COUNT));
+                                    var tran = progGroup.Where(x => x.CLASS_YEAR == year && com.IDs.Contains(x.COMMUNITY) && x.GENDER_ID == "3").Sum(x => Convert.ToInt32(x.COUNT));
+                                    progComM += male; progComF += female; progComT += tran;
+                                    <td>@male</td>
+                                    <td>@female</td>
+                                    <td>@tran</td>
+                                }
+                                <td><b>@progComM</b></td>
+                                <td><b>@progComF</b></td>
+                                <td><b>@progComT</b></td>
+                                foreach (var rel in religionGroup)
+                                {
+                                    var male = progGroup.Where(x => x.CLASS_YEAR == year && rel.IDs.Contains(x.RELIGION) && x.GENDER_ID == "1").Sum(x => Convert.ToInt32(x.COUNT));
+                                    var female = progGroup.Where(x => x.CLASS_YEAR == year && rel.IDs.Contains(x.RELIGION) && x.GENDER_ID == "2").Sum(x => Convert.ToInt32(x.COUNT));
+                                    var tran = progGroup.Where(x => x.CLASS_YEAR == year && rel.IDs.Contains(x.RELIGION) && x.GENDER_ID == "3").Sum(x => Convert.ToInt32(x.COUNT));
+                                    <td>@male</td>
+                                    <td>@female</td>
+                                    <td>@tran</td>
+                                }
+
+                                // Update totals
+                                levelYearTotals[year] = new
+                                {
+                                    M = levelYearTotals[year].M + (int)progComM,
+                                    F = levelYearTotals[year].F + (int)progComF,
+                                    T = levelYearTotals[year].T + (int)progComT
+                                };
+                                grandYearTotals[year] = new
+                                {
+                                    M = grandYearTotals[year].M + (int)progComM,
+                                    F = grandYearTotals[year].F + (int)progComF,
+                                    T = grandYearTotals[year].T + (int)progComT
+                                };
+
+                                levelTotal += progComM + progComF + progComT;
+                                grandTotal += progComM + progComF + progComT;
+                            }
+                        </tr>
+                    }
+
+                    // Subtotal row for this Programme Level
+                    <tr style="font-weight:bold; background-color:#f0f0f0;">
+                        <td colspan="2" style="text-align:left;">Sub Total</td>
+                        @foreach (var year in classYears)
+                        {
+                            for (int i = 0; i < (communityGroup.Count - 1) * 3 + 3; i++)
+                            {
+                                <td></td>
+                            }
+                            <td>@levelYearTotals[year].M</td>
+                            <td>@levelYearTotals[year].F</td>
+                            <td>@levelYearTotals[year].T</td>
+                            for (int i = 0; i < religionGroup.Count * 3; i++)
+                            {
+                                <td></td>
+                            }
+                        }
+                        <td>@levelTotal</td>
+                    </tr>
+                }
+
+                <tr style="font-weight:bold;">
+                    <td colspan="2" style="text-align:left;">Grand Total</td>
+                    @foreach (var year in classYears)
+                    {
+
+                        for (int i = 0; i < (communityGroup.Count - 1) * 3 + 3; i++)
+                        {
+                            <td></td>
+                        }
+                        <td>@grandYearTotals[year].M</td>
+                        <td>@grandYearTotals[year].F</td>
+                        <td>@grandYearTotals[year].T</td>
+                        for (int i = 0; i < religionGroup.Count * 3; i++)
+                        {
+                            <td></td>
+                        }
+
+                    }
+                    <td>@grandTotal</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="text-center p-2 bg-danger">
+        <h3>No Record's Found</h3>
+    </div>
+}

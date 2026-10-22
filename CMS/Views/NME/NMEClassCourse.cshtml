@@ -1,0 +1,255 @@
+﻿@model CMS.ViewModel.ViewModel.NMEViewModel
+@using CMS.Utility;
+@{
+    ViewBag.Title = "NMEClassCourse";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/multi-select/multiselect.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="content" id="content">
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li><a @*href="@Url.Action("NMEClassCourseList","NME")"*@ href="javascript:;" onclick="loadContent('/NME/NMEClassCourseList')">List NME Class Course </a></li>
+            <li class="active">Add NME Class Course </li>
+        </ol>
+        <h1 class="page-header">Add NME Class Course </h1>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Add NME Class Course</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    <div class="col-md-12">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.NMESettingList, htmlAttributes: new { @class = "control-label col-md-4" })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(model => model.NMESettingList, Model.NMESettingList, "-- Select --", new { @class = "drop-down form-control input-sm" })
+                                    @Html.ValidationMessageFor(model => model.NMESettingList, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group hidden">
+                            @Html.LabelFor(model => model.SaveNMEClassCourse.CLASS_ID, htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.EditorFor(model => model.SaveNMEClassCourse.CLASS_ID, new { htmlAttributes = new { @class = "form-control input-sm", disabled = "true" } })
+                                @Html.ValidationMessageFor(model => model.SaveNMEClassCourse.CLASS_ID, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.SaveNMEClassCourse.CLASS_CODE, htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.EditorFor(model => model.SaveNMEClassCourse.CLASS_CODE, new { htmlAttributes = new { @class = "form-control input-sm", disabled = "true" } })
+                                    @Html.ValidationMessageFor(model => model.SaveNMEClassCourse.CLASS_CODE, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.NMECourseList, htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.NMECourseList, (Model.NMECourseList != null) ? Model.NMECourseList : Enumerable.Empty<SelectListItem>(), new { @class = " multiselect drop-down form-control input-sm", multiple = "multiple" })
+                                    @Html.ValidationMessageFor(model => model.NMECourseList, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group pull-right ">
+                            <div class="col-md-12">
+                                <a id="btnGet" value="SUBMIT" class="btn btn-success">Get</a>
+                            </div>
+                        </div>
+                        <div class="form-horizontal">
+                            <div id="dvNMEClassCourseQuota"></div>
+                        </div>
+                        <div class="form-group pull-right hidden" id="hdSubmit">
+                            <div class="col-md-12">
+                                <a id="btnSubmit" value="SUBMIT" class="btn btn-primary">Submit</a>
+                                <a id="" @*href="@Url.Action("NMEClassCourseList","NME")"*@ href="javascript:;" onclick="loadContent('/NME/NMEClassCourseList')" value="SUBMIT" class="btn btn-danger">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+    <script src="~/Content/assets/plugins/flot/jquery.flot.min.js"></script>
+    <script src="~/Content/assets/plugins/multi-select/multiselect-js.js"></script>
+    <script src="~/Content/assets/plugins/select2/dist/js/select2.min.js"></script>
+    <script>
+        $("#NMESettingList").select2();
+    </script>
+    <script>
+        function ContentLoad() {
+            // Document Ready Function .
+            handleMultiSelect();
+        }
+        
+
+            handleMultiSelect = function () {
+                "use strict";
+                $('.multiselect').multiselect({
+                    includeSelectAllOption: true,
+                    enableFiltering: true,
+                    enableCaseInsensitiveFiltering: true,
+                    maxHeight: 200,
+                    numberDisplayed: 1,
+                    templates: {
+                        button: '<button type="button" class="multiselect dropdown-toggle form-control input-sm col-md-9 " data-toggle="dropdown"><span class="multiselect-selected-text"></span> <b class="caret"></b></button>',
+                        ul: '<ul class="multiselect-container dropdown-menu" style="max-width:350px;"></ul>'
+                    }
+                });
+            }
+           
+        
+    </script>
+    <script>
+        $('#NMESettingList').on('change', function ()
+        {
+            var SettingId = $('#NMESettingList').val();
+            if (SettingId != null) {
+                $.ajax({
+                    url: "@Url.Action("GetCourseId", "NME")",
+                    data: { sSettingId: SettingId },
+                    datatype: JSON,
+                    success: function (option) {
+                        $('#SaveNMEClassCourse_CLASS_CODE').val(option.CLASS);
+                        $('#SaveNMEClassCourse_CLASS_ID').val(option.CLASS_ID);
+                        $('#NMECourseList').attr("multiple", "multiple");
+                        $("#NMECourseList").empty().append(option.COURSE).multiselect("destroy").multiselect({
+                            includeSelectAllOption: true,
+                            enableFiltering: true,
+                            enableCaseInsensitiveFiltering: true,
+                            maxHeight: 200,
+                            numberDisplayed: 1,
+                            templates: {
+                                button: '<button type="button" class="multiselect dropdown-toggle form-control input-sm col-md-9 " data-toggle="dropdown"><span class="multiselect-selected-text"></span> <b class="caret"></b></button>',
+                                ul: '<ul class="multiselect-container dropdown-menu" style="max-width:350px;"></ul>'
+                            }
+                        });
+                    },
+                    error: function (xhr, textStatus, error) {
+                        alert(error + "\n");
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
+        function Validate() {
+            var validate = 0;
+            $('#NMEClassCourseQuota  tbody tr').each(function () {
+                if ($(this).find('input[type="number"]').attr("cms-courserootid"))
+                {
+                    if ((parseInt($(this).find('input[type="number"]').val()) + parseInt($(this).find('input[type="number"]').attr("cms-sumofquota"))) > parseInt($(this).find('input[type="number"]').attr("max")))
+                    {
+                        $(this).find('input[type="number"]').css('color', 'red');
+                        validate = 1;
+                    } else {
+                        $(this).find('input[type="number"]').css('color', 'block');
+                    }
+                }
+            });
+            return validate;
+        }
+    </script>
+    <script>
+        $('#btnSubmit').on('click', function () {
+
+            if (parseInt($('#NMECourseList').val()) != 0) {
+                if (Validate()) {
+                    alert('Quota should be less than or equal to Maximum Allotment...');
+                    return false;
+                }
+            }
+            var SettingId = $('#NMESettingList').val();
+            var ClassId = $('#SaveNMEClassCourse_CLASS_ID').val();
+            var sCourseId;
+            var sSettingId;
+            var sClassQuota;
+            var sClassId;
+            var JsonData;
+            JsonData = '{"NMEClassCourse":[';
+            var JsonCount = 0;
+            $('#NMEClassCourseQuota tbody tr').each(function () {
+                sSettingId = SettingId;
+                sClassId = ClassId;
+                
+              
+                if ($(this).find('input[type="number"]').attr("cms-courserootid") && $(this).find('input[type="number"]').val() != "" && $(this).find('input[type="number"]').val() != "0")
+                    {
+                        JsonData += '{"SETTINGS_ID":"' + sSettingId + '","CLASS_ID":"' + sClassId + '",';
+                        JsonData += '"' + "COURSE_ID" + '":"' + $(this).find('input[type="number"]').attr("cms-courserootid") + '","' + "QUOTA" + '":"' + $(this).find('input[type="number"]').val() + '"},';
+                        JsonCount++;
+                    }
+               
+            });
+            if (JsonCount != 0)
+            {
+                JsonData = JsonData.slice(0, -1);
+                JsonData +=
+                ']}';
+            } else
+            {
+                alert('Invalid Number . Check your Input !');
+                return false;
+            }
+            
+            $.ajax({
+                url: "@Url.Action("SaveNMEClassCourse", "NME")",
+                method: "POST",
+                data: { sClassCourse: JsonData },
+                success: function (data) {
+                    alert(data);
+                    $('#btnGet').click();
+                },
+                error: function (e) {
+                    alert(e);
+                }
+            });
+
+            //else {
+            //        alert('Please select course...!');
+            //}
+        });
+    </script>
+    <script>
+        $('#btnGet').on('click', function ()
+        {
+            var SettingId = $('#NMESettingList').val();
+            var ClassId = $('#SaveNMEClassCourse_CLASS_ID').val();
+            var CourseId = String($('#NMECourseList').val());
+            $.ajax({
+                url: "@Url.Action("GetNMEClassCourseWithQuota", "NME")",
+                method: "POST",
+                data: { sSettingId: SettingId, sClassId: ClassId, sCourseId: CourseId },
+                success: function (option) {
+                    var divHtml = $('#dvNMEClassCourseQuota');
+                    divHtml.empty();
+                    divHtml.html(option);
+                    $('#hdSubmit').removeClass('hidden');
+                    
+                },
+                error: function (e) {
+                    alert(e);
+                }
+            });
+        });
+    </script>
+

@@ -1,0 +1,414 @@
+﻿@model IEnumerable<CMS.ViewModel.Model.StudentSibling>
+<div id="dvSibling">
+    <div class="row">
+        <div class="form-group pull-right">
+            <a href="#Sibling-dialog" class="btn btn-sm btn-success pull-right" data-toggle="modal"><i class="fa fa-plus"></i></a>
+        </div>
+    </div>
+    <div class="table-responsive row">
+        @{int count = 0;}
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Institute Name</th>
+                    <th>Program</th>
+                    <th>Qualification</th>
+                    <th>Date of Birth</th>
+                    <th>Gender</th>
+                    <th>Occupation</th>
+                    <th>Monthly Income</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null)
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@{count++;} @count</td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Age)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.InstituteName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Program)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Qualification)
+                            </td>
+
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DateofBirth)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Gender)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Occupation)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.MonthlyIncome)
+                            </td>
+                            <td>
+                                <a href="#Sibling-dialog" onclick="GetSiblingValues(@item.SiblingId)" data-toggle="modal" class="fa fa-edit text-primary"></a>
+                                <a href="javascript:;" onclick="GetConfirm(@item.SiblingId)" class="fa fa-trash text-danger"></a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td>No Data Found ...!</td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $("#btnEditSibling").hide();
+            handleDatepicker = function () {
+                "use strict";
+                $("#txtDob").datepicker({
+                    todayHighlight: true,
+                    autoclose: true,
+                    endDate: new Date(),
+                    format: "dd/mm/yyyy",
+                    orientation: "right bottom"
+                }
+                )
+            }
+            handleDatepicker();
+
+            GetDDLSibling=function()
+            {
+                $.ajax({
+                    url:"@Url.Action("BindDDLSibling", "Student")",
+                    method:"POST",
+                    datatype:"json",
+                    success:function(data)
+                    {
+                        var json = JSON.parse(data);
+                        $("#ddlEmployed").empty();
+                        $("#ddlEmployed").append('<option value="">-- select --</option>' + json.Option);
+
+                        $("#ddlSameClg").empty();
+                        $("#ddlSameClg").append('<option value="">-- select --</option>' + json.Option);
+
+                        $("#Program").empty();
+                        $("#Program").append('<option value="">-- select --</option>' + json.Program);
+
+                        $("#Gender").empty();
+                        $("#Gender").append('<option value="">-- select --</option>' + json.Gender);
+
+                        $("#ddlOccupation").empty();
+                        $("#ddlOccupation").append('<option value="">-- select --</option>' + json.Occupation);
+                    },error:function(error)
+                    {
+                        alert('Internal Server Error ! ');
+                    }
+                });
+            }
+            GetDDLSibling();
+        });
+
+        // Fetch Student Sibling ...
+        GetStuSibling = function ()
+        {
+            $.ajax({
+                url:"@Url.Action("EditStuSiblingInfo", "Student")",
+                method:"POST",
+            datatype:"json",
+            success:function(data)
+            {
+                $("#dvSibling").empty();
+                $("#dvSibling").append(data);
+            },error:function(error)
+            {
+                alert('Internal Server Error ! ');
+            }
+        });
+        }
+
+        // Delete Sibling ...
+        function GetConfirm(ID)
+        {
+            if (!confirm('Are you sure to delete ?'))
+            {
+                return false;
+            } else
+            {
+                $.ajax({
+                    url:"@Url.Action("DeleteSibling", "Student")",
+                    method: "POST",
+                    datatype:"json",
+                    data: { sSiblingId: ID },
+                    success:function(data)
+                    {
+                        alert(data);
+                        GetStuSibling();
+                    },error:function(error)
+                    {
+                        alert('Internal Server Error ! ');
+                    }
+                });
+            }
+        }
+
+
+        // Bind Sibling Details ...
+        GetSiblingValues=function(ID)
+        {
+            $.ajax({
+                url:"@Url.Action("BindSibling", "Student")",
+                method:"POST",
+                datatype:"json",
+                data: { sSiblingId: ID },
+                success:function(data)
+                {
+                    $("#Name").val(data.Name);
+                    $("#Age").val(data.Age);
+                    $("#Institute").val(data.InstituteName);
+                    $("#Program").val(data.Program);
+                    $("#txtQualification").val(data.Qualification);
+                    $("#ddlEmployed").val(data.Employed);
+                    $("#txtDob").val(data.DateofBirth);
+                    $("#Gender").val(data.Gender);
+                    $("#ddlOccupation").val(data.Occupation);
+                    $("#txtMonthlyIncome").val(data.MonthlyIncome);
+                    $("#txtProgName").val(data.ProgName);
+                    $("#ddlSameClg").val(data.Is_Same_Collage);
+                    $("#btnSibling").hide();
+                    $("#btnEditSibling").show();
+                },error:function(error)
+                {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+
+        // Insert Sibling ....
+        $("#btnSibling").on("click", function ()
+        {
+            var isValid = true;
+            if ($('#nav-tab2-11').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //gritter-info,danger,success,warning,default
+                myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+            var Name = $("#Name").val();
+            var Age = $("#Age").val();
+            var Institute_Name = $("#Institute").val();
+            var Program = $("#Program").val();
+            var Qualification = $("#txtQualification").val();
+            var Employed = $("#ddlEmployed").val();
+            var DateofBirth = $("#txtDob").val();
+            var Gender = $("#Gender").val();
+            var Occupation = $("#ddlOccupation").val();
+            var Monthly_Income = $("#txtMonthlyIncome").val();
+            var ProgName = $("#txtProgName").val();
+            var Is_Same_Collage = $("#ddlSameClg").val();
+            var JsonData;
+            if (JsonData == null)
+            {
+                JsonData = '{"Name":"' + Name + '","InstituteName":"' + Institute_Name + '","Age":"' + Age + '","Program":"' + Program + '","Qualification":"' + Qualification + '","Employed":"' + Employed + '","DateofBirth":"' + DateofBirth + '","Gender":"' + Gender + '","Occupation":"' + Occupation + '","MonthlyIncome":"' + Monthly_Income + '","ProgName":"' + ProgName + '","Is_Same_Collage":"' + Is_Same_Collage + '"}';
+            }
+            $.ajax({
+                url:"@Url.Action("InsertSibling", "Student")",
+                method: "POST",
+                datatype: "json",
+                data: { JsonSibling: JsonData },
+                success:function(data)
+                {
+                    alert(data);
+                    GetStuSibling();
+                },error:function(error)
+                {
+                    alert('Session time out try again ...!');
+                }
+            });
+        });
+
+        // Update Sibling ....
+        $("#btnEditSibling").on("click", function ()
+        {
+            var isValid = true;
+            if ($('#nav-tab2-11').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //gritter-info,danger,success,warning,default
+                myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+            var Name = $("#Name").val();
+            var Age = $("#Age").val();
+            var Institute_Name = $("#Institute").val();
+            var Program = $("#Program").val();
+            var Qualification = $("#txtQualification").val();
+            var Employed = $("#ddlEmployed").val();
+            var DateofBirth = $("#txtDob").val();
+            var Gender = $("#Gender").val();
+            var Occupation = $("#ddlOccupation").val();
+            var Monthly_Income = $("#txtMonthlyIncome").val();
+            var ProgName = $("#txtProgName").val();
+            var Is_Same_Collage = $("#ddlSameClg").val();
+            var JsonData;
+            if (JsonData == null)
+            {
+                JsonData = '{"Name":"'+Name+'","InstituteName":"'+Institute_Name+'","Age":"'+Age+'","Program":"'+Program+'","Qualification":"'+Qualification+'","Employed":"'+Employed+'","DateofBirth":"'+DateofBirth+'","Gender":"'+Gender+'","Occupation":"'+Occupation+'","MonthlyIncome":"'+Monthly_Income+'","ProgName":"'+ProgName+'","Is_Same_Collage":"'+Is_Same_Collage+'"}';
+            }
+            $.ajax({
+                url:"@Url.Action("UpdateSibling", "Student")",
+                method: "POST",
+                datatype: "json",
+                data: { JsonSibling: JsonData },
+                success:function(data)
+                {
+                    alert(data);
+                    GetStuSibling();
+                },error:function(error)
+                {
+                    alert('Session time out try again ...!');
+                }
+            });
+        });
+    </script>
+</div>
+
+
+<div class="modal" id="Sibling-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Sibling</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Name</label>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control input-sm" id="Name" placeholder="Enter Name" data-parsley-length="[3,50]" data-parsley-required="true"/>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Age</label>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control input-sm" id="Age" placeholder="Enter Age" data-parsley-length="[1,3]" data-parsley-type="number" data-parsley-required="true" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Instittute Name</label>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control input-sm" id="Institute" placeholder="Enter Instittute Name" data-parsley-length="[3,200]" data-parsley-required="true" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Program</label>
+                                    <div class="col-md-9">
+                                        <select id="ddlProgram" class="form-control input-sm">
+                                            <option value="">-- Select --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Qualification</label>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control input-sm" id="txtQualification" placeholder="Enter Qualification" data-parsley-length="[3,25]" data-parsley-required="true" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Employed</label>
+                                    <div class="col-md-9">
+                                        <select id="ddlEmployed" class="form-control input-sm">
+                                            <option value="">-- Select --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Date Of Birth</label>
+                                    <div class="col-md-9">
+                                        <div class="input-group date" id="datetimepicker1">
+                                            <input type="text" class="form-control input-sm" id="txtDob" placeholder="Select Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Gender</label>
+                                    <div class="col-md-9">
+                                        <select id="ddlGender" class="form-control input-sm">
+                                            <option value="">-- Select --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Occupation</label>
+                                    <div class="col-md-9">
+                                        <select id="ddlOccupation" class="form-control input-sm">
+                                            <option value="">-- Select --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Monthly Income</label>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control input-sm" id="txtMonthlyIncome" placeholder="Enter Monthly Income" data-parsley-length="[3,7]" data-parsley-type="number" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Programme Name</label>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control input-sm" id="txtProgName" placeholder="Programme Name" data-parsley-length="[3,10]" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3"> Is Same College</label>
+                                    <div class="col-md-9">
+                                        <select id="ddlSameClg" class="form-control input-sm">
+                                            <option value="">-- Select --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSibling" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" id="btnEditSibling" class="btn btn-sm btn-primary" data-dismiss="modal">Update</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>

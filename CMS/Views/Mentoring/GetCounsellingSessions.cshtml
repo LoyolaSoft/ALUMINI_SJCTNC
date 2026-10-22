@@ -1,0 +1,246 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+    int i = 0;
+}
+
+<input type="hidden" id="COUNSEL_STUDENT_ID" value="@ViewBag.StudentId" />
+
+<div class="container mt-3">
+    <h4 class="text-center mb-3"><b>Mentoring & Counselling Sessions</b></h4>
+
+    <div class="text-right mb-2">
+        <button class="btn btn-success btn-sm" id="btnOpenAddCounselling">
+            <i class="fa fa-plus"></i> Add Session
+        </button>
+    </div>
+
+    <table class="table table-bordered table-hover" id="tblCounselling">
+        <thead class="text-center">
+            <tr>
+                <th>#</th>
+                <th>Semester</th>
+                <th>Date</th>
+                <th>Matters</th>
+                <th>Guidance</th>
+                <th>Follow-up</th>
+                <th width="90">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.liCounsellingSessions)
+            {
+                i++;
+                <tr>
+                    <td class="text-center">@i</td>
+                    <td>@item.SEMESTER_NAME</td>
+                    <td>@Convert.ToDateTime(item.SESSION_DATE).ToString("dd-MM-yyyy")</td>
+                    <td>@item.MATTERS_DISCUSSED</td>
+                    <td>@item.GUIDANCE_GIVEN</td>
+                    <td>@item.FOLLOW_UP_REQUIRED</td>
+                    <td class="text-center">
+                        <button class="btn btn-warning btn-xs counsel-edit" data-id="@item.SESSION_ID">
+                            <i class="fa fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-xs counsel-delete" data-id="@item.SESSION_ID">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div class="modal fade" id="counsellingMeetModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info text-white">
+                <h5 id="counselModalTitle">Add Session</h5>
+                <button class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="COUNSEL_SESSION_ID" />
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <label>Semester *</label>
+                        @Html.DropDownList(
+                            "COUNSEL_SEMESTER_ID",
+                            Model.SemesterList,
+                            "-- Select --",
+                            new { @class = "form-control", id = "COUNSEL_SEMESTER_ID" }
+                        )
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Date *</label>
+                        <div class="input-group">
+                            <input type="text" id="COUNSEL_SESSION_DATE" class="form-control" autocomplete="off" />
+                            <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                        </div>
+                    </div>
+
+
+
+                    <div class="col-md-6 mt-2">
+                        <label>Matters Discussed *</label>
+                        <textarea id="COUNSEL_MATTERS_DISCUSSED" class="form-control"></textarea>
+                    </div>
+
+                    <div class="col-md-6 mt-2">
+                        <label>Guidance Given</label>
+                        <textarea id="COUNSEL_GUIDANCE_GIVEN" class="form-control"></textarea>
+                    </div>
+
+                    <div class="col-md-12 mt-2">
+                        <label>Follow-up</label>
+                        <input type="text" id="COUNSEL_FOLLOW_UP" class="form-control" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-success" id="btnSaveCounselSession">Save</button>
+                <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+$(function () {
+
+    if (!$.fn.DataTable.isDataTable('#tblCounselling')) {
+        $('#tblCounselling').DataTable({
+            "pageLength": 10,
+            "ordering": true,
+            "searching": true
+        });
+    }
+
+    $('#COUNSEL_SESSION_DATE').datepicker({
+        todayHighlight: true,
+        autoclose: true,
+        format: "dd/mm/yyyy",
+        orientation: "bottom"
+    });
+
+    // Open datepicker on icon click
+    $('#COUNSEL_SESSION_DATE').closest('.input-group').find('.input-group-addon').on('click', function(){
+        $('#COUNSEL_SESSION_DATE').focus();
+    });
+
+    /* ADD */
+    $('#btnOpenAddCounselling').click(function () {
+        $('#counsellingMeetModal input,textarea,select').val('');
+        $('#COUNSEL_SESSION_ID').val('');
+        $('#COUNSEL_SESSION_DATE').datepicker('update', '');
+        $('#counsellingMeetModal').modal('show');
+    });
+
+    /* EDIT */
+    $('#tblCounselling').on('click', '.counsel-edit', function () {
+        var sessionId = $(this).data('id');
+
+        $.get('@Url.Action("GetCounsellingSessionById","Mentoring")',
+            { sessionId: sessionId },
+            function (res) {
+                if (res) {
+                     $('#COUNSEL_SESSION_ID').val(res.SESSION_ID);
+                     $('#COUNSEL_SEMESTER_ID').val(res.SEMESTER_ID);
+                     if (res.SESSION_DATE) {
+                          $('#COUNSEL_SESSION_DATE').datepicker('update', new Date(res.SESSION_DATE));
+                     } else {
+                          $('#COUNSEL_SESSION_DATE').datepicker('update', '');
+                     }
+                     $('#COUNSEL_MATTERS_DISCUSSED').val(res.MATTERS_DISCUSSED);
+                     $('#COUNSEL_GUIDANCE_GIVEN').val(res.GUIDANCE_GIVEN);
+                     $('#COUNSEL_FOLLOW_UP').val(res.FOLLOW_UP_REQUIRED);
+                     $('#counsellingMeetModal').modal('show');
+                } else {
+                     swal('Error', 'Unable to load data', 'error');
+                }
+            });
+    });
+
+    /* SAVE */
+    $('#btnSaveCounselSession').click(function () {
+
+        var sDate = $('#COUNSEL_SESSION_DATE').val();
+        if(sDate) sDate = sDate.split("/").reverse().join("-");
+
+        var data = {
+            SESSION_ID: $('#COUNSEL_SESSION_ID').val(),
+            STUDENT_ID: $('#COUNSEL_STUDENT_ID').val(),
+            SEMESTER_ID: $('#COUNSEL_SEMESTER_ID').val(),
+            SESSION_DATE: sDate,
+            MATTERS_DISCUSSED: $('#COUNSEL_MATTERS_DISCUSSED').val(),
+            GUIDANCE_GIVEN: $('#COUNSEL_GUIDANCE_GIVEN').val(),
+            FOLLOW_UP_REQUIRED: $('#COUNSEL_FOLLOW_UP').val()
+        };
+
+        if (!data.SEMESTER_ID || !data.SESSION_DATE || !data.MATTERS_DISCUSSED) {
+            swal('Warning', 'Please fill required fields (*)', 'warning');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("SaveCounsellingSession","Mentoring")',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (res) {
+                if (res.success) {
+                    swal('Success', res.message, 'success');
+                    $('#counsellingMeetModal').modal('hide');
+                    setTimeout(function () {
+                        if (typeof BindMentorCounsellingAttendance === 'function') {
+                            BindMentorCounsellingAttendance();
+                        } else {
+                            $('#stuMentorCounsellingAttendance').click();
+                        }
+                    }, 300);
+                } else {
+                    swal('Error', res.message, 'error');
+                }
+            },
+            error: function () {
+                swal('Error', 'Server error', 'error');
+            }
+        });
+    });
+
+    /* DELETE */
+    $('#tblCounselling').on('click', '.counsel-delete', function () {
+        var id = $(this).data('id');
+        swal({
+            title: "Delete this session?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }, function (isConfirm) {
+            if (isConfirm) {
+                $.post('@Url.Action("DeleteCounsellingSession","Mentoring")',
+                    { sessionId: id },
+                    function () {
+                        swal('Deleted', 'Session removed successfully', 'success');
+                        setTimeout(function () {
+                           if (typeof BindMentorCounsellingAttendance === 'function') {
+                               BindMentorCounsellingAttendance();
+                           } else {
+                               $('#stuMentorCounsellingAttendance').click();
+                           }
+                        }, 300);
+                    });
+            }
+        });
+    });
+
+});
+</script>

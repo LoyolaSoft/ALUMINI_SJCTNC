@@ -1,0 +1,405 @@
+﻿@model CMS.ViewModel.ViewModel.LMSViewModel
+@{
+    /**/
+
+    ViewBag.Title = "OnlineAssignment";
+    Layout = null;
+    int nCount = 0;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/css/animate.min.css" rel="stylesheet" />
+<style>
+    .upload-btn-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    #btnImage {
+        border: 1px solid gray;
+        color: gray;
+        background-color: white;
+        padding: 7px 15px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .upload-btn-wrapper input[type=file] {
+        font-size: 100px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+    }
+</style>
+<style>
+    .note.note-default,
+    .note.note-secondary {
+        border-color: #bbb;
+        background: #e2e2e3;
+        color: #454548
+    }
+
+        .note.note-default .note-icon,
+        .note.note-secondary .note-icon {
+            background: #bbb
+        }
+</style>
+<div class="col-md-12 table-responsive">
+    @{
+        if (Model.liassignmentsetting != null && Model.liassignmentsetting.Count > 0)
+        {
+            var notSubmitAssingment = Model.liassignmentsetting.Where(o => o.STATUS != "1").ToList();
+            var SubmitAssingment = Model.liassignmentsetting.Where(o => o.STATUS == "1").ToList();
+            if (notSubmitAssingment != null && notSubmitAssingment.Count > 0)
+            {
+
+                <table class="table table-bordered" id="tblassignment">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Topic</th>
+                            <th>Class</th>
+                            <th>Course</th>
+                            <th>Description</th>
+                            <th>Incharge</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Total Mark</th>
+                            <th>Average Mark</th>
+                            <th>Question File</th>
+                            <th>File</th>
+                            <th>File upload</th>
+
+
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var item in notSubmitAssingment)
+                        {
+                            var courseAssignmentID = item.COURSE_ID + @item.ASSIGNMENT_SETTING_ID;
+                            <tr cms-assignment-id="@item.ASSIGNMENT_SETTING_ID" cms-CourseId="@item.COURSE_ID" cms_status="@item.STATUS">
+                                <td>@{nCount++;} @nCount</td>
+                                <td>@item.ASSIGNMENT_NAME</td>
+                                <td>@item.CLASS_NAME</td>
+
+                                <td>@item.COURSE_CODE - @item.COURSE_TITLE</td>
+                                <td>@item.DESCRIPTION</td>
+                                <td>@item.STAFF_NAME</td>
+                                <td>@item.START_DATE</td>
+                                <td>@item.END_DATE</td>
+                                <td>@item.TOTAL_MARK</td>
+                                <td>@item.SEC_MARK</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.ATTACHMENTS))
+                                    {
+                                        <a href="@item.ATTACHMENTS" target="_blank" title="View Assignment File"><i class="fa fa-file-pdf-o fa-3x text-warning"></i></a>
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (@item.STATUS == "1")
+                                    {
+                                        <a href="@item.FILE_PATH" target="_blank"><i class="fa fa-file-pdf-o fa-3x"></i></a>
+                                    }
+                                    else
+                                    {
+                                        <div style="color:red">Not Yet Submitted</div>
+                                    }
+                                </td>
+                                <td>
+
+                                    @if (@item.STATUS != "1")
+                                    {
+                                      
+                                        <input type="file" class=" inputfile_@courseAssignmentID" style="display: none;" id="@courseAssignmentID" onchange="showFileName(this,'@courseAssignmentID')" />
+                                        <span id="fileNameDisplay_@courseAssignmentID" style="margin-left: 10px; color: #810000"></span>
+                                        <a class="btn btn-primary" onclick="ClickFile(@courseAssignmentID)">File</a>
+                                    }
+                                    else
+                                    {
+                                        <p></p>
+                                    }
+
+                                </td>
+
+
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+
+                <div class="form-group col-lg-12 row">
+
+                    <div class="form-group pull-right">
+                        <div class="col-sm-4 form-group">
+                            <a href="javascript:;" id="btnPost" onclick="" class="btn btn-primary">Save</a>
+                        </div>
+
+                        <div class="col-sm-4 form-group">
+                            <a href="javascript:;" id="btnCancel" onclick="" class="btn btn-danger">Cancel</a>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            }
+
+            if (SubmitAssingment != null && SubmitAssingment.Count > 0)
+            {
+
+                <table class="table table-bordered" id="Completeassignment">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Topic</th>
+                            <th>Class</th>
+                            <th>Course</th>
+                            <th>Description</th>
+                            <th>Incharge</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Total Mark</th>
+                            <th>Average Mark</th>
+                            <th>Question File</th>
+                            <th>File</th>
+                            <th>File upload</th>
+
+
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var item in SubmitAssingment)
+                        {
+                            var courseAssignmentID = item.COURSE_ID + @item.ASSIGNMENT_SETTING_ID;
+                            <tr cms-assignment-id="@item.ASSIGNMENT_SETTING_ID" cms-CourseId="@item.COURSE_ID" cms_status="@item.STATUS">
+                                <td>@{nCount++;} @nCount</td>
+                                <td>@item.ASSIGNMENT_NAME</td>
+                                <td>@item.CLASS_NAME</td>
+
+                                <td>@item.COURSE_CODE - @item.COURSE_TITLE</td>
+                                <td>@item.DESCRIPTION</td>
+                                <td>@item.STAFF_NAME</td>
+                                <td>@item.START_DATE</td>
+                                <td>@item.END_DATE</td>
+                                <td>@item.TOTAL_MARK</td>
+                                <td>@item.SEC_MARK</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.ATTACHMENTS))
+                                    {
+                                        <a href="@item.ATTACHMENTS" target="_blank" title="View Assignment File"><i class="fa fa-file-pdf-o fa-3x text-warning"></i></a>
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (@item.STATUS == "1")
+                                    {
+                                        <a href="@item.FILE_PATH" target="_blank"><i class="fa fa-file-pdf-o fa-3x"></i></a>
+                                    }
+                                    else
+                                    {
+                                        <p>Not Yet Submitted</p>
+                                    }
+                                </td>
+                                <td>
+
+                                    @if (@item.STATUS != "1")
+                                    {
+                                        @*<div id="dvUploadFile" class="col-md-12">
+                                                <div id="dvImportImage1" class="col-md-3">
+                                                    <div class="fileupload fileupload-new" data-provides="fileupload">
+                                                        <div class="upload-btn-wrapper">
+                                                            <a href="javascript:;" class="btn btn-primary " id="btnImage1"><i class="fa fa-pencil fa-fw"></i></a>
+
+                                                            <input type="file" class="btn bg-purple" multiple imageid="img1" name="img1" id="Imgupload" accept=".pdf">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>*@
+                                        <input type="file" class=" inputfile_@courseAssignmentID" style="display: none;" id="@courseAssignmentID" onchange="showFileName(this,'@courseAssignmentID')" />
+                                        <span id="fileNameDisplay_@courseAssignmentID" style="margin-left: 10px; color: #810000"></span>
+                                        <a class="btn btn-primary" onclick="ClickFile(@courseAssignmentID)">File</a>
+                                    }
+                                    else
+                                    {
+                                        <p></p>
+                                    }
+
+                                </td>
+
+
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="6" style="text-align:center;">No Record Found...!</td>
+            </tr>
+        }
+    }
+
+
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+    function showFileName(input, courseId) {
+        if (input.files && input.files[0]) {
+            document.getElementById('fileNameDisplay_' + courseId).textContent = input.files[0].name;
+        }
+    }
+</script>
+<script>
+    function ClickFile(id) {
+        $('#' + id).click();
+    }
+
+    //$('#' + id).addEventListener("change", showFileName);
+    //$('#' + id) = event.srcElement;
+    //var fileName = $('#' + id).files[0].name;
+    //$('dfname').append ("File name: " + fileName;
+
+    $('#btnPost').on("click", function () {
+        var isValid = true;
+        if ($('#Pbody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            //gritter-info,danger,success,warning,default
+            //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+            return false;
+        }
+        // //fileData.append('userfiles[]', $(Imgupload).get(0).files[i]);
+        //for (var i = 0; i < $(Imgupload).get(0).files.length; ++i) {
+        //    fileData.append('userfiles[]', $(Imgupload).get(0).files[i]);
+        //}
+
+        var fileData = new FormData();
+        var nJsonCount = 0;
+        var sJsonData = null;
+
+        sJsonData = '{"listuassignment":[';
+        $('#tblassignment tbody tr').each(function () {
+            var status = $(this).attr('cms_status');
+            if (status != "1") {
+                var courseId = $(this).attr('cms-CourseId');
+                var assigmentId = $(this).attr('cms-assignment-id');
+                var sFile = $(this).find('#' + courseId + assigmentId).get(0).files;
+
+                if (sFile.length != 0) {
+                    for (var i = 0; i < sFile.length; i++) {
+
+                        fileData.append($(this).attr('cms-CourseId'), sFile[i]);
+
+                        sFlag = true;
+                    }
+                    sJsonData += '{"ASSIGNMENT_SETTING_ID":"' + $(this).attr('cms-assignment-id') + '",\
+                       "COURSE_ID":"' + $(this).attr('cms-CourseId') + '"},';
+                    nJsonCount++;
+                }
+            }
+
+        });
+        if (nJsonCount != 0) {
+            sJsonData = sJsonData.slice(0, -1);
+            sJsonData = sJsonData + "]}";
+        }
+        if (nJsonCount != 0) {
+            swal({
+                title: "Please confirm your file selection",
+                text: "Make sure you have selected the correct file before submission. If everything is correct, click the Submit button.",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "Submit",
+                closeOnConfirm: false
+            },
+                function () {
+                    fileData.append('JsonData', sJsonData);
+                    $.ajax({
+                        url: "/LMS/SaveStuAssignment",
+                        type: "post",
+                        data: fileData,
+                        contentType: false,
+                        processData: false,
+                        datatype: "json",
+                        success: function (result) {
+                            if (result.ErrorCode == "200") {
+                                swal({ title: "Success !", text: result.Message, showConfirmButton: false, timer: 3000, type: 'success', animation: true });
+                                loadContent('/LMS/LMSHomepageforstudent');
+                            }
+                            else {
+                                swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+
+                            }
+                        },
+                        error: function (ex) {
+                            swal({ title: "Error !", text: ex.statusText, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                        }
+                    });
+                });
+            $('.selectpicker').selectpicker('refresh');
+            $('#Pbody').parsley().reset();
+        }
+        else {
+            swal({ title: "Warning !", text: "Kindly upload your assignment first, then proceed to save..", showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+        }
+
+    });
+
+    $('#btnCancel').on("click", function () {
+        $('.selectpicker').selectpicker('refresh');
+        $('#Pbody').parsley().reset();
+        $('#tblassignment tbody tr').each(function () {
+            var status = $(this).attr('cms_status');
+            if (status != "1") {
+                var courseId = $(this).attr('cms-CourseId');
+                var assignmentID = $(this).attr('cms-assignment-id');
+                var fileInput = document.getElementById(courseId + assignmentID);
+                var fileNameDisplay = document.getElementById('fileNameDisplay_' + courseId + assignmentID);
+                if (fileInput) {
+                    fileInput.value = "";
+                }
+
+                if (fileNameDisplay) {
+                    fileNameDisplay.textContent = "";
+                }
+            }
+        })
+    });
+
+
+
+
+    $(document).ready(function () {
+        // ✅ Initialize DataTable
+        $('#tblassignment').DataTable({});
+        //add
+    });
+    $(document).ready(function () {
+        // ✅ Initialize DataTable
+        $('#Completeassignment').DataTable({});
+        //add
+    });
+</script>

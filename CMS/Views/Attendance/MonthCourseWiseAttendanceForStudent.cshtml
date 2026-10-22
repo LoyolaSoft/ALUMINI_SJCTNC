@@ -1,0 +1,136 @@
+﻿@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+@{
+    ViewBag.Title = "MonthCourseWiseAttendanceForStudent";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+    <style>
+    table, th, td 
+    {
+        border: 1px solid black;
+        text-align:center;
+        font-family:Cambria, Cochin, Georgia, Times, Times New Roman, serif;
+        padding:0.9%;
+    }
+</style>
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Attendance</a></li>
+        <li class="active"> Attendance Report</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header"> Attendance Report<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title"> Attendance Report</h4>
+        </div>
+        <div class="panel-body">
+            <div class="col-md-12 form-horizontal">
+
+                <div class="col-md-6 form-group">
+                    @Html.LabelFor(model => model.MonthList, "Month", htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-10">
+                        @Html.DropDownListFor(m => m.MonthList, (Model.MonthList != null) ? Model.MonthList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                        @Html.ValidationMessageFor(m => m.MonthList, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                @*<div class="col-md-4 form-group">
+                    @Html.LabelFor(model => model.CourseList, "Course", htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-10">
+                        @Html.DropDownListFor(m => m.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                        @Html.ValidationMessageFor(m => m.CourseList, "", new { @class = "text-danger" })
+                    </div>
+                </div>*@
+
+                <div class="col-md-2 form-group">
+                    <button class="btn btn-primary" id="btnGet"> Get </button>
+                </div>
+
+                <div class="col-md-2 form-group">
+                    <button class="btn btn-success hidden" onclick="printDiv()" id="btnPrint"> Print </button>
+                </div>
+
+                <div class="form-group col-xs-12">
+                    <div id="dvAttendanceReport"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script>
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+       
+
+        // Get Attendance Report By Date And Student Id ...
+        $('#btnGet').on('click', function ()
+        {
+            if ($('#MonthList').val() )
+            {
+                $.ajax({
+                    url:'@Url.Action("BindMonthCourseWiseAttendanceForStudent", "Attendance")',
+                    method: 'POST',
+                    datatype:'json',
+                    data: {  sMonth: $('#MonthList Option:selected').text() },
+                    success: function (data)
+                    {
+                        $('#dvAttendanceReport').empty();
+                        if (data.Message != null && data.Message != '')
+                        {
+                            alert(data.Message);
+                        } else
+                        {
+                            $('#dvAttendanceReport').append(data);
+                            //$('#txtClass').text($('#ClassList option:selected').text());
+                            //$('#txtDate').text($('#txtDate').val());
+                            $('#btnPrint').removeClass('hidden');
+                        }
+                    }, error: function (error)
+                    {
+                        alert('Internal Server Error !');
+                    }
+                });
+            } else {
+                alert('Please Select All The Fileds');
+            }
+        });
+
+        function printDiv()
+        {
+            var printContents = document.getElementById('dvAttendanceReport').innerHTML;
+            var originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            loadContent('/Attendance/MonthCourseWiseAttendanceForStudent');
+        }
+    </script>
+
+
+
+
+
+

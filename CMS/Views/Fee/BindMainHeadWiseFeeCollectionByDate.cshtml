@@ -1,0 +1,69 @@
+﻿@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+@{int count = 0;}
+@{int i = 0;}
+@if (Model.liCreditAndDebit != null)
+{
+            <div class="table-responsive">
+                @{ count = 0;}
+                <table class="table table-hover table-bordered" id="DayWiseFeePaidStatus">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Main</th>
+                            <th>No of Students</th>
+                            @if (Model.lstSupMainHead != null)
+                        {
+                            foreach (var data in Model.lstSupMainHead)
+                            {
+                                    <th>@data.MAIN_HEAD</th>
+                                }
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.liFeeTransaction != null && Model.liFeeTransaction != null)
+                        {
+                            var TempList = Model.liCreditAndDebit.GroupBy(s => s.PROGRAMME_GROUP_ID);
+                            //var TempList = Model.liFeeTransaction.Where(s => s.PAYMENT_DATE == list.DAY_ORDER_DATE).ToList();
+                            foreach (var item in TempList)
+                            {
+                                var ProgrammeList = Model.liFeeTransaction.Where(s => s.PROGRAMME_GROUP_ID == item.FirstOrDefault().PROGRAMME_GROUP_ID).ToList();
+                                var ProgrammeCount = Model.liCreditAndDebit.Where(s => s.PROGRAMME_GROUP_ID == item.FirstOrDefault().PROGRAMME_GROUP_ID).ToList();
+                                <tr>
+                                    <td>@{ count++;}@count</td>
+                                    <td>@item.FirstOrDefault().PROGRAMME_NAME</td>
+                                    <td>@ProgrammeCount.Sum(o => Convert.ToDouble(o.NO_OF_STUDENTS))</td>
+                                    @if (Model.lstSupMainHead != null)
+                                    {
+                                        foreach (var data in Model.lstSupMainHead)
+                                        {
+                                            foreach (var listitem in ProgrammeList)
+                                            {
+                                                if (data.MAIN_HEAD_ID == listitem.MAIN_HEAD_ID)
+                                                {
+                                                    { i++; }
+                                                    <td><i class="fa fa-inr"></i>@listitem.PAID_AMOUNT</td>
+                                                }
+                                            }
+                                            if (i == 0)
+                                            {
+                                                <td></td>
+                                            }
+                                            { i = 0; }
+                                        }
+                                    }
+                                </tr>
+                                
+                                            }
+                                           
+                                        }
+                    </tbody>
+                </table>
+            </div>
+                                            
+                                        }else
+{
+  <div class="alert alert-warning">
+      Sorry ! No Record Found ! :(
+  </div>
+}

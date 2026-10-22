@@ -1,0 +1,178 @@
+﻿
+
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@using CMS.ViewModel.Model;
+@{
+    Layout = null;
+    //int count = 0;
+    int nCount = 0;
+    //string sBracket = ".) ";
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<br />
+
+
+<div class="col-md-12" id="dvOnlineQuizQuestionsEntry">
+    @{
+        if (Model.liCourseInfo != null && Model.liCourseInfo.Count > 0)
+        {
+
+            <div class="col-md-12 form-inline">
+
+                <div class="form-group col-md-4">
+                    <div><b> Course Code : </b> @Model.liCourseInfo.FirstOrDefault().COURSE_CODE</div>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <div><b> Course Title : </b> @Model.liCourseInfo.FirstOrDefault().COURSE_TITLE</div>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <div><b> Class : </b> @Model.liCourseInfo.FirstOrDefault().CLASS_NAME</div>
+                </div>
+
+            </div>
+            <br /><br />
+
+                            <div class="col-md-12 form-inline">
+
+                                <div class="form-group col-md-4">
+                                    <div><b> Incharge : </b> @Model.liCourseInfo.FirstOrDefault().STAFF_NAME</div>
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <div><b> Date : </b> @Model.liCourseInfo.FirstOrDefault().DATE</div>
+                                </div>
+
+                            </div>
+
+                            <br /><br />
+                            <input class="hidden" id="hdSemesterId" value="@Model.liCourseInfo.FirstOrDefault().SEMESTER_ID" />
+                            @*<input class="hidden" id="hdStudentId" value="@Model.liCourseInfo.FirstOrDefault().STUDENT_ID" />*@
+        }
+    }
+
+    <br />
+
+
+
+    @if (!string.IsNullOrEmpty(Model.sErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissable"> @Model.sErrorMessage</div>
+    }
+    else
+    {
+        <div class="col-md-12">
+            <table class="table table-bordered table-hover" id="tblOnlineQuiz">
+                <thead>
+                    <tr><th>Questions</th><th>Answers</th></tr>
+                </thead>
+                <tbody>
+                    @if (Model.liOnlineQuizQuestions != null && Model.liOnlineQuizQuestions.Count > 0 && Model.liOnlineQuizOptions != null && Model.liOnlineQuizOptions.Count > 0)
+                    {
+                        foreach (var item in Model.liOnlineQuizQuestions)
+                        {
+                            var liGroupOptions = Model.liOnlineQuizOptions.Where(x => x.QUIZ_ID == item.QUIZ_ID && item.QUESTION_TYPE == x.QUESTION_TYPE).ToList();
+                            nCount++;
+                            if (item.QUESTION_TYPE == "3")
+                            {
+                                // Bind Match The Following Questions....
+                                <tr cms-Head="1">
+                                    <td colspan="2"><b> @nCount . @(new HtmlString(Model.GetStrigFromBase64String(item.QUIZ_QUESTION)))</b></td>
+                                </tr>
+                                foreach (var GpOptionitem in liGroupOptions)
+                                {
+                                    <tr cms-sQuestionType="@item.QUESTION_TYPE" cms-sQuizId="@item.QUIZ_ID">
+                                        <td>  @(new HtmlString(Model.GetStrigFromBase64String(GpOptionitem.QUESTION))) </td>
+                                        <td>
+                                            <select id="ddlAnswer" class="selectpicker  form-control  input-sm" data-live-search="true">
+                                                <option value="">-- select --</option>
+                                                @{
+                                                    var ddlOptions = liGroupOptions.OrderBy(x => Guid.NewGuid());
+                                                    foreach (var ddlitem in ddlOptions)
+                                                    {
+                                                        <option value="@ddlitem.OPTION_ID" @*cms-SetId="@ddlitem.SET_ID" cms-QuestionType="@GpOptionitem.QUESTION_TYPE" cms-OptionId="@GpOptionitem.OPTION_ID" cms-sQuizId="@ddlitem.QUIZ_ID"*@>@(new HtmlString(Model.GetStrigFromBase64String(ddlitem.ANSWER)))</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </td>
+                                    </tr>
+                                                        }
+                                                    }
+                                                    else if (item.QUESTION_TYPE == "2")
+                                                    {
+                                                        // Bind Fill In The Blank Questions....
+                                                        <tr cms-Head="1">
+                                                            <td colspan="2"><b>@nCount . @(new HtmlString(Model.GetStrigFromBase64String(item.QUESTION))) </b></td>
+                                                        </tr>
+                                                        <tr cms-sQuestionType="@item.QUESTION_TYPE" cms-sQuizId="@item.QUIZ_ID">
+                                                            @*<td><b> @nCount . @item.QUESTION</b></td>*@
+                                                            <td colspan="2">
+                                                                <select id="ddlAnswer" class="selectpicker  form-control  input-sm" data-live-search="true">
+                                                                    <option value="">-- select --</option>
+                                                                    @{
+                                                                        var ddlOptions = liGroupOptions.OrderBy(x => Guid.NewGuid());
+                                                                        foreach (var ddlitem in ddlOptions)
+                                                                        {
+                                                                            <option value="@ddlitem.OPTION_ID" @*cms-SetId="@ddlitem.SET_ID" cms-AnswerId="@item.ANSWER_ID" cms-QuestionType="@item.QUESTION_TYPE" cms-OptionId="@item.OPTION_ID" cms-sQuizId="@ddlitem.QUIZ_ID"*@>@(new HtmlString(Model.GetStrigFromBase64String(ddlitem.OPTION))) </option>
+                                                                        }
+                                                                    }
+                                                                </select>
+                                                            </td>
+                                                        </tr>
+                                                                        }
+                                                                        else if (item.QUESTION_TYPE == "1")
+                                                                        {
+                                                                            // Bind Objective Type Questions ...
+                                                                            <tr cms-Head="1">
+                                                                                <td colspan="2"><b>@nCount . @(new HtmlString(Model.GetStrigFromBase64String(item.QUESTION)))</b></td>
+                                                                            </tr>
+                                                                                            <tr cms-sQuestionType="@item.QUESTION_TYPE" cms-sQuizId="@item.QUIZ_ID">
+                                                                                                @*<td><b> @nCount . @item.QUESTION</b></td>*@
+                                                                                                <td colspan="2">
+                                                                                                    <div class="form-group">
+                                                                                                        @{
+                                                                                                            var ddlOptions = liGroupOptions.OrderBy(x => Guid.NewGuid());
+                                                                                                            foreach (var GpOptionitem in ddlOptions)
+                                                                                                            {
+                                                                                                                <div class="radio radio-css radio-inline">
+                                                                                                                    <input type="radio" class="radio-inline" id="@GpOptionitem.OPTION_ID" name="@item.QUIZ_ID" @*radio-id="RadioOption" name="@item.QUIZ_ID" cms-AnswerId="@item.ANSWER_ID" cms-OptionId="@GpOptionitem.OPTION_ID" cms-SetId="@GpOptionitem.SET_ID" cms-QuestionType="@GpOptionitem.QUESTION_TYPE"*@ />
+                                                                                                                    <label for="@GpOptionitem.OPTION_ID" class="control-label">@(new HtmlString(Model.GetStrigFromBase64String(GpOptionitem.OPTION)))</label>
+                                                                                                                </div>
+                                                                                                            }
+                                                                                                        }
+                                                                                                    </div>
+                                                                                                </td>
+                                                                                            </tr>
+                                                                                                                    }
+                                                                                                                }
+                                                                                                            }
+                                                                                                            else
+                                                                                                            {
+                                                                                                                <tr>
+                                                                                                                    <td colspan="2" class="text-center"> No Records Available In Table !</td>
+                                                                                                                </tr>
+                                                                                                            }
+                </tbody>
+            </table>
+        </div>
+                                                                                                            }
+
+</div>
+
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+    ContentLoad = function () {
+        $('.selectpicker').selectpicker({
+            size: 5
+        });
+        $('.selectpicker').selectpicker('refresh');
+    }
+</script>
+
+
+

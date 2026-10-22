@@ -1,0 +1,95 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    Layout = null;
+}
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Question Level</th>
+                <th>Section</th>
+                <th>Question</th>
+                <th>Either Or Question</th>
+                <th>Unit</th>
+                <th>Is Repeat</th>
+                <th>Repeat Year</th>
+                <th>Not Repeat Year</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liQuestions!=null && Model.liQuestions.Count>0)
+            {
+                int nCount = 0;
+                foreach (var item in Model.liQuestions)
+                {
+                    <tr>
+                        <td>@{nCount++;} @nCount</td>
+                        <td>@item.QUESTION_LEVEL</td>
+                        <td>@item.SECTION_ID</td>
+                        <td>@(new HtmlString(Model.GetStrigFromBase64String(item.QUESTION))) </td>
+                        <td>@(new HtmlString(Model.GetStrigFromBase64String(item.EITHER_OR_QUESTION))) </td>
+                        <td>@item.UNIT_ID</td>
+                        <td>@item.IS_REPEAT</td>
+                        <td>@item.REPEAT_YEAR</td>
+                        <td>@item.NOT_REPEAT_YEAR</td>
+                        <td>
+                            <a href="javascript:;" class="text-primary" onclick="FetchRecordById(@item.QUESTION_ID)"><i class="fa fa-edit"></i></a>
+                            <a href="javascript:;" class="text-danger"  onclick="GetConfrim(@item.QUESTION_ID)"><i class="fa fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+    function FetchRecordById(Id)
+    {
+        loadContent('/Examination/ExamQuestions?sQuestionId='+Id);
+    }
+</script>
+
+
+<script>
+    function GetConfrim(Id)
+    {
+        swal({
+            title: "Confirmation !",
+            text: "Are you sure to delete ?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree !",
+            closeOnConfirm: false
+        },
+          function () 
+          {
+              $.ajax({
+                  url: '/Examination/DeleteExamQuestions',
+                  method: 'POST',
+                  datatype: 'json',
+                  data: { sQuestionId: Id },
+                  success: function (data)
+                  {
+                      if (data.ErrorCode == "200")
+                      {
+                          swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                      } else
+                      {
+                          swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                      }
+                  }, error: function (error)
+                  {
+                      swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                  }
+              })
+          }
+       );
+    }
+</script>

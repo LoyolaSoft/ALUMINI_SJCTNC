@@ -1,0 +1,116 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "ListQuiz";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+    <link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<style type="text/css">
+    table {
+        table-layout: fixed;
+        word-wrap: break-word;
+    }
+
+        table th, table td {
+            overflow: hidden;
+        }
+</style>
+
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a @*href="@Url.Action("Staff","Dashboard")"*@ href="javascript:;">Home</a></li>
+        <li class="active">List Quiz</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">List Quiz</h1>
+    <!-- end page-header -->
+
+    <!-- begin panel -->
+    <div class="panel panel-primary" data-sortable-id="ui-general-1">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Quiz</h4>
+        </div>
+        <div class="panel-body">
+            <div class="form-horizontal">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <a class="btn bg-green pull-right" title="Add Questions" @*href="@Url.Action("OnlineQuiz","Examination")"*@ href="javascript:;" onclick="loadContent('/Examination/OnlineQuiz')"><i class="fa fa-plus"></i> Add</a>
+                    </div>
+
+                    <div class="form-group">
+                        <div id="dvQuiz"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- end panel -->
+</div>
+
+
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script>
+        function ContentLoad() {
+            // Document Ready Function .
+            GetQuizInfo();
+        }
+       
+
+        function GetQuizInfo()
+        {
+            $.ajax({
+                url:"@Url.Action("ListQuizPartial", "Examination")",
+                method: "POST",
+                datatype:"json",
+                success: function (data)
+                {
+                    $('#dvQuiz').empty();
+                    $('#dvQuiz').append(data);
+                    $('#ListQuiz').DataTable({ "paging": false });
+                }, error: function (error)
+                {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+        // Delete QuizQuestion ...
+        function GetConfirm(QUESTION_ID)
+        {
+            if (!confirm('Are you sure to delete ?'))
+            {
+                return false;
+            } else
+            {
+                $.ajax({
+                    url:"@Url.Action("DeleteQuizQuestion", "Examination")",
+                    method: "POST",
+                    datatype:"json",
+                    data: { QuestionId: QUESTION_ID },
+                    success:function(data)
+                    {
+                        alert(data);
+                        GetQuizInfo();
+                    },error:function(error)
+                    {
+                        alert('Internal Server Error ! ');
+                    }
+                });
+            }
+        }
+    </script>    
+

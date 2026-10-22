@@ -1,0 +1,167 @@
+﻿@model CMS.ViewModel.Model.AcademicCurriculumModel
+
+@{
+    ViewBag.Title = "AcademicCurriculum";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    @*<link href="~/Content/assets/plugins/suda-multi-select/sumoselect.min.css" rel="stylesheet" />*@
+    <link href="~/Content/assets/plugins/multi-select/multiselect.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li><a @*href="@Url.Action("ListAcademicCurriculumInfo","Academics")"*@ href="javascript:;" onclick="loadContent('/Academics/ListAcademicCurriculumInfo')">List Academic Curriculum </a></li>
+            <li class="active">Add Academic Curriculum </li>
+        </ol>
+        <h2 class="page-header"> Academic Curriculum </h2>
+            <div class="panel">
+                <div class="panel-heading bg-primary">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h4 class="panel-title">Add Academic Curriculum </h4>
+                </div>
+                <div class="panel-body">
+                    <div class="form-horizontal">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        <div class="col-md-12">
+                            <div class="col-md-6 col-md-offset-3">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.BATCH, htmlAttributes: new { @class = "contrl-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.BATCH, Model.BATCH, "-- Select --", new { @class = "drop-down form-control input-sm" })
+                                        @Html.ValidationMessageFor(model => model.BATCH, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.PROGRAMME, htmlAttributes: new { @class = "contrl-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.PROGRAMME, Model.PROGRAMME, "-- Select --", new { @class = " form-control input-sm ", })
+                                        @Html.ValidationMessageFor(model => model.PROGRAMME, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.COURSE_LIST, htmlAttributes: new { @class = "contrl-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @*<select id="COURSE_LIST">
+                                                @foreach (var item in Model.COURSE_LIST)
+                                                {
+                                                    <option value="@item.Value" selected>@item.Text</option>
+                                                }
+
+                                            </select>*@
+
+                                        @Html.DropDownListFor(model => model.COURSE_LIST, Model.COURSE_LIST, new { @class = " sudo-multiselect form-control input-sm " })
+                                        @Html.ValidationMessageFor(model => model.COURSE_LIST, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.Label("Is Active", htmlAttributes: new { @class = "contrl-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.CheckBox("IS_ACTIVE", Model.IS_ACTIVE, new { @class = "input-sm" })
+
+                                    </div>
+                                </div>
+                                <div class="form-group pull-right  ">
+                                    <div class="col-md-12">
+                                        <a id="btnSubmit" value="Submit" class="btn btn-primary">Submit</a>
+                                        <a id="btnCancel" value="Submit" class="btn btn-danger" @*href="@Url.Action("listacademiccurriculuminfo","academics")"*@ href="javascript:;" onclick="loadContent('/academics/listacademiccurriculuminfo')">Cancel</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+    }
+</div>
+
+    @*<script src="~/Content/assets/plugins/suda-multi-select/jquery.sumoselect.min.js"></script>*@
+    <script src="~/Content/assets/plugins/multi-select/multiselect-js.js"></script>
+    <script>
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+        //$(document).ready(function () {
+        //    //$('.sudo-multiselect').SumoSelect({ search: true, searchText: 'Enter here' });
+        //});
+    </script>
+    <script>
+        $('#btnSubmit').on('click', function () {
+
+            var sBatchId = $('#BATCH').val();
+            var sProgramme = $('#PROGRAMME').val();
+            if (sBatchId != '' && sProgramme!='') {
+                var sCourseIds = String($('#COURSE_LIST').val());
+                if (sCourseIds=='null') {
+                    alert('Please Select Course(s)');
+                    return false;
+                }
+                var sIsActive = 0;
+                if ($('#IS_ACTIVE:checked').val()) {
+                    sIsActive = 1;               
+                }            
+                var JsonData;               
+                var sArray = sCourseIds.split(",");
+                JsonData = '{"CurriculumCourses":[';
+                for (var i = 0; i < sArray.length; i++) {
+                    JsonData += '{"BATCH":"' + sBatchId + '","PROGRAMME":"' + sProgramme + '","COURSE_ID":"' + sArray[i] + '","IS_ACTIVE":"' + sIsActive + '"},';
+                }
+                JsonData = JsonData.substring(0, JsonData.length - 1) + ']}';
+                $.ajax({
+                    url: "@Url.Action("SaveAcademicCurriculum", "Academics")",
+                    method: "POST",
+                data: { sCurriculumCourse: JsonData },
+                success: function (sResult) {
+                    alert(sResult);
+                },
+                error: function (e) {
+                    alert(e);
+                }
+            });
+            } else {
+                alert('Please Select Batch and Programme');
+            }
+            
+        });
+        $('#PROGRAMME').on('change', function () {
+            if ($(this).val() != 0) {
+                var vBatchId = $('#BATCH').val();
+                var vProgrammeId = $('#PROGRAMME').val();
+                $.ajax({
+                    url: "@Url.Action("FetchCourseListBySemester", "Academics")",
+                    async: false,
+                    data: { sBatchId: vBatchId, sProgrammeId: vProgrammeId },
+                    success: function (option) {
+                        $('#COURSE_LIST').attr("multiple", "multiple");
+                        $("#COURSE_LIST").empty().append(option).multiselect("destroy").multiselect({
+                            includeSelectAllOption: true,
+                            enableFiltering: true,
+                            enableCaseInsensitiveFiltering: true,
+                            maxHeight: 200,
+                            numberDisplayed: 1,
+                            templates: {
+                                button: '<button type="button" class="multiselect dropdown-toggle form-control input-sm col-md-9 " data-toggle="dropdown"><span class="multiselect-selected-text"></span> <b class="caret"></b></button>',
+                                ul: '<ul class="multiselect-container dropdown-menu" style="max-width:350px;"></ul>'
+                            }
+                        });
+                        //$("#COURSE_LIST").empty().append(option).SumoSelect({ includeSelectAllOption:true });
+                    },
+                    error: function (xhr, textStatus, error) {
+                        alert(error + "\n");
+                    }
+                });
+            } else {
+
+            }
+        });
+    </script>

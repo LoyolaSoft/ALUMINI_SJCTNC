@@ -1,0 +1,68 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+
+@{ Layout = null;
+    string CourseCode = string.Empty;
+    
+}
+
+<table class="table table-bordered text-center" id="ClassWiseSubstituteList">
+    <thead>
+        <tr>
+            <th></th>
+            @if (Model.lstHours != null && Model.lstHours.Count>0)
+            {
+                foreach (var dataitem in Model.lstHours)
+                {
+                    <th><b> Hour- @dataitem.HOUR</b></th>
+                }
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.lstDayOrders != null && Model.lstDayOrders.Count>0)
+        {
+            foreach (var dataitem in Model.lstDayOrders)
+            {
+                <tr cms-timetableid="@dataitem.DAY_ORDER_ID">
+                    <td><b> Day- @dataitem.DAY</b></td>
+                    @foreach (var item in Model.lstHours)
+                    {
+                        if (Model.liSubstituteHour != null && Model.liSubstituteHour.Count > 0)
+                        {
+                            var liSubstituteHour = Model.liSubstituteHour.Where(s => s.DAY_ORDER_ID == dataitem.DAY_ORDER_ID).ToList();
+                            var SubtituteHour = liSubstituteHour.Where(s => s.HOUR_ID == item.HOUR_ID).ToList();
+                            if (SubtituteHour != null && SubtituteHour.Count > 0)
+                            {
+                                <td id="tdSubtituteHour"
+                                    cms-classid="@SubtituteHour.FirstOrDefault().CLASS_ID"
+                                    cms-courseid="@SubtituteHour.FirstOrDefault().COURSE_ID"
+                                    cms-dayid="@SubtituteHour.FirstOrDefault().DAY_ORDER_ID"
+                                    cms-staffid="@SubtituteHour.FirstOrDefault().STAFF_ID"
+                                    class="editable" cms-hourid="@SubtituteHour.FirstOrDefault().HOUR_ID"
+                                    cms-SubtituteId="@SubtituteHour.FirstOrDefault().SUBSTITUTE_ID">
+                                    @SubtituteHour.FirstOrDefault().DAY_ORDER_DATE   <br />
+                                    @SubtituteHour.FirstOrDefault().HOUR_TYPE <br />
+                                    @SubtituteHour.FirstOrDefault().STAFF_CODE
+                                </td>
+                            }
+                            else
+                            {
+                                 <td class="editable" cms-dayid="@dataitem.DAY_ORDER_ID" cms-hourid="@item.HOUR_ID"></td>
+                            }
+                       }
+                       else
+                       {
+                           <td class="editable" cms-dayid="@dataitem.DAY_ORDER_ID" cms-hourid="@item.HOUR_ID"></td>
+                       }
+                   }
+                </tr>
+            }
+      }
+      else
+      {
+          <tr>
+              <td><p>No records available !!!</p></td>
+          </tr>
+      }
+    </tbody>
+</table>

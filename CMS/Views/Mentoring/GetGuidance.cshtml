@@ -1,0 +1,272 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+}
+
+
+
+<hr />
+<input type="hidden" id="STUDENT_ID" value="@ViewBag.StudentId" />
+
+<div id="GuidanceDetailsContainer">
+    <h4 class="text-center mb-3"><b>Intervention & Guidance</b></h4>
+
+    <div class="text-right mb-2">
+        <button class="btn btn-success btn-sm"
+                id="btnOpenAddGuidance"
+                data-toggle="modal"
+                data-target="#GuidanceModal">
+            <i class="fa fa-plus"></i> Add
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover" id="tblGuidance">
+            <thead class="thead-dark text-center">
+                <tr>
+                    <th width="50">S.No</th>
+                    <th>Intervention & Guidance</th>
+                    <th width="120">Visit Date</th>
+                    <th width="100">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.listudentGuid != null && Model.listudentGuid.Any())
+                {
+                    int i = 0;
+                    foreach (var item in Model.listudentGuid)
+                    {
+                        i++;
+                        <tr>
+                            <td class="text-center">@i</td>
+                            <td>@item.INTERVENTION_AND_GUIDANCE</td>
+                            <td class="text-center">
+                                @(!string.IsNullOrEmpty(item.VISIT_DATE) ? DateTime.Parse(item.VISIT_DATE).ToString("dd-MM-yyyy") : "")
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-warning btn-xs edit-guidance"
+                                        data-id="@item.STUDENT_GUIDANCE_ID">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+
+                                <button class="btn btn-danger btn-xs delete-guidance" data-id="@item.STUDENT_GUIDANCE_ID">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===================== ADD/EDIT MODAL ===================== -->
+<div class="modal fade" id="GuidanceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="guidanceModalTitle">Add Intervention & Guidance</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="STUDENT_GUIDANCE_ID" />
+
+                <div class="form-group">
+                    <label>Visit Date <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="text" id="GUIDANCE_VISIT_DATE" class="form-control hover-hand" autocomplete="off" readonly style="background-color:white;cursor:pointer" />
+                        <span class="input-group-addon hover-hand" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Intervention & Guidance <span class="text-danger">*</span></label>
+                    <textarea id="GUIDANCE_INTERVENTION" class="form-control" rows="4"></textarea>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-success" id="btnSaveGuidance">Save</button>
+                <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    $(document).ready(function () {
+        // Init DataTable
+        if (!$.fn.DataTable.isDataTable('#tblGuidance')) {
+            $('#tblGuidance').DataTable({
+                "pageLength": 10,
+                "ordering": true,
+                "searching": true
+            });
+        }
+
+        // Init Datepicker
+        $('#GUIDANCE_VISIT_DATE').datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            format: "dd/mm/yyyy",
+            orientation: "bottom",
+            endDate: "today" // Prevent future dates
+        });
+        
+        // Open datepicker on icon click
+        $('#GUIDANCE_VISIT_DATE').closest('.input-group').find('.input-group-addon').on('click', function(){
+            $('#GUIDANCE_VISIT_DATE').focus();
+        });
+
+        // OPEN ADD MODAL - Clear Form
+        $('#btnOpenAddGuidance').click(function () {
+            $('#guidanceModalTitle').text('Add Intervention & Guidance');
+            $('#STUDENT_GUIDANCE_ID').val('');
+            $('#GUIDANCE_VISIT_DATE').datepicker('update', new Date());
+            $('#GUIDANCE_INTERVENTION').val('');
+        });
+
+        // OPEN EDIT MODAL - Load Data
+        $('#tblGuidance').on('click', '.edit-guidance', function () {
+            const id = $(this).data('id');
+            
+             $.get('@Url.Action("GetGuidanceById", "Mentoring")', { id: id }, function(data) {
+                if(data) {
+                     $('#guidanceModalTitle').text('Edit Intervention & Guidance');
+                     $('#STUDENT_GUIDANCE_ID').val(data.STUDENT_GUIDANCE_ID);
+                     
+                     if (data.VISIT_DATE) {
+                         var dateVal = data.VISIT_DATE;
+                         if (typeof dateVal === 'string') {
+                             if (dateVal.includes('/Date(')) {
+                                 var timestamp = parseInt(dateVal.substr(6));
+                                 $('#GUIDANCE_VISIT_DATE').datepicker('update', new Date(timestamp));
+                             } else {
+                                 // Convert dd-MM-yyyy to dd/MM/yyyy if needed
+                                 dateVal = dateVal.replace(/-/g, '/');
+                                 $('#GUIDANCE_VISIT_DATE').datepicker('update', dateVal);
+                             }
+                         } else {
+                             $('#GUIDANCE_VISIT_DATE').datepicker('update', dateVal);
+                         }
+                     } else {
+                         $('#GUIDANCE_VISIT_DATE').datepicker('update', '');
+                     }
+                     
+                     $('#GUIDANCE_INTERVENTION').val(data.INTERVENTION_AND_GUIDANCE);
+                     $('#GuidanceModal').modal('show');
+                } else {
+                    swal('Error', 'Could not fetch data', 'error');
+                }
+             }).fail(function() {
+                 swal('Error', 'Server Error', 'error');
+             });
+        });
+
+        // SAVE / UPDATE
+        $('#btnSaveGuidance').click(function () {
+            const guidanceId = $('#STUDENT_GUIDANCE_ID').val();
+            const action = guidanceId 
+                ? '@Url.Action("UpdateInterventionDet", "Mentoring")' 
+                : '@Url.Action("SaveInterventionDet", "Mentoring")';
+
+            var visitDateInput = $('#GUIDANCE_VISIT_DATE').val();
+            var visitDateToSend = "";
+            if (visitDateInput) {
+                // Convert dd/mm/yyyy to yyyy-mm-dd
+                var parts = visitDateInput.split('/');
+                if (parts.length === 3) {
+                     visitDateToSend = parts[2] + "-" + parts[1] + "-" + parts[0];
+                } else {
+                    visitDateToSend = visitDateInput;
+                }
+            }
+
+            const data = {
+                STUDENT_GUIDANCE_ID: guidanceId,
+                VISIT_DATE: visitDateToSend,
+                INTERVENTION_AND_GUIDANCE: $('#GUIDANCE_INTERVENTION').val(),
+                STUDENT_ID: $('#STUDENT_ID').val()
+            };
+
+            if (!data.VISIT_DATE || !data.INTERVENTION_AND_GUIDANCE) {
+                swal('Warning', 'All fields are required', 'warning');
+                return;
+            }
+
+            $.post(action, data, function (res) {
+                if (res && res.Success) {
+                     swal('Success', res.Message || 'Saved successfully', 'success');
+                     $('#GuidanceModal').modal('hide');
+                     $('.modal-backdrop').remove();
+                     $('body').removeClass('modal-open');
+                        
+                     // Reload
+                     setTimeout(function() {
+                        if (typeof BindGuidanceDet === 'function') {
+                            BindGuidanceDet();
+                        } else {
+                             var tabLink = $('a[href="#BindGuidance"]');
+                            if(tabLink.length > 0){
+                                tabLink.click();
+                            } else {
+                                $('#stuGuidanceDet').click();
+                            }
+                        }
+                     }, 300);
+                } else {
+                    swal('Error', res.Message || 'Failed to save', 'error');
+                }
+            }).fail(function () {
+                swal('Error', 'Server Error', 'error');
+            });
+        });
+
+        // DELETE
+        $('#tblGuidance').on('click', '.delete-guidance', function () {
+            const id = $(this).data('id');
+
+            swal({
+                title: 'Delete this record?',
+                text: "You won't be able to revert this!",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                closeOnConfirm: false
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    $.post('@Url.Action("DeleteInterventionDet", "Mentoring")', { guidanceId: id }, function (res) {
+                        if (res.Success) {
+                            swal('Deleted!', res.Message || 'Record deleted', 'success');
+                            setTimeout(function() {
+                                if (typeof BindGuidanceDet === 'function') {
+                                    BindGuidanceDet();
+                                } else {
+                                     var tabLink = $('a[href="#BindGuidance"]');
+                                    if(tabLink.length > 0){
+                                        tabLink.click();
+                                    } else {
+                                        $('#stuGuidanceDet').click();
+                                    }
+                                }
+                            }, 300);
+                        } else {
+                            swal('Error', res.Message || 'Failed to delete', 'error');
+                        }
+                    }).fail(function () {
+                        swal('Error', 'Server Error', 'error');
+                    });
+                }
+            });
+        });
+    });
+</script>

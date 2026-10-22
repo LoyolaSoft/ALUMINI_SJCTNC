@@ -1,0 +1,432 @@
+﻿@model CMS.ViewModel.ViewModel.CertificateCoursesViewModel
+@{
+    ViewBag.Title = "CertificateSettingsList";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+   <link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+  <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+  <link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">List Certificate Course Settings </li>
+    </ol>
+    <h1 class="page-header">Certificate Course Settings</h1>
+    @*@if (TempData["DeleteSuccess"] != null)
+    {
+        <div class="alert alert-success fade in m-b-15" id="Success">
+            <strong>Success!</strong>
+            @TempData["DeleteSuccess"]
+            <span class="close" data-dismiss="alert">×</span>
+        </div>
+    }
+    @if (TempData["DeleteError!"] != null)
+    {
+        <div class="alert alert-danger fade in m-b-15" id="Error">
+            <strong>Error!</strong>
+            @TempData["DeleteError"]
+            <span class="close" data-dismiss="alert">×</span>
+        </div>
+    }*@
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Certificate Course Settings</h4>
+        </div>
+        <div class="panel-body noPadding">
+
+            <div class="col-md-12">
+                <a class="btn btn-success pull-right form-group m-b-5" href="#Assocation-dialog" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add"> Add</i></a>
+            </div>
+            <br />
+            @{ int count = 0;}
+              <div class="table-responsive col-md-12">
+                    <table class="table table-bordered table-hover" id="CertificateCourseSettingsList">
+                        <thead>
+                            <tr>
+                                <th>
+                                    #
+                                </th>
+                                <th>
+                                    Setting Name
+                                </th>
+                               
+                                <th>
+                                    Date From
+                                </th>
+                                <th>
+                                    Date To
+                                </th>
+                               <th>Academic Year</th>
+                                <th>
+                                    Semester Type
+                                </th>
+                                <th>
+                                    Active
+                                </th>
+                                <th>
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.liCertificateCourseSetiing != null && Model.liCertificateCourseSetiing.Count > 0)
+                            {
+                                foreach (var item in Model.liCertificateCourseSetiing)
+                                {
+                                    <tr>
+                                        <td>
+                                            @{ count++;}
+                                            @count
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(m => item.SETTING_NAME)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(m => item.DATE_FROM)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(m => item.DATE_TO)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(m => item.ACADEMIC_YEAR)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(m => item.SEMESTER_TYPE)
+                                        </td>
+                                        <td>
+                                            @if (item.IS_ACTIVE == "0")
+                                            {
+                                               
+                                                <label onclick="ActiveRegistration(@item.SETTING_ID,'1');"><small>OPEN</small></label>
+                                            }
+                                            else
+                                            {
+                                                <label onclick="ActiveRegistration(@item.SETTING_ID,'0');"><small>CLOSE</small></label>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (item.IS_ACTIVE == "1")
+                                            {                                                
+                                                <a href="javascript:;" onclick="GetConfirm(@item.SETTING_ID)"><i class="fa fa-trash text-danger" title="Click to Delete"></i></a>
+                                            }
+                                            <a href="#Assocation-dialog" onclick="FetchCertificationCourseSettingById('@item.SETTING_ID')" data-toggle="modal"><i class="fa fa-edit text-primary" title="Click to Update"></i></a>
+                                        </td>
+
+
+
+                                    </tr>
+                                                }
+                                                }
+                                                else
+                                                {
+
+                                                }
+                          
+                        </tbody>
+                    </table>
+                </div>
+                                            
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="Assocation-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit Certificate Course Setting</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            <input type="hidden" id="hdRoomId" />
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Setting Name</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control input-sm" id="txtSettingName" placeholder="Enter Setting Name" data-parsley-required="true" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Date From</label>
+                                <div class="col-md-9">
+                                    <div class="input-group date" id="datetimepicker1">
+                                        <input type="text" id="txtDateFrom" class="form-control input-sm" placeholder="Select Date" data-parsley-required="true" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Date To -->
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Date To</label>
+                                <div class="col-md-9">
+                                    <div class="input-group date" id="datetimepicker2">
+                                        <input type="text" id="txtDateTo" class="form-control input-sm" placeholder="Select Date" data-parsley-required="true" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Semester Type</label>
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.SemesterType, (Model.SemesterType != null) ? Model.SemesterType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control  input-sm", @data_live_search = "true" , data_parsley_required = "true" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" value="" id="txtSettingId" />
+
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+     <script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+  <script>
+    ContentLoad = function () {
+  
+    }
+    
+    $("#CertificateCourseSettingsList").DataTable({});
+    
+    handleDatepicker = function () {
+        "use strict";
+
+
+        $("#txtDateFrom").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            //  endDate: new Date(),
+            format: "dd/mm/yyyy",
+            orientation: "right bottom"
+        });
+        $("#txtDateTo").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            //endDate: new Date(),
+            format: "dd/mm/yyyy",
+            orientation: "right bottom"
+        });
+
+
+    }
+    handleDatepicker();
+    $('.selectpicker').selectpicker('refresh');
+
+    function FetchCertificationCourseSettingById(CCSettingId)
+    {
+        $('#pBody').parsley().destroy();
+
+        if (CCSettingId != null)
+        {
+            $.ajax({
+                url: "/CertificateCourse/FetchCertificateCourseSettingsById",
+                type:"post",
+                data: { sSettingsId: CCSettingId },
+                success:function(data)
+                {
+                    if(data.Message!=null)
+                    {
+                        alert(data.Message);
+                    }
+                    else {
+                        if (data.oResult[0] != null)
+                        {
+
+                            $('#txtSettingName').attr('value', data.oResult[0].SETTING_NAME);
+                            $('#txtDateFrom').attr('value', data.oResult[0].DATE_FROM);
+                            $('#txtDateTo').attr('value', data.oResult[0].DATE_TO);
+                            //$('#QuestionTypeList option[value="' + data.oResult[0].QUESTION_TYPE_ID + '"]').attr("selected", "selected");
+                            //$('#txtNoOfQuestion').attr('value', data.oResult[0].NO_OF_QUESTION);
+                            $('#SemesterType option[value="' + data.oResult[0].SEMESTER_TYPE_ID + '"]').attr("selected", "selected");
+                            $('#txtSettingId').attr('value', data.oResult[0].SETTING_ID);
+                            $('.selectpicker').selectpicker('refresh');
+                        }
+
+
+                    }
+
+                },
+                error:function(ex)
+                {
+                    alert(ex.Message);
+                }
+            });
+        }
+    }
+
+    $('#btnSubmit').click(function () {
+
+        var isValid = true;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            //gritter-info,danger,success,warning,default
+            //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+            return false;
+        }
+
+        var SettingId = $('#txtSettingId').val();
+        var Settingname = $('#txtSettingName').val();
+        var DateFrom = $('#txtDateFrom').val();
+        var DateTo = $('#txtDateTo').val();
+        var SemsesterType = $('#SemesterType').val();
+
+
+        var jsonData = '{"SETTING_ID":"' + SettingId + '","SETTING_NAME":"' + Settingname + '","DATE_FROM":"' + DateFrom + '","DATE_TO":"' + DateTo + '","SEMESTER_TYPE_ID":"' + SemsesterType  + '"}';
+        var req=  $.ajax({
+            url: "/CertificateCourse/SaveCertificateCourseSetting",
+            type: "post",
+            data: { sJsonData: jsonData },
+            success: function (data) {
+                if (data.Message != null && data.Message != "")
+                {
+                    if (data.ErrorCode == "200")
+                    {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                        loadContent('/CertificateCourse/CertificateSettingsList');
+                    }
+                    if (data.ErrorCode == "417") {
+                        swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                    if (data.ErrorCode == "503") {
+                        swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                    }
+
+
+                }
+            },
+            error: function (ex) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+
+        });
+          });
+
+
+    function ActiveRegistration(SettingId,Mode)
+    {
+        swal({
+            title: "Are you sure want to Activate/Deactivate?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+        function () {
+            $.ajax({
+                url: "/CertificateCourse/ActiveRegistration",
+                type: "post",
+                data: { sSettingsId: SettingId, sMode: Mode },
+                success: function (data) {
+                  
+
+                    if (data.ErrorCode == "200") {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                        loadContent('/CertificateCourse/CertificateSettingsList');
+                    }
+                    if (data.ErrorCode == "417") {
+                        swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                    if (data.ErrorCode == "503") {
+                        swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                    }
+                },
+                error: function (ex) {
+                    swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+                }
+
+            });
+        });
+
+    }
+
+
+    GetConfirm = function (SettingId)
+    {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+
+function () {
+    $.ajax({
+        url: "/CertificateCourse/DeleteCertificateCourseSettings",
+        type: "post",
+        data: { sSettingId: SettingId },
+        success: function (data) {
+            
+            if (data.ErrorCode == "200") {
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/CertificateCourse/CertificateSettingsList');
+            }
+            if (data.ErrorCode == "417") {
+                swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+            if (data.ErrorCode == "503") {
+                swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+            }
+        },
+        error: function (ex) {
+            swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+        }
+
+
+    });
+});
+
+    }
+
+    $('#Add').click(function () {
+
+        $('#pBody').parsley().destroy();
+
+        $('#txtSettingName').attr('value', '');
+        $('#txtDateFrom').attr('value', '');
+        $('#txtDateTo').attr('value', '');
+        //$('#QuestionTypeList option[value=""]').attr("selected", "selected");
+      
+        $('#SemesterType option[value=""]').attr("selected", "selected");
+        $('#txtSettingId').attr('value', '');
+        $('.selectpicker').selectpicker('refresh');
+
+
+    });
+
+</script>
+
+
+
+
+

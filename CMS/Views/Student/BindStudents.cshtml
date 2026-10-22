@@ -1,0 +1,237 @@
+﻿
+@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    ViewBag.Title = "BindStudentForTcSerialNo";
+    int count = 0;
+    
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+
+
+@if (Model.liStudent != null && Model.liStudent.Count > 0)
+{
+    <div class="alert alert-info" style="margin-top: 15px;">
+        <h4><i class="fa fa-info-circle"></i> Instructions</h4>
+        <p>
+            <strong>Generate:</strong> Click the <span class="label label-primary">Generate</span> button to assign new roll numbers only to empty fields.<br>
+            <strong>Refresh:</strong> If you want to rearrange or regenerate all roll numbers, click the <span class="label label-success">Refresh</span> button first to clear the fields, then click <span class="label label-primary">Generate</span> again.
+        </p>
+    </div>
+    <div>
+        <div class="row">
+            <div class="col-md-12 pull-right">
+                <div class="col-md-2">
+                    <input type="text" id="serialNoStart" placeholder="Ex:A25END01 " class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <a href="#" class="btn btn-primary" id="btngenerate"><i class="fa fa-plus-circle"></i> Generate Roll No</a>
+                </div>
+                <div class="col-md-2">
+                    <div class="col-md-2">
+                        <a href="#" class="btn btn-warning" id="btnRefresh"><i class="fa fa-refresh"></i> Refresh </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <br />
+    <hr />
+    <div class="form-group col-md-12 table-responsive" id="divname">
+        @{
+            <div class="form-group" style="page-break-after: always !important;page-break-inside: avoid !important;">
+                <table class="table table-bordered" id="tblserialno" style="margin-bottom:50px;">
+                    <thead>
+                        <tr>
+                            <th>
+                                S.No
+                            </th>
+                            <th>
+                                Roll No
+                            </th>
+                            <th>
+                                Name
+                            </th>
+                            <th>
+                                Code
+                            </th>
+                            <th>
+                                Admission No
+                            </th>
+                            <th>
+                                New Roll No
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.liStudent)
+                        {
+                            count++;
+                            <tr studentid="@item.STUDENT_ID">
+                                <td>@count</td>
+                                <td>@item.ROLL_NO</td>
+                                <td>@item.FIRST_NAME</td>
+                                <td>@item.PROGRAMME_GROUP_CODE</td>
+                                <td>@item.ADMISSION_NO</td>
+                                <td><input type="text" id="NewRollNoId" class="form-control newRollNo" value="@item.ROLL_NO" studentid="@item.STUDENT_ID"></td>
+                                @*<td><input type="text" id="leaveingDate" class="form-control tcLeavingDate" value="@item.LEAVING_DATE" studentid="@item.STUDENT_ID" ></td>*@
+
+                            </tr>
+
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+
+        }
+
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">No Record(s) Found !</div>
+}
+
+<div class="col-md-12">
+    <div class="col-md-1">
+        <a href="#" class="btn btn-success" id="btnsubmit">Submit</a>
+    </div>
+
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+    ContentLoad = function ()
+    {
+        $("#LeavingDateStart").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            endDate: false,
+            format: "dd/mm/yyyy",
+            orientation: "right bottom"
+        });
+    }
+     // Save Or Update ...
+    $('#btnsubmit').on('click', function ()
+    {
+                var nJsonCount = 0;
+                var sJsonData = '{"liStudentInfo" :[';
+                $('#tblserialno tbody tr').each(function () {
+                    if ($(this).find('.tcserialNo').val() != "")
+                        {
+                        sJsonData += '{"STUDENT_ID":"' + $(this).attr('studentid') + '","ROLL_NO":"' + $(this).find('.newRollNo').val() + '"},';
+                            nJsonCount++;
+
+                        }
+        });
+        if (nJsonCount != 0) {
+            sJsonData = sJsonData.slice(0, -1);
+            sJsonData += ']}';
+        } else
+        {
+            swal({ title: "Oops !", text: 'Please enter the Roll number !', showConfirmButton: false, timer: 2000, type: 'warning', animation: true });
+            return false;
+        }
+
+            $.ajax({
+                url: '@Url.Action("SaveOrUpdateRollNo", "Student")',
+                method: 'POST',
+                data: { sJson: sJsonData },
+                async: false,
+                success: function (data)
+                {
+
+                    myAlert(data.Message, 'gritter-success', '');
+                    fetchStudentDetails();
+                },
+                error: function (error)
+                {
+                    alert('Internal Server Error !');
+                   return false;
+                }
+            });
+    });
+
+
+    function numberOnly(id) {
+        var element = document.getElementById(id);
+        element.value = element.value.replace(/[^0-9]/gi, "");
+    }
+
+    //document.getElementById('btngenerate').addEventListener('click', function () {
+    //    var SerialNoStart = document.getElementById('serialNoStart').value;
+    //    var count = parseInt(SerialNoStart, 10) - 1;
+    //    var reminderFields = document.querySelectorAll('.newRollNo');
+
+    //    reminderFields.forEach(function (field) {
+    //        if (field.value === "") {
+    //            count++;
+    //            field.value = String(count).padStart(SerialNoStart.length, '0');
+    //        }
+    //    });
+    //});
+
+
+    document.getElementById('btngenerate').addEventListener('click', function () {
+        var serialInput = document.getElementById('serialNoStart').value.trim();
+        if (serialInput === "") return;
+
+        // Match prefix + number using regex (e.g., "a25chd01")
+        var match = serialInput.match(/^([a-zA-Z]*\d*[a-zA-Z]*)(\d+)$/);
+        if (!match) {
+            swal({ title: "Oops !", text: 'Invalid Roll number format. !', showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+
+            return;
+        }
+
+        var prefix = match[1]; // e.g., "a25chd"
+        var numPart = match[2]; // e.g., "01"
+        var numLength = numPart.length;
+        var count = parseInt(numPart, 10) - 1;
+
+        var reminderFields = document.querySelectorAll('.newRollNo');
+        reminderFields.forEach(function (field) {
+            if (field.value.trim() === "") {
+                count++;
+                var newNumber = String(count).padStart(numLength, '0');
+                field.value = (prefix + newNumber).toUpperCase();
+            }
+        });
+    });
+
+
+    document.getElementById('btnRefresh').addEventListener('click', function () {
+        swal({
+            title: "Are you sure?",
+            text: "This will clear all new roll numbers.",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, clear it!",
+            cancelButtonText: "Cancel"
+        }, function (isConfirm) {
+            if (isConfirm) {
+                document.querySelectorAll('.newRollNo').forEach(function (field) {
+                    field.value = '';
+                });
+            }
+        });
+    });
+
+
+</script>

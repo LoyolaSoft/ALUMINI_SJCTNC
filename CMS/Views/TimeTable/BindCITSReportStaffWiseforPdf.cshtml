@@ -1,0 +1,393 @@
+﻿
+@model CMS.ViewModel.ViewModel.TimeTableViewModel
+@{
+    ViewBag.Title = "CITSReportForAdministor";
+    // Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    int chartCounter = 0;
+    int NAUnitCount = 0;
+}
+
+
+
+<style>
+    /* Styling the table */
+    .styled-tableUnit, .styled-tableMeth {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 16px;
+        text-align: left;
+        font-family: Arial, sans-serif;
+        color: #333;
+    }
+
+    .styled-tableUnit, .styled-tableMeth {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+    }
+
+        .styled-tableUnit thead tr {
+            background-color: #4CAF50;
+            color: #ffffff;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .styled-tableMeth thead tr {
+            background-color: #256dab;
+            color: #ffffff;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .styled-tableUnit tbody tr, .styled-tableMeth tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+
+            .styled-tableUnit tbody tr:nth-of-type(even), .styled-tableMeth tbody tr:nth-of-type(even) {
+                background-color: #f3f3f3;
+            }
+
+            .styled-tableUnit tbody tr:nth-of-type(odd), .styled-tableMeth tbody tr:nth-of-type(odd) {
+                background-color: #ffffff;
+            }
+
+
+            .styled-tableUnit tbody tr:hover, .styled-tableMeth tbody tr:hover {
+                background-color: #f1f1f1;
+                cursor: pointer;
+            }
+
+
+        .styled-tableUnit th, .styled-tableUnit td, .styled-tableMeth th, .styled-tableMeth td {
+            padding: 12px 15px;
+        }
+
+
+        .styled-tableUnit tbody tr td:first-child, .styled-tableMeth tbody tr td:first-child {
+            text-align: center;
+        }
+
+    /* Add subtle box-shadow to the table */
+
+
+    /* Responsive design for mobile screens */
+    @@media (max-width: 768px) {
+        .styled-tableUnit th, .styled-tableUnit td, .styled-tableMeth th, .styled-tableMeth td {
+            padding: 10px 8px;
+            font-size: 14px;
+        }
+    }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+<div class="form-horizontal">
+    <div id="printmethandUnit">
+        @if (Model.liStaffCourseList != null && Model.liStaffCourseList.Count > 0)
+        {
+            var groupStaff = Model.liStaffCourseList.Where(o => o.COURSE_ID != null).GroupBy(o => new { o.STAFF_ID }).OrderBy(o => o.Key.STAFF_ID).ToList();
+
+            foreach (var staffItem in groupStaff)
+            {
+                var groupCourse = Model.liStaffCourseList.Where(o => o.STAFF_ID == staffItem.FirstOrDefault().STAFF_ID).GroupBy(o => new { o.COURSE_ID, o.CLASS_ID, o.STAFF_ID }).OrderBy(o => o.Key.CLASS_ID).ToList();
+
+                <div id="@staffItem.FirstOrDefault().STAFF_ID">
+                    <div>
+                        @if (Model.liCollegeDetails != null)
+                        {
+                            foreach (var collegeitem in Model.liCollegeDetails)
+                            {
+                                <div style="display:flex;align-items:center;justify-content:center;">
+                                    @*<h3><img src="@Url.Content("~/Content/hcc_img/College_logo_bg_remove.png")" height="60" width="60" /> @collegeitem.COLLEGE_NAME</h3>*@
+                                    <h3><img src="https://erp.sjctnc.edu.in/Content/hcc_img/College_logo_bg_remove.png" height="60" width="60" /> @collegeitem.COLLEGE_NAME</h3>
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:center;">
+                                    <h3>@collegeitem.COLLEGE_ADDRESS</h3>
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:center;">
+                                    <h4>Consolidated Report on the Teaching Methods</h4>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <br />
+                    @foreach (var CourseGroup in groupCourse)
+                    {
+                        if (staffItem.FirstOrDefault().STAFF_ID == CourseGroup.FirstOrDefault().STAFF_ID)
+                        {
+                            <div style="page-break-after:always !important">
+                                @{
+                                    int unitCount = 0;
+                                    int checkunitisthere = 0;
+                                    var classname = CourseGroup.FirstOrDefault().CLASS_NAME;
+                                    var courseTitle = CourseGroup.FirstOrDefault().COURSE_TITLE;
+                                    var CourseCode = CourseGroup.FirstOrDefault().COURSE_CODE;
+                                    var staffName = CourseGroup.FirstOrDefault().STAFF_NAME;
+
+                                    <div class="col-md-12">
+                                        <div>
+                                            <label><b>Name :</b>@staffName </label><br />
+                                            <label><b>Class :</b>@classname </label><br />
+                                            <label><b>Course :</b>@courseTitle - @CourseCode</label><br />
+                                        </div>
+                                    </div>
+
+                                    var groupbyUnit = Model.liStaffCourseList.Where(o => o.UNIT_ID != null && o.STAFF_ID == staffItem.FirstOrDefault().STAFF_ID).GroupBy(o => new { o.UNIT_ID, o.COURSE_ID, o.CLASS_ID }).OrderBy(o => o.Key.UNIT_ID).ThenBy(o => o.Key.CLASS_ID).ToList();
+
+                                    <script type="text/javascript">
+                                        anychart.onDocumentReady(function () {
+                                            // Prepare chart data
+                                            var unitChartData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+                                                groupbyUnit
+                                                .Where(o => (CourseGroup.FirstOrDefault().COURSE_ID == o.FirstOrDefault().COURSE_ID) &&
+                                                CourseGroup.FirstOrDefault().CLASS_ID == o.FirstOrDefault().CLASS_ID)
+                                                .Select(items => new
+                                                {
+                                                    UnitName = items.FirstOrDefault().UNIT_NAME ?? "N/A",
+                                                    TotalEntry = items.Count()
+                                                })
+                                            ));
+
+                                            // Convert the data into a format suitable for AnyChart
+                                            let data = [];
+                                            unitChartData.forEach(function (item) {
+                                                data.push([item.UnitName, item.TotalEntry]);
+                                            });
+                                            // Create a pie chart with the data
+                                            let chart = anychart.pie(data);
+                                            chart.title("Unit Entry");
+                                            chart.labels().fontColor("white").format("{%percentValue}{decimalsCount:0}%");
+                                            chart.container("unit_chart_@chartCounter");
+                                            chart.draw();
+                                            html2canvas(document.querySelector("#unit_chart_@chartCounter")).then(canvas => {
+                                                    var imgData = canvas.toDataURL("image/png");
+
+                                                    // Send the Base64 string to the server via AJAX
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: "/TimeTable/SaveChartImage",
+                                                        data: { imageData: imgData, imgType: 1, staffId: "@CourseGroup.FirstOrDefault().STAFF_NAME", classId: "@CourseGroup.FirstOrDefault().CLASS_CODE",course_ID: "@CourseGroup.FirstOrDefault().COURSE_CODE" },
+                                                        success: function (response) {
+                                                            console.log("Chart image saved successfully");
+                                                        },
+                                                        error: function (err) {
+                                                            console.error("Error saving chart image:", err);
+                                                        }
+                                                    });
+                                                });
+                                        });
+                                    </script>
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="col-md-7">
+                                                <div class="text-center">
+                                                    <h4>Unit Wise</h4>
+                                                </div>
+                                                <table class="styled-tableUnit">
+                                                    <thead>
+                                                        <tr>
+                                                            <th><b>S.No. </b></th>
+                                                            <th><b>Unit Name </b></th>
+                                                            <th><b>Total Entry</b> </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var item in groupbyUnit)
+                                                        {
+                                                            if (CourseGroup.FirstOrDefault().COURSE_ID == item.FirstOrDefault().COURSE_ID && CourseGroup.FirstOrDefault().CLASS_ID == item.FirstOrDefault().CLASS_ID && staffItem.FirstOrDefault().STAFF_ID == item.FirstOrDefault().STAFF_ID)
+                                                            {
+                                                                unitCount++;
+                                                                checkunitisthere++;
+                                                                <tr>
+                                                                    <td>@unitCount</td>
+                                                                    @if (item.FirstOrDefault().UNIT_ID != null && item.FirstOrDefault().UNIT_ID != "")
+                                                                    {
+                                                                        <td>
+                                                                            <label>Unit @item.FirstOrDefault().UNIT_NAME</label>
+                                                                        </td>
+                                                                        <td><b>@item.Count()</b></td>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        NAUnitCount = item.Count();
+                                                                        <td> N / A</td>
+                                                                        <td> <b>@item.Count()</b></td>
+                                                                    }
+                                                                </tr>
+                                                            }
+                                                        }
+                                                        @if (checkunitisthere == 0)
+                                                        {
+                                                            <tr>
+                                                                <td colspan="3">No Record's Found</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            @*<div class="col-md-4 text-center">
+                                                    <div id="unit_chart_@chartCounter" style="width: 350px; height: 380px;"></div>
+                                                    <div class="hidden" id="chartImagesContainer_@chartCounter"></div>
+                                                </div>*@
+                                            <div class="col-md-4 text-center">
+                                                @*<div>
+                                                    <div id="unit_chart_@chartCounter" style="width: 350px; height: 380px;"></div>
+                                                </div>*@
+                                                @if (System.IO.File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "CITS_FACULTY_REPORT", "Charts", CourseGroup.FirstOrDefault().STAFF_NAME, "Unit",
+                                                    string.Format("{0}_{1}_Chart.png",
+                                                    CourseGroup.FirstOrDefault().CLASS_CODE,
+                                                    CourseGroup.FirstOrDefault().COURSE_CODE))))
+                                                {
+                                                    <img src="@Url.Content(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),"CITS_FACULTY_REPORT", "Charts", CourseGroup.FirstOrDefault().STAFF_NAME, "Unit",
+                                                                        string.Format("{0}_{1}_Chart.png",
+                                                            CourseGroup.FirstOrDefault().CLASS_CODE,
+                                                            CourseGroup.FirstOrDefault().COURSE_CODE)))"
+                                                         alt="Unit Chart" style="width: 350px; height: 380px;" />
+                                                }
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+                                    <br />
+                                    if (Model.liTotalMethodology != null)
+                                    {
+                                        <script>
+                                            anychart.onDocumentReady(function () {
+                                                // Prepare data for the chart
+                                                var MethChartData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+                                                    Model.liTotalMethodology
+                                                    .Where(o => (CourseGroup.FirstOrDefault().COURSE_ID == o.COURSE_ID) &&
+                                                    CourseGroup.FirstOrDefault().CLASS_ID == o.CLASS_ID)
+                                                    .Select(items => new
+                                                    {
+                                                        MethtName = items.METHODOLOGY_NAME ?? "N/A",
+                                                        TotalEntry = items.METHODOLOGY_COUNT
+                                                    })
+                                                ));
+
+                                                let data = [];
+                                                MethChartData.forEach(function (item) {
+                                                    data.push([item.MethtName, item.TotalEntry]);
+                                                });
+
+                                                const generateColors = (count) => {
+                                                    const colors = [];
+                                                    for (let i = 0; i < count; i++) {
+                                                        const hue = Math.floor((360 / count) * i);
+                                                        colors.push(`hsl(${hue }, 50%, 50%)`);
+                                                    }
+                                                    return colors;
+                                                };
+
+                                                const dynamicColors = generateColors(data.length);
+                                                let chart = anychart.pie(data);
+                                                chart.title("Methodology Entry");
+                                                chart.labels().fontColor("white").format("{%percentValue}{decimalsCount:0}%");
+                                                chart.legend().enabled(true).itemsLayout("vertical").align("center").position("right").fontSize(14).padding(10, 20, 10, 20);
+                                                chart.palette(dynamicColors);
+                                                chart.container("methodology_chart_@chartCounter");
+                                                chart.draw();
+                                                html2canvas(document.querySelector("#methodology_chart_@chartCounter")).then(canvas => {
+                                                              
+                                                                 var imgData = canvas.toDataURL("image/png");
+
+                                                                 // Send the Base64 string to the server via AJAX
+                                                                 $.ajax({
+                                                                     type: "POST",
+                                                                     url: "/TimeTable/SaveChartImage",
+                                                                     data: { imageData: imgData,imgType:2, staffId: "@CourseGroup.FirstOrDefault().STAFF_NAME", classId: "@CourseGroup.FirstOrDefault().CLASS_CODE",course_ID: "@CourseGroup.FirstOrDefault().COURSE_CODE" },
+                                                                     success: function (response) {
+                                                                         console.log("Chart image saved successfully");
+                                                                     },
+                                                                     error: function (err) {
+                                                                         console.error("Error saving chart image:", err);
+                                                                     }
+                                                                 });
+                                                             });
+                                            });
+                                        </script>
+
+                                        <div class="row">
+                                            <div>
+                                                <div class="col-md-12">
+                                                    @if (System.IO.File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "CITS_FACULTY_REPORT", "Charts", CourseGroup.FirstOrDefault().STAFF_NAME, "Methodology",
+string.Format("{0}_{1}_Chart.png",
+CourseGroup.FirstOrDefault().CLASS_CODE,
+CourseGroup.FirstOrDefault().COURSE_CODE))))
+                                                    {
+                                                        <img src="@Url.Content(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),"CITS_FACULTY_REPORT", "Charts",CourseGroup.FirstOrDefault().STAFF_NAME, "Methodology",
+                        string.Format("{0}_{1}_Chart.png",
+            CourseGroup.FirstOrDefault().CLASS_CODE,
+            CourseGroup.FirstOrDefault().COURSE_CODE)))"
+                                                             alt="Unit Chart" style="width: 350px; height: 380px;" />
+                                                    }
+                                                    <div id="methodology_chart_@chartCounter" style="height: 380px;"></div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <div class="text-center">
+                                                        <h4>Methodology Wise</h4>
+                                                    </div>
+                                                    @{
+                                                        var courseId = CourseGroup.Key.COURSE_ID;
+                                                        var classId = CourseGroup.Key.CLASS_ID;
+                                                        var staffID = staffItem.Key.STAFF_ID;
+                                                        var totalCount = Model.liTotalMethodology.Where(o => o.COURSE_ID == courseId && o.CLASS_ID == classId && o.STAFF_ID == staffID).Sum(o => Convert.ToInt64(o.METHODOLOGY_COUNT));
+                                                        double Methpercentage = 0;
+                                                        int methCount = 0;
+
+                                                        <table class="styled-tableMeth">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th><b>S.No.</b></th>
+                                                                    <th><b>Methodology Name</b></th>
+                                                                    <th><b>Total Entry</b></th>
+                                                                    <th><b>Percentage</b></th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach (var item in Model.liTotalMethodology.Where(o => o.COURSE_ID == courseId))
+                                                                {
+                                                                    if (item.COURSE_ID == CourseGroup.FirstOrDefault().COURSE_ID && item.CLASS_ID == CourseGroup.FirstOrDefault().CLASS_ID && item.STAFF_ID == staffItem.FirstOrDefault().STAFF_ID)
+                                                                    {
+                                                                        methCount++;
+                                                                        Methpercentage = (Convert.ToDouble(item.METHODOLOGY_COUNT) / Convert.ToDouble(totalCount)) * 100;
+                                                                        Methpercentage = Math.Round(Methpercentage, 2);
+                                                                        <tr>
+                                                                            <td>@methCount</td>
+                                                                            <td>@item.METHODOLOGY_NAME</td>
+                                                                            <td><span>@Convert.ToInt64(item.METHODOLOGY_COUNT)/@totalCount</span></td>
+                                                                            <td><span><b>@Methpercentage %</b></span></td>
+                                                                        </tr>
+                                                                    }
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    <br />
+                                    chartCounter++;
+                                }
+
+                            </div>
+                        }
+                    }
+
+                </div>
+            }
+        }
+        else
+        { 
+            <br />
+            <div class="bg-warning text-center">
+                <h3>No Record's found</h3>
+            </div>
+        }
+    </div>
+</div>

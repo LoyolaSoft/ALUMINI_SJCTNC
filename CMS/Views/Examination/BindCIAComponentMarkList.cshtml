@@ -1,0 +1,161 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@using CMS.Utility;
+@{ 
+    Layout = null;
+    string nInstantMark = string.Empty;
+}
+<div class="invoice" style="background-color:#F6F6F6 !important;">
+    <div class="invoice-company">
+        @Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME ,<small>
+            INTERNAL ASSESSMENT (CIA) - MARK SHEET(@{if (Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] != null)
+                { @Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] } })
+    </div>
+    @if (Model.liCIA_Staff_Info != null && Model.liCIA_Staff_Info.Count > 0)
+    {
+        <div class="invoice-header">
+            <div class="invoice-from">
+                <small></small>
+                <address class="m-t-5 m-b-5">
+                    <strong>
+                        <label>Course Name : </label><span class="semi-bold"> @Model.liCIACourse_Info.FirstOrDefault().COURSE_TITLE</span>
+                    </strong><br />
+                    <strong>
+                        <label>Course Code &nbsp; : </label><span class="semi-bold"> @Model.liCIACourse_Info.FirstOrDefault().COURSE_CODE</span>
+                    </strong><br />
+                    <strong>
+                        <label>Department : </label><span class="semi-bold"> @Model.liCIA_Staff_Info.FirstOrDefault().DEPARTMENT</span>
+                    </strong><br />
+                </address>
+            </div>
+            <div class="invoice-to">
+                <small></small>
+                <address class="m-t-5 m-b-5">
+                    <strong>
+                        <label>Staff Name(s) : </label><span class="semi-bold"> @Model.liCIA_Staff_Info.FirstOrDefault().STAFF_NAME</span>
+                    </strong><br />
+                    <strong>
+                        <label>Semester  &nbsp; : </label><span class="semi-bold" id="sSemester"> @Model.liCIACourse_Info.FirstOrDefault().SEMESTER_ID</span>
+                    </strong><br />
+                    <strong>
+                        <label>Class Name : </label><span class="semi-bold"> @Model.liCIACourse_Info.FirstOrDefault().CLASS_NAME</span>
+                    </strong><br />
+
+                </address>
+            </div>
+
+        </div>
+    }
+   
+
+    <div class="col-md-12 m-t-5 col-sm-12 col-lg-12 table-responsive invoice-content">
+        @{int count = 0;}
+        <table class="table table-hover table-bordered " id="ciaMarkList" border="1">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Admission No</th>
+                    <th>Name of the Candidate</th>
+                    @{
+                        if (Model.liCIA_Component != null && Model.liCIA_Component.Count > 0)
+                        {
+                            int cCount = Model.liCIA_Component.Count();
+                            foreach (var item in Model.liCIA_Component)
+                            {
+                                 <th>@item.COMPONENT-@item.MAX_MARK  </th>
+                            }
+                        }
+                    }
+                    <th>Total-@Model.liCIA_Staff_Info.FirstOrDefault().INTERNAL</th>
+                    <th>Checked Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    if (Model.liCIA_Total != null)
+                    {
+                        var OrderByCIATotal = Model.liCIA_Total.OrderBy(x => x.REGISTER_NO).ToList();
+                        foreach (var ciaItem in OrderByCIATotal)
+                        {
+                            nInstantMark = string.Empty;
+                            var Individual_Marks = Model.liCIA_Marks_Info.Where(o => o.STUDENT_ID == ciaItem.STUDENT_ID).ToList();
+                            <tr cms-rstudentid="@ciaItem.STUDENT_ID">
+                                @if (Individual_Marks != null && Individual_Marks.Count > 0)
+                                {
+                                    <td>@{count++;}@count</td>
+                                    <td>@Individual_Marks.FirstOrDefault().ADMISSION_NO</td>
+                                    <td>@Individual_Marks.FirstOrDefault().NAME.ToUpper()</td>
+                                        foreach (var item in Model.liCIA_Component)
+                                        {
+                                            var Marks = Individual_Marks.Where(s => s.ORDER_ID == item.ORDER_ID).ToList();
+                                            if (Marks != null && Marks.Count > 0)
+                                            {
+                                                if (item.COMPONENT == "Instant")
+                                                {
+                                                    <td style="text-align:center;"> @{nInstantMark = Marks.FirstOrDefault().COURSE_GROUP_MARK;} @nInstantMark</td>
+                                                }
+                                                else
+                                                {
+                                                    if (!string.IsNullOrEmpty(Marks.FirstOrDefault().COURSE_GROUP_MARK))
+                                                    {
+                                                        <td style="text-align:center;">
+                                                            @if (!Marks.FirstOrDefault().COURSE_GROUP_MARK.Equals("-1"))
+                                                            {
+                                                                @Marks.FirstOrDefault().COURSE_GROUP_MARK
+                                                            }
+                                                            else
+                                                            {
+                                                                <strong>A</strong>
+                                                            }
+                                                        </td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td></td>
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <td></td>
+                                            }
+                                        }
+                                        <td>@if (!string.IsNullOrEmpty(nInstantMark)) { @nInstantMark } else { @ciaItem.TOTAL } </td>
+                                        if(@Individual_Marks.FirstOrDefault().STATUS=="1")
+                                        {
+                                            <td>Confirmed</td>
+                                        }
+                                        else
+                                        {
+                                             <td></td>
+                                        }
+                                        
+                                }
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td>No records found..</td></tr>
+                    }
+                }
+            </tbody>
+            <tfoot>
+                <tr></tr>
+            </tfoot>
+        </table>
+        <div class="col-lg-12">
+
+            <hr />
+            <label class="col-lg-4">Signature of Head</label>
+
+            <label class="col-lg-4 text-right" style="float:right; ">Signature of Incharge</label>
+            <hr />
+            <p class="text-center m-b-5">
+
+            </p>
+        </div>
+    </div>
+</div>
+
+

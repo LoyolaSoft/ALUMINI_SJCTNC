@@ -1,0 +1,108 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{ 
+    Layout = null;
+    string sTable = string.Empty;
+    string sCourseCode = string.Empty;
+    string sRegular = string.Empty;
+    string sArrear = string.Empty;
+    bool sFlag = true;
+    int nFirstRegCount = 0;
+    int nFirstArrCount = 0;
+    int nSecondRegCount = 0;
+    int nSecondArrCount = 0;
+}
+
+<div class="col-md-12 form-group table-responsive">
+    @{ 
+        if (Model.liExamTimeTable!=null && Model.liExamTimeTable.Count>0)
+        {
+            var liGroupDate = Model.liExamTimeTable.GroupBy(x => x.EXAM_DATE).ToList();
+
+            foreach (var item in liGroupDate)
+            {
+                var liDateWise = Model.liExamTimeTable.Where(x => x.EXAM_DATE == item.FirstOrDefault().EXAM_DATE).ToList();
+                if (liDateWise != null && liDateWise.Count > 0)
+                {
+                    var liGroupCourse = liDateWise.GroupBy(x => x.COURSE_ID).ToList();
+                    var liFirstSession = liDateWise.Where(x => x.EXAM_SESSION_ID == "1").ToList();
+                    var liSecondSession = liDateWise.Where(x => x.EXAM_SESSION_ID == "2").ToList();
+                    <div class="col-md-12 form-group" style="border:1px">
+                        <div class="col-md-6"> FORENOON </div>
+                        <div class="col-md-6"> AFTERNOON </div>
+                        @{ 
+                            sFlag = true; sTable = string.Empty; nFirstRegCount = 0; nFirstArrCount = 0; nSecondRegCount = 0; nSecondArrCount = 0;
+                            while (sFlag)
+                            {
+                                sCourseCode = string.Empty;
+                                sRegular = string.Empty;
+                                sArrear = string.Empty;
+                                sTable += "<tr>";
+                                if (liFirstSession!=null && liFirstSession.Count>0)
+                                {
+                                    sCourseCode = liFirstSession.FirstOrDefault().COURSE_CODE;
+                                    var liRegular = liFirstSession.Where(x => x.STATUS == "R" && x.COURSE_CODE == sCourseCode).ToList();
+                                    var liArrear = liFirstSession.Where(x => x.STATUS == "A" && x.COURSE_CODE == sCourseCode).ToList();
+                                    if (liRegular != null && liRegular.Count > 0) { sRegular = liRegular.FirstOrDefault().STUDENT_COUNT; } else { sRegular = "0"; }
+                                    if (liArrear != null && liArrear.Count > 0) { sArrear = liArrear.FirstOrDefault().STUDENT_COUNT; } else { sArrear = "0"; }
+                                    sTable += @"<td>" + liFirstSession.FirstOrDefault().EXAM_DATE + "</td> <td>"+ liFirstSession.FirstOrDefault().COURSE_CODE + "</td> <td>"+ sRegular + "</td> <td>"+ sArrear + "</td> <td></td>";
+                                    nFirstRegCount += Convert.ToInt32(sRegular);
+                                    nFirstArrCount += Convert.ToInt32(sArrear);
+                                    liFirstSession.RemoveAll(x => x.COURSE_CODE == sCourseCode);
+                                }
+                                if (liSecondSession!=null && liSecondSession.Count>0)
+                                {
+                                    if (liFirstSession==null && liFirstSession.Count==0)
+                                    {
+                                        sTable += @"<td></td><td></td><td></td><td></td><td></td>";
+                                    }
+                                    sCourseCode = liSecondSession.FirstOrDefault().COURSE_CODE;
+                                    var liRegular = liSecondSession.Where(x => x.STATUS == "R" && x.COURSE_CODE == sCourseCode).ToList();
+                                    var liArrear = liSecondSession.Where(x => x.STATUS == "A" && x.COURSE_CODE == sCourseCode).ToList();
+                                    if (liRegular != null && liRegular.Count > 0) { sRegular = liRegular.FirstOrDefault().STUDENT_COUNT; } else { sRegular = "0"; }
+                                    if (liArrear != null && liArrear.Count > 0) { sArrear = liArrear.FirstOrDefault().STUDENT_COUNT; } else { sArrear = "0"; }
+                                    sTable += @"<td>" + liSecondSession.FirstOrDefault().EXAM_DATE + "</td> <td>" + liSecondSession.FirstOrDefault().COURSE_CODE + "</td> <td>" + sRegular + "</td> <td>" + sArrear + "</td>";
+                                    nSecondRegCount += Convert.ToInt32(sRegular);
+                                    nSecondArrCount += Convert.ToInt32(sArrear);
+                                    liSecondSession.RemoveAll(x => x.COURSE_CODE == sCourseCode);
+                                }
+                                sTable += "</tr>";
+                                if (liFirstSession!=null && liFirstSession.Count>0 || liSecondSession !=null && liSecondSession.Count > 0)
+                                {
+
+                                }
+                                else
+                                {
+                                    sFlag = false;
+                                    sTable += "<tr> <td></td> <td> Total </td> <td> "+ nFirstRegCount + "</td> <td>"+ nFirstArrCount + "</td> <td></td> <td></td> <td> Total </td> <td> " + nSecondRegCount + "</td> <td>" + nSecondArrCount + "</td> </tr>";
+                                }
+
+                            }
+                        }
+
+                        <table class="table table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Date </th>
+                                    <th>SubCode</th>
+                                    <th>Regular</th>
+                                    <th>Arrear</th>
+                                    <th></th>
+                                    <th>Date </th>
+                                    <th>SubCode</th>
+                                    <th>Regular</th>
+                                    <th>Arrear</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @Html.Raw(sTable)
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+         }
+    }
+</div>
+
+

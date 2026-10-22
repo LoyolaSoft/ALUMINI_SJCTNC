@@ -1,0 +1,366 @@
+﻿@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    Layout = null;
+    string sColevelSelected = string.Empty;
+}
+<style>
+
+    .NonDummy {
+        display: table-cell;
+    }
+
+    .Dummy {
+        display: none;
+    }
+</style>
+<div class="body-content">
+    <input hidden id="BindType" value="@Model.Correct_Answer" />
+    @if (Model.liSemestermark != null && Model.liSemestermark.Count > 0)
+    {
+        <div class="col-md-12" style="background-color:antiquewhite;text-align:center;">
+            If You Want to Correct the Mark. Kindly Meet the Controller of Examination.
+        </div>
+    }
+    else
+    {
+        if (Model.sCoComponent == "3" || Model.sCoComponent == "4")
+        {
+            <div class="col-md-12 m-t-5 col-sm-12 col-lg-12 table-responsive" style="overflow-x:auto;height:650px;">
+                <table class="table table-hover table-bordered table-striped" id="OBEMarkList">
+                    <thead>
+                        <tr>
+                            <th id="staticcolumn" class="NonDummy">Reg.No</th>
+                            <th id="staticcolumn" class="Dummy">Dummy No.</th>
+                            <th class="NonDummy">Roll No</th>
+                            <th class="NonDummy">S.Name</th>
+                            <th>
+                                Absent
+                            </th>
+                            @{
+
+                                if (Model.LiOBEQuestionPaperStructure != null && Model.LiOBEQuestionPaperStructure.Count > 0)
+                                {
+                                    foreach (var item in Model.LiOBEQuestionPaperStructure)
+                                    {
+                                        <th>@item.QUESTION_NUMBER / @item.MARK_MAX</th>
+                                    }
+                                }
+
+                            }
+                            <th>Total</th>
+                            @*<th>Update</th>*@
+                        </tr>
+                        <tr>
+                            <th colspan="4">K / CO Level</th>
+                            @{
+
+                                if (Model.LiOBEQuestionPaperStructure != null && Model.LiOBEQuestionPaperStructure.Count > 0)
+                                {
+                                    foreach (var item in Model.LiOBEQuestionPaperStructure)
+                                    {
+                                        var liQusValue = Model.LiOBEQuestionMarkEntry.Where(x => x.QUESTION_NUMBER == item.QUESTION_NUMBER).ToList();
+                                        <th>
+                                            <div class="col-md-12 row" style="text-align:center">
+                                                <div class="col-md-3"> <span>@item.OBE_RBT_LEVEL /</span></div>
+                                                <div class="col-md-9">
+                                                    <select class="form-control m-b-10 selectpicker" id="liObeCoLevel" data-selected-text-format="count">
+                                                        <option value="0">--Select--</option>
+                                                        @if (Model.LiOBECOLevel != null && Model.LiOBECOLevel.Count > 0)
+                                                        {
+                                                            foreach (var obeCoLevel in Model.LiOBECOLevel)
+                                                            {
+                                                                if (liQusValue != null && liQusValue.Count > 0)
+                                                                {
+                                                                    if (obeCoLevel.OBE_COLEVEL_ID == liQusValue.FirstOrDefault().OBE_COLEVEL_ID)
+                                                                    {
+                                                                        sColevelSelected = "Selected";
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        sColevelSelected = string.Empty;
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    sColevelSelected = string.Empty;
+                                                                }
+                                                                <option value="@obeCoLevel.OBE_COLEVEL_ID" @sColevelSelected>@obeCoLevel.OBE_COLEVEL</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+
+
+                                        </th>
+                                    }
+                                }
+                            }
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            if (Model.liCIA_Marks_Info != null && Model.liCIA_Marks_Info.Count > 0 && Model.LiOBEQuestionPaperStructure != null && Model.LiOBEQuestionPaperStructure.Count > 0)
+                            {
+                                foreach (var student in Model.liCIA_Marks_Info)
+                                {
+                                    var nCount = 0;
+                                    <tr cmsrstudentid="@student.STUDENT_ID" cmsrcourseid="@student.COURSE_ID" cmsisAbsette="@student.IS_ABSENT" cmsAbsentId="@student.OBE_ABSENT_ID">
+                                        <td id="staticcolumn" class="NonDummy">@student.REGISTER_NO</td>
+                                        <td id="staticcolumn" class="Dummy" style="white-space:nowrap">@student.DUMMY_NO</td>
+                                        <td class="NonDummy">@student.ROLL_NO</td>
+                                        <td class="NonDummy">@student.FIRST_NAME</td>
+                                        @if (!string.IsNullOrEmpty(student.IS_ABSENT))
+                                        {
+                                            if (student.IS_ABSENT == "1")
+                                            {
+                                                <td>
+                                                    <div class="checkbox checkbox-css checkbox-inline">
+                                                        <input type="checkbox" name="myTextEditBox" id="@student.STUDENT_ID" cms-studentid="@student.STUDENT_ID" checked />
+                                                        <label for="@student.STUDENT_ID"></label>
+                                                    </div>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td>
+                                                    <div class="checkbox checkbox-css checkbox-inline">
+                                                        <input type="checkbox" name="myTextEditBox" id="@student.STUDENT_ID" cms-studentid="@student.STUDENT_ID" />
+                                                        <label for="@student.STUDENT_ID"></label>
+                                                    </div>
+                                                </td>
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            <td>
+                                                <div class="checkbox checkbox-css checkbox-inline">
+                                                    <input type="checkbox" name="myTextEditBox" id="@student.STUDENT_ID" cms-studentid="@student.STUDENT_ID" />
+                                                    <label for="@student.STUDENT_ID"></label>
+                                                </div>
+                                            </td>
+                                        }
+
+                                        @foreach (var item in Model.LiOBEQuestionPaperStructure)
+                                        {
+                                            nCount++;
+                                            var Marks = Model.LiOBEQuestionMarkEntry.Where(s => s.OBE_QUESTIONMARKSTRUCTURE_ID == item.OBE_QUESTIONPAPERSTRUCTURE_ID && s.STUDENT_ID == student.STUDENT_ID).ToList();
+                                            if (Marks != null && Marks.Count > 0)
+                                            {
+                                                <td>
+
+                                                    <input type="number" class="form-control input-sm" style="width:75px !important;" step=".01" maxlength="5" max="@item.MARK_MAX" value="@Marks.FirstOrDefault().SECURED_MARK"
+                                                           cmsstudentid="@student.STUDENT_ID"
+                                                           cmsomark="@Marks.FirstOrDefault().SECURED_MARK"
+                                                           cmsstructureid="@item.OBE_QUESTIONPAPERSTRUCTURE_ID"
+                                                           cmsmarkid="@Marks.FirstOrDefault().OBE_MARKENTRY_ID"
+                                                           cmscomponentid="@item.OBE_COMPONENT_ID"
+                                                           cmsqno="@item.QUESTION_NUMBER"
+                                                           cmsqid="@item.OBE_QUESTION_ID"
+                                                           cmscolevelid="@item.OBE_COLEVEL_ID"
+                                                           cmssectionid="@item.SECTION_ID"
+                                                           cmsTobeAttened="@item.TO_BE_ATTEND"
+                                                           cmsrowindex="@nCount"
+                                                           onfocusout="SumTotal()" />
+                                                </td>
+                                            }
+                                            else
+                                            {
+
+                                                <td>
+
+                                                    <input type="number" class="form-control input-sm" style="width:75px !important;" step=".01" maxlength="5" max="@item.MARK_MAX" value=""
+                                                           cmsstudentid="@student.STUDENT_ID"
+                                                           cmsomark=""
+                                                           cmsstructureid="@item.OBE_QUESTIONPAPERSTRUCTURE_ID"
+                                                           cmsmarkid=""
+                                                           cmscomponentid="@item.OBE_COMPONENT_ID"
+                                                           cmsqno="@item.QUESTION_NUMBER"
+                                                           cmsqid="@item.OBE_QUESTION_ID"
+                                                           cmscolevelid="@item.OBE_COLEVEL_ID"
+                                                           cmssectionid="@item.SECTION_ID"
+                                                           cmsTobeAttened="@item.TO_BE_ATTEND"
+                                                           cmsrowindex="@nCount"
+                                                           onfocusout="SumTotal()" />
+                                                </td>
+
+                                            }
+
+
+                                        }
+                                        <td id="staticcolumn"><input type="number" cmsrtotal="@student.STUDENT_ID" class="form-control input-sm" style="width:65px !important;" maxlength="5" min="0" max="50" value="" disabled /></td>
+                                        @*<td><a class="btn btn-primary" id="btnGet" onclick="IndStudentMark(@student.STUDENT_ID)" >UpdateMark</a></td>*@
+                                    </tr>
+                                }
+                            }
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="col-md-12 m-t-5 col-sm-12 col-lg-12 table-responsive" style="overflow-x:auto;height:650px;">
+                <table class="table table-hover table-bordered table-striped" id="OBEMarkList">
+                    <thead>
+                        <tr>
+                            <th id="staticcolumn" class="NonDummy">Reg.No</th>
+                            <th id="staticcolumn" class="Dummy">Dummy No.</th>
+                            <th class="NonDummy">Roll No</th>
+                            <th class="NonDummy">S.Name</th>
+                            <th>
+                                Absent
+                            </th>
+                            @{
+
+                                if (Model.LiOBEQuestionPaperStructure != null && Model.LiOBEQuestionPaperStructure.Count > 0)
+                                {
+                                    foreach (var item in Model.LiOBEQuestionPaperStructure)
+                                    {
+                                        <th>@item.QUESTION_NUMBER / @item.MARK_MAX</th>
+                                    }
+                                }
+
+                            }
+                            <th>Total</th>
+                            @*<th>Update</th>*@
+                        </tr>
+                        <tr>
+                            <th colspan="4">K / CO Level</th>
+                            @{
+                                if (Model.LiOBEQuestionPaperStructure != null && Model.LiOBEQuestionPaperStructure.Count > 0)
+                                {
+                                    foreach (var item in Model.LiOBEQuestionPaperStructure)
+                                    {
+
+                                        <th>@item.OBE_RBT_LEVEL / @item.OBE_COLEVEL</th>
+                                    }
+                                }
+                            }
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            if (Model.liCIA_Marks_Info != null && Model.liCIA_Marks_Info.Count > 0 && Model.LiOBEQuestionPaperStructure != null && Model.LiOBEQuestionPaperStructure.Count > 0)
+                            {
+                                foreach (var student in Model.liCIA_Marks_Info)
+                                {
+                                    <tr cmsrstudentid="@student.STUDENT_ID" cmsrcourseid="@student.COURSE_ID" cmsisAbsette="@student.IS_ABSENT" cmsAbsentId="@student.OBE_ABSENT_ID">
+                                        <td id="staticcolumn" class="NonDummy">@student.REGISTER_NO</td>
+                                        <td id="staticcolumn" class="Dummy" style="white-space:nowrap">@student.DUMMY_NO</td>
+                                        <td class="NonDummy">@student.ROLL_NO</td>
+                                        <td class="NonDummy">@student.FIRST_NAME</td>
+                                        @if (!string.IsNullOrEmpty(student.IS_ABSENT))
+                                        {
+                                            if (student.IS_ABSENT == "1")
+                                            {
+                                                <td>
+                                                    <div class="checkbox checkbox-css checkbox-inline">
+                                                        <input type="checkbox" name="myTextEditBox" id="@student.STUDENT_ID" cms-studentid="@student.STUDENT_ID" checked />
+                                                        <label for="@student.STUDENT_ID"></label>
+                                                    </div>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td>
+                                                    <div class="checkbox checkbox-css checkbox-inline">
+                                                        <input type="checkbox" name="myTextEditBox" id="@student.STUDENT_ID" cms-studentid="@student.STUDENT_ID" />
+                                                        <label for="@student.STUDENT_ID"></label>
+                                                    </div>
+                                                </td>
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            <td>
+                                                <div class="checkbox checkbox-css checkbox-inline">
+                                                    <input type="checkbox" name="myTextEditBox" id="@student.STUDENT_ID" cms-studentid="@student.STUDENT_ID" />
+                                                    <label for="@student.STUDENT_ID"></label>
+                                                </div>
+                                            </td>
+                                        }
+
+                                        @foreach (var item in Model.LiOBEQuestionPaperStructure)
+                                        {
+                                            var Marks = Model.LiOBEQuestionMarkEntry.Where(s => s.OBE_QUESTIONMARKSTRUCTURE_ID == item.OBE_QUESTIONPAPERSTRUCTURE_ID && s.STUDENT_ID == student.STUDENT_ID).ToList();
+                                            if (Marks != null && Marks.Count > 0)
+                                            {
+                                                <td>
+                                                    @item.QUESTION_NUMBER / @item.OBE_COLEVEL
+                                                    <input type="number" class="form-control input-sm" style="width:75px !important;" step=".01" maxlength="5" max="@item.MARK_MAX" value="@Marks.FirstOrDefault().SECURED_MARK"
+                                                           cmsstudentid="@student.STUDENT_ID"
+                                                           cmsomark="@Marks.FirstOrDefault().SECURED_MARK"
+                                                           cmsstructureid="@item.OBE_QUESTIONPAPERSTRUCTURE_ID"
+                                                           cmsmarkid="@Marks.FirstOrDefault().OBE_MARKENTRY_ID"
+                                                           cmscomponentid="@item.OBE_COMPONENT_ID"
+                                                           cmsqno="@item.QUESTION_NUMBER"
+                                                           cmsqid="@item.OBE_QUESTION_ID"
+                                                           cmscolevelid="@item.OBE_COLEVEL_ID"
+                                                           cmssectionid="@item.SECTION_ID"
+                                                           cmsTobeAttened="@item.TO_BE_ATTEND"
+                                                           onfocusout="SumTotal()" />
+                                                </td>
+                                            }
+                                            else
+                                            {
+
+                                                <td>
+                                                    @item.QUESTION_NUMBER / @item.OBE_COLEVEL
+                                                    <input type="number" class="form-control input-sm" style="width:75px !important;" step=".01" maxlength="5" max="@item.MARK_MAX" value=""
+                                                           cmsstudentid="@student.STUDENT_ID"
+                                                           cmsomark=""
+                                                           cmsstructureid="@item.OBE_QUESTIONPAPERSTRUCTURE_ID"
+                                                           cmsmarkid=""
+                                                           cmscomponentid="@item.OBE_COMPONENT_ID"
+                                                           cmsqno="@item.QUESTION_NUMBER"
+                                                           cmsqid="@item.OBE_QUESTION_ID"
+                                                           cmscolevelid="@item.OBE_COLEVEL_ID"
+                                                           cmssectionid="@item.SECTION_ID"
+                                                           cmsTobeAttened="@item.TO_BE_ATTEND"
+                                                           onfocusout="SumTotal()" />
+                                                </td>
+
+                                            }
+
+
+                                        }
+                                        <td id="staticcolumn"><input type="number" cmsrtotal="@student.STUDENT_ID" class="form-control input-sm" style="width:65px !important;" maxlength="5" min="0" max="50" value="" disabled /></td>
+                                        @*<td><a class="btn btn-primary" id="btnGet" onclick="IndStudentMark(@student.STUDENT_ID)" >UpdateMark</a></td>*@
+                                    </tr>
+                                }
+                            }
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+        }
+    }
+</div>
+<script>
+            // Replace with the actual value of model.Correct_Answer
+            const correctAnswer = @Model.Correct_Answer; // Example: 0 or 1
+
+            if (correctAnswer === 1) {
+                document.querySelectorAll('.NonDummy').forEach(element => {
+                    element.style.display = 'none';
+                });
+                document.querySelectorAll('.Dummy').forEach(element => {
+                    element.style.display = 'table-cell';
+                });
+            } else if (correctAnswer === 0) {
+                document.querySelectorAll('.NonDummy').forEach(element => {
+                    element.style.display = 'table-cell';
+                });
+                document.querySelectorAll('.Dummy').forEach(element => {
+                    element.style.display = 'none';
+                });
+            }
+
+</script>

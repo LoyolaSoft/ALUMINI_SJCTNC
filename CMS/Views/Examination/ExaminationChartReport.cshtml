@@ -1,0 +1,599 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "ExaminationChartReport";
+    Layout =null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/css/jquery.jqGauges.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/morris/morris.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="#" onclick="loadContent('@Url.Action("ADMIN","DashBoard")')"></a></li>
+        @*<li><a href="#" onclick="loadContent('@Url.Action("","")')">Examination Report</a></li>*@
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+  
+    <!-- end page-header -->
+    <!-- begin panel -->
+    <div class="panel panel-default panel-with-tabs" data-sortable-id="ui-unlimited-tabs-2">
+        <div class="panel-heading p-0">
+            <div class="panel-heading-btn m-r-10 m-t-10">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-inverse" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+            </div>
+            <!-- begin nav-tabs -->
+            <div class="tab-overflow" data-parsley-validate="true" name="form-wizard">
+                <ul class="nav nav-tabs">
+                    @*<li class="prev-button"><a href="javascript:;" data-click="prev-tab" aria-controls="first" class="text-inverse"><i class="fa fa-arrow-left"></i></a></li>*@
+                    
+                    <li class="" id="clswise"><a href="#nav-tab1-2" data-toggle="tab">Class Wise</a></li>
+                    <li class="" id="depwuse"><a href="#nav-tab1-3" data-toggle="tab">Department Wise</a></li> 
+                    <li class="" id="semster"><a href="#nav-tab1-1" data-toggle="tab">Semster Wise</a></li>                
+                </ul>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="tab-content">
+                
+                <div class="tab-pane fade" id="nav-tab1-1" data-parsley-validate="true">
+              
+                    <div class="col-md-5">
+                        @Html.Label("Academic Year", htmlAttributes: new { @class = "col-md-4 control-label " })
+                        <div class="col-md-7">
+                            @Html.DropDownListFor(m => m.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control  selectpicker", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(m => m.AcademicYearList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <br>
+                    
+                    <div class="col-md-12" id="bindsemsterdiv">
+                    </div>
+                    <div id="dvsemster" class="col-md-12">
+
+                    </div>
+                    <div class="col-md-12 hidden" id="printdivsem">
+                        <div class="col-md-1 col-md-offset-11"><button class="btn btn-success" onclick="printsemster()">Download</button></div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-tab1-2" data-parsley-validate="true">
+                    <div class="col-md-5">
+                        @Html.Label("Academic Year", htmlAttributes: new { @class = "col-md-4 control-label " })
+                        <div class="col-md-7">
+                            @Html.DropDownListFor(m => m.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control  selectpicker", @id = "clsacyear", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(m => m.AcademicYearList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        @Html.Label("Class", htmlAttributes: new { @class = "col-md-4 control-label " })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(m => m.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control  selectpicker", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(m => m.ClassList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                       <button class="btn btn-primary" id="btnclswise">Get</button>
+                    </div>
+                    <br>
+                    <div class="col-md-12" id="bindclsdiv">
+
+                    </div>
+                    <div id="dvclasswise">
+
+                    </div>
+                    <div class="col-md-12 hidden" id="printdivcls">
+                        <div class="col-md-1 col-md-offset-11"><button class="btn btn-success" onclick="printclswise()">Download</button></div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-tab1-3" data-parsley-validate="true">
+                    <div class="col-md-5">
+                        @Html.Label("Academic Year", htmlAttributes: new { @class = "col-md-4 control-label " })
+                        <div class="col-md-7">
+                            @Html.DropDownListFor(m => m.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control  selectpicker",@id="depacyear", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(m => m.AcademicYearList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        @Html.Label("Department", htmlAttributes: new { @class = "col-md-4 control-label " })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(m => m.DepartmentList, (Model.DepartmentList != null) ? Model.DepartmentList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control  selectpicker", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(m => m.DepartmentList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-primary" id="btndepwise">Get</button>
+                    </div>
+                    <br>
+                    <div class="col-md-12" id="binddepdiv">
+
+                    </div>
+                    <div id="dvdepartmentwise">
+
+                    </div>
+                    <div class="col-md-12 hidden" id="printdivdep">
+                        <div class="col-md-1 col-md-offset-11"><button class="btn btn-success" onclick="printdep()">Download</button></div>
+                    </div>
+                </div>
+               
+              
+            </div>
+        </div>
+    </div>
+    <!-- end panel -->
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.js" type="text/javascript" xml="space"></script>
+<script src="~/Content/assets/plugins/morris/raphael.min.js"></script>
+<script src="~/Content/assets/plugins/morris/morris.js"></script>
+<script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap.min.js"></script>
+<script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap-world-merc-en.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="~/Content/assets/js/jquery.jqGauges.min.js"></script>
+<script src="~/Content/assets/plugins/chart-js/Chart.min.js"></script>
+
+<script>
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $('.selectpicker').selectpicker('refresh');
+    //Semster Wise
+    $('#AcademicYearList').on('change', function ()
+    {
+        var academicyear = $("#AcademicYearList option:selected");
+      
+        $.ajax({
+            url: "@Url.Action("ChartDataforReport", "Examination")",
+            type: "post",
+            data: { sAcademicYear: academicyear.text() },
+        success: function (data)
+        {
+         
+            if(data.liStudentMark!=null)
+            {
+                $('#printdivsem').removeClass('hidden');
+                $('#bindsemsterdiv').empty();
+                var chartdiv = '<canvas id="semsterchart" class="morris-inverse" style="height: 460px;" data-colors="#41c94f,#41c94f,#1ab394"></canvas><br><br>';
+                $('#bindsemsterdiv').append(chartdiv);
+                    var registerdata = [];
+                    var passdata = [];
+                    var labeldata = [];
+                               
+                    $.each(data.liStudentMark, function (i, mark) 
+                    {
+                      
+                        passdata.push(mark.PASSED);
+                        registerdata.push(mark.TOTAL_REGISTER);
+                        labeldata.push(mark.SEMSTER_NAME);
+                   
+                        
+                    });
+
+                    var Registerdata = {
+                        label: 'Registered',
+                        data:registerdata,
+                        backgroundColor: 'rgba(0, 99, 132, 0.6)',
+                        borderWidth: 0,
+                        yAxisID: "y-axis-density"
+                    };
+
+                    var Passeddata = {
+                        label: 'Passed',
+                        data:passdata,
+                        backgroundColor: 'rgba(99, 132, 0, 0.6)',
+                        borderWidth: 0,
+                        yAxisID: "y-axis-gravity"
+                    };
+
+                    var chartdata = {
+                        labels:labeldata,
+                        datasets: [Registerdata, Passeddata]
+                    };
+
+                    var chartOptions = {
+                        scales: {
+                            xAxes: [{
+                                barPercentage: 1,
+                                categoryPercentage: 0.6
+                            }],
+                            yAxes: [{
+                                id: "y-axis-density"
+                            }, {
+                                id: "y-axis-gravity"
+                            }],
+                           
+                        },
+                        animation: {
+                            onComplete: function ()
+                            {
+                                var chartInstance = this.chart,
+                            ctx = chartInstance.ctx;
+                                ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'bottom';
+
+                                this.data.datasets.forEach(function (dataset, i) {
+                                    var meta = chartInstance.controller.getDatasetMeta(i);
+                                    meta.data.forEach(function (bar, index) {
+                                        var data = dataset.data[index];
+                                        ctx.fillText(data, bar._model.x, bar._model.y - 5);
+                                    });
+                                });
+                                // set the PDF printing trigger when the animation is done
+                                // to have this working, the phantom-pdf menu in the left must
+                                // have the wait for printing trigger option selected
+                                //{
+                                //    ticks: {
+                                //            beginAtZero: true,
+                                //            min: 0,
+                                //            max: 6000,
+                                //            stepSize: 1000,
+                                //            }
+                                //},
+                                window.JSREPORT_READY_TO_START = true
+                            }
+                        },
+                        responsive: true
+
+                    };                  
+                   
+                    var $arrColors = ['#0079fd', '#26B99A', '#f8465d', '#a550dd', '#f6ac24', '#24e3f6'];
+                    var ctx = document.getElementById("semsterchart").getContext('2d');
+                    var barChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: chartdata,
+                        options: chartOptions
+                    });
+                
+            }
+        },
+        error: function (ex)
+        {
+            alert(ex.Message);
+        }
+          
+    });
+    });
+
+    //Class wise
+    $('#btnclswise').on('click', function ()
+    {
+        var academicyear = $("#clsacyear option:selected");    
+        var classid = $("#ClassList").val();
+        $.ajax({
+            url: "@Url.Action("ChartDataforClasswise", "Examination")",
+            type: "post",
+            data: { sAcademicYear: academicyear.text(), sClassId: classid },
+        success: function (data)
+        {
+         
+            if(data.liStudentMark!=null)
+            {
+                $('#printdivcls').removeClass('hidden');
+                $('#bindclsdiv').empty();
+                var classtitle = '<center><h4>' + data.liStudentMark[0].CLASS_NAME + '</h4></center><br><br><br>';
+                $('#bindclsdiv').append(classtitle);
+                var chartdiv = '<canvas id="classwisechart" class="morris-inverse" style="height: 460px;" data-colors="#41c94f,#41c94f,#1ab394"></canvas><br><br>';
+                $('#bindclsdiv').append(chartdiv);
+                var registerdata = [];
+                var passdata = [];
+                var labeldata = [];
+                               
+                $.each(data.liStudentMark, function (i, mark) 
+                {
+                      
+                    passdata.push(mark.PASSED);
+                    registerdata.push(mark.TOTAL_REGISTER);
+                    labeldata.push(mark.SEMSTER_NAME);
+                   
+                        
+                });
+
+                var Registerdata = {
+                    label: 'Registered',
+                    data:registerdata,
+                    backgroundColor: 'rgba(5, 172, 244, 1)',
+                    borderWidth: 0,
+                    yAxisID: "y-axis-regisdata"
+                };
+
+                var Passeddata = {
+                    label: 'Passed',
+                    data:passdata,
+                    backgroundColor: 'rgb(245, 170, 1)',
+                    borderWidth: 0,
+                    yAxisID: "y-axis-data"
+                };
+
+                var chartdata = {
+                    labels:labeldata,
+                    datasets: [Registerdata, Passeddata]
+                };
+
+                var chartOptions = {
+                    scales: {
+                        xAxes: [{
+                            barPercentage: 0.2
+                          
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                max: 200,
+                                min: 0,
+                                stepSize: 10
+                            }
+                        },
+                        {
+                            id: "y-axis-regisdata"
+                        }, {
+                            id: "y-axis-data"
+                        }],
+                           
+                    },
+                    animation: {
+                        onComplete: function ()
+                        {
+                            var chartInstance = this.chart,
+                            ctx = chartInstance.ctx;
+                            ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+
+                            this.data.datasets.forEach(function (dataset, i) {
+                                var meta = chartInstance.controller.getDatasetMeta(i);
+                                meta.data.forEach(function (bar, index) {
+                                    var data = dataset.data[index];
+                                    ctx.fillText(data, bar._model.x, bar._model.y - 5);
+                                });
+                            });
+                            // set the PDF printing trigger when the animation is done
+                            // to have this working, the phantom-pdf menu in the left must
+                            // have the wait for printing trigger option selected
+                            window.JSREPORT_READY_TO_START = true
+                        }
+                    }
+
+                };                  
+                   
+                var $arrColors = ['#0079fd', '#26B99A', '#f8465d', '#a550dd', '#f6ac24', '#24e3f6'];
+                var ctx = document.getElementById("classwisechart").getContext('2d');
+                var barChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: chartdata,
+                    options: chartOptions
+                });
+                
+            }
+        },
+        error: function (ex)
+        {
+            alert(ex.Message);
+        }
+          
+    });
+    });
+
+    //Department wise
+  
+    $('#btndepwise').on('click', function ()
+    {
+        var academicyear = $("#depacyear option:selected");
+        var departmentid = $("#DepartmentList").val();
+        $.ajax({
+            url: "@Url.Action("ChartDataforDepartmentwise", "Examination")",
+            type: "post",
+            data: { sAcademicYear: academicyear.text(), sDepartmentId: departmentid },
+        success: function (data)
+        {
+         
+            if(data.liStudentMark!=null)
+            {
+                $('#printdivdep').removeClass('hidden');
+                $('#binddepdiv').empty();
+                var title = '<center><h4>' + data.liStudentMark[0].DEPARTMENT + '</h4></center><br><br><br>';
+                $('#binddepdiv').append(title);
+                var chartdiv = '<canvas id="depwise" class="morris-inverse" style="height: 460px;" data-colors="#41c94f,#41c94f,#1ab394"></canvas><br><br>';
+                $('#binddepdiv').append(chartdiv);
+                var registerdata = [];
+                var passdata = [];
+                var labeldata = [];
+                               
+                $.each(data.liStudentMark, function (i, mark) 
+                {
+                      
+                    passdata.push(mark.PASSED);
+                    registerdata.push(mark.TOTAL_REGISTER);
+                    labeldata.push(mark.SEMSTER_NAME);
+                   
+                        
+                });
+
+                var Registerdata = {
+                    label: 'Registered',
+                    data:registerdata,
+                    backgroundColor: 'rgb(248, 69, 93)',
+                    borderWidth: 0,
+                    yAxisID: "y-axis-registerdata"
+                };
+
+                var Passeddata = {
+                    label: 'Passed',
+                    data:passdata,
+                    backgroundColor: 'rgb(0, 121, 253)',
+                    borderWidth: 0,
+                    yAxisID: "y-axis-passeddata"
+                };
+
+                var chartdata = {
+                    labels:labeldata,
+                    datasets: [Registerdata, Passeddata]
+                };
+
+                var chartOptions = {
+                    scales: {
+                        xAxes: [{
+                            barPercentage: 0.4,
+                          
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                max: 200,
+                                min: 0,
+                                stepSize: 10
+                            }
+                        },
+                        {
+                            id: "y-axis-registerdata"
+                        }, {
+                            id: "y-axis-passeddata"
+                        }],
+                           
+                    },
+                    animation: {
+                        onComplete: function ()
+                        {
+                            var chartInstance = this.chart,
+                            ctx = chartInstance.ctx;
+                            ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+
+                            this.data.datasets.forEach(function (dataset, i) {
+                                var meta = chartInstance.controller.getDatasetMeta(i);
+                                meta.data.forEach(function (bar, index) {
+                                    var data = dataset.data[index];
+                                    ctx.fillText(data, bar._model.x, bar._model.y - 5);
+                                });
+                            });
+                            // set the PDF printing trigger when the animation is done
+                            // to have this working, the phantom-pdf menu in the left must
+                            // have the wait for printing trigger option selected
+                            window.JSREPORT_READY_TO_START = true
+                        }
+                    }
+
+                };                  
+                   
+                var $arrColors = ['#0079fd', '#26B99A', '#f8465d', '#a550dd', '#f6ac24', '#24e3f6'];
+                var ctx = document.getElementById("depwise").getContext('2d');
+                var barChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: chartdata,
+                    options: chartOptions
+                });
+                
+            }
+        },
+        error: function (ex)
+        {
+            alert(ex.Message);
+        }
+          
+    });
+    });
+</script>
+<script>
+    function printsemster()
+    {
+        var div = $("#bindsemsterdiv")[0];
+        var rect = div.getBoundingClientRect();
+        var image;
+        var canvas = document.createElement("canvas");
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        var ctx = canvas.getContext("2d");
+        ctx.translate(-rect.left, -rect.top);
+        html2canvas(div, {
+            canvas: canvas,
+            height: rect.height,
+            width: rect.width,
+            onrendered: function (canvas)
+            {
+                image = canvas.toDataURL("image/png");
+
+                var pHtml = "<img src=" + image + " />";
+                $("#dvsemster").append(pHtml);
+
+                var link = document.createElement('a');
+                link.download = "OBE_Report.png";
+                link.href = image;
+                link.click();
+                loadContent('/Examination/ExaminationChartReport');
+            }
+
+        });
+    }
+    function printclswise()
+    {
+        var div = $("#bindclsdiv")[0];
+        var rect = div.getBoundingClientRect();
+        var image;
+        var canvas = document.createElement("canvas");
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        var ctx = canvas.getContext("2d");
+        ctx.translate(-rect.left, -rect.top);
+        html2canvas(div, {
+            canvas: canvas,
+            height: rect.height,
+            width: rect.width,
+            onrendered: function (canvas) {
+                image = canvas.toDataURL("image/png");
+
+                var pHtml = "<img src=" + image + " />";
+                $("#dvclasswise").append(pHtml);
+
+                var link = document.createElement('a');
+                link.download = "OBE_Report.png";
+                link.href = image;
+                link.click();
+                loadContent('/Examination/ExaminationChartReport');
+            }
+
+        });
+
+
+    }
+    function printdep()
+    {
+        var div = $("#binddepdiv")[0];
+        var rect = div.getBoundingClientRect();
+        var image;
+        var canvas = document.createElement("canvas");
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        var ctx = canvas.getContext("2d");
+        ctx.translate(-rect.left, -rect.top);
+        html2canvas(div, {
+            canvas: canvas,
+            height: rect.height,
+            width: rect.width,
+            onrendered: function (canvas) {
+                image = canvas.toDataURL("image/png");
+
+                var pHtml = "<img src=" + image + " />";
+                $("#dvdepartmentwise").append(pHtml);
+
+                var link = document.createElement('a');
+                link.download = "OBE_Report.png";
+                link.href = image;
+                link.click();
+                loadContent('/Examination/ExaminationChartReport');
+            }
+
+        });
+    }
+</script>
+

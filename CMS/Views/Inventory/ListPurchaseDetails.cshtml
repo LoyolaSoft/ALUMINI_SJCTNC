@@ -1,0 +1,486 @@
+﻿@model CMS.ViewModel.ViewModel.InventoryViewModel
+
+@{
+    ViewBag.Title = "ListPurchaseDetails";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-timepicker/css/bootstrap-timepicker.min.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">List Purchase Details</li>
+    </ol>
+    <h1 class="page-header">List Purchase Details</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Purchase Details</h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="form-group col-md-12">
+                <a class="btn btn-success pull-right form-group m-b-5" href="#addpurchasemodal" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add">Add</i></a>
+            </div>
+            <div class="form-group col-md-12 table-responsive">
+                <table class="table table-hover table-bordered" id="tblpurchasedetails">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Item</th>
+                            <th>Vendor</th>
+                            <th>Purchase Date</th>
+                            <th>Quantity</th>
+                            <th>Total Price</th>
+                            <th>Action</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @if (Model.lipurchasedetails != null && Model.lipurchasedetails.Count > 0)
+                        {
+                            var count = 0;
+                            foreach (var item in Model.lipurchasedetails)
+                            {
+                                count = count + 1;
+
+                                <tr>
+                                    <td>@count</td>
+
+
+                                    <td>@item.ITEM_NAME</td>
+                                    <td>@item.VENDOR_NAME</td>
+                                    <td>@item.PURCHASE_DATE</td>
+                                    <td>@item.QUANTITY</td>
+                                    <td>@item.TOTAL_PRICE</td>
+                                    <td>
+                                        <a href="#editpurchasemodal" onclick="FetchPurchaseDetails(@item.PURCHASE_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+                                        <a href="javascrip:;" onclick="GetConfirm(@item.PURCHASE_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                            }
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="addpurchasemodal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add Purchase Details</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <input type="text" id="purchaseid" class="hidden">
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Invoice No</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="addinvoiceno" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Invoice Date</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="addinvoicedate" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Purchase Date</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="addpurchasedate" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <table class="table table-bordered" id="purchaseitems">
+                                            <thead>
+                                                <tr>
+                                                    <th>
+                                                        Item
+                                                    </th>
+                                                    <th>
+                                                        Vendor
+                                                    </th>
+                                                    <th>
+                                                        Quantity
+                                                    </th>
+                                                    <th>
+                                                        Model
+                                                    </th>
+                                                    <th>
+                                                        Total Price
+                                                    </th>
+                                                    <th>
+                                                        Add
+                                                    </th>
+                                                    <th>
+                                                        Remove
+                                                    </th>
+
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        @Html.DropDownList("Items", (Model.ITEMS != null) ? Model.ITEMS : Enumerable.Empty<SelectListItem>(), new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl", @data_live_search = "true", @data_action_box = "true", @data_parsley_required = "true" })
+                                                        @Html.ValidationMessageFor(model => model.ITEMS, "", new { @class = "text-danger" })
+                                                    </td>
+                                                    <td>
+                                                        @Html.DropDownList("Vendors", (Model.VENDOR != null) ? Model.VENDOR : Enumerable.Empty<SelectListItem>(), new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm vendorddl", @data_live_search = "true", @data_action_box = "true", @data_parsley_required = "true" })
+                                                        @Html.ValidationMessageFor(model => model.VENDOR, "", new { @class = "text-danger" })
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" class="form-control quantity" data-parsley-required="true">
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" class="form-control model" data-parsley-required="true">
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" class="form-control totalprice" data-parsley-required="true">
+                                                    </td>
+                                                    <td><button id="addmore" class="btn btn-primary addmore">+</button></td>
+                                                    <td><button id="remove" class="btn btn-danger remvoe">-</button></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal" id="editpurchasemodal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Edit Purchase Details</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="ppBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <input type="text" id="purchaseid" class="hidden">
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Invoice No</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="invoiceno" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Invoice Date</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="invoicedate" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Purchase Date</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="purchasedate" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        @Html.Label("Vendor", htmlAttributes: new { @class = "control-label col-md-4" })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(model => model.VENDOR, (Model.VENDOR != null) ? Model.VENDOR : Enumerable.Empty<SelectListItem>(), new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @data_selected_text_format = "count", @data_action_box = "true" })
+                                            @Html.ValidationMessageFor(model => model.VENDOR, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        @Html.Label("Item", htmlAttributes: new { @class = "control-label col-md-4" })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(model => model.ITEMS, (Model.ITEMS != null) ? Model.ITEMS : Enumerable.Empty<SelectListItem>(), new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @data_selected_text_format = "count", @data_action_box = "true" })
+                                            @Html.ValidationMessageFor(model => model.ITEMS, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Model Name</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="model" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Quantity</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="quantity" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Total Price</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="totalprice" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnupdate" class="btn btn-sm btn-primary" data-dismiss="modal">Update</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-timepicker/js/bootstrap-timepicker.min.js"></script>
+
+<script>
+    function ContentLoad() {
+        // Document Ready Function .
+
+    }
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+
+    $("#invoicedate,#purchasedate").datepicker({
+        todayHighlight: true,
+        autoclose: true,
+        startDate: new Date(),
+        //endDate: new Date(),
+        format: "dd/mm/yyyy",
+        orientation: "right bottom"
+    });
+    $("#addinvoicedate,#addpurchasedate").datepicker({
+        todayHighlight: true,
+        autoclose: true,
+        startDate: new Date(),
+        //endDate: new Date(),
+        format: "dd/mm/yyyy",
+        orientation: "right bottom"
+    });
+
+    $('#tblpurchasedetails').DataTable({});
+    function FetchPurchaseDetails(ID)
+    {
+        if (ID != null) {
+            $.ajax({
+                url: "@Url.Action("FetchPurchaseDetails", "Inventory")",
+                type: "post",
+                data: { sPurchaseId: ID },
+                success: function (data) {
+                    if (data != null)
+                    {
+                        $('#purchaseid').val(data.PURCHASE_ID);
+                        $('#invoiceno').val(data.INVOICE_NO);
+                        $('#invoicedate').val(data.INVOICE_DATE);
+                        $('#purchasedate').val(data.PURCHASE_DATE);
+                        $('#VENDOR').val(data.VENDOR_ID);
+                        $('#ITEMS').val(data.ITEM_ID);
+                        $('#quantity').val(data.QUANTITY);
+                        $('#totalprice').val(data.TOTAL_PRICE);
+                        $('#model').val(data.MODEL_NAME);
+
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                },
+                error: function (ex) {
+                    alert(ex.Message);
+                }
+            });
+        }
+    }
+    $('#btnSubmit').click(function ()
+    {
+
+        var isValid = true;
+        var JsonData = null;
+        var Json_Data = null;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid)
+        {
+            return false;
+        }
+        var invoiceno = $('#addinvoiceno').val();
+        var invoicedate = $('#addinvoicedate').val();
+        var purchasedate = $('#addpurchasedate').val();
+        Json_Data='{"INVOICE_NO":"' +invoiceno + '","INVOICE_DATE":"' + invoicedate + '","PURCHASE_DATE":"' + purchasedate + '"}';
+        JsonData = "{LipurchaseDetails:[";
+        $('#purchaseitems tbody tr').each(function ()
+        {
+            JsonData += '{"ITEM_ID":"' + $(this).find('.itemddl').val() + '","VENDOR_ID":"' + $(this).find('.vendorddl').val() + '","QUANTITY":"' + $(this).find('.quantity').val() + '","MODEL_NAME":"' + $(this).find('.model').val() + '","TOTAL_PRICE":"' + $(this).find('.totalprice').val() + '"},';
+
+        });
+        JsonData = JsonData.slice(0, -1);
+        JsonData += ']}';
+
+        $.ajax({
+            url: "@Url.Action("SavePurchaseDetails", "Inventory")",
+            type: "post",
+            data: { sBasicData: Json_Data, sJsonData: JsonData },
+            success: function (data)
+            {
+
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/Inventory/ListPurchaseDetails');
+
+            },
+            error: function (ex) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+    $('#btnupdate').on('click',function ()
+    {
+       
+        var isValid = true;
+        var JsonData = null;
+        if ($('#ppBody').parsley().validate() !== true) isValid = false;
+        if (!isValid)
+        {
+            return false;
+        }
+        JsonData = '{"PURCHASE_ID":"' + $("#purchaseid").val() + '","INVOICE_NO":"' +  $("#invoiceno").val() + '","INVOICE_DATE":"' +  $("#invoicedate").val() + '","PURCHASE_DATE":"' +  $("#purchasedate").val() + '","ITEM_ID":"' +  $("#ITEMS").val() + '","VENDOR_ID":"' +  $("#VENDOR").val() + '","QUANTITY":"' +  $("#quantity").val() + '","TOTAL_PRICE":"' +  $("#totalprice").val() + '","MODEL_NAME":"' +  $("#model").val() + '"}';
+        $.ajax({
+            url: "@Url.Action("UpdatePurchaseDetails", "Inventory")",
+            type: "post",
+            data: { sJsonData: JsonData },
+            success: function (data)
+            {
+
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/Inventory/ListPurchaseDetails');
+
+            },
+            error: function (ex) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+
+
+
+    GetConfirm = function (ID) {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+
+function ()
+{
+    $.ajax({
+        url: "@Url.Action("DeletePurchaseDetails", "Inventory")",
+        type: "post",
+        data: { sPurchaseId: ID },
+        success: function (data)
+        {
+            if (data.Message != null && data.Message != "")
+            {
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/Inventory/ListPurchaseDetails');
+            }
+        },
+        error: function (ex) {
+            swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+        }
+
+
+    });
+});
+
+    }
+
+    $(".addmore").on('click', function ()
+    {
+
+
+        var $tableBody = $('#purchaseitems').find("tbody"),
+        $trLast = $tableBody.find("tr:last"),
+        $trNew = $trLast.clone();
+        var item = $trNew.find("td:eq(0)");
+        var vendor = $trNew.find("td:eq(1)");
+        var items=@Html.Raw(Json.Encode(ViewBag.liitems));
+        var vendors=@Html.Raw(Json.Encode(ViewBag.livendors));
+      
+        if (items != null)
+        {
+            var itemsel="<select class='selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl'>";
+
+            for (var i = 0; i < items.length; i++)
+            {
+                itemsel+="<option value="+items[i].ITEM_ID+">"+items[i].ITEM_NAME+"</option>";
+            }
+            itemsel+="</select>";
+            item.html(itemsel);
+        }
+        if (vendors != null)
+        { 
+            var vendorsel="<select class='selectpicker show-menu-arrow show-tick drop-down form-control  input-sm vendorddl'>";
+
+            for (var i = 0; i < vendors.length; i++)
+            {
+                vendorsel+="<option value="+vendors[i].VENDOR_ID+">"+vendors[i].VENDOR_NAME+"</option>";
+            }
+            vendorsel+="</select>";
+            vendor.html(vendorsel);
+        }
+       
+        $trLast.after($trNew);
+
+     
+
+    });
+
+    $('#purchaseitems').on('click', 'tr .remvoe', function (e)
+    {
+        e.preventDefault();
+
+        $(this).closest('tr').remove();
+
+    });
+</script>

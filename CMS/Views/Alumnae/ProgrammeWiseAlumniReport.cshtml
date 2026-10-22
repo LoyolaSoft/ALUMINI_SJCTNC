@@ -1,0 +1,102 @@
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "Programme-Wise Alumni Report";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Alumnae</a></li>
+        <li class="active">Programme-Wise Alumni Report</li>
+    </ol>
+    <h1 class="page-header">Alumni Data Collection Statistics</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="@Url.Action("ExportProgrammeWiseAlumniReportToExcel", "Alumnae")" class="btn btn-xs btn-success"><i class="fa fa-file-excel-o"></i> Export Summary</a>
+                <a href="@Url.Action("ExportAlumniDataToExcelByProgramme", "Alumnae")" class="btn btn-xs btn-warning" style="margin-left: 5px;"><i class="fa fa-file-excel-o"></i> Export All by Programme Tab</a>
+                <a href="javascript:;" onclick="loadContent('/Alumnae/ListAlumniDataCollection')" class="btn btn-xs btn-info" style="margin-left: 5px;"><i class="fa fa-list"></i> View Detailed Alumni List</a>
+            </div>
+            <h4 class="panel-title"><b>Programme-Wise Alumni Report</b></h4>
+        </div>
+        <div class="panel-body">
+            <table id="tblProgrammeWiseAlumni" class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 5%; text-align: center;">#</th>
+                        <th>Programme Name</th>
+                        <th style="width: 30%;">Application Type</th>
+                        <th style="width: 20%; text-align: right;">Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.liProgrammeWiseAlumniReport != null && Model.liProgrammeWiseAlumniReport.Count() > 0)
+                    {
+                        int sno = 1;
+                        int totalCount = 0;
+                        foreach (var item in Model.liProgrammeWiseAlumniReport)
+                        {
+                            totalCount += !string.IsNullOrEmpty(item.COUNT) ? Convert.ToInt32(item.COUNT) : 0;
+                            <tr>
+                                <td style="text-align: center;">@sno</td>
+                                <td><b>@item.PROGRAMME_NAME</b></td>
+                                <td>@item.APPLICATION_TYPE</td>
+                                <td style="text-align: right; font-weight: bold;">@item.COUNT</td>
+                            </tr>
+                            sno++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td></td>
+                            <td class="text-center" style="font-weight: bold; color: #707478; padding: 15px;">No Records Found</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    }
+                </tbody>
+                @if (Model != null && Model.liProgrammeWiseAlumniReport != null && Model.liProgrammeWiseAlumniReport.Count() > 0)
+                {
+                    <tfoot>
+                        <tr style="background-color: #f9f9f9; font-size: 15px;">
+                            <th></th>
+                            <th></th>
+                            <th style="text-align: right; font-weight: bold; padding: 12px;">Total Registered Alumni:</th>
+                            <th style="text-align: right; font-weight: bold; color: #2a72d4; padding: 12px;" id="totalAlumniSum">
+                                @Model.liProgrammeWiseAlumniReport.Sum(x => !string.IsNullOrEmpty(x.COUNT) ? Convert.ToInt32(x.COUNT) : 0)
+                            </th>
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        @if (Model != null && Model.liProgrammeWiseAlumniReport != null && Model.liProgrammeWiseAlumniReport.Count() > 0)
+        {
+            <text>
+            if ($.fn.DataTable.isDataTable('#tblProgrammeWiseAlumni')) {
+                $('#tblProgrammeWiseAlumni').DataTable().destroy();
+            }
+            $('#tblProgrammeWiseAlumni').DataTable({
+                responsive: true,
+                "pageLength": 25,
+                "order": [[2, "asc"], [1, "asc"]]
+            });
+            </text>
+        }
+    });
+</script>

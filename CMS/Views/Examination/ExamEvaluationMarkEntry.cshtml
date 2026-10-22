@@ -1,0 +1,216 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "ExamEvaluationMarkEntry";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">ExamEvaluationMarkEntry</li>
+    </ol>
+    <h1 class="page-header">ExamEvaluationMarkEntry</h1>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h3 class="panel-title">ExamEvaluationMarkEntry</h3>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-horizontal">
+                    <div class="form-group col-lg-12">
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.ExamType, "Date", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.EvaluationDate, (Model.EvaluationDate != null) ? Model.EvaluationDate : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.EvaluationDate, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.EvaluationCourse, "Course", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.EvaluationCourse, (Model.EvaluationCourse != null) ? Model.EvaluationCourse : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.EvaluationCourse, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <a href="#" class="btn btn-primary" id="btnGet">Get</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-12 table-responsive" id="dvEvaluationStudentBind"></div>
+                    <a href="#" class="btn btn-primary pull-right hidden" id="btnSubmit">Submit</a>                  
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+    function ContentLoad() {
+    }
+    $('.selectpicker').selectpicker({
+        size: 4
+    });
+    //ExamType OnChange
+    $('#EvaluationDate').on('change', function () {
+        var vEvaluationDate = $('#EvaluationDate option:selected').text();
+        $.ajax({
+            url: '@Url.Action("BindEvaluationCourseByEvaluationDateAndEvaluator", "Examination")',
+            data: { sEvalationDate: vEvaluationDate },
+            success: function (objResult) {
+                $('#EvaluationCourse').empty();
+                $('#EvaluationCourse').append('<option value="0">-- Select --</option>' + objResult.sResult);
+                $('.selectpicker').selectpicker('refresh');
+            },
+            error: function (xhr, textStatus, error) {
+                alert(error + "\n");
+            }
+        });
+    });
+
+    SelectOrUnselect = function () {
+        if (AllchkID.checked == true) {
+            $('#tblEvStudentList tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').each(function () {
+                    $('input[type="checkbox"]').attr("checked", true);
+                });
+            });
+        }
+        else {
+            $('#tblEvStudentList tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').each(function () {
+                    $('input[type="checkbox"]').attr("checked", false);
+                });
+            });
+        }
+    }
+
+    $('#btnGet').on('click', function () {
+        loadGird();
+    });
+
+    //This to Load the table
+    function loadGird() {
+        var vEvaluationCourse = $('#EvaluationCourse').val();
+        var vEvaluationDate = $('#EvaluationDate option:selected').text();
+        var vIs_date_validation = $('#EvaluationCourse').find('option:selected').attr("cms-is-datevalidation");
+        var vEvaluation = $('#EvaluationCourse').find('option:selected').attr("cms-evaluation");
+        if (vEvaluationCourse != 0) {
+            $.ajax({
+                url: '@Url.Action("BindExamEvaluationMarkEntrybyBundles", "Examination")',
+                data: { sEvaluationDate: vEvaluationDate, sCourseId: vEvaluationCourse, sEvaluation : vEvaluation,sIsDateValidation: vIs_date_validation },
+                success: function (option) {
+                    var BindEvaluationStudent = $('#dvEvaluationStudentBind');
+                    BindEvaluationStudent.empty();
+                    if (option.Message != null && option.Message != '') {
+                        swal({ title: "Error", text: option.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    } else {
+                        $('#btnSubmit').removeClass('hidden');
+                        BindEvaluationStudent.append(option);                       
+                        $("#tblEvStudentMark").DataTable({ "bPaginate": false });
+                        //$("#tblEvStudentMark").addClass("dataTables_filter pull-right");
+                        $(".pagination").addClass("pagination pull-right");
+                    }
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+        } else {
+            $('#dvEvaluationStudentBind').empty();
+            $('.selectpicker').selectpicker('refresh');
+            return false;
+        }
+    }
+
+
+    $('#btnSubmit').on('click', function () {
+
+        if (Validate()) {
+            swal({ title: "Warning !", text: 'Mark should be less than or equal to Maximum mark...', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+        var Search = $('input[type="search"]').val();
+        if (Search != '') {
+            swal({ title: "Warning !", text: 'Please Clear the Search Box !...', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+        addLoadingPanel();
+        var jsonObject;
+        if (jsonObject == null) {
+            jsonObject = '{"JSON_EVSTUDENTMARK":[';
+            $('#tblEvStudentMark tbody tr').each(function () {
+                EvmarkId = $(this).attr("cms-evmarkid");
+                EvCourseId = $(this).attr("cms-courseid");
+                Evaluation = $(this).attr("cms-evaluation");
+                EvProgrammeLevel = $(this).attr("cms-programmeLevel");
+                BundleStuid = $(this).attr("cms-bundlestuid");
+                $(this).find('td').each(function () {
+                    if ($(this).find('input[type="text"]').attr("cms-studentsId")) {
+                        jsonObject += '{"EXAM_EV_STU_MARK_ID":"' + EvmarkId + '","STUDENT_ID":"' + $(this).find('input[type="text"]').attr("cms-studentsId") + '","COURSE_ID":"' + EvCourseId + '","EVALUATION_MARK":"' + ($(this).find('input[type="text"]').val()) + '","EVALUATION":"' + Evaluation + '","PROGRAMME_LEVEL_ID":"' + EvProgrammeLevel + '","BUNDLE_STUDENT_ID":"' + BundleStuid + '"},';
+                    }
+                });
+            });
+            jsonObject = jsonObject.slice(0, -1);
+            jsonObject += ']}';
+        }
+        $.ajax({
+            url: "@Url.Action("SaveExamEvaluationMarkEntryForStudents", "Examination")",
+            method: "post",
+            content: "application/json; charset=utf-8",
+            data: { sJsonEvalauationStudentMark: jsonObject },
+            success: function (data) {
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                loadGird();
+            }, error: function (e) {
+                alert('Internal Server Error !');
+            }
+        });
+    });
+
+    function NumberValidate() {
+        $('input[type="text"]').keypress(function (e) {
+            var TextId = $(this);
+            if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+                if (e.which != 97 && e.which != 65) {
+                    return false;
+                } else if (e.which == 97 || e.which == 65) {
+                    TextId.attr('maxlength', 1);
+                }
+            } else {
+                TextId.attr('maxlength', 3);
+            }
+        });
+
+    }
+
+    function Validate() {
+        var validate = 0;
+        $('#tblEvStudentMark  tbody tr td').each(function () {
+            if ($(this).find('input[type="text"]').attr("cms-studentsId")) {
+                if (parseInt($(this).find('input[type="text"]').val()) > parseInt($(this).find('input[type="text"]').attr("cms-max"))) {
+                    $(this).find('input[type="text"]').css('color', 'red');
+                    validate = 1;
+                } else {
+                    $(this).find('input[type="text"]').css('color', 'black');
+
+                }
+            }
+        });
+        return validate;
+    }
+</script>

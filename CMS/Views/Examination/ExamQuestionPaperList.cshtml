@@ -1,0 +1,294 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    Layout = null;
+}
+
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <!-- begin breadcrumb -->
+        <ol class="breadcrumb pull-right">
+            <li><a @*href="@Url.Action("Student", "DashBoard")"*@ href="javascript:;">Home</a></li>
+            <li class="active">Exam Question Paper  </li>
+        </ol>
+        <!-- end breadcrumb -->
+        <!-- begin page-header -->
+        <h1 class="page-header">Exam Question Paper <small></small></h1>
+        <!-- end page-header -->
+
+        <div class="panel panel-primary" id="panel">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Exam Question Paper </h4>
+            </div>
+            <div class="panel-body">
+
+                <div class="col-md-12 form-group">
+
+                    <div class="form-group col-md-4">
+                        <label class="control-label col-md-3">Ac Year</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(m => m.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label class="control-label col-md-3">Exam Setting</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(m => m.ExamSetting, (Model.ExamSetting != null) ? Model.ExamSetting : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label class="control-label col-md-3">Course</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(m => m.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                        </div>
+                    </div>
+
+                 </div>
+
+                <div class="col-md-12 form-group">
+                    <div class="form-group col-md-4">
+                        <label class="control-label col-md-3">Question Level</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(m => m.QUESTION_LEVEL, (Model.QUESTION_LEVEL != null) ? Model.QUESTION_LEVEL : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label class="control-label col-md-3">Section</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(m => m.Section, (Model.Section != null) ? Model.Section : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                     <div class="col-md-6">
+                         <a href="#" class="btn btn-primary" id="btnget">Get</a>
+                     </div>
+                    </div>
+
+                </div>
+
+
+                <div class="form-group col-md-12">
+                    <div id="dvBindQuestions"></div>
+                </div>
+
+                <div class="form-group col-md-12" >
+                    <a href="javascript:;" class="btn btn-primary pull-right hidden" id="btnSubmit"> Generate Question Paper</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+    $('.selectpicker').selectpicker({ size: 6 });
+    $('.selectpicker').selectpicker('refresh');
+    function ContentLoad()
+    {
+        // Document ready function ...
+    }
+</script>
+
+@* On Academic Year Change  *@
+<script>
+    $('#AcademicYearList').on('change', function ()
+    {
+        if ($('#AcademicYearList').val())
+        {
+            $.ajax({
+                url: '/Examination/FetchExamSettingByAcYear',
+                method:'POST',
+                datatype: 'json',
+                data: { sAcYear: $('#AcademicYearList option:Selected').text() },
+                success: function (data)
+                {
+                    if (data.ErrorCode == "200")
+                    {
+                        $('#ExamSetting').empty().append(data.sResult);
+                        $('.selectpicker').selectpicker('refresh');
+                    } else
+                    {
+                        swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+    });
+</script>
+
+@* On Exam Setting Change  *@
+<script>
+    $('#ExamSetting').on('change', function ()
+    {
+        if ($('#ExamSetting').val())
+        {
+            $.ajax({
+                url: '/Examination/FetchCourseByExamSetting',
+                method:'POST',
+                datatype: '',
+                data: { sExamSettingId: $('#ExamSetting').val() },
+                success: function (data)
+                {
+                    if (data.ErrorCode == "200")
+                    {
+                        $('#CourseList').empty().append(data.sResult);
+                        $('.selectpicker').selectpicker('refresh');
+                    } else
+                    {
+                        swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+    });
+</script>
+
+@* On Course Change  *@
+<script>
+    $('#CourseList').on('change', function ()
+    {
+        if ($('#CourseList').val())
+        {
+            $.ajax({
+                url: '/Examination/FetchDeptSettingByCourseId',
+                method:'POST',
+                datatype: 'json',
+                data: { sCourseId: $('#CourseList').val()},
+                success: function (data)
+                {
+                    if (data.Message!=null && data.Message!='')
+                    {
+                        swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    } else
+                    {
+                        $('#Section').empty().append(data.sResult);
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+    });
+</script>
+
+@*  On Section Change *@
+<script>
+    //$('#Section').on('change', function ()
+    //{
+    //    var TotalQuestions = $('#Section option:Selected').attr('cms-MaxQuestion');
+    //    var sOption = ''; 
+    //    var sSetting = '<div class="form-group">\
+    //                        <div class="text-center col-md-8"><u>' + $('#Section option:Selected').attr('cms-Topic') + ' - ' + $('#Section option:Selected').text() + '</u></div>\
+    //                        <div class="col-md-4">(' + $('#Section option:Selected').attr('cms-TotalQuestion') + ' x ' + $('#Section option:Selected').attr('cms-MarkperQuestion') + ') = ' + $('#Section option:Selected').attr('cms-TotalMark') + '</div>\
+    //                    </div>';
+    //    for (var i = 1; i <= TotalQuestions; i++)
+    //    {
+    //        sOption += '<br><br><div class="form-group">\
+    //                        <label class="control-label col-md-1">'+i+'. </label>\
+    //                        <div class="col-md-9">\
+    //                            <select class = "form-control  selectpicker" data-live-search = "true"></select>\
+    //                        </div>\
+    //                    </div>';
+    //    }
+
+    //    $('#dvBindQuestions').empty().append(sSetting + sOption);
+    //    $('.selectpicker').selectpicker('refresh');
+    //});
+
+    $('#btnget').on('click', function ()
+    {
+        if ($('#ExamSetting').val() && $('#CourseList').val() && $('#QUESTION_LEVEL').val() && $('#Section').val())
+        {
+            $.ajax({
+                url: '/Examination/BindExamQuestionPaperByExamSetting',
+                method: 'POST',
+                datatype: 'json',
+                data: { sExamSettingId: $('#ExamSetting').val(), sCourseId: $('#CourseList').val(), sQuestionLevel: $('#QUESTION_LEVEL').val(), sSectionId: $('#Section').val() },
+                success: function (data) {
+                    if (data.Message != null && data.Message != '')
+                    {
+                        swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    } else
+                    {
+                        $('#dvBindQuestions').empty().append(data);
+                        $('#btnSubmit').removeClass('hidden');
+                        $('.selectpicker').selectpicker({ size: 6 });
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                }, error: function (error) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+    });
+   
+    $('#btnSubmit').on('click', function ()
+    {
+        sExamSettingId=$('#ExamSetting').val();
+        sCourseId= $('#CourseList').val();
+        sQuestionLevel = $('#QUESTION_LEVEL').val();
+        sSectionId = $('#Section').val();
+        // Validation Check ,...
+        var isValid = true;
+        if ($('#dvValidate').parsley().validate() !== true) isValid = false;
+        if (!isValid)
+        {
+            //gritter-info,danger,success,warning,default
+            swal({ title: "Warning !", text: 'Something went wrong ! Please check your inputs !', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+        var JsonData = '';
+        JsonData += '{"ExamQuestionpaper":[';
+        $('#dvValidate').find(".questions").each(function ()
+        {
+            if ($(this).val() != '')
+            {
+                JsonData += '{"QUESTION_PAPER_ID":"' + $(this).attr('questionpaperid') + '","COURSE_ID":"' + sCourseId + '","QUESTION_LEVEL_ID":"' + sQuestionLevel + '","QUESTION_ID":"' + $(this).val() + '","EXAM_SETTING_ID":"' + sExamSettingId + '"},';
+            }
+        });
+        JsonData = JsonData.slice(0, -1);
+        JsonData += ']}';
+       
+            $.ajax({
+                url: '/Examination/SaveExamQuestionPaper',
+                method: 'POST',
+                datatype: 'json',
+                data: { sJsonData: JsonData },
+                success: function (data)
+                {
+                  
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    
+                }, error: function (error) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        
+    });
+ 
+</script>

@@ -1,0 +1,1102 @@
+@using CMS.Utility;
+@using System.Data;
+@using CMS.ViewModel.Model;
+@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    if (Session["USER_ID"] == null)
+    {
+        Response.Redirect("/Account/Index");
+    }
+
+    string sCollegeCode = string.Empty;
+    string sCollegeLogo = string.Empty;
+    string sCollegeName = string.Empty;
+
+}
+
+@if (Session[Common.SESSION_VARIABLES.COLLEGE_DETAILS] != null)
+{
+    var liCollegeDetails = (List<CollegeDetails>)Session[Common.SESSION_VARIABLES.COLLEGE_DETAILS];
+    sCollegeCode = liCollegeDetails.FirstOrDefault().COLLEGE_CODE;
+    sCollegeLogo = liCollegeDetails.FirstOrDefault().COLLEGE_LOGO;
+    sCollegeName = liCollegeDetails.FirstOrDefault().COLLEGE_NAME;
+}
+
+
+<style>
+    /* College Header */
+    .header-college h3 {
+        font-weight: 700;
+        color: #0d47a1;
+    }
+
+    .header-college p {
+        font-size: 14px;
+        color: #607d8b;
+        margin-bottom: 0;
+    }
+
+    /* Alerts and Notes */
+    .alert-warning {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
+        font-size: 14px;
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    /* Countdown Timer */
+    #countdown {
+        font-weight: bold;
+        font-size: 10px;
+        background: #263238;
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 20px;
+    }
+
+    /* Buttons */
+    .btn {
+        border-radius: 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+
+    #feedbackBtn, #progressionBtn, #FeepayBtn, #downloadBtn {
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+
+    .success {
+        background-color: #4CAF50 !important;
+        color: #fff !important;
+    }
+
+    .borderred button {
+        margin-bottom: 12px;
+    }
+
+    .ion-checkmark {
+        color: #43a047 !important;
+    }
+
+    .ion-close {
+        color: #e53935 !important;
+    }
+
+    /* Remarks Modal */
+    .modal-content {
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+
+    .modal-header {
+        background: #1565c0;
+        color: white;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .modal-body ul {
+        list-style-type: disc;
+        padding-left: 25px;
+    }
+
+    .modal-body h4 {
+        color: #1a237e;
+        font-weight: 600;
+    }
+
+    /* Inputs */
+    input.form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        transition: border-color 0.3s ease;
+    }
+
+        input.form-control:focus {
+            border-color: #1976d2;
+            box-shadow: 0 0 5px rgba(25,118,210,0.2);
+        }
+
+    /* Label Styling */
+    .label.label-inverse {
+        background: #1e88e5;
+        font-weight: 500;
+    }
+
+    .label-success {
+        background-color: #4CAF50 !important;
+        color: white;
+    }
+
+    .label-danger {
+        background-color: #f44336 !important;
+        color: white;
+    }
+
+    /* Utility Classes */
+    .text-end {
+        text-align: right;
+    }
+
+    .text-primary {
+        color: #1565c0 !important;
+    }
+
+    .mt-4 {
+        margin-top: 1.5rem !important;
+    }
+
+    /* Highlight Note Style */
+    .highlight-note {
+        background: #fff9c4;
+        border-right: 5px solid #fbc02d;
+        border-left: 5px solid #fbc02d;
+        padding: 20px;
+        border-radius: 12px;
+        margin: 20px 0;
+        text-align: left;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+        .highlight-note h4 {
+            color: #f57f17;
+            margin-top: 0;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .highlight-note ol {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+
+            .highlight-note ol li {
+                margin-bottom: 15px;
+                font-size: 15px;
+                line-height: 1.5;
+                color: #5d4037;
+            }
+
+                .highlight-note ol li:last-child {
+                    margin-bottom: 0;
+                }
+
+        .highlight-note .price-info {
+            font-weight: 700;
+            color: #e65100;
+        }
+
+    /* Steps Alignment */
+    .steps-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 500px;
+        margin: 30px auto;
+    }
+
+    .step-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .step-btn {
+        flex: 1;
+        min-width: 250px;
+        text-align: center;
+    }
+
+    .step-status {
+        width: 40px;
+        display: flex;
+        justify-content: center;
+        margin-left: 10px;
+    }
+
+    .step-divider {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+
+        .step-divider i {
+            margin-right: 40px; /* Offset to align with buttons, not status */
+        }
+
+    @@media (max-width: 768px) {
+        .step-btn {
+            min-width: 200px;
+        }
+
+        .highlight-note {
+            padding: 15px;
+        }
+
+            .highlight-note ol li {
+                font-size: 14px;
+            }
+
+        #countdown {
+            font-weight: bold;
+            font-size: 9px;
+            background: #263238;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+    }
+</style>
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li>
+            <a href="javascript:;">Home</a>
+        </li>
+        <li class="active">
+            Convocation Registration
+        </li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">
+        Convocation Registration
+    </h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">
+                Convocation Registration
+            </h4>
+        </div>
+        <div class="panel-body">
+            @*<center class="header-college align-items-center">
+                <h3 class="">32<sup>nd</sup> Graduation Day - 28.03.2026, Saturday</h3>
+                <h4 class="">Convocation Registration</h4>
+            </center>*@
+
+            @if (Model.liStudent != null && Model.liStudent.Count > 0)
+            {
+                if (Model.liconvocationeligible != null && Model.liconvocationeligible.Count > 0)
+                {
+
+                    if (Model.liconvocationeligible.FirstOrDefault().IS_BLOCKED == "1")
+                    {
+                        <div class=" mt-4" id="feedbackarea">
+                            <center>
+                                <h3 class="text-warning">@Model.liconvocationeligible.FirstOrDefault().ERROR</h3>
+                            </center>
+                        </div>
+                    }
+                    else
+                    {
+                        <center class="header-college align-items-center">
+                            <h3 class="">@Model.liconvocationeligible.FirstOrDefault().CONVOCATION_NO  Graduation Day - @Model.liconvocationeligible.FirstOrDefault().CONVOCATION_DATE  </h3>
+                            <h4 class="">Convocation Registration (MBA Student Portal)</h4>
+
+                        </center>
+                        <div class=" mt-4" id="feedbackarea">
+
+                            <div class="highlight-note">
+                                @*<h3 class="text-decoration-underline">[Basic Info]</h3>*@
+
+                                <h4><i class="fa fa-info-circle"></i> CONVOCATION NOTE:</h4>
+                                <ol>
+                                    <li>Candidates should be in their seats by <b>09.30 a.m.</b> in their convocation gowns.</li>
+                                    <li>Register your confirmation of Participation through <b>ERP-Online</b> by paying an amount of <span class="price-info">Rs.@Model.liconvocationeligible.FirstOrDefault().REGISTRATION_AMOUNT/-</span></li>
+                                    <li>Gown and Photo - <span class="price-info">Rs. 400/-</span> (Gown refundable Deposit <span class="price-info">Rs. 300/-</span>, Gown hire Charge <span class="price-info">Rs. 50/-</span> and Photo Charge <span class="price-info">Rs. 50/-</span>)</li>
+                                    <li>For any clarifications kindly contact the college office</li>
+                                </ol>
+                                <center>
+                                    @*<span class="label label-inverse m-r-5">NOTE!</span> Any submission with incorrect data or irrelevant files may be subject to review, and approval could be delayed.*@
+                                    @if (@Model.liconvocationeligible.FirstOrDefault().TIME_PERIOD_END != null || @Model.liconvocationeligible.FirstOrDefault().TIME_PERIOD_END != "")
+                                    {
+
+                                        <br />
+                                        <span class="label label-inverse m-r-5" id="countdown"></span>
+                                        var targetDate = Model.liconvocationeligible.FirstOrDefault().TIME_PERIOD_END;
+                                        <script>
+       var targetDate = new Date('@targetDate');
+      function updateCountdown() {
+          var countdownElement = document.getElementById("countdown");
+          if (!countdownElement) return;
+           var now = new Date().getTime();
+           var distance = targetDate - now;
+           if (distance > 0) {
+               var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+               var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+               var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+               var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+               if (days == "0" && hours == "0" && minutes == "0" && seconds == "0") {
+                   document.getElementById("countdown").innerHTML = "Registration has ended!";
+                   loadContent('/Alumnae/Convocationinfo');
+               }
+               else if (days == "0" && hours == "0" && minutes == "0") {
+                   document.getElementById("countdown").innerHTML =
+                       "Registration Ends in: " + seconds + " Sec";
+               }
+               else if (days == "0" && hours == "0") {
+                   document.getElementById("countdown").innerHTML =
+                       "Registration Ends in: " + minutes + " Min, " + seconds + " Sec";
+               }
+               else if (days == "0") {
+                   document.getElementById("countdown").innerHTML =
+                       "Registration Ends in: " + hours + " Hrs, " + minutes + " Min, " + seconds + " Sec";
+               }
+               else {
+                   document.getElementById("countdown").innerHTML =
+                       "Registration Ends in: " + days + " Days, " + hours + " Hrs, " + minutes + " Min, " + seconds + " Sec";
+               }
+
+
+           } else {
+               document.getElementById("countdown").innerHTML = "Registration has ended!";
+               loadContent('/Alumnae/Convocationinfo');
+           }
+       }
+       setInterval(updateCountdown, 1000);
+                                        </script>
+
+                                    }
+
+                                </center>
+                            </div>
+
+
+                            <br />
+                            <div class="table-responsive mt-4">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Duration</th>
+                                            <th>Programme</th>
+                                            <th>Department</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                @if (Model.liStudent[0].FIRST_NAME != null)
+                                                {
+                                                    <span>@Model.liStudent[0].FIRST_NAME</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (Model.liStudent[0].DURATION != null)
+                                                {
+                                                    <span>@Model.liStudent[0].DURATION</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (Model.liStudent[0].PROGRAMME_NAME != null)
+                                                {
+                                                    <span>@Model.liStudent[0].PROGRAMME_NAME</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (Model.liStudent[0].DEPARTMENT != null)
+                                                {
+                                                    <span>@Model.liStudent[0].DEPARTMENT</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            @if (Model.licurriculumpersonal != null && Model.licurriculumpersonal.Count > 0)
+                            {
+                                <input type="hidden" data-personal-info="1" />
+                                <div class="table-responsive mt-4">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Personal Email ID</th>
+                                                <th>Contact Number</th>
+                                                <th>Aadhaar Number</th>
+                                                @* <th>Current Qualification</th>*@
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    @if (Model.licurriculumpersonal[0].EMAIL != null)
+                                                    {
+                                                        <span>@Model.licurriculumpersonal[0].EMAIL</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (Model.licurriculumpersonal[0].PHONE_NO != null)
+                                                    {
+                                                        <span>@Model.licurriculumpersonal[0].PHONE_NO</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (Model.licurriculumpersonal[0].AADHAR_NO != null)
+                                                    {
+                                                        <span>@Model.licurriculumpersonal[0].AADHAR_NO</span>
+                                                    }
+                                                </td>
+                                                @*<td>
+                                                @if (Model.licurriculumpersonal[0].QUALIFICATION != null)
+                                                {
+                                                    <span>@Model.licurriculumpersonal[0].QUALIFICATION</span>
+                                                }
+                                            </td>*@
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    @if (Model.liStudent.FirstOrDefault().APPROVAL == "1")
+                                    {
+                                        <center>
+                                            <b>Status: </b>
+                                            <p class="label label-success" style="font-size: 12px;">Approved</p>
+                                        </center>
+                                        <br />
+                                    }
+                                    else
+                                    {
+                                        <center>
+                                            <b>Status: </b>
+                                            <p class="label label-danger" style="font-size: 12px;">Waiting for Review</p>
+                                        </center>
+                                        <br />
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <input type="hidden" data-personal-info="0" />
+                                <div class="table-responsive mt-4">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Personal Email ID</th>
+                                                <th>Contact Number</th>
+                                                <th>Aadhaar Number</th>
+                                                @*<th>Current Qualification</th>*@
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <input type="text" class="form-control" placeholder="example@domain.com" required id="emailid" autocomplete="off" />
+                                                </td>
+                                                <td>
+                                                    <input type="tel" class="form-control" placeholder="eg: 8746436465" required id="contact" autocomplete="off" maxlength="10" />
+                                                </td>
+                                                <td>
+                                                    <input type="tel" class="form-control" placeholder="eg: 576446466454" required id="aadhar" autocomplete="off" maxlength="12" />
+                                                </td>
+
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <input type="hidden" class="form-control" required id="qualification" autocomplete="off" value="null" />
+                                    @*<div class="form-group col-md-4 general">
+                                    <label class="control-label" for="">Do you need help for Placement?</label>
+                                    <br />
+                                    <input type="radio" name="placement" value="1">
+                                    <label>Yes &nbsp;</label>
+                                    <input type="radio" name="placement" value="0">
+                                    <label>No &nbsp;</label>
+                                </div>*@
+                                    <div class="text-end">
+                                        <button id="submitButton" class="btn btn-primary pull-right">Save and Proceed</button>
+                                    </div>
+                                </div>
+                            }
+
+                            <br />
+
+
+                            <center class="mt-4 borderred">
+                                @if ((Model.lifbremarks != null && Model.lifbremarks.Count != 0) || (Model.liapremarks != null && Model.liapremarks.Count != 0) || (Model.liprofileremarks != null && Model.liprofileremarks.Count != 0))
+                                {
+                                    <a href="#remarks" data-toggle="modal" class="btn btn-warning text-primary">View Remarks</a>
+                                    <br />
+                                    <br />
+                                }
+                                @if (Model.licurriculumfeedback != null && Model.licurriculumfeedback.Count > 0)
+                                {
+                                    <button class="btn mx-2 success" id="feedbackBtn" style="min-width: 250px;" data-incomplete-cf="1">Fill Feedback on Curriculum</button><i class="ion-checkmark fa-1x text-success" style="padding-left: 20px;"></i><br />
+                                    <i class="ion-arrow-down-b fa-2x text-success" style="margin-right: 30px;"></i><br />
+                                }
+                                else
+                                {
+                                    <button class="btn mx-2" id="feedbackBtn" style="min-width: 250px;" data-incomplete-cf="0">Fill Feedback on Curriculum</button><i class="ion-close fa-1x text-danger" style="padding-left: 20px;"></i><br />
+                                    <i class="ion-arrow-down-b fa-2x text-danger" style="margin-right: 30px;"></i><br />
+                                }
+
+                                @if (Model.liconvocationeligible.FirstOrDefault().IS_PAID != "1")
+                                {
+                                    if (Model.lialumnaeprogression != null && Model.lialumnaeprogression.Count > 0)
+                                    {
+                                        <button class="btn mx-2 success" id="progressionBtn" style="min-width: 250px;" data-incomplete-ap="1">Fill Alumni Progression </button><i class="ion-checkmark fa-1x text-success" style="padding-left: 20px;"></i><br />
+                                        <i class="ion-arrow-down-b fa-2x text-success" style="margin-right: 30px;"></i><br />
+                                    }
+                                    else
+                                    {
+                                        <button class="btn mx-2" id="progressionBtn" style="min-width: 250px;" data-incomplete-ap="0">Fill Alumni Progression </button><i class="ion-close fa-1x text-danger" style="padding-left: 20px;"></i><br />
+                                        <i class="ion-arrow-down-b fa-2x text-danger" style="margin-right: 30px;"></i><br />
+                                    }
+
+                                    if (Model.liStudent.FirstOrDefault().APPROVAL == "1")
+                                    {
+                                        <button class="btn mx-2 success" id="downloadBtn" style="min-width: 250px;" is_disabled_download="0">Download Alumni Card </button><i class="ion-checkmark fa-1x text-success" style="padding-left: 20px;"></i>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn mx-2" id="downloadBtn" style="min-width: 250px;" is_disabled_download="1">Download Alumni Card </button><i class="ion-close fa-1x text-danger" style="padding-left: 20px;"></i>
+                                    }
+                                }
+                                else
+                                {
+                                    if (Model.lialumnaeprogression != null && Model.lialumnaeprogression.Count > 0)
+                                    {
+                                        <button class="btn mx-2 success" id="progressionBtn" style="min-width: 250px;" data-incomplete-ap="1">Fill Alumni Progression </button><i class="ion-checkmark fa-1x text-success" style="padding-left: 20px;"></i><br />
+                                        <i class="ion-arrow-down-b fa-2x text-success" style="margin-right: 30px;"></i><br />
+                                    }
+                                    else
+                                    {
+                                        <button class="btn mx-2" id="progressionBtn" style="min-width: 250px;" data-incomplete-ap="0">Fill Alumni Progression </button><i class="ion-close fa-1x text-danger" style="padding-left: 20px;"></i><br />
+                                        <i class="ion-arrow-down-b fa-2x text-danger" style="margin-right: 30px;"></i><br />
+                                    }
+
+                                    if (Model.lifeestudentaccount != null && Model.lifeestudentaccount.Count > 0)
+                                    {
+                                        if (Model.lifeestudentaccount.FirstOrDefault().BALANCE == "0")
+                                        {
+                                            <button class="btn mx-2 success" id="FeepayBtn" style="min-width: 250px;" data-incomplete-fe="1">Paid </button><i class="ion-checkmark fa-1x text-success" style="padding-left: 20px;"></i><br />
+                                            <i class="ion-arrow-down-b fa-2x text-success" style="margin-right: 30px;"></i><br />
+                                        }
+                                        else
+                                        {
+                                            <button class="btn mx-2" id="FeepayBtn" style="min-width: 250px;" data-incomplete-fe="0"> Proceed To Pay </button><i class="ion-close fa-1x text-danger" style="padding-left: 20px;"></i><br />
+                                            <i class="ion-arrow-down-b fa-2x text-danger" style="margin-right: 30px;"></i><br />
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <button class="btn mx-2" id="FeepayBtn" style="min-width: 250px;" data-incomplete-fe="0"> Proceed To Pay </button><i class="ion-close fa-1x text-danger" style="padding-left: 20px;"></i><br />
+                                        <i class="ion-arrow-down-b fa-2x text-danger" style="margin-right: 30px;"></i><br />
+                                    }
+
+
+                                    if (Model.licurriculumfeedback != null && Model.licurriculumfeedback.Count > 0 && Model.lialumnaeprogression != null && Model.lialumnaeprogression.Count > 0 && Model.lifeestudentaccount != null && Model.lifeestudentaccount.Count > 0)
+                                    {
+                                        if (Model.lifeestudentaccount.FirstOrDefault().BALANCE == "0")
+                                        {
+                                            if (Model.liStudent.FirstOrDefault().APPROVAL == "1")
+                                            {
+                                                <button class="btn mx-2 success" id="downloadBtn" style="min-width: 250px;" is_disabled_download="0">Download  Convocation Acknowledgement </button><i class="ion-checkmark fa-1x text-success" style="padding-left: 20px;"></i>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn mx-2" id="downloadBtn" style="min-width: 250px;" is_disabled_download="1">Download  Convocation Acknowledgement </button><i class="ion-close fa-1x text-danger" style="padding-left: 20px;"></i>
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            <button class="btn mx-2" id="downloadBtn" style="min-width: 250px;" is_disabled_download="1">Download  Convocation Acknowledgement </button><i class="ion-close fa-1x text-danger" style="padding-left: 20px;"></i>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <button class="btn mx-2" id="downloadBtn" style="min-width: 250px;" is_disabled_download="1">Download Convocation Acknowledgement </button><i class="ion-close fa-1x text-danger" style="padding-left: 20px;"></i>
+                                    }
+                                }
+
+
+                            </center>
+                        </div>
+                    }
+
+                }
+            }
+
+            else if (Model.liStudentflag != null && Model.liStudentflag.Count > 0 && !string.IsNullOrEmpty(Model.liconvocationeligible.FirstOrDefault().TIME_PERIOD))
+            {
+                <div class=" mt-4" id="feedbackarea">
+
+                    @if (Model.liconvocationeligible.FirstOrDefault().TIME_PERIOD != null || Model.liconvocationeligible.FirstOrDefault().TIME_PERIOD != "")
+                    {
+                        <br />
+                        <center>
+                            <h3 class="label label-warning m-r-5" id="countdown" style="font-size: 100%;"></h3>
+                        </center>
+                        var targetDate = Model.liconvocationeligible.FirstOrDefault().TIME_PERIOD;
+                        <script>
+                            var targetDate = new Date('@targetDate');
+                            function updateCountdown() {
+                                var now = new Date().getTime();
+                                var distance = targetDate - now;
+
+                                if (distance > 0) {
+                                    var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                    var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                    var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                                    if (days == "0" && hours == "0" && minutes == "0" && seconds == "0") {
+                                        document.getElementById("countdown").innerHTML = "Registration has Started!";
+                                        loadContent('/Alumnae/Convocationinfo');
+                                    }
+                                    else if (days == "0" && hours == "0" && minutes == "0") {
+                                        document.getElementById("countdown").innerHTML =
+                                            "Registration will starts in: " + seconds + " Seconds";
+                                    }
+                                    else if (days == "0" && hours == "0") {
+                                        document.getElementById("countdown").innerHTML =
+                                            "Registration will starts in: " + minutes + " Minutes, " + seconds + " Seconds";
+                                    }
+                                    else if (days == "0") {
+                                        document.getElementById("countdown").innerHTML =
+                                            "Registration will starts in: " + hours + " Hours, " + minutes + " Minutes, " + seconds + " Seconds";
+                                    }
+                                    else {
+                                        document.getElementById("countdown").innerHTML =
+                                            "Registration will starts in: " + days + " Days, " + hours + " Hours, " + minutes + " Minutes, " + seconds + " Seconds";
+                                    }
+                                }
+                                else {
+                                    document.getElementById("countdown").innerHTML = "Registration has started Reload the page!";
+                                    loadContent('/Alumnae/Convocationinfo');
+                                }
+                            }
+                            setInterval(updateCountdown, 1000);
+                        </script>
+
+                    }
+                    else
+                    {
+                        <center>
+                            <h3 class="text-danger">@Model.liconvocationeligible.FirstOrDefault().ERROR</h3>
+                        </center>
+                    }
+                </div>
+            }
+            else if (Model.liStudentflag != null && Model.liStudentflag.Count > 0 && string.IsNullOrEmpty(Model.liconvocationeligible.FirstOrDefault().TIME_PERIOD) && Model.liconvocationeligible.FirstOrDefault().ERROR == "REGCLOSE")
+            {
+                <div class="container mt-4" id="feedbackarea">
+                    <center>
+                        <h3 class="text-danger">Registration Closed ...!</h3>
+                    </center>
+                </div>
+            }
+            else
+            {
+                <div class=" mt-4" id="feedbackarea">
+                    <center>
+                        <h3 class="text-danger">@Model.liconvocationeligible.FirstOrDefault().ERROR</h3>
+                    </center>
+                </div>
+            }
+
+        </div>
+
+
+
+    </div>
+</div>
+
+<div class="modal" id="remarks">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Remarks on Rejection</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div id="divprofile">
+                    @if (Model.liprofileremarks != null && Model.liprofileremarks.Count != 0)
+                    {
+                        <h4 class="text-center">Remark on Profile:</h4>
+                        <ul>
+                            @foreach (var remark in Model.liprofileremarks)
+                            {
+                                <li>
+                                    @remark.REMARK
+                                </li>
+
+                            }
+                        </ul>
+                    }
+                    <br />
+                    @if (Model.lifbremarks != null && Model.lifbremarks.Count != 0)
+                    {
+                        <h4 class="text-center">Remark on Feedback:</h4>
+                        <ul>
+                            @foreach (var remark in Model.lifbremarks)
+                            {
+                                <li>
+                                    @remark.REMARK
+                                </li>
+
+                            }
+                        </ul>
+                    }
+                    <br />
+                    @if (Model.liapremarks != null && Model.liapremarks.Count != 0)
+                    {
+                        <h4 class="text-center">Remark on Progression:</h4>
+                        <ul>
+                            @foreach (var remark in Model.liapremarks)
+                            {
+                                <li>
+                                    @remark.REMARK
+                                </li>
+
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        @if (TempData["Message"] != null)
+        {
+            <text>
+            showAlert('warning', '@TempData["Message"]');
+            </text>
+        }
+        $('#submitButton').click(function (e) {
+            e.preventDefault();
+
+            var feedbackData = [];
+            var isValid = true;
+            if (!$("#emailid").val()) {
+                showAlert('warning', 'Please provide the email');
+                return;
+            } else {
+                var email = $("#emailid").val();
+                var emailPattern = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (!emailPattern.test(email)) {
+                    showAlert('warning', 'Please provide a valid email address!');
+                    return;
+                }
+
+                var restrictedDomain = "@@sjctnc.edu.in";
+                if (email.endsWith(restrictedDomain)) {
+                    showAlert('warning', 'College Institute Mail ID not allowed');
+                    return;
+                }
+            }
+
+            if (!$("#contact").val()) {
+                showAlert('warning', 'Please provide the Contact Number!');
+                return;
+            } else {
+                var contactNumber = $("#contact").val();
+
+                if (contactNumber.length !== 10) {
+                    showAlert('warning', 'Contact Number must be 10 characters long!');
+                    return;
+                }
+            }
+
+            if (!$("#aadhar").val()) {
+                showAlert('warning', 'Please provide the Aadhar Number!');
+                return;
+            } else {
+                var contactNumber = $("#aadhar").val();
+
+                if (contactNumber.length !== 12) {
+                    showAlert('warning', 'Contact Number must be 12 characters long!');
+                    return;
+                }
+            }
+            if (!$("#qualification").val()) {
+                showAlert('warning', 'Please provide the Qualification');
+                return;
+            }
+            /*if (!$('input[name="placement"]:checked').val()) {
+                showAlert('warning', 'Please say do you need help with placement or not!');
+                return;
+            }
+            var selectedValue = $('input[name="placement"]:checked').val();
+            if (selectedValue === "1") {
+                     showAlert('success', 'Please mail to Email: ------');
+            }*/
+            var formData = new FormData();
+            var personalinfo = {
+                EMAIL: null,
+                PHONE_NO: null,
+                AADHAR_NO: null,
+                INSTITUTION_COMPANY_NO: null,
+                PLACEMENT_HELP: null
+            };
+            personalinfo.EMAIL = $("#emailid").val();
+            personalinfo.PHONE_NO = $("#contact").val();
+            personalinfo.AADHAR_NO = $("#aadhar").val();
+            personalinfo.QUALIFICATION = $("#qualification").val();
+            personalinfo.PLACEMENT_HELP = null;
+
+            var jsonData = JSON.stringify(personalinfo);
+            formData.append("sJsonData", jsonData);
+            $.ajax({
+                url: '/alumnae/savealumnaefeedbackpersonaldata',
+                type: "post",
+                data: formData,
+                contentType: false,
+                processData: false,
+                datatype: "json",
+                success: function (data) {
+                    if (data.Message == "Records saved successfully!") {
+                        showAlert('success', 'Data saved successfully!', function () {
+                            loadContent('/Alumnae/AlumnaeFeedbackonCurriculum');
+                        });
+                    }
+                    else if (data.Message == "Session Expired..!") {
+                        showAlert('error', 'Session Expired..!', function () {
+                            loadContent('/Alumnae/Convocationinfo');
+                        });
+                    }
+                    else if (data.Message == "Record already exists!") {
+                        showAlert('error', 'Record already exists!', function () {
+                            loadContent('/Alumnae/Convocationinfo');
+                        });
+                    }
+                    else {
+                        showAlert('error', 'Failed to save records');
+                    }
+
+                },
+                error: function (xhr, status, error) {
+                    console.log(data)
+                    showAlert('error', 'There was a server error: ' + xhr.responseText);
+                }
+            });
+
+        });
+
+        function showAlert(type, message, callback) {
+            const titles = {
+                success: "Success!",
+                error: "Error!",
+                warning: "Warning!"
+            };
+
+            const swalOptions = {
+                title: titles[type] || "Notification",
+                text: message,
+                showConfirmButton: type === "success",
+                confirmButtonText: 'OK',
+                animation: true,
+                type: type
+            };
+
+            if (type !== "success") {
+                swalOptions.timer = 1500;
+                swalOptions.showConfirmButton = false;
+            } else {
+                swalOptions.timer = 40000;
+            }
+            swal(swalOptions);
+            if (type !== "success") {
+                setTimeout(() => {
+                    swal.close();
+                    if (callback) {
+                        callback();
+                    }
+                }, swalOptions.timer);
+            } else {
+                swal(swalOptions, function () {
+                    if (callback) {
+                        callback();
+                    }
+                });
+            }
+        }
+
+
+
+
+        const personalInfo = $('input[type="hidden"]').data('personal-info');
+        $('#feedbackBtn').click(function () {
+            const incompleteCF = $('#feedbackBtn').data('incomplete-cf');
+            if (incompleteCF === 0) {
+                if (personalInfo === 0) {
+                    showAlert('warning', 'First complete your personal details');
+                    return false;
+                }
+                else if (personalInfo === 1) {
+                    loadContent('/Alumnae/AlumnaeFeedbackonCurriculum');
+                }
+            }
+            else if (incompleteCF === 1) {
+                showAlert('warning', 'You are already submitted');
+                return false;
+            }
+
+        });
+
+        $('#progressionBtn').click(function () {
+            const personalInfo = $('input[type="hidden"]').data('personal-info');
+            const incompleteCF = $('#feedbackBtn').data('incomplete-cf');
+            const incompleteAP = $('#progressionBtn').data('incomplete-ap');
+
+            if (incompleteAP === 1) {
+                showAlert('warning', 'You are already submitted');
+                return false;
+            }
+            else if (incompleteAP === 0) {
+                if (personalInfo === 0) {
+                    showAlert('warning', 'First complete your personal details');
+                    return false;
+                }
+                if (incompleteCF === 0) {
+                    showAlert('warning', 'First complete Feedback on Curriculum');
+                    return false;
+                }
+                if (personalInfo === 1 & incompleteCF === 1) {
+                    loadContent('/Alumnae/Alumnaeprogression');
+                }
+            }
+        });
+
+        $('#FeepayBtn').click(function () {
+            const personalInfo = $('input[type="hidden"]').data('personal-info');
+            const incompleteCF = $('#feedbackBtn').data('incomplete-cf');
+            const incompleteAP = $('#progressionBtn').data('incomplete-ap');
+            const incompleteFE = $('#FeepayBtn').data('incomplete-fe');
+
+            if (incompleteFE === 1) {
+                // Payment done – fetch the order and show the PaymentSuccess receipt page
+                swal({
+                    title: "Loading Receipt...",
+                    text: "Please wait while we retrieve your payment details.",
+                    showConfirmButton: false,
+                    closeOnClickOutside: false,
+                    closeOnEsc: false
+                });
+                $.ajax({
+                    url: '/alumnae/GetConvocationOrderId',
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (data) {
+                        swal.close();
+                        if (data.Success && data.OrderId) {
+                            loadContent('/PaymentGateway/PaymentSuccess?order_id=' + data.OrderId);
+                        } else {
+                            // Fallback: go directly to the card
+                            showAlert('warning', 'Could not retrieve payment receipt. Opening your Admit Card instead.');
+                            setTimeout(function () { loadContent('/Alumnae/Alumnaecard'); }, 1800);
+                        }
+                    },
+                    error: function () {
+                        swal.close();
+                        showAlert('warning', 'Server error fetching receipt. Opening your Admit Card instead.');
+                        setTimeout(function () { loadContent('/Alumnae/Alumnaecard'); }, 1800);
+                    }
+                });
+                return false;
+            }
+            else if (incompleteFE === 0) {
+                if (personalInfo === 0) {
+                    showAlert('warning', 'First complete your personal details');
+                    return false;
+                }
+                if (incompleteCF === 0) {
+                    showAlert('warning', 'First complete Feedback on Curriculum');
+                    return false;
+                }
+                if (incompleteAP === 0) {
+                    showAlert('warning', 'First complete Alumini Progression');
+                    return false;
+                }
+                if (personalInfo === 1 & incompleteCF === 1 & incompleteAP === 1) {
+
+                    $.ajax({
+                        url: '/alumnae/createconvocationaccount',
+                        type: "post",
+                        data: null,
+                        contentType: false,
+                        processData: false,
+                        datatype: "json",
+                        success: function (data) {
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(data)
+                            showAlert('error', 'There was a server error: ' + xhr.responseText);
+                        }
+                    });
+                    var DOMAINURL = window.location.origin + '/';
+                    window.location.href = DOMAINURL + 'PaymentGateway/PaymentMode?sFrequencyTypeId=11&sFeeRootId=6&sFrequencyId=23&sAcademicYear=2025';
+                }
+            }
+        });
+
+        $('#downloadBtn').click(function () {
+            const incompleteCF = $('#feedbackBtn').data('incomplete-cf');
+            const incompleteAP = $('#progressionBtn').data('incomplete-ap');
+            const isDisabledDownload = $(this).attr('is_disabled_download');
+            if (personalInfo === 0) {
+                showAlert('warning', 'First complete your personal details');
+                return false;
+            }
+
+            if (incompleteCF === 0) {
+                showAlert('warning', 'First complete Feedback on Curriculum');
+                return false;
+            }
+
+            if (incompleteAP === 0) {
+                showAlert('warning', 'First complete Alumnae Progression');
+                return false;
+            }
+
+            if (isDisabledDownload === "1") {
+                showAlert('warning', 'First complete all requirements before downloading the Alumnae Card and Wait for Approval');
+                return false;
+            }
+
+            if (personalInfo === 1 & incompleteCF === 1 & incompleteAP === 1 & isDisabledDownload === "0") {
+                loadContent('/Alumnae/Alumnaecard');
+            }
+
+        });
+
+
+    });
+
+
+</script>
+

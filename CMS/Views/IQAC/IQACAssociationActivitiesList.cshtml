@@ -1,0 +1,748 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+
+@{
+    Layout = null;
+}
+
+<!-- ================== BEGIN PAGE LEVEL STYLE ================== -->
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<!-- ================== END PAGE LEVEL STYLE ================== -->
+<!-- ================== BEGIN PAGE LEVEL CSS STYLE ================== -->
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<!-- ================== END PAGE LEVEL CSS STYLE ================== -->
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">IQAC</a></li>
+        <li class="active">Association Activities</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Association Activities<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Association Activities</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                if (Model.sFlag)
+                {
+                    <div class="form-horizontal">
+
+                        <div class="form-group col-md-12 table-responsive">
+                            <div class="form-group col-md-12 pull-right">
+                                <a class="btn btn-success pull-right" data-toggle="modal" href="#IQACAssociation-dialog"><i class="fa fa-plus"></i> Add</a>
+                            </div>
+                            <table class="table table-hover table-bordered" id="tblAssociation">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Type Of Activity</th>
+                                        <th>If Other</th>
+                                        <th>Date</th>
+                                        <th>Details</th>
+                                        <th>Resource Person</th>
+                                        @*<th>File</th>*@
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                    @if (Model.liAssociationActivity != null && Model.liAssociationActivity.Count > 0)
+                                    {
+                                        var count = 0;
+                                        foreach (var item in Model.liAssociationActivity)
+                                        {
+                                            count = count + 1;
+                                            <tr>
+                                                <td>@count</td>
+                                                <td>@item.ACTIVITY_ID</td>
+                                                <td>@item.IF_OTHERS_SPECIFY</td>
+                                                <td>@item.ACTIVITY_DATE</td>
+                                                <td>@item.DETAILS</td>
+                                                <td><a href="#IQACResourcePerson-dialog" data-toggle="modal" onclick="FetchResourcePerson(@item.IQAC_ID)"><i class="glyphicon glyphicon-eye-open"></i></a></td>
+                                                @*@if (!string.IsNullOrEmpty(item.FILE_PATH))
+                                                {
+                                                    <td><a href="@item.FILE_PATH" download><i class="fa fa-download text-primary"></i></a></td>
+                                                }
+                                                else
+                                                {
+                                                    <td>N/A</td>
+                                                }*@
+                                                <td>
+                                                    <a href="#IQACAssociation-dialog" onclick="FetchActivityById(@item.IQAC_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+                                                    <a href="javascrip:;" onclick="GetConfirm(@item.IQAC_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-danger alert-dismissable"> Your Not Authorized Person To Access :( . For More Information Meet ERP Incharge</div>
+                }
+            }
+
+        </div>
+
+    </div>
+</div>
+
+<a href="javascript:;" id="LoadList" class="hidden" onclick="loadContent('/IQAC/IQACAssociationActivitiesList')"></a>
+
+<div class="modal" id="IQACAssociation-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit IQAC Association</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="AssocicationModalBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Type Of Activity</label>
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(m => m.sActivityType, (Model.sActivityType != null) ? Model.sActivityType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.sActivityType, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Shift</label>
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(m => m.sShiftList, (Model.sShiftList != null) ? Model.sShiftList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.sShiftList, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 form-group hidden" id="dvOthers">
+                                        <label class="col-md-4 control-label">If Other Specify</label>
+                                        <div class="col-md-8">
+                                            <input type="text" name="Others" class="form-control input-sm" placeholder="If Others Specify" id="txtOthers" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">From Date</label>
+                                        <div class="col-md-8">
+                                            <div class="input-group date" id="dpDateTo">
+                                                <input type="text" name="txtGuidenceDate" class="form-control input-sm" placeholder="Select  Date" id="txtFromDate" data-parsley-required="true" />
+                                                <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">To Date</label>
+                                        <div class="col-md-8">
+                                            <div class="input-group date" id="dpDateTo">
+                                                <input type="text" name="txtGuidenceDate" class="form-control input-sm" placeholder="Select  Date" id="txtToDate" data-parsley-required="true" />
+                                                <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Resource Person</label>
+                                        <div class="col-md-8">
+                                            <div class="row pull-right">
+                                                <a href="javascript:;" class="btn btn-success pull-right" onclick="ResourcePerson()"><i class="fa fa-plus"></i> Add</a>
+                                            </div> <br /><br /><br />
+                                            <div id="dvIQAC1" class="row">
+                                                <div class="form-group panel-group" id="accordion">
+                                                    <div class="panel panel-info overflow-hidden">
+                                                        <div class="panel-heading">
+                                                            <h3 class="panel-title">
+                                                                <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" id="dvResourcePerson1" href="#Resource_Person1">
+                                                                    <i class="fa fa-plus-circle pull-right"></i>
+                                                                    <span id="dvcount1">1</span> . Resource Person
+                                                                </a>
+                                                            </h3>
+                                                        </div>
+                                                        <div id="Resource_Person1" class="panel-collapse collapse">
+                                                            <div class="panel-body">
+                                                                <div class="col-md-12 form-group">
+                                                                    <label class="col-md-3 control-label">Name</label>
+                                                                    <div class="col-md-9">
+                                                                        <input type="text" id="txtName" value="" class="form-control" placeholder="Resource Person Name" />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="col-md-12 form-group">
+                                                                    <label class="col-md-3 control-label">Designation</label>
+                                                                    <div class="col-md-9">
+                                                                        <input type="text" id="txtDesignation" value="" class="form-control" placeholder="Resource Person Designation" />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="col-md-12 form-group">
+                                                                    <label class="col-md-3 control-label">Institution</label>
+                                                                    <div class="col-md-9">
+                                                                        <input type="text" id="txtInstitution" value="" class="form-control" placeholder="Resource Person Institution" />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="col-md-12 form-group">
+                                                                    <label class="col-md-3 control-label">Place</label>
+                                                                    <div class="col-md-9">
+                                                                        <input type="text" id="txtPlace" value="" class="form-control" placeholder="Resource Person Place" />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="col-md-12 form-group">
+                                                                    <label class="col-md-3 control-label">Topic</label>
+                                                                    <div class="col-md-9">
+                                                                        <input type="text" id="txtTopic" class="form-control" value="" placeholder="Resource Person Topic" />
+                                                                    </div>
+                                                                </div>
+                                                                <input type="text" id="txtResourcePersonId" value="" class="hidden" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="dvIQACBind">
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Details</label>
+                                        <div class="col-md-8">
+                                            <textarea class="form-control" id="txtDetails" rows="5"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        @Html.Label("File Upload", htmlAttributes: new { @class = "col-md-3 control-label" })
+                                        <div class="col-md-9">
+                                            <div class="btn btn-primary" onclick="FileClick('sFileUpload')"> <i class="fa fa-plus"></i>  File</div><br />
+                                            <input type="file" id="sFileUpload" class="hidden" multiple="multiple" onchange="LoadFile('sFileUploadData', 'sFileUpload')" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group hidden" id="sFileUploadData">
+                                        <div class="form-group col-md-12 table-responsive">
+                                            <div class="col-md-1"></div>
+                                            <div class="col-md-10">
+                                                <table class="table table-bordered table-hover" id="tbl_Upload">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>File</th>
+                                                            <th>Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tbsFileUpload"></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" onclick="SaveData()" class="btn btn-sm btn-primary">Submit</a>
+                <a href="javascript:;" id="btnCancel" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+        <input type="hidden" id="iqacAssociationId" value="" />
+    </div>
+</div>
+
+
+<div class="modal" id="IQACResourcePerson-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">View Resource Person List</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <div id="dvResourcePersonBind"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                @*<a href="javascript:;" id="btnSubmit" onclick="SaveData()" class="btn btn-sm btn-primary">Submit</a>
+                    <a href="javascript:;" id="btnCancel" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>*@
+                <span>Resource Person List</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+    handleDatepicker = function () {
+        "use strict";
+        $(".date").datepicker({
+            todayHighlight: !0,
+            autoclose: !0,
+            endDate: new Date,
+            format: "dd/mm/yyyy",
+            orientation: "left"
+            // 'top': top,
+            // 'left': left
+        })
+    }
+    handleDatepicker();
+
+    function ContentLoad() {
+        // Document Ready Function .
+    }
+
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $('.selectpicker').selectpicker('refresh');
+    $('#tblAssociation').DataTable();
+</script>
+
+<script>
+
+    $('#sActivityType').on('change', function () {
+        if ($('#sActivityType').val() == '4') {
+            $('#txtOthers').attr('data-parsley-required', 'true');
+            $('#dvOthers').removeClass('hidden');
+        } else {
+            $('#txtOthers').attr('data-parsley-required', 'false');
+            $('#dvOthers').addClass('hidden');
+        }
+    });
+    var nCount = 2;
+    function ResourcePerson() {
+        var sDom = $('#dvIQAC1').clone();
+        sDom.attr('id', 'dvIQAC' + nCount);
+        sDom.find('a').attr('id', 'dvResourcePerson' + nCount);
+        // sDom.attr('id', 'dvResourcePerson' + nCount);
+        sDom.find('span').attr('id', 'dvcount' + nCount);
+        sDom.find('#dvcount' + nCount).text(nCount);
+        sDom.find('a').attr('href', '#Resource_Person' + nCount);
+        sDom.find('#Resource_Person1').attr('id', 'Resource_Person' + nCount);
+
+        $('#dvIQACBind').append(sDom);
+        $('#dvIQAC' + nCount).find('#txtName').val('');
+        $('#dvIQAC' + nCount).find('#txtDesignation').val('');
+        $('#dvIQAC' + nCount).find('#txtInstitution').val('');
+        $('#dvIQAC' + nCount).find('#txtPlace').val('');
+        $('#dvIQAC' + nCount).find('#txtTopic').val('');
+        $('#dvIQAC' + nCount).find('#txtResourcePersonId').val('');
+        nCount = nCount + 1;
+    }
+</script>
+
+<script>
+    $(function () {
+        $('#IQACAssociation-dialog').on('hidden.bs.modal', function (e) {
+            nCount = 2;
+            $('#iqacAssociationId').val('');
+            $('#sActivityType').val('');
+            $('#txtFromDate').val('');
+            $('#txtToDate').val('');
+            $('#sShiftList').val('');
+            $('#txtOthers').val('');
+            $('#txtDetails').val('');
+        });
+    });
+    function SaveData() {
+        // Validation Check ,...
+        var isValid = true;
+        if ($('#AssocicationModalBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            //gritter-info,danger,success,warning,default
+            swal({ title: "Warning !", text: 'Something went wrong ! Please check your inputs !', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+
+        //for image update
+        var SeminorImagePath = '';
+        var FilePath = '';
+        var fCount = 0;
+        var iCount = 0;
+        $('#sFileUploadData').find("table tbody tr").each(function () {
+            if ($(this).attr("cms-img-path")) {
+                SeminorImagePath += $(this).attr("cms-img-path") + ",";
+                fCount = parseInt(fCount) + 1;
+            }
+            else {
+                if ($(this).attr("id")) {
+                    FilePath += $(this).attr("id") + ",";
+                    iCount = parseInt(iCount) + 1;
+                }
+            }
+        });
+
+        if (fCount > 0) {
+            SeminorImagePath = SeminorImagePath.slice(0, -1);
+            SeminorImagePath += '';
+            //clearing formdata sJsonData
+            if (formData.has('sPhoto')) {
+                formData.delete("sPhoto");
+            }
+            formData.append("sPhoto", SeminorImagePath);
+        }
+        if (iCount > 0) {
+            FilePath = FilePath.slice(0, -1);
+            FilePath += '';
+        }
+
+        var sJsonData = null; var sJsonList = "{liResourcePerson:[";
+        sJsonData = '{"IQAC_ID":"' + $('#iqacAssociationId').val() + '",\
+                      "ACTIVITY_ID":"' + $('#sActivityType').val() + '",\
+                      "ACTIVITY_DATE":"' + $('#txtFromDate').val() + '",\
+                      "TO_DATE":"' + $('#txtToDate').val() + '",\
+                      "SHIFT_ID":"' + $('#sShiftList').val() + '",\
+                      "IF_OTHERS_SPECIFY":"' + $('#txtOthers').val() + '",\
+                      "DETAILS":"' + $('#txtDetails').val() + '","FILE_PATH":"' + FilePath + '"}';
+        for (var i = 1; i < nCount; i++) {
+            sJsonList += '{"QUESTION_ID":"2",\
+                           "PERSON_NAME":"' + $('#dvIQAC' + i).find('#txtName').val() + '",\
+                           "DESIGNATION":"' + $('#dvIQAC' + i).find('#txtDesignation').val() + '",\
+                           "INSTITUTION":"' + $('#dvIQAC' + i).find('#txtInstitution').val() + '",\
+                           "PLACE":"' + $('#dvIQAC' + i).find('#txtPlace').val() + '",\
+                           "TOPIC":"' + $('#dvIQAC' + i).find('#txtTopic').val() + '",\
+                           "RESOURCE_PERSON_ID":"' + $('#dvIQAC' + i).find('#txtResourcePersonId').val() + '"},';
+        }
+        sJsonList = sJsonList.slice(0, -1);
+        sJsonList = sJsonList + "]}";
+
+        formData.append("sJsonData", sJsonData);
+        formData.append("sJsonList", sJsonList);
+        $.ajax({
+            url: '@Url.Action("SaveAssociationActivities", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (data)
+            {
+                if (data.ErrorCode == "200")
+                {
+                    $('.modal-backdrop in').removeClass('modal-backdrop in');
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    $('#LoadList').click();
+                } else {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+    function FetchActivityById(Id) {
+        $.ajax({
+            url: '@Url.Action("FetchAssociationActivities", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: { IqacId: Id },
+            success: function (data) {
+                if (data.Message != null && data.Message != '') {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                } else {
+                    var Count = 0;
+
+                    if (data.liAssociationActivity[0].ACTIVITY_ID == "4") {
+                        $('#txtOthers').attr('data-parsley-required', 'true');
+                        $('#dvOthers').removeClass('hidden');
+                    } else {
+                        $('#txtOthers').attr('data-parsley-required', 'false');
+                        $('#dvOthers').addClass('hidden');
+                    }
+                    $('#iqacAssociationId').val(data.liAssociationActivity[0].IQAC_ID);
+                    $('#sActivityType').val(data.liAssociationActivity[0].ACTIVITY_ID);
+                    $('#txtFromDate').val(data.liAssociationActivity[0].ACTIVITY_DATE);
+                    $('#txtToDate').val(data.liAssociationActivity[0].TO_DATE);
+                    $('#sShiftList').val(data.liAssociationActivity[0].SHIFT_ID);
+                    $('#txtOthers').val(data.liAssociationActivity[0].IF_OTHERS_SPECIFY);
+                    $('#txtDetails').text(data.liAssociationActivity[0].DETAILS);
+                    BindFileInfo(data.liAssociationActivity[0].FILE_PATH, 'tbsFileUpload', 'sFileUploadData');
+                    $('.selectpicker').selectpicker('refresh');
+
+                    if (data.liResourcePerson[0].PERSON_NAME != null && data.liResourcePerson[0].PERSON_NAME != '') {
+                        $.each(data.liResourcePerson, function (i, e) {
+                            if (i != 0) {
+                                ResourcePerson();
+                            }
+                            Count = i + 1;
+                            $('#dvIQAC' + Count).find('#txtName').val(e.PERSON_NAME);
+                            $('#dvIQAC' + Count).find('#txtDesignation').val(e.DESIGNATION);
+                            $('#dvIQAC' + Count).find('#txtInstitution').val(e.INSTITUTION);
+                            $('#dvIQAC' + Count).find('#txtPlace').val(e.PLACE);
+                            $('#dvIQAC' + Count).find('#txtTopic').val(e.TOPIC);
+                            $('#dvIQAC' + Count).find('#txtResourcePersonId').val(e.RESOURCE_PERSON_ID);
+
+                        });
+                    }
+
+
+
+                }
+            }, error: function (error) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+    function GetConfirm(Id) {
+        if (!confirm('Are you sure to delete ?')) {
+            return false;
+        }
+
+        $.ajax({
+            url: '@Url.Action("DeleteAssociationActivities", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: { IqacId: Id },
+            success: function (data) {
+                if (data.ErrorCode == "200") {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    $('#LoadList').click();
+                } else {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+
+    function FetchResourcePerson(Id) {
+        $.ajax({
+            url: '@Url.Action("FetchResourcePersonByAssociationId", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: { IqacId: Id },
+            success: function (data) {
+                $('#dvResourcePersonBind').empty();
+                if (data.Message != null && data.Message != '') {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                } else {
+                    $('#dvResourcePersonBind').append(data);
+                }
+            }, error: function (error) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+</script>
+
+@* File Upload Script *@
+<script>
+    var formData = new FormData();
+    var nsCount = 0; var nFileCount = 0;
+    function FileClick(FileUpload) {
+        $('#' + FileUpload).click();
+    }
+
+    function LoadFile(divUpload, FileUpload) {
+
+        var files = document.getElementById('' + FileUpload + '').files;
+
+        if (files.length > 3 || nFileCount >= 3) {
+            swal({ title: "Warning !", text: "You can only upload a maximum of 3 files", showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+        var Data = '';
+        if (files.length != 0) {
+            // alert('File In');
+            //alert(document.getElementById('' + FileUpload + '').files.length);
+            for (var i = 0; i < document.getElementById('' + FileUpload + '').files.length ; i++) {
+                var extension = GetFileExtension(files[i]);
+                var actualFileDom = '';
+                if (extension != null && extension != '') {
+                    if (extension == 'jpg' || extension == 'png') {
+                        actualFileDom = "<li class=''>" +
+                                                      "<div class='document-file'>" +
+                                                          "<a href='#'>" +
+                                                              "<img src=" + window.URL.createObjectURL(files[i]) + "   alt='' cms-update='1' width='77' height='80' >" +
+                                                          "</a>" +
+                                                      "</div>" +
+                                                      "<div class='document-name'><a href='" + window.URL.createObjectURL(files[i]) + "' download>" + files[i].name + "</a></div>" +
+                                                  "</li>";
+                        //actualFileDom ="<img src=" + window.URL.createObjectURL(file) + " width=77 height=80 cms-sp=" + UniqueName + "></img>";
+                    }
+                    else {
+                        actualFileDom = "<li class=''>" +
+                                                  "<div class='document-file'>" +
+                                                  "<a href='#'>" +
+                                                      "<i class='fa fa-file'></i>" +
+                                                  "</a>" +
+                                                  "</div>" +
+                                                 "<div class='document-name'><a href='" + window.URL.createObjectURL(files[i]) + "' download  title=" + files[i].name + " cms-update='1'>" + files[i].name + "</a></div>" +
+                                            "</li>";
+                        //actualFileDom = "<span style='color:green;'>" + name + "</span> ";
+                    }
+
+                    var result = "<ul class='attached-document clearfix'>" + actualFileDom + "</ul> ";
+
+                    // data.append(files[i].name, files[i]);
+                    nsCount++; nFileCount++;
+                    Data += '<tr id=' + nsCount + '>\
+                            <td>' + nsCount + '</td>\
+                            <td>'+ result + '</td>\
+                            <td><a class="btn btn-default" onclick="FileCancel(' + nsCount + ')"> Cancel </a></td>\
+                         </tr>';
+                    formData.append(files[i].name, files[i]);
+                }
+            }
+
+            $('#tb' + FileUpload).append(Data);
+            $('#' + divUpload).removeClass('hidden');
+        }
+    }
+
+    
+    function GetFileExtension(file) {
+        // Get uploaded file extension
+        var extension = file.name.split('.').pop().toLowerCase();
+        var validFileExtensions = ['doc', 'docx', 'pdf', 'jpg', 'png', 'txt', 'xlsx'];
+        if ($.inArray(extension, validFileExtensions) == -1) {
+            // alert("Sorry!! Upload only 'doc', 'docx', 'pdf','jpf','png','txt','xlsx' file");
+            swal({ title: "Warning !", text: "Sorry!! upload only 'doc', 'docx', 'pdf','jpf','png','txt','xlsx' file", showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return extension = null;
+        }
+        else {
+            return extension;
+        }
+    }
+
+
+    function FileCancel(rowId) {
+        var row = document.getElementById(rowId);
+        formData.delete(rowId);
+        row.parentNode.removeChild(row);
+        nFileCount--;
+    }
+</script>
+
+
+<script type="text/javascript">
+    function BindFileInfo(FilePath, TbBind, DivId)
+    {
+        if (FilePath != null && FilePath != '')
+        {
+            var str = FilePath;
+            var res = str.split(",");
+            //alert(res[0]);
+
+            var Data = '';
+            for (var i = 0; i < res.length; i++)
+            {
+                var EncryptImagePath = GetEncryptedStringByImgPath(res[i]);
+                var extension = res[i].split(".");
+                var actualFileDom = '';
+                if (extension[1] != null && extension[1] != '')
+                {
+                    if (extension[1] == 'jpg' || extension[1] == 'png')
+                    {
+                        actualFileDom = "<li class=''>" +
+                                                      "<div class='document-file'>" +
+                                                          "<a href='#'>" +
+                                                              "<img src=" + res[i] + "   alt='' cms-update='1' width='77' height='80' >" +
+                                                          "</a>" +
+                                                      "</div>" +
+                                                      "<div class='document-name'><a href='" + res[i] + "' download>" + res[i] + "</a></div>" +
+                                                  "</li>";
+                        //actualFileDom ="<img src=" + window.URL.createObjectURL(file) + " width=77 height=80 cms-sp=" + UniqueName + "></img>";
+                    }
+                    else
+                    {
+                        actualFileDom = "<li class=''>" +
+                                                  "<div class='document-file'>" +
+                                                  "<a href='#'>" +
+                                                      "<i class='fa fa-file'></i>" +
+                                                  "</a>" +
+                                                  "</div>" +
+                                                 "<div class='document-name'><a href='" + res[i] + "' download  title=" + res[i] + " cms-update='1'>" + res[i] + "</a></div>" +
+                                            "</li>";
+                        //actualFileDom = "<span style='color:green;'>" + name + "</span> ";
+                    }
+
+                    var result = "<ul class='attached-document clearfix'>" + actualFileDom + "</ul> ";
+
+                    // data.append(files[i].name, files[i]);
+                    nCount++; nFileCount++;
+                    Data += '<tr id=' + nCount + ' cms-img-path=' + EncryptImagePath + '>\
+                            <td>' + nCount + '</td>\
+                            <td>'+ result + '</td>\
+                            <td><a class="btn btn-default" onclick="FileCancel(' + nCount + ')"> Cancel </a></td>\
+                         </tr>';
+                }
+            }
+
+            $('#' + TbBind).append(Data);
+            $('#' + DivId).removeClass('hidden');
+        }
+    }
+
+    function GetEncryptedStringByImgPath(imgPath) {
+        var Encrypt = "";
+        $.ajax({
+            url: '@Url.Action("EncryptStringForImagePath", "IQAC")',
+            method: 'POST',
+            async: false,
+            cache: false,
+            datatype: 'json',
+            data: { inputString: imgPath },
+            success: function (data) {
+                if (data != null && data != '') {
+                    Encrypt = data;
+                }
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+        return Encrypt;
+    }
+</script>

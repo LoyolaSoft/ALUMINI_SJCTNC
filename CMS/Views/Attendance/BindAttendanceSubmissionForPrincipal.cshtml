@@ -1,0 +1,75 @@
+﻿@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+@{ Layout = null;int nCount = 0; string CourseCode = string.Empty; string ttTimeTable = string.Empty;}
+@if (Model.liAttendanceReport != null && Model.liAttendanceReport.Count > 0)
+{
+    var liHour = Model.liAttendanceReport.GroupBy(x => x.HOUR_ID).OrderBy(x => x.FirstOrDefault().HOUR_ID).ToList();
+    //var liClass = Model.liAttendanceReport.GroupBy(x => x.CLASS_ID).OrderBy(x => x.FirstOrDefault().CLASS_ID).ToList();
+    var liStaff = Model.liAttendanceReport.GroupBy(x => x.STAFF_ID).ToList();
+    <table class="table table-bordered text-center" id="TimeTableClassWiseList">
+        <thead>
+            <tr>
+                <th> Staff </th>
+                <th> Department </th>
+                @if (liHour != null && liHour.Count > 0)
+                {
+                    foreach (var dataitem in liHour)
+                    {
+                        <th><b> Hour - @dataitem.FirstOrDefault().HOUR</b></th>
+                    }
+                }
+                <th>Count</th>
+            </tr>
+        </thead>
+        <tbody>
+          @if (liHour != null && liHour.Count > 0)
+          {
+              foreach (var Staffitem in liStaff)
+              {
+                  var liStaffCount = Model.liAttendanceReport.Where(x => x.STAFF_ID == Staffitem.FirstOrDefault().STAFF_ID).ToList();
+                  //var sArrayAttendanceEntry = string.Join(",", liStaffCount.Select(x=>x.ATTENDANCE_ID).ToArray());
+
+                  //nCount = sArrayAttendanceEntry.Length;
+                  //foreach (var item in sArrayAttendanceEntry)
+                  //{
+                  //    if (!string.IsNullOrEmpty(item.ToString()))
+                  //    {
+                  //        nCount++;
+                  //    }
+                  //}
+                  
+                  nCount = 0;
+                  <tr>
+                        <td>@Staffitem.FirstOrDefault().FIRST_NAME <br />(@Staffitem.FirstOrDefault().STAFF_CODE)</td>
+                        <td>@Staffitem.FirstOrDefault().DEPARTMENT</td>
+                        @foreach (var Houritem in liHour)
+                        {
+                          var liReport = Model.liAttendanceReport.Where(x => x.HOUR_ID == Houritem.FirstOrDefault().HOUR_ID && x.STAFF_ID == Staffitem.FirstOrDefault().STAFF_ID).ToList();
+                          if (liReport != null && liReport.Count > 0)
+                          {
+                                <td>
+                                    @*@liReport.FirstOrDefault().COURSE_TITLE  <br />*@
+                                    @if (!string.IsNullOrEmpty(liReport.FirstOrDefault().ATTENDANCE_ID))
+                                    {
+                                        <i class="fa fa-check text-success"></i>
+                                        nCount++;
+                                    }
+                                    else
+                                    {
+                                        <i class="fa fa-close text-danger"></i>
+                                    }
+                                </td>
+                            }
+                            else
+                            {
+                                <td></td>
+                            }
+                        }
+                        <td>@nCount / @liStaffCount.Count() @{ nCount = 0; }</td>
+                    </tr>
+                                   
+               }
+           }
+        </tbody>
+    </table>
+}

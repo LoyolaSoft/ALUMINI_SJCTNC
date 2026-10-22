@@ -1,0 +1,233 @@
+﻿
+
+
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@using CMS.ViewModel.Model;
+@{
+    Layout = null;
+    int nCount = 0;
+    string sSuccess = "text-success";
+    string sDanger = "text-danger";
+    int liCount = 0;
+    int nQuestionCount = 0;
+    double nTotalMarks = 0;
+    int nRightAnswers = 0;
+}
+
+<br />
+
+@if (Model.liCIA_Staff_Info != null && Model.liCIA_Staff_Info.Count > 0)
+{
+    <div class="invoice-header">
+        <div class="invoice-from">
+            <small></small>
+            <address class="m-t-5 m-b-5">
+                <strong>
+                    <label>Course Name : </label><span class="semi-bold"> @Model.liCIA_Staff_Info.FirstOrDefault().COURSE_TITLE</span>
+                </strong><br />
+                <strong>
+                    <label>Course Code &nbsp; : </label><span class="semi-bold"> @Model.liCIA_Staff_Info.FirstOrDefault().COURSE_CODE</span>
+                </strong><br />
+                <strong>
+                    <label>Department : </label><span class="semi-bold"> @Model.liCIA_Staff_Info.FirstOrDefault().DEPARTMENT</span>
+                </strong><br />
+            </address>
+        </div>
+        <div class="invoice-to">
+            <small></small>
+            <address class="m-t-5 m-b-5">
+                <strong>
+                    <label>Staff Name(s) : </label><span class="semi-bold"> @Model.liCIA_Staff_Info.FirstOrDefault().STAFF_NAME</span>
+                </strong><br />
+                <strong>
+                    <label>Semester  &nbsp; : </label><span class="semi-bold" id="sSemester"> @Model.liCIA_Staff_Info.FirstOrDefault().SEMESTER_ID</span>
+                </strong><br />
+                <strong>
+                    <label>Class Name : </label><span class="semi-bold"> @Model.liCIA_Staff_Info.FirstOrDefault().CLASS_NAME</span>
+                </strong><br />
+
+            </address>
+        </div>
+
+    </div>
+}
+
+
+<br />
+
+@{
+    if (Model.liStudentList != null && Model.liStudentList.Count > 0)
+    {
+        foreach (var item in Model.liStudentList)
+        {
+            nCount = 0; liCount = 0; nQuestionCount = 0; nTotalMarks = 0.0; nRightAnswers = 0;
+            <div class="col-md-12" style="page-break-after:avoid !important;page-break-inside:avoid !important;">
+
+                <div class="col-md-12 form-inline">
+
+                    <div class="form-group col-md-4">
+                        <div><b> Roll No :</b> @item.ROLL_NO</div>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <div><b> Register No :</b> @item.REGISTER_NO</div>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <div><b> Name :</b> @item.FIRST_NAME</div>
+                    </div>
+
+                </div>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Question</th>
+                            <th>Answer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+
+                            // Match The Following Result ,..
+                            if (Model.liOnlineQuiz != null && Model.liOnlineQuiz.Count > 0)
+                            {
+                                var liOnlineQuiz = Model.liOnlineQuiz.Where(x => x.STUDENT_ID == item.STUDENT_ID).ToList();
+                                if (liOnlineQuiz != null && liOnlineQuiz.Count > 0)
+                                {
+                                    var liGroupQuiz = liOnlineQuiz.GroupBy(x => x.QUIZ_ID).Select(x => new OnlineQuizTest() { QUIZ_ID = x.FirstOrDefault().QUIZ_ID, QUIZ_QUESTION = x.FirstOrDefault().QUIZ_QUESTION, MARK = x.FirstOrDefault().MARK }).ToList();
+                                    foreach (var QItem in liGroupQuiz)
+                                    {
+                                        <tr>
+                                            <td colspan="2"><b>@{nCount++;} @nCount . @QItem.QUIZ_QUESTION</b></td>
+                                        </tr>
+                                        var liQuizQuestions = Model.liOnlineQuiz.Where(x => x.STUDENT_ID == item.STUDENT_ID && x.QUIZ_ID == QItem.QUIZ_ID).ToList();
+
+                                        foreach (var QQitem in liQuizQuestions)
+                                        {
+                                            <tr>
+                                                <td>@QQitem.QUESTION</td>
+                                                <td class="@if (QQitem.STATUS == "1") { @sSuccess } else {@sDanger }">@QQitem.SELECTED_ANSWER</td>
+                                            </tr>
+                                        }
+                                        nQuestionCount += 1;
+                                        if (liQuizQuestions.Count == liQuizQuestions.Count(x => x.STATUS == "1"))
+                                        {
+                                            nTotalMarks += Convert.ToDouble(QItem.MARK);
+                                        }
+
+                                    }
+                                }
+                                else
+                                {
+                                    liCount++;
+                                }
+                            }
+                            // Objective Type Result ,...
+                            if (Model.liOnlineQuizQuestions != null && Model.liOnlineQuizQuestions.Count > 0)
+                            {
+                                var liOnlineQuiz = Model.liOnlineQuizQuestions.Where(x => x.STUDENT_ID == item.STUDENT_ID).ToList();
+                                if (liOnlineQuiz != null && liOnlineQuiz.Count > 0)
+                                {
+                                    var liGroupQuiz = liOnlineQuiz.GroupBy(x => x.QUIZ_ID).Select(x => new OnlineQuizTest() { QUIZ_ID = x.FirstOrDefault().QUIZ_ID, QUIZ_QUESTION = x.FirstOrDefault().QUIZ_QUESTION, QUESTION = x.FirstOrDefault().QUESTION, MARK = x.FirstOrDefault().MARK }).ToList();
+                                    foreach (var QItem in liGroupQuiz)
+                                    {
+                                        nCount++;
+                                        <tr>
+
+                                            <td colspan="2"><b> @nCount .  @(new HtmlString(Model.GetStrigFromBase64String(QItem.QUIZ_QUESTION)))</b></td>
+                                        </tr>
+                                        var liQuizQuestions = Model.liOnlineQuizQuestions.Where(x => x.STUDENT_ID == item.STUDENT_ID && x.QUIZ_ID == QItem.QUIZ_ID).ToList();
+                                        foreach (var QQitem in liQuizQuestions)
+                                        { 
+                                            <tr>
+                                                <td colspan="2" class="@if (QQitem.STATUS == "1") { @sSuccess  } else { @sDanger  }">@(new HtmlString(Model.GetStrigFromBase64String(QQitem.SELECTED_ANSWER)))</td>
+                                            </tr>
+                                        }
+                                        nQuestionCount += 1;
+                                        nRightAnswers = liQuizQuestions.Count(x => x.STATUS == "1");
+                                        if (nRightAnswers != 0)
+                                        {
+                                            nTotalMarks += Convert.ToDouble(QItem.MARK);
+                                        }
+
+                                    }
+                                }
+                                else
+                                {
+                                    liCount++;
+                                }
+                            }
+                            // Fill In The Blanks Result ,..
+                            if (Model.liOnlineQuizOptions != null && Model.liOnlineQuizOptions.Count > 0)
+                            {
+                                var liOnlineQuiz = Model.liOnlineQuizOptions.Where(x => x.STUDENT_ID == item.STUDENT_ID).ToList();
+                                if (liOnlineQuiz != null && liOnlineQuiz.Count > 0)
+                                {
+                                    var liGroupQuiz = liOnlineQuiz.GroupBy(x => x.QUIZ_ID).Select(x => new OnlineQuizTest() { QUIZ_ID = x.FirstOrDefault().QUIZ_ID, QUIZ_QUESTION = x.FirstOrDefault().QUIZ_QUESTION, QUESTION = x.FirstOrDefault().QUESTION, MARK = x.FirstOrDefault().MARK }).ToList();
+                                    foreach (var QItem in liGroupQuiz)
+                                    {
+                                        nCount++;
+                                        <tr>
+                                            <td colspan="2"><b> @nCount .  @(new HtmlString(Model.GetStrigFromBase64String(QItem.QUIZ_QUESTION)))</b></td>
+                                        </tr>
+                                        var liQuizQuestions = Model.liOnlineQuizOptions.Where(x => x.STUDENT_ID == item.STUDENT_ID && x.QUIZ_ID == QItem.QUIZ_ID).ToList();
+                                        foreach (var QQitem in liQuizQuestions)
+                                        {
+                                            <tr>
+                                                <td colspan="2" class="@if (QQitem.STATUS == "1") { @sSuccess  } else { @sDanger  }">@(Model.GetStrigFromBase64String(QQitem.SELECTED_ANSWER))</td>
+
+                                            </tr>
+                                        }
+                                        nQuestionCount += 1;
+                                        nRightAnswers = liQuizQuestions.Count(x => x.STATUS == "1");
+                                        if (nRightAnswers != 0)
+                                        {
+                                            nTotalMarks += Convert.ToDouble(QItem.MARK);
+                                        }
+
+                                    }
+                                }
+                                else
+                                {
+                                    liCount++;
+                                }
+                            }
+
+                            if (liCount == 3)
+                            {
+                                <tr>
+                                    <td colspan="2"> No Records Found !</td>
+                                </tr>
+                            }
+
+                            <tr>
+                                <td colspan="2">
+                                    <div class="col-md-4">
+                                        <label class="text-left">Total Questions : @nQuestionCount</label>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="text-right text-primary">Mark Received : @nTotalMarks / @Model.liQuizSetting.FirstOrDefault().TOTAL_MARK</label>
+                                    </div>
+
+                                    @*<div class="col-md-4">
+                        <label class="text-right text-success">Secured Mark : @{double CIAMark = nTotalMarks / 2;} @CIAMark / @Model.liQuizSetting.FirstOrDefault().TOTAL_MARK</label>
+                    </div>*@
+                                </td>
+                            </tr>
+                        }
+
+
+
+                    </tbody>
+                </table>
+
+            </div>
+            <br />
+            <br />
+            <br />
+        }
+    }
+}
+

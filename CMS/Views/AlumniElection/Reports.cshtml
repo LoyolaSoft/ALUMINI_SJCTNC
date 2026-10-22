@@ -1,0 +1,811 @@
+@{
+    if (Request.IsAjaxRequest())
+    {
+        Layout = null;
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    }
+    ViewBag.Title = "Alumni Election Reports";
+    var programmes = ViewBag.ProgrammeList as List<CMS.Models.ProgrammeDropdownItem> ?? new List<CMS.Models.ProgrammeDropdownItem>();
+    var academicYears = ViewBag.AcademicYearList as List<string> ?? new List<string>();
+    string selectedAcYear = ViewBag.SelectedAcademicYear as string ?? DateTime.Now.Year.ToString();
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<style>
+    .bootstrap-select.form-control {
+        width: 100% !important;
+        padding: 0;
+        border: none;
+    }
+    .bootstrap-select > .dropdown-toggle {
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 4px !important;
+        padding: 6px 12px !important;
+        font-size: 13px !important;
+        color: #334155 !important;
+        box-shadow: none !important;
+        height: 34px !important;
+    }
+    .bootstrap-select > .dropdown-toggle:hover,
+    .bootstrap-select > .dropdown-toggle:focus {
+        border-color: #2563eb !important;
+        background-color: #ffffff !important;
+        outline: none !important;
+    }
+    .bootstrap-select .dropdown-menu {
+        z-index: 1060 !important;
+        border-radius: 6px !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.14) !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    .bootstrap-select .dropdown-menu .bs-searchbox input.form-control {
+        padding: 6px 10px !important;
+        font-size: 12.5px !important;
+        border-radius: 4px !important;
+        border: 1px solid #cbd5e1 !important;
+        height: 32px !important;
+    }
+    .bootstrap-select .bs-actionsbox .btn-group button {
+        font-size: 11.5px !important;
+        font-weight: 600 !important;
+        padding: 4px 8px !important;
+    }
+    .kpi-card {
+        border-radius: 10px;
+        padding: 16px 20px;
+        color: #fff;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .kpi-card .kpi-num {
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1;
+    }
+    .kpi-card .kpi-label {
+        font-size: 12.5px;
+        font-weight: 600;
+        opacity: 0.92;
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .kpi-card .kpi-icon {
+        font-size: 38px;
+        opacity: 0.35;
+    }
+    .bg-kpi-total { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+    .bg-kpi-approved { background: linear-gradient(135deg, #047857 0%, #10b981 100%); }
+    .bg-kpi-rejected { background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); }
+    .bg-kpi-prog { background: linear-gradient(135deg, #6b21a8 0%, #a855f7 100%); }
+
+    .nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+        font-weight: 700;
+        border-top: 3px solid #2563eb;
+    }
+    .badge-approved-status {
+        background-color: #10b981;
+        color: #fff;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+    }
+    .badge-rejected-status {
+        background-color: #ef4444;
+        color: #fff;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+    }
+    .filter-panel {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 14px 18px 8px;
+        margin-bottom: 20px;
+    }
+
+    /* Modern iOS/Material Style Switch Toggle */
+    .signature-toggle-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 18px;
+        padding: 4px 10px 4px 6px;
+        vertical-align: middle;
+        margin-left: 6px;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s ease;
+    }
+    .signature-toggle-wrap:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+    }
+    .signature-toggle-wrap.active-toggle {
+        background: #ecfdf5;
+        border-color: #10b981;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+    .switch-toggle {
+        position: relative;
+        display: inline-block;
+        width: 34px;
+        height: 18px;
+        margin-bottom: 0;
+        cursor: pointer;
+    }
+    .switch-toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .switch-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #cbd5e1;
+        transition: .25s;
+        border-radius: 18px;
+    }
+    .switch-slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: .25s;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    .switch-toggle input:checked + .switch-slider {
+        background-color: #10b981;
+    }
+    .switch-toggle input:checked + .switch-slider:before {
+        transform: translateX(16px);
+    }
+    .switch-label-text {
+        font-size: 12px;
+        font-weight: 600;
+        color: #334155;
+        cursor: pointer;
+    }
+
+    /* Small toggle for panel heading */
+    .switch-toggle-sm {
+        position: relative;
+        display: inline-block;
+        width: 28px;
+        height: 15px;
+        margin-bottom: 0;
+        vertical-align: middle;
+    }
+    .switch-toggle-sm input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .switch-slider-sm {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(255,255,255,0.4);
+        transition: .25s;
+        border-radius: 15px;
+    }
+    .switch-slider-sm:before {
+        position: absolute;
+        content: "";
+        height: 11px;
+        width: 11px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: .25s;
+        border-radius: 50%;
+    }
+    .switch-toggle-sm input:checked + .switch-slider-sm {
+        background-color: #10b981;
+    }
+    .switch-toggle-sm input:checked + .switch-slider-sm:before {
+        transform: translateX(13px);
+    }
+</style>
+
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;" onclick="loadContent('/DashBoard/Index')">Home</a></li>
+        <li><a href="javascript:;">Alumnae</a></li>
+        <li class="active">Alumni Election Reports</li>
+    </ol>
+    <!-- end breadcrumb -->
+
+    <h1 class="page-header">
+        <i class="fa fa-bar-chart text-primary"></i> Alumni Election Attendance Reports
+        <small>Alphabetical alumnus list & programme-wise attendance statistics</small>
+    </h1>
+
+    <!-- KPI Metric Cards -->
+    <div class="row">
+        <div class="col-md-3 col-sm-6">
+            <div class="kpi-card bg-kpi-total">
+                <div>
+                    <div class="kpi-num" id="kpiTotal">0</div>
+                    <div class="kpi-label">Total Registered</div>
+                </div>
+                <div class="kpi-icon"><i class="fa fa-users"></i></div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="kpi-card bg-kpi-approved">
+                <div>
+                    <div class="kpi-num" id="kpiApproved">0</div>
+                    <div class="kpi-label">Attending (Approved)</div>
+                </div>
+                <div class="kpi-icon"><i class="fa fa-check-circle"></i></div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="kpi-card bg-kpi-rejected">
+                <div>
+                    <div class="kpi-num" id="kpiRejected">0</div>
+                    <div class="kpi-label">Cannot Attend (Rejected)</div>
+                </div>
+                <div class="kpi-icon"><i class="fa fa-times-circle"></i></div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="kpi-card bg-kpi-prog">
+                <div>
+                    <div class="kpi-num" id="kpiProgrammes">0</div>
+                    <div class="kpi-label">Programmes</div>
+                </div>
+                <div class="kpi-icon"><i class="fa fa-graduation-cap"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Control Toolbar -->
+    <div class="filter-panel">
+        <form id="frmFilterReports" class="form-inline" onsubmit="return false;">
+            <div class="row">
+                <!-- Academic Year Filter -->
+                <div class="col-md-3 col-sm-6 form-group" style="margin-bottom: 10px;">
+                    <label style="font-weight: 600; margin-right: 8px;">Academic Year:</label>
+                    <select id="selAcademicYear" class="selectpicker form-control" data-live-search="true" data-size="8" style="width: 100%;">
+                        <option value="ALL">-- All Academic Years --</option>
+                        @foreach (var y in academicYears)
+                        {
+                            <option value="@y" @(y == selectedAcYear ? "selected" : "")>@y</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Programme Filter (Searchable Multi-Select) -->
+                <div class="col-md-3 col-sm-6 form-group" style="margin-bottom: 10px;">
+                    <label style="font-weight: 600; margin-right: 8px;">Programme:</label>
+                    <select id="selProgramme" class="selectpicker form-control" multiple="multiple" data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-size="8" title="-- All Programmes --" style="width: 100%;">
+                        @foreach (var p in programmes)
+                        {
+                            <option value="@p.PROGRAMME_ID">@p.PROGRAMME_NAME</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Status Filter (Searchable Multi-Select) -->
+                <div class="col-md-2 col-sm-6 form-group" style="margin-bottom: 10px;">
+                    <label style="font-weight: 600; margin-right: 8px;">Status:</label>
+                    <select id="selStatus" class="selectpicker form-control" multiple="multiple" data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" data-size="6" title="-- All Statuses --" style="width: 100%;">
+                        <option value="APPROVED">Approved (Attending)</option>
+                        <option value="REJECTED">Cannot Attend (Rejected)</option>
+                    </select>
+                </div>
+
+                <!-- Actions -->
+                <div class="col-md-4 col-sm-6 form-group text-right" style="margin-bottom: 10px; margin-top: 22px;">
+                    <button type="button" class="btn btn-primary" onclick="loadReportData()" title="Apply Filters">
+                        <i class="fa fa-filter"></i> Filter
+                    </button>
+                    <button type="button" class="btn btn-default" onclick="resetFilters()" title="Reset Filters">
+                        <i class="fa fa-refresh"></i> Reset
+                    </button>
+                    <div class="signature-toggle-wrap" id="wrapMainSignature" title="When enabled, adds a blank Signature column to the Detailed Registration printout for manual signing">
+                        <label class="switch-toggle" style="margin-bottom: 0;">
+                            <input type="checkbox" id="chkIncludeSignature" onchange="syncSignatureToggles(this.checked)">
+                            <span class="switch-slider"></span>
+                        </label>
+                        <span class="switch-label-text" onclick="$('#chkIncludeSignature').click();">
+                            <i class="fa fa-pencil-square-o text-primary"></i> Signature
+                        </span>
+                    </div>
+                    <div class="btn-group" style="margin-left: 5px;">
+                        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" title="Print Reports">
+                            <i class="fa fa-print"></i> Print <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right" style="min-width: 290px;">
+                            <li><a href="javascript:;" onclick="printReport('current')"><i class="fa fa-print text-primary"></i> Print Current Active Tab</a></li>
+                            <li><a href="javascript:;" onclick="printReport('alphabetical')"><i class="fa fa-sort-alpha-asc text-primary"></i> Print Detailed List (A to Z)</a></li>
+                            <li><a href="javascript:;" onclick="printReport('programme')"><i class="fa fa-table text-success"></i> Print Programme Summary</a></li>
+                            <li class="divider"></li>
+                            <li class="dropdown-header" style="font-weight: 700; color: #1e3a8a; text-transform: uppercase; font-size: 10.5px;">Programme-Wise Alumni Print</li>
+                            <li><a href="javascript:;" onclick="printReport('programme_paged')"><i class="fa fa-file-text-o text-primary"></i> <strong>Print (Separate Page per Programme)</strong></a></li>
+                            <li><a href="javascript:;" onclick="printReport('programme_list')"><i class="fa fa-list text-info"></i> Print (Continuous List)</a></li>
+                            <li class="divider"></li>
+                            <li style="padding: 6px 14px;">
+                                <label style="cursor: pointer; font-size: 12px; margin-bottom: 0; font-weight: 600; display: flex; align-items: center; gap: 8px;" onclick="event.stopPropagation();">
+                                    <input type="checkbox" id="chkDropdownSignature" onchange="syncSignatureToggles(this.checked)" style="margin-top: 0;">
+                                    <span><i class="fa fa-pencil-square-o text-primary"></i> Include Signature Column</span>
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="btn-group" style="margin-left: 5px;">
+                        <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" title="Export to Excel">
+                            <i class="fa fa-file-excel-o"></i> Export <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right" style="min-width: 290px;">
+                            <li class="dropdown-header" style="font-weight: 700; color: #1e3a8a; text-transform: uppercase; font-size: 10.5px;">Alphabetical Reports</li>
+                            <li><a href="javascript:;" onclick="exportExcel('alphabetical')"><i class="fa fa-sort-alpha-asc text-primary"></i> Export Detailed (Alphabetical Order)</a></li>
+                            <li class="divider"></li>
+                            <li class="dropdown-header" style="font-weight: 700; color: #047857; text-transform: uppercase; font-size: 10.5px;">Programme Summary</li>
+                            <li><a href="javascript:;" onclick="exportExcel('programme')"><i class="fa fa-table text-success"></i> Export Programme-Wise Summary</a></li>
+                            <li class="divider"></li>
+                            <li class="dropdown-header" style="font-weight: 700; color: #d97706; text-transform: uppercase; font-size: 10.5px;">Programme-Wise Alumni List</li>
+                            <li><a href="javascript:;" onclick="exportExcel('programme_sheets')"><i class="fa fa-files-o text-success"></i> <strong>Separate Sheet per Programme (.xlsx)</strong></a></li>
+                            <li><a href="javascript:;" onclick="exportExcel('programme_files')"><i class="fa fa-file-archive-o text-warning"></i> <strong>Separate Excel File per Programme (.zip)</strong></a></li>
+                            <li><a href="javascript:;" onclick="exportExcel('programme_list')"><i class="fa fa-list text-muted"></i> Single Consolidated Sheet (.xls)</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Report Tabs: Alphabetical Detailed List, Programme-Wise Summary & Programme-Wise Alumni List -->
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-heading-btn" style="display: flex; align-items: center; gap: 8px;">
+                <div class="panel-sig-toggle" title="Toggle signature column for Detailed Registration print" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); border-radius: 14px; padding: 2px 8px; gap: 6px; cursor: pointer;" onclick="$('#chkIncludeSignature').click();">
+                    <label class="switch-toggle-sm" style="pointer-events: none; margin-bottom: 0;">
+                        <input type="checkbox" id="chkPanelSignature">
+                        <span class="switch-slider-sm"></span>
+                    </label>
+                    <span style="color: #ffffff; font-size: 11px; font-weight: 600;">Signature in Print</span>
+                </div>
+                <button type="button" class="btn btn-xs btn-info" onclick="printReport('current')" title="Print Active Report">
+                    <i class="fa fa-print"></i> Print
+                </button>
+                <a href="javascript:;" onclick="loadContent('/AlumniElection/AlumniElectionSetting')" class="btn btn-xs btn-warning">
+                    <i class="fa fa-cog"></i> Election Settings
+                </a>
+            </div>
+            <h4 class="panel-title"><b>Alumni Election Attendance Records</b></h4>
+        </div>
+        <div class="panel-body" style="padding-top: 15px;">
+            
+            <ul class="nav nav-tabs">
+                <li class="active">
+                    <a href="#tabAlphabetical" data-toggle="tab">
+                        <i class="fa fa-sort-alpha-asc text-primary me-1"></i> Detailed Registrations (Alphabetical by Name)
+                    </a>
+                </li>
+                <li>
+                    <a href="#tabProgrammeWise" data-toggle="tab">
+                        <i class="fa fa-th-list text-success me-1"></i> Programme-Wise Summary
+                    </a>
+                </li>
+                <li>
+                    <a href="#tabProgrammeAlumniList" data-toggle="tab">
+                        <i class="fa fa-users text-warning me-1"></i> Programme-Wise Registered Alumni List
+                    </a>
+                </li>
+            </ul>
+
+            <div class="tab-content" style="padding: 20px 0 0;">
+                
+                <!-- TAB 1: Detailed Registrations in Alphabetical Order by Name -->
+                <div class="tab-pane fade active in" id="tabAlphabetical">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-hover" id="tblDetailedAlphabetical" style="width: 100%;">
+                            <thead>
+                                <tr class="bg-silver-lighter">
+                                    <th style="width: 45px; text-align: center;">#</th>
+                                    <th>Alumnus Name (A to Z)</th>
+                                    <th style="width: 120px; text-align: center;">Mobile Number</th>
+                                    <th>Programme / Degree</th>
+                                    <th style="width: 100px; text-align: center;">Passing Year</th>
+                                    <th style="width: 140px; text-align: center;">Attendance Status</th>
+                                    <th style="width: 150px; text-align: center;">Registration Date</th>
+                                    <th style="width: 110px; text-align: center;">Attendance Card</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 2: Programme-Wise Summary -->
+                <div class="tab-pane fade" id="tabProgrammeWise">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-hover" id="tblProgrammeSummary" style="width: 100%;">
+                            <thead>
+                                <tr class="bg-silver-lighter">
+                                    <th style="width: 45px; text-align: center;">#</th>
+                                    <th>Programme Name</th>
+                                    <th style="width: 140px; text-align: right;">Total Registrations</th>
+                                    <th style="width: 160px; text-align: right;">Attending (Approved)</th>
+                                    <th style="width: 180px; text-align: right;">Cannot Attend (Rejected)</th>
+                                    <th style="width: 140px; text-align: right;">Attendance %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded via AJAX -->
+                            </tbody>
+                            <tfoot>
+                                <tr style="background-color: #f8fafc; font-weight: bold; font-size: 13px;">
+                                    <th colspan="2" style="text-align: right;">Total:</th>
+                                    <th style="text-align: right; color: #1e3a8a;" id="ftTotRegistered">0</th>
+                                    <th style="text-align: right; color: #059669;" id="ftTotApproved">0</th>
+                                    <th style="text-align: right; color: #dc2626;" id="ftTotRejected">0</th>
+                                    <th style="text-align: right; color: #1e3a8a;" id="ftTotPercentage">0%</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 3: Programme-Wise Registered Alumni List -->
+                <div class="tab-pane fade" id="tabProgrammeAlumniList">
+                    <!-- Action Bar with direct export options -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 18px; margin-bottom: 16px;">
+                        <div>
+                            <div style="font-weight: 700; color: #1e3a8a; font-size: 14px;">
+                                <i class="fa fa-graduation-cap text-primary"></i> Programme-Wise Registered Alumni Report
+                            </div>
+                            <div class="text-muted" style="font-size: 11.5px; margin-top: 2px;">
+                                Ordered primarily by <strong>Programme / Degree (A to Z)</strong>, then by <strong>Alumnus Name (A to Z)</strong>
+                            </div>
+                        </div>
+                        <div class="btn-group" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="printReport('programme_paged')" title="Print report with a separate page for each programme (Official Excel layout with page break per programme)">
+                                <i class="fa fa-print"></i> <strong>Print (Page per Programme)</strong>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-info" onclick="printReport('programme_list')" title="Print all programmes continuously in a single document">
+                                <i class="fa fa-print"></i> <strong>Print (Continuous List)</strong>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-success" onclick="exportExcel('programme_sheets')" title="Export all programmes into one Excel workbook with a separate sheet for each programme">
+                                <i class="fa fa-files-o"></i> <strong>Separate Sheet per Programme (.xlsx)</strong>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-warning" onclick="exportExcel('programme_files')" title="Export each programme as an individual Excel file bundled into a ZIP archive">
+                                <i class="fa fa-file-archive-o"></i> <strong>Separate Excel File per Programme (.zip)</strong>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-hover" id="tblProgrammeAlumniList" style="width: 100%;">
+                            <thead>
+                                <tr class="bg-silver-lighter">
+                                    <th style="width: 45px; text-align: center;">#</th>
+                                    <th>Programme / Degree</th>
+                                    <th>Alumnus Name</th>
+                                    <th style="width: 120px; text-align: center;">Mobile Number</th>
+                                    <th style="width: 100px; text-align: center;">Passing Year</th>
+                                    <th style="width: 140px; text-align: center;">Attendance Status</th>
+                                    <th style="width: 150px; text-align: center;">Registration Date</th>
+                                    <th style="width: 110px; text-align: center;">Attendance Card</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<script>
+    var dtAlphabetical = null;
+    var dtProgramme = null;
+    var dtProgrammeAlumni = null;
+
+    $(document).ready(function () {
+        initSelectpickers();
+        loadReportData();
+
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            if ($.fn.dataTable) {
+                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            }
+        });
+    });
+
+    function initSelectpickers() {
+        if ($.fn.selectpicker) {
+            $('.selectpicker').selectpicker({
+                size: 8,
+                liveSearch: true
+            });
+            $('.selectpicker').selectpicker('refresh');
+        }
+    }
+
+    function getSelectedFilters() {
+        var acYear = $('#selAcademicYear').val() || 'ALL';
+        var progVal = $('#selProgramme').val();
+        var statusVal = $('#selStatus').val();
+
+        var progStr = (progVal && progVal.length > 0) ? (Array.isArray(progVal) ? progVal.join(',') : progVal) : '';
+        var statusStr = (statusVal && statusVal.length > 0) ? (Array.isArray(statusVal) ? statusVal.join(',') : statusVal) : 'ALL';
+
+        return {
+            academicYear: acYear,
+            programme: progStr,
+            status: statusStr
+        };
+    }
+
+    function loadReportData() {
+        var filters = getSelectedFilters();
+
+        $.ajax({
+            url: '/AlumniElection/GetReportData',
+            type: 'GET',
+            data: { academicYear: filters.academicYear, programme: filters.programme, status: filters.status },
+            success: function (res) {
+                if (res && res.success) {
+                    // Update KPIs
+                    $('#kpiTotal').text(res.kpis.totalRegistered);
+                    $('#kpiApproved').text(res.kpis.approvedCount);
+                    $('#kpiRejected').text(res.kpis.rejectedCount);
+                    $('#kpiProgrammes').text(res.kpis.totalProgrammes);
+
+                    // Render Detailed Alphabetical Table
+                    renderDetailedTable(res.registrations);
+
+                    // Render Programme Summary Table
+                    renderProgrammeTable(res.programmeSummary);
+
+                    // Render Programme-Wise Alumni List Table
+                    renderProgrammeAlumniListTable(res.programmeWiseRegistrations);
+                } else {
+                    alert((res && res.message) ? res.message : 'Error loading reports.');
+                }
+            },
+            error: function () {
+                alert('Network error while retrieving report data.');
+            }
+        });
+    }
+
+    function renderDetailedTable(data) {
+        if ($.fn.DataTable.isDataTable('#tblDetailedAlphabetical')) {
+            $('#tblDetailedAlphabetical').DataTable().destroy();
+        }
+
+        var tbody = $('#tblDetailedAlphabetical tbody');
+        tbody.empty();
+
+        if (data && data.length > 0) {
+            $.each(data, function (i, item) {
+                var isApproved = (item.status === 'APPROVED');
+                var badgeHtml = isApproved 
+                    ? '<span class="badge-approved-status"><i class="fa fa-check"></i> ATTENDING</span>' 
+                    : '<span class="badge-rejected-status"><i class="fa fa-times"></i> NOT ATTENDING</span>';
+
+                var cardBtn = isApproved 
+                    ? '<a href="/AlumniElection/AttendanceCard?mobile=' + encodeURIComponent(item.mobile) + '" target="_blank" class="btn btn-xs btn-primary" title="Print Attendance Card"><i class="fa fa-id-card-o"></i> Card</a>' 
+                    : '<span class="text-muted small">-</span>';
+
+                var tr = '<tr>' +
+                    '<td style="text-align: center;">' + item.sno + '</td>' +
+                    '<td style="font-weight: bold;">' + escapeHtml(item.name) + '</td>' +
+                    '<td style="text-align: center;">' + escapeHtml(item.mobile) + '</td>' +
+                    '<td>' + escapeHtml(item.programme) + '</td>' +
+                    '<td style="text-align: center;">' + escapeHtml(item.yearOfPassing) + '</td>' +
+                    '<td style="text-align: center;">' + badgeHtml + '</td>' +
+                    '<td style="text-align: center;">' + item.createdDate + '</td>' +
+                    '<td style="text-align: center;">' + cardBtn + '</td>' +
+                    '</tr>';
+                tbody.append(tr);
+            });
+        }
+
+        dtAlphabetical = $('#tblDetailedAlphabetical').DataTable({
+            responsive: true,
+            pageLength: 25,
+            order: [[1, 'asc']] // Alphabetical order by name
+        });
+    }
+
+    function renderProgrammeTable(data) {
+        if ($.fn.DataTable.isDataTable('#tblProgrammeSummary')) {
+            $('#tblProgrammeSummary').DataTable().destroy();
+        }
+
+        var tbody = $('#tblProgrammeSummary tbody');
+        tbody.empty();
+
+        var sumTot = 0, sumApp = 0, sumRej = 0;
+
+        if (data && data.length > 0) {
+            $.each(data, function (i, item) {
+                sumTot += item.TOTAL_COUNT;
+                sumApp += item.APPROVED_COUNT;
+                sumRej += item.REJECTED_COUNT;
+
+                var tr = '<tr>' +
+                    '<td style="text-align: center;">' + (i + 1) + '</td>' +
+                    '<td style="font-weight: bold;">' + escapeHtml(item.PROGRAMME_NAME) + '</td>' +
+                    '<td style="text-align: right; font-weight: bold;">' + item.TOTAL_COUNT + '</td>' +
+                    '<td style="text-align: right; color: #059669; font-weight: bold;">' + item.APPROVED_COUNT + '</td>' +
+                    '<td style="text-align: right; color: #dc2626;">' + item.REJECTED_COUNT + '</td>' +
+                    '<td style="text-align: right; font-weight: bold;">' + item.ATTENDANCE_PERCENTAGE + '%</td>' +
+                    '</tr>';
+                tbody.append(tr);
+            });
+        }
+
+        var overallPct = (sumTot > 0) ? Math.round((sumApp / sumTot) * 1000) / 10 : 0;
+        $('#ftTotRegistered').text(sumTot);
+        $('#ftTotApproved').text(sumApp);
+        $('#ftTotRejected').text(sumRej);
+        $('#ftTotPercentage').text(overallPct + '%');
+
+        dtProgramme = $('#tblProgrammeSummary').DataTable({
+            responsive: true,
+            pageLength: 25,
+            order: [[1, 'asc']] // Alphabetical order by programme name
+        });
+    }
+
+    function renderProgrammeAlumniListTable(data) {
+        if ($.fn.DataTable.isDataTable('#tblProgrammeAlumniList')) {
+            $('#tblProgrammeAlumniList').DataTable().destroy();
+        }
+
+        var tbody = $('#tblProgrammeAlumniList tbody');
+        tbody.empty();
+
+        if (data && data.length > 0) {
+            $.each(data, function (i, item) {
+                var isApproved = (item.status === 'APPROVED');
+                var badgeHtml = isApproved 
+                    ? '<span class="badge-approved-status"><i class="fa fa-check"></i> ATTENDING</span>' 
+                    : '<span class="badge-rejected-status"><i class="fa fa-times"></i> NOT ATTENDING</span>';
+
+                var cardBtn = isApproved 
+                    ? '<a href="/AlumniElection/AttendanceCard?mobile=' + encodeURIComponent(item.mobile) + '" target="_blank" class="btn btn-xs btn-primary" title="Print Attendance Card"><i class="fa fa-id-card-o"></i> Card</a>' 
+                    : '<span class="text-muted small">-</span>';
+
+                var tr = '<tr>' +
+                    '<td style="text-align: center;">' + (i + 1) + '</td>' +
+                    '<td style="font-weight: bold; color: #1e3a8a;">' + escapeHtml(item.programme) + '</td>' +
+                    '<td style="font-weight: 600;">' + escapeHtml(item.name) + '</td>' +
+                    '<td style="text-align: center;">' + escapeHtml(item.mobile) + '</td>' +
+                    '<td style="text-align: center;">' + escapeHtml(item.yearOfPassing) + '</td>' +
+                    '<td style="text-align: center;">' + badgeHtml + '</td>' +
+                    '<td style="text-align: center;">' + item.createdDate + '</td>' +
+                    '<td style="text-align: center;">' + cardBtn + '</td>' +
+                    '</tr>';
+                tbody.append(tr);
+            });
+        }
+
+        dtProgrammeAlumni = $('#tblProgrammeAlumniList').DataTable({
+            responsive: true,
+            pageLength: 25,
+            order: [[1, 'asc'], [2, 'asc']], // Order by Programme (Col 1), then Alumnus Name (Col 2)
+            columnDefs: [
+                { targets: 0, orderable: false, searchable: false }, // Serial number column not sortable
+                { targets: [5, 7], orderable: false }
+            ]
+        });
+
+        // Ensure serial number # updates dynamically on draw/paging/search
+        dtProgrammeAlumni.on('order.dt search.dt', function () {
+            dtProgrammeAlumni.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1;
+            });
+        }).draw();
+    }
+
+    function syncSignatureToggles(checked) {
+        $('#chkIncludeSignature').prop('checked', checked);
+        $('#chkPanelSignature').prop('checked', checked);
+        $('#chkDropdownSignature').prop('checked', checked);
+        if (checked) {
+            $('#wrapMainSignature').addClass('active-toggle');
+        } else {
+            $('#wrapMainSignature').removeClass('active-toggle');
+        }
+    }
+
+    function resetFilters() {
+        $('#selAcademicYear').val('ALL');
+        if ($.fn.selectpicker) {
+            $('#selAcademicYear').selectpicker('refresh');
+            $('#selProgramme').val([]).selectpicker('refresh');
+            $('#selStatus').val([]).selectpicker('refresh');
+        } else {
+            $('#selProgramme').val('');
+            $('#selStatus').val('');
+        }
+        syncSignatureToggles(false);
+        loadReportData();
+    }
+
+    function exportExcel(reportType) {
+        var filters = getSelectedFilters();
+        var includeSignature = $('#chkIncludeSignature').is(':checked');
+
+        var url = '/AlumniElection/ExportReportsToExcel?academicYear=' + encodeURIComponent(filters.academicYear) +
+                  '&programme=' + encodeURIComponent(filters.programme) +
+                  '&status=' + encodeURIComponent(filters.status) +
+                  '&reportType=' + encodeURIComponent(reportType) +
+                  '&includeSignature=' + (includeSignature ? 'true' : 'false');
+        window.location.href = url;
+    }
+
+    function printReport(reportType) {
+        if (!reportType || reportType === 'current') {
+            // Determine active tab
+            if ($('#tabProgrammeWise').hasClass('active') || $('.nav-tabs li:eq(1)').hasClass('active')) {
+                reportType = 'programme';
+            } else if ($('#tabProgrammeAlumniList').hasClass('active') || $('.nav-tabs li:eq(2)').hasClass('active')) {
+                reportType = 'programme_paged';
+            } else {
+                reportType = 'alphabetical';
+            }
+        }
+
+        var filters = getSelectedFilters();
+        var includeSignature = $('#chkIncludeSignature').is(':checked');
+
+        var url = '/AlumniElection/PrintReport?academicYear=' + encodeURIComponent(filters.academicYear) +
+                  '&programme=' + encodeURIComponent(filters.programme) +
+                  '&status=' + encodeURIComponent(filters.status) +
+                  '&reportType=' + encodeURIComponent(reportType) +
+                  '&includeSignature=' + (includeSignature ? 'true' : 'false');
+
+        window.open(url, '_blank');
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+</script>

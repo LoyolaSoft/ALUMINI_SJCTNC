@@ -1,0 +1,396 @@
+﻿@model CMS.ViewModel.ViewModel.AcademicsViewModel
+
+@{
+    ViewBag.Title = "ListCourseWiseStaffInfo";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">List Course Wise Staff </li>
+    </ol>
+    <h1 class="page-header">List Course Wise Staff </h1>
+    @if (TempData["DeleteSuccess"] != null)
+    {
+        <div class="row alert alert-success fade in m-b-15" id="Success">
+            <strong>Success!</strong>
+            @TempData["DeleteSuccess"]
+            <span class="close" data-dismiss="alert">×</span>
+        </div>
+    }
+    @if (TempData["DeleteError"] != null)
+    {
+        <div class="row alert alert-danger fade in m-b-15" id="Error">
+            <strong>Error!</strong>
+            @TempData["DeleteError"]
+            <span class="close" data-dismiss="alert">×</span>
+        </div>
+    }
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Course Wise Staff </h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="col-md-12">
+                <a class="btn btn-success pull-right form-group m-b-5" href="javascript:;" onclick="loadContent('/Academics/CourseWiseStaffInfo')" @*href="@Url.Action("CourseWiseStaffInfo","Academics")"*@><i class="fa fa-plus" title="Click To Add"> Add</i></a>
+            </div>
+            <br />
+            @{ int count = 0;}
+            <div class="table-responsive col-md-12">
+                <table class="table table-hover table-bordered" id="CourseWiseStaffList">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+
+                            <th>@*@Html.DisplayNameFor(model => model.CLASS_NAME)*@ Class Name</th>
+                            <th>@*@Html.DisplayNameFor(model => model.COURSE_CODE)*@ Course Code</th>
+                            <th>@*@Html.DisplayNameFor(model => model.COURSE_TITLE)*@ Course Title</th>
+                            <th>@*@Html.DisplayNameFor(model => model.STAFF_ID)*@ Staff</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    @if (Model.liCourseWiseStaff != null)
+                    {
+                        <tbody>
+                            @foreach (var item in Model.liCourseWiseStaff)
+                            {
+                                <tr>
+                                    <td>
+                                        @{ count++;}
+                                        @count
+                                    </td>
+
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item.CLASS_NAME)
+                                    </th>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.COURSE_CODE)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.COURSE_TITLE)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.STAFF_ID)
+                                    </td>
+                                    <td>
+                                        <a href="#EditSelectedCourseStaff-dialog" onclick="EditSelectedCourseWiseStaff(@item.CLSCRSSTF_ID)" data-toggle="modal"><i class="fa fa-edit text-primary" title="Edit"></i></a>
+                                        @if (item.STAFF_COUNT == "1")
+                                        {
+                                            <a @*href="@Url.Action("DeleteCourseWiseStaffInfo","Academics",new { id=@item.CLSCRSSTF_ID})"*@ href="javascript:;" onclick="GetConfrim(@item.CLSCRSSTF_ID);"><i class="fa fa-trash text-danger" title="Delete"></i></a>
+                                        }
+                                        @if (item.STAFF_COUNT != "1")
+                                        {
+                                            <a href="#ViewSelectedCourseStaff-dialog" onclick="ListSelectedCourseStaff(@item.COURSE_ID,@item.CLASS_ID);" data-toggle="modal" title="View"><i class="glyphicon glyphicon-eye-open text-primary"></i></a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    }
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@* --Modal for list the selected course wise staff *@
+<div class="modal" id="ViewSelectedCourseStaff-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Selected Course Staff List</h4>
+            </div>
+            <div class="modal-body">
+                <div id="SelectedCourseWiseStaff"></div>
+            </div>
+            <div class="modal-footer">
+                <a id="btnCancel" value="Submit" class="btn btn-danger" href="javascript:;" data-dismiss="modal" @*href="@Url.Action("ListCourseWiseStaffInfo","Academics")"*@>Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@* --Modal for Edit the selected course wise staff *@
+<div class="modal" id="EditSelectedCourseStaff-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Edit Course Wise Staff</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal" id="EditSelectedCourseWiseStaff">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Class</label>
+                        <div class="col-md-9">
+                            <select id="ddlClass" class="selectpicker form-control input-sm" disabled>
+                                <option value="0">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Course</label>
+                        <div class="col-md-9">
+                            <select id="ddlCourse" class="selectpicker form-control input-sm " disabled>
+                                <option value="0">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Staff Name</label>
+                        <div class="col-md-9">
+                            <select id="ddlStaff" class="selectpicker form-control input-sm">
+                                <option value="0">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Hourse Per Week</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control input-sm" id="txtHrsPerWeek" placeholder="Enter Hourse Per Week" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Hours Per Term</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control input-sm" id="txtHrsPerTerm" placeholder="Enter Hourse Per Term" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Shift</label>
+                        <div class="col-md-9">
+                            <select id="ddlShift" class="selectpicker form-control input-sm " disabled>
+                                <option value="0">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Semester</label>
+                        <div class="col-md-9">
+                            <select id="ddlSemester" class="selectpicker form-control input-sm " disabled>
+                                <option value="0">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">CIA Entry</label>
+                        <div class="col-md-9">
+                            <div class="checkbox checkbox-css">
+                                <input type="checkbox" id="IsPrimaryStaff" />
+                                <label for="IsPrimaryStaff">
+                                    @*Allow CIA Mark Entry*@Is Primary Staff
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="sbtnSubmit" value="Submit" class="btn btn-primary" href="javascript:;" data-dismiss="modal">Submit</a>
+                <a id="btnCancel" value="Submit" class="btn btn-danger" href="javascript:;" data-dismiss="modal" @*onclick="loadContent('/Academics/ListCourseWiseStaffInfo')"*@ @*href="@Url.Action("ListCourseWiseStaffInfo","Academics")"*@>Cancel</a>
+                @*<a id="btnPublish" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                    <a id="btnEditPublish" class="btn btn-sm btn-primary" data-dismiss="modal">Update</a>
+                    <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+    //$(document).ready(function () {
+    //    Notification.init();
+    //});
+    function ContentLoad() {
+        // Document Ready Function .
+        Notification.init();
+    }
+</script>
+<script>
+
+    $("#CourseWiseStaffList").DataTable();
+</script>
+<script>
+        function ListSelectedCourseStaff(CourseId, ClassId) {
+            $.ajax({
+                url: "@Url.Action("FetchSelectedCourseWiseStaff", "Academics")",
+                method: "POST",
+                datatype: "html",
+                data: { sCourseId: CourseId, sClassId: ClassId },
+                success: function (Option) {
+                    var divHtml = $('#SelectedCourseWiseStaff');
+                    divHtml.empty();
+                    divHtml.html(Option);
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+        }
+</script>
+<script>
+        function EditSelectedCourseWiseStaff(sCourseWiseStaffId) {
+
+            GetDropDown();
+            $.ajax({
+                url: "@Url.Action("FetchCourseWiseStaffById", "Academics")",
+                method: "POST",
+                datatype: "html",
+                data: { CourseWiseStaffId: sCourseWiseStaffId },
+                success: function (data) {
+                    $("#ddlClass").val(data.CLASS_ID);
+                    $("#ddlCourse").val(data.COURSE_ID);
+                    $("#ddlStaff").val(data.STAFF_ID);
+                    $("#txtHrsPerWeek").val(data.HRS_WEEK);
+                    $("#txtHrsPerTerm").val(data.HRS_TERM);
+                    $("#ddlShift").val(data.SHIFT);
+                    $("#ddlSemester").val(data.SEMESTER_ID);
+                    if (data.IS_PRIMARY_STAFF=="1")
+                    {
+
+                       // $('#IsPrimaryStaff').click();
+                        $('#IsPrimaryStaff').prop('checked',true);
+                    }
+                    $('.selectpicker').selectpicker('refresh');
+                },
+                error: function (error) {
+                    alert('No Data Found');
+                }
+            });
+        }
+</script>
+<script>
+        GetDropDown = function () {
+            $.ajax({
+                url: "@Url.Action("EditSelectedCourseWiseStaff", "Academics")",
+                method: "POST",
+                datatype: "json",
+                success: function (data) {
+
+                    var ddl = JSON.parse(data);
+                    $('#ddlClass').empty();
+                    $('#ddlClass').append('<option value="0">-- select --</option>' + ddl.CLASS_ID);
+
+                    $('#ddlCourse').empty();
+                    $('#ddlCourse').append('<option value="0">-- select --</option>' + ddl.COURSE_ID);
+
+                    $('#ddlStaff').empty();
+                    $('#ddlStaff').append('<option value="0">-- select --</option>' + ddl.STAFF_ID);
+
+                    $('#ddlShift').empty();
+                    $('#ddlShift').append('<option value="0">-- select --</option>' + ddl.SHIFT);
+
+                    $('#ddlSemester').empty();
+                    $('#ddlSemester').append('<option value="0">-- select --</option>' + ddl.SEMESTER_ID);
+
+                }, error: function (error) {
+                    alert('No Data Found ...!');
+                }
+            });
+        }
+</script>
+<script>
+        $('#sbtnSubmit').on("click", function () {
+            var Class = $('#ddlClass').val();
+            var Course = $('#ddlCourse').val();
+            var Staff = $('#ddlStaff').val();
+            var HrsPerWeek = $('#txtHrsPerWeek').val();
+            var HrsPerTerm = $('#txtHrsPerTerm').val();
+            var Shift = $('#ddlShift').val();
+            var Semester = $('#ddlSemester').val();
+            var SemesterType = $('#SemesterType').val();
+            var IsPrimaryStaff = 0;
+            if ($('#IsPrimaryStaff').is(':checked'))
+            {
+                IsPrimaryStaff = 1;
+            }
+            var JsonData;
+            JsonData = '{"IS_PRIMARY_STAFF":"' + IsPrimaryStaff + '","CLASS_ID":"' + Class + '","COURSE_ID":"' + Course + '","STAFF_ID":"' + Staff + '","HRS_WEEK":"' + HrsPerWeek + '","HRS_TERM":"' + HrsPerTerm + '","SHIFT":"' + Shift + '","SEMESTER_ID":"' + Semester + '","SEMESTER_TYPE_ID":"' + SemesterType + '"}';
+            // alert(JsonData);
+            $.ajax({
+                url: "@Url.Action("UpdateSelectedCourseWiseStaffInfo", "Academics")",
+                method: "POST",
+                datatype: "html",
+                data: { jsonSelectedCourseWiseStaff: JsonData },
+                success: function (data) {
+
+                    if (data != 'False') {
+                        alert('Record Updated successfully..!');
+                       // LoadList();
+                    } else {
+                        alert('Record not Updated try again ..!');
+                    }
+
+                }, error: function (error) {
+                    alert('Record not Updated try again ..!');
+                }
+            });
+        });
+
+        function GetConfrim(ID)
+        {
+            if (!confirm('Are you sure want to delete ?'))
+            {
+                return false;
+            }
+            $.ajax({
+                url: "@Url.Action("DeleteCourseWiseStaffInfo", "Academics")",
+                method: "POST",
+                datatype: "json",
+                data: { id: ID },
+                success: function (data)
+                {
+                    alert(data.Message);
+                    if (data.sResult == 'True')
+                    {
+                        LoadList();
+                    }
+                }
+            });
+        }
+
+        function LoadList()
+        {
+            loadContent('/Academics/ListCourseWiseStaffInfo');
+        }
+</script>
+
+
+

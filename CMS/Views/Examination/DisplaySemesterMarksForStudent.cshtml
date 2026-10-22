@@ -1,0 +1,120 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "Display Semester Marks";
+    Layout = null; // Assuming this is rendered as a partial or modal
+    int nCount = 0;
+}
+
+
+
+<div id="content" class="content">
+    <div class="panel panel-inverse">
+        <div class="panel-body">
+            @if (Model.liSemesterList != null && Model.liSemesterList.Count > 0)
+            {
+                var groupedResults = Model.liSemesterList.GroupBy(x => x.SEMESTER).OrderBy(g => g.Key);
+
+                <!-- Academic Analysis - Semester Summary -->
+                <div class="m-b-20">
+                    <h4 class="text-primary m-b-15">
+                        <i class="fa fa-list-alt"></i> Academic Analysis - Semester Summary
+                    </h4>
+                    <table class="table table-bordered table-hover text-center">
+                        <thead class="bg-silver-lighter">
+                            <tr>
+                                <th class="text-center">Semester</th>
+                                <th class="text-center">Total no.of Subjects</th>
+                                <th class="text-center">No.of Subjects Passed</th>
+                                <th class="text-center">No.of Arrears</th>
+                                <th class="text-center">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var group in groupedResults)
+                            {
+                                var total = group.Count();
+                                var arrears = group.Count(x => x.RESULT == "F" || x.RESULT == "W");
+                                var passed = total - arrears - group.Count(x => x.RESULT == "A");
+                                var percentage = total > 0 ? (double)passed / total * 100 : 0;
+                                <tr>
+                                    <td>@group.Key</td>
+                                    <td>@total</td>
+                                    <td>@passed</td>
+                                    <td>@arrears</td>
+                                    <td>@percentage.ToString("0.00") %</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Academic Analysis - Semester Details -->
+                <div class="m-t-25">
+                    <div class="row m-b-10">
+                        <div class="col-md-9">
+                            <h4 class="text-success">
+                                <i class="fa fa-graduation-cap"></i> Academic Analysis - Semester Details
+                            </h4>
+                        </div>
+                        <div class="col-md-3 text-right">
+                            <button type="button" class="btn btn-success btn-sm" onclick="window.print()">
+                                <i class="fa fa-print"></i> Print Details
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <table class="table table-bordered table-hover">
+                        <thead class="bg-silver-lighter">
+                            <tr>
+                                <th>#</th>
+                                <th>Semester</th>
+                                <th>Course Code</th>
+                                <th>Course Title</th>
+                                <th class="text-center">Internal</th>
+                                <th class="text-center">External</th>
+                                <th class="text-center">Total</th>
+                                <th class="text-center">Month / Year</th>
+                                <th class="text-center">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.liSemesterList)
+                            {
+                                nCount++;
+                                string rowClass = (item.RESULT == "F" || item.RESULT == "W") ? "text-danger" : "";
+                                string resultText = "";
+                                if (item.RESULT == "F") { resultText = "FAIL"; }
+                                else if (item.RESULT == "W") { resultText = "With Held"; }
+                                else if (item.RESULT == "A") { resultText = "Absent"; }
+                                else { resultText = "PASS"; }
+
+                                <tr class="@rowClass">
+                                    <td>@nCount</td>
+                                    <td>@item.SEMESTER</td>
+                                    <td>@item.COURSE_CODE</td>
+                                    <td>@item.COURSE_TITLE</td>
+                                    <td class="text-center">@item.INTERNAL_MARK</td>
+                                    <td class="text-center">@item.EXTERNAL_MARK</td>
+                                    <td class="text-center">@item.TOTAL</td>
+                                    <td class="text-center">@item.M_PASS</td>
+                                    <td class="text-center">@resultText</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    No records found for the selected student.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<!-- end #content -->
+
+
+

@@ -1,0 +1,250 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+
+@{ Layout = null; }
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+
+        <div class=">
+
+            <input type="hidden" id="hdnStudentId" value="@ViewBag.StudentId" />
+
+            <!-- Semester Selection -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="control-label font-weight-bold">Select Semester:</label>
+                        @Html.DropDownListFor(model => model.SemesterType,
+                            Model.SemesterType ?? Enumerable.Empty<SelectListItem>(),
+                            "-- Select Semester --",
+                            new { @class = "form-control selectpicker show-menu-arrow show-tick", @id = "ddlSemester", @data_live_search = "true" })
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <!-- Data Sections (Hidden initially) -->
+            <div id="semesterDataContainer" style="display:none;">
+
+                <!-- 1. Academic Record -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h4 class="text-primary"><i class="fa fa-graduation-cap"></i> Academic Record</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped" id="tblMarks">
+                                <thead style="background-color: #f0f3f5;">
+                                    <tr>
+                                        <th>Course Code</th>
+                                        <th>Course Title</th>
+                                        <th>Internal</th>
+                                        <th>External</th>
+                                        <th>Total</th>
+                                        <th>Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Attendance Summary -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h4 class="text-success"><i class="fa fa-calendar-check-o"></i> Attendance Summary</h4>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="50%">Total Working Days</th>
+                                <td id="lblTotalDays" class="text-center font-weight-bold">-</td>
+                            </tr>
+                            <tr>
+                                <th>Days Absent</th>
+                                <td id="lblAbsentDays" class="text-center font-weight-bold text-danger">-</td>
+                            </tr>
+                            <tr>
+                                <th>Attendance Percentage</th>
+                                <td id="lblPercentage" class="text-center font-weight-bold">-</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- 3. Arrear Tracking -->
+                    <div class="col-md-6">
+                        <h4 class="text-danger"><i class="fa fa-exclamation-triangle"></i> Arrear Tracking</h4>
+                        <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                            <table class="table table-bordered table-condensed" id="tblArrears">
+                                <thead style="background-color: #ffe6e6;">
+                                    <tr>
+                                        <th>Sem</th>
+                                        <th>Course Code</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <small class="text-muted">* Lists current arrears / failed subjects.</small>
+                    </div>
+                </div>
+
+                <!-- 4. Semester Summary (Editable) -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4 class="text-info"><i class="fa fa-pencil-square-o"></i> Semester Summary / Mentor Remarks</h4>
+                        <div class="form-group">
+                            <textarea id="txtSemesterSummary" class="form-control" rows="4" placeholder="Enter mentor remarks or semester summary here..."></textarea>
+                        </div>
+                        <div class="text-right">
+                            <button type="button" class="btn btn-primary" id="btnSaveSummary"><i class="fa fa-save"></i> Save Summary</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div> <!-- End Data Container -->
+
+            <div id="loadingSpinner" class="text-center" style="display:none; padding: 20px;">
+                <i class="fa fa-spinner fa-spin fa-3x fa-fw text-muted"></i>
+                <span class="sr-only">Loading...</span>
+            </div>
+
+        </div>
+  
+
+<script>
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker({
+            size: 5
+        });
+        $('.selectpicker').selectpicker('refresh');
+
+        // Init selectpicker
+
+        $('#ddlSemester').on('change', function () {
+            var semester = $(this).val();
+            var studentId = $('#hdnStudentId').val();
+
+            if (semester) {
+                fetchSemesterData(studentId, semester);
+            } else {
+                $('#semesterDataContainer').hide();
+            }
+        });
+
+        $('#btnSaveSummary').on('click', function() {
+            saveSummary();
+        });
+    });
+
+    function fetchSemesterData(studentId, semester) {
+
+        $('#semesterDataContainer').hide();
+        $('#loadingSpinner').show();
+
+        $.ajax({
+            url: '@Url.Action("GetSemesterData", "Mentoring")',
+            type: 'POST', // or GET depending on Controller
+            dataType: 'json',
+            data: { studentId: studentId, semester: semester },
+            success: function (response) {
+                $('#loadingSpinner').hide();
+                if (response.debug) {
+                    console.log("Debug Info:", response.debug);
+                }
+                if (response.success) {
+                    renderData(response);
+                    $('#semesterDataContainer').fadeIn();
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                $('#loadingSpinner').hide();
+                console.error(error);
+                alert('Failed to load data.');
+            }
+        });
+    }
+
+    function renderData(data) {
+        // 1. Marks
+        var marksBody = $('#tblMarks tbody');
+        marksBody.empty();
+        if (data.marks && data.marks.length > 0) {
+            $.each(data.marks, function (i, item) {
+                var row = '<tr>' +
+                    '<td>' + (item.COURSE_CODE || '-') + '</td>' +
+                    '<td>' + (item.COURSE_TITLE || '-') + '</td>' +
+                    '<td>' + (item.INTERNAL_MARK || '-') + '</td>' +
+                    '<td>' + (item.EXTERNAL_MARK || '-') + '</td>' +
+                    '<td>' + (item.TOTAL || '-') + '</td>' +
+                    '<td><span class="label ' + (item.RESULT === 'P' || item.RESULT === 'PASS' ? 'label-success' : 'label-danger') + '">' + (item.RESULT || '-') + '</span></td>' +
+                    '</tr>';
+                marksBody.append(row);
+            });
+        } else {
+            marksBody.append('<tr><td colspan="6" class="text-center text-muted">No academic records found for this semester.</td></tr>');
+        }
+
+        // 2. Attendance
+        // Using values from backend (currently placeholders, but ready for logic)
+        $('#lblTotalDays').text(data.attendance.TotalDays || '-');
+        $('#lblAbsentDays').text(data.attendance.AbsentDays || '-');
+        $('#lblPercentage').text((data.attendance.Percentage ? data.attendance.Percentage + '%' : '-'));
+
+        // 3. Arrears
+        var arrearsBody = $('#tblArrears tbody');
+        arrearsBody.empty();
+        if (data.arrears && data.arrears.length > 0) {
+            $.each(data.arrears, function (i, item) {
+                 var row = '<tr>' +
+                    '<td>' + (item.SEMESTER || '-') + '</td>' +
+                    '<td>' + (item.COURSE_CODE || '-') + '</td>' +
+                    '<td><span class="text-danger font-weight-bold">' + (item.RESULT || 'FAIL') + '</span></td>' +
+                    '</tr>';
+                arrearsBody.append(row);
+            });
+        } else {
+             arrearsBody.append('<tr><td colspan="3" class="text-center text-success">No arrears found.</td></tr>');
+        }
+
+        // 4. Summary
+        $('#txtSemesterSummary').val(data.summary || '');
+    }
+
+    function saveSummary() {
+        var summary = $('#txtSemesterSummary').val();
+        var semester = $('#ddlSemester').val();
+        var studentId = $('#hdnStudentId').val();
+
+        if(!semester) return;
+
+        var btn = $('#btnSaveSummary');
+        var originalText = btn.html();
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+
+        $.ajax({
+            url: '@Url.Action("SaveSemesterSummary", "Mentoring")',
+            type: 'POST',
+            dataType: 'json',
+            data: { studentId: studentId, semester: semester, summary: summary },
+            success: function (response) {
+                btn.prop('disabled', false).html(originalText);
+                if (response.success) {
+                    alert('Summary saved successfully.');
+                } else {
+                    alert('Failed to save summary: ' + response.message);
+                }
+            },
+            error: function () {
+                btn.prop('disabled', false).html(originalText);
+                alert('Error saving summary.');
+            }
+        });
+    }
+</script>

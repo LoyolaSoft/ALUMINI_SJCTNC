@@ -1,0 +1,393 @@
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@{
+    Layout = null;
+    ViewBag.Title = "Modern Feedback Entry";
+
+    var selectedFeedBackId = ViewBag.SelectedFeedBackId as string;
+    var selectedSupFeedBackRoleId = ViewBag.SelectedSupFeedBackRoleId as string;
+}
+
+<style>
+    :root {
+        /*--primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);*/
+        --primary-gradient: #4396bb;
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-border: rgba(255, 255, 255, 0.4);
+        --text-dark: #2d3436;
+        --text-muted: #636e72;
+        --accent-color: #6c5ce7;
+    }
+    .modern-container {
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 0 15px;
+    }
+
+    .header-section {
+        background: var(--primary-gradient);
+        border-radius: 20px;
+        padding: 40px 30px;
+        color: white;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 30px rgba(118, 75, 162, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .selector-pane {
+        background: var(--glass-bg);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+        border: 1px solid var(--glass-border);
+    }
+
+    .dropdown-group {
+        flex: 1;
+        min-width: 250px;
+    }
+
+        .dropdown-group label {
+            display: block;
+            font-size: 0.8em;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+    .modern-select {
+        width: 100%;
+        padding: 12px 15px;
+        border-radius: 10px;
+        border: 2px solid #edeff2;
+        background: white;
+        font-weight: 600;
+        color: var(--text-dark);
+        outline: none;
+        transition: border-color 0.3s;
+    }
+
+        .modern-select:focus {
+            border-color: var(--accent-color);
+        }
+
+    .progress-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        height: 12px;
+        margin-top: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        background: white;
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .stats-text {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+        font-size: 0.9em;
+        font-weight: 500;
+    }
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 50px;
+    }
+
+    .modern-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        border: 1px solid transparent;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .modern-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: var(--accent-color);
+        }
+
+    .card-header {
+        padding: 20px;
+        border-bottom: 1px solid #f1f2f6;
+        min-height: 80px;
+    }
+
+    .card-body {
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .staff-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        object-fit: cover;
+        background: #f1f2f6;
+    }
+
+    .staff-info {
+        flex: 1;
+    }
+
+    .staff-name {
+        font-weight: 700;
+        color: var(--text-dark);
+        font-size: 1.1em;
+    }
+
+    .course-label {
+        color: var(--text-muted);
+        font-size: 0.85em;
+        margin-top: 2px;
+    }
+
+    .card-footer {
+        padding: 15px 20px;
+        background: #fcfcfd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .completion-badge {
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 0.75em;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .badge-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    /* Modal Styling */
+    .modal-full {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: white;
+        z-index: 9999;
+        display: none;
+        overflow-y: auto;
+    }
+
+    .close-modal {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #f1f2f6;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10000;
+        border: none;
+        font-size: 1.2em;
+        transition: all 0.2s;
+    }
+
+        .close-modal:hover {
+            background: #e2e4e8;
+            transform: rotate(90deg);
+        }
+
+    #questionsContainer {
+        max-width: 800px;
+        margin: 60px auto;
+        padding: 0 20px 40px;
+    }
+
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 10001;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #764ba2;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Index1</a></li>
+        <li class="active">Feedback Answer</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Feedback Answer <small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Feedback Answer</h4>
+        </div>
+        <div class="panel-body">
+
+
+            <div class="form-horizontal">
+                <div class="modern-container">
+                    <div id="ajaxGridContainer">
+                        @Html.Partial("_ModernFeedbackGrid", Model)
+                    </div>
+                </div>
+            </div>
+            <div id="page-loader-index" class="fade in hide"><span class="spinner"></span></div>
+
+
+
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Question Modal -->
+<div id="modernModal" class="modal-full">
+    <button class="close-modal" onclick="closeModal()"><i class="fa fa-times"></i></button>
+    <div id="questionsContainer"></div>
+</div>
+
+<div id="globalLoader" class="loader-overlay"><div class="spinner"></div></div>
+
+<script>
+    var currentFbId = '@selectedFeedBackId';
+    var currentRoleId = '@selectedSupFeedBackRoleId';
+
+    function changeFeedbackType() {
+        var fbId = $("#FeedBackSettingList").val();
+        var roleId = $("#FeedBackRoleList").val() || "";
+        
+        if (!fbId) return;
+
+        $("#globalLoader").css("display", "flex");
+        
+        $.ajax({
+            url: '@Url.Action("GetModernFeedbackGrid", "Feedback")',
+            data: { sFeedBackId: fbId, sSupFeedBackRoleId: roleId },
+            success: function (data) {
+                $("#ajaxGridContainer").html(data);
+                
+                // Fetch the actual Role ID used by the backend (in case it was auto-detected)
+                var detectedRoleId = $("#hdnSelectedSupFeedBackRoleId").val();
+                var isDirectLoad = $("#hdnDirectLoad").val() === "True";
+                
+                currentFbId = fbId;
+                currentRoleId = detectedRoleId || roleId;
+
+                if (isDirectLoad) {
+                    var isAttended = $("#hdnIsAttended").val();
+                    loadQuestions('', '', isAttended);
+                }
+            },
+            error: function () {
+                swal("Error", "Failed to refresh feedback grid.", "error");
+            },
+            complete: function () {
+                $("#globalLoader").hide();
+            }
+        });
+    }
+
+    function loadQuestions(courseId, assesseeId, isAttended) {
+        if (isAttended === "1") {
+            swal("Completed", "You have already submitted feedback for this session.", "info");
+            return;
+        }
+
+        $("#globalLoader").css("display", "flex");
+
+        $.ajax({
+            url: '@Url.Action("BindModernFeedbackQuestions", "Feedback")',
+            data: {
+                sCourseId: courseId,
+                sAssessee: assesseeId,
+                sFeedBackId: currentFbId,
+                sSupFbRoleId: currentRoleId
+            },
+            success: function (data) {
+                if (data.Message) {
+                    swal("Error", data.Message, "error");
+                } else {
+                    $("#questionsContainer").html(data);
+                    $("#modernModal").fadeIn(300);
+                    $("body").css("overflow", "hidden");
+                }
+            },
+            error: function () {
+                swal("Error", "Failed to load questions. Please try again.", "error");
+            },
+            complete: function () {
+                $("#globalLoader").hide();
+            }
+        });
+    }
+
+    function closeModal() {
+        $("#modernModal").fadeOut(300);
+        $("body").css("overflow", "auto");
+    }
+</script>

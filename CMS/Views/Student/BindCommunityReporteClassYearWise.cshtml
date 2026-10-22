@@ -1,0 +1,200 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+
+@{
+    ViewBag.Title = "BindCommunityReporteClassYearWise";
+    Layout = null;
+
+    //var groupedByShift = Model.liCommunityReport
+    //    .GroupBy(x => x.SHIFT_ID)
+    //    .OrderBy(g => g.Key)
+    //    .ToList();
+    int IgrandTotalOC = 0, IgrandTotalBC = 0, IgrandTotalMBC = 0, IgrandTotalSCST = 0;
+    int IIgrandTotalOC = 0, IIgrandTotalBC = 0, IIgrandTotalMBC = 0, IIgrandTotalSCST = 0;
+    int IIIgrandTotalOC = 0, IIIgrandTotalBC = 0, IIIgrandTotalMBC = 0, IIIgrandTotalSCST = 0;
+    int grandTotal = 0;
+}
+<div class="form-group table-responsive" style="page-break-after:always !important;">
+    @if (Model.liCommunityReport != null && Model.liCommunityReport.Count > 0)
+    {
+        var groupedbYProgrammeLevel = Model.liCommunityReport
+.GroupBy(x => x.CLASSLEVELID)
+.OrderBy(g => g.Key)
+.ToList();
+<table class="table table-bordered table-hover" id="tblStrengthReport">
+    <thead>
+        <tr>
+            <th colspan="15"><div class="text-center"><b>ST.JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS), CUDDALORE</b></div></th>
+        </tr>
+        <tr>
+            <th colspan="15"><div class="text-center"><b>Community Report (@ViewBag.AcademicYear)</b></div></th>
+        </tr>
+        <tr>
+            <th rowspan="2"  class="text-center"><b>S.No</b></th>
+            <th rowspan="2"  class="text-center"><b>Programme Name</b></th>
+            <th colspan="4"  class="text-center"><b>First Year</b></th>
+            <th colspan="4"  class="text-center"><b>Second Year</b></th>
+            <th colspan="4"  class="text-center"><b>Third Year</b></th>
+            <th rowspan="2"  class="text-center">Total</th>
+        </tr>
+        <tr>
+            <th>OC</th>
+            <th>BC</th>
+            <th>MBC</th>
+            <th>SC/ST</th>
+            <th>OC</th>
+            <th>BC</th>
+            <th>MBC</th>
+            <th>SC/ST</th>
+            <th>OC</th>
+            <th>BC</th>
+            <th>MBC</th>
+            <th>SC/ST</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var levelGroup in groupedbYProgrammeLevel)
+        {
+
+            <tr>
+                <th colspan="15" class="text-center">Programme Level:<b>@levelGroup.FirstOrDefault().CLASSLEVEL </b> </th>
+            </tr>
+            var groupedByShift = levelGroup
+.GroupBy(x => x.SHIFT_ID)
+.OrderBy(g => g.Key)
+.ToList();
+            int ShiftotalCount = 0;
+            foreach (var shiftGroup in groupedByShift)
+            {
+                ShiftotalCount = 0;
+                <tr>
+                    <th colspan="15">SHIFT: @(shiftGroup.Key == "1" ? "I" : "II")</th>
+                </tr>
+                var groupedByProgramme = shiftGroup
+                    .GroupBy(x => new { x.PROGRAMME_NAME, x.CLASSLEVELID })
+                    .OrderBy(g => g.Key.CLASSLEVELID)
+                    .ThenBy(g => g.Key.PROGRAMME_NAME)
+                    .ToList();
+
+                int count = 0;
+                
+                int IshiftTotalOC = 0, IshiftTotalBC = 0, IshiftTotalMBC = 0, IshiftTotalSCST = 0;
+                int IIshiftTotalOC = 0, IIshiftTotalBC = 0, IIshiftTotalMBC = 0, IIshiftTotalSCST = 0;
+                int IIIshiftTotalOC = 0, IIIshiftTotalBC = 0, IIIshiftTotalMBC = 0, IIIshiftTotalSCST = 0;
+                foreach (var group in groupedByProgramme)
+                {
+                    int PtotalCount = 0;
+                    count++;
+                    var firstYearData = group.Where(x => x.CLASS_YEAR == "1").ToList();
+                    var secondYearData = group.Where(x => x.CLASS_YEAR == "2").ToList();
+                    var thirdYearData = group.Where(x => x.CLASS_YEAR == "3").ToList();
+
+                    <tr>
+                        <td>@count</td>
+                        <td><b>@group.Key.PROGRAMME_NAME</b></td>
+
+                        @for (int i = 1; i <= 3; i++)  // Iterating over 3 Years
+                        {
+                            var yearData = (i == 1) ? firstYearData : (i == 2) ? secondYearData : thirdYearData;
+                            var ocCount = yearData.Where(x => x.COMMUNITY == "OC").Sum(x => Convert.ToInt32(x.COUNT)) + yearData.Where(x => x.COMMUNITY == "FC").Sum(x => Convert.ToInt32(x.COUNT));
+                            var bcCount = yearData.Where(x => x.COMMUNITY == "BC").Sum(x => Convert.ToInt32(x.COUNT)) + yearData.Where(x => x.COMMUNITY == "SCC - DHALITH CRISH").Sum(x => Convert.ToInt32(x.COUNT)) + yearData.Where(x => x.COMMUNITY == "OBC").Sum(x => Convert.ToInt32(x.COUNT));
+                            var mbcCount = yearData.Where(x => x.COMMUNITY == "MBC").Sum(x => Convert.ToInt32(x.COUNT))+ yearData.Where(x => x.COMMUNITY == "BCM").Sum(x => Convert.ToInt32(x.COUNT));
+                            var scstCount = yearData.Where(x => x.COMMUNITY == "SC").Sum(x => Convert.ToInt32(x.COUNT)) + yearData.Where(x => x.COMMUNITY == "ST").Sum(x => Convert.ToInt32(x.COUNT)) + yearData.Where(x => x.COMMUNITY == "DNC").Sum(x => Convert.ToInt32(x.COUNT))+ yearData.Where(x => x.COMMUNITY == "SCA").Sum(x => Convert.ToInt32(x.COUNT));
+
+                            PtotalCount += ocCount + bcCount + mbcCount + scstCount;
+
+                            <td>@ocCount</td>
+                            <td>@bcCount</td>
+                            <td>@mbcCount</td>
+                            <td>@scstCount</td>
+                            if (i == 1)
+                            {
+                                IshiftTotalOC += ocCount;
+                                IshiftTotalBC += bcCount;
+                                IshiftTotalMBC += mbcCount;
+                                IshiftTotalSCST += scstCount;
+                            }
+                            else if (i == 2)
+                            {
+                                IIshiftTotalOC += ocCount;
+                                IIshiftTotalBC += bcCount;
+                                IIshiftTotalMBC += mbcCount;
+                                IIshiftTotalSCST += scstCount;
+
+                            }
+                            else if (i == 3)
+                            {
+                                IIIshiftTotalOC += ocCount;
+                                IIIshiftTotalBC += bcCount;
+                                IIIshiftTotalMBC += mbcCount;
+                                IIIshiftTotalSCST += scstCount;
+                            }
+
+                        }
+                        @{
+                            ShiftotalCount += PtotalCount;
+                            }
+                        
+                        <td>@PtotalCount</td>
+                    </tr>
+                }
+                <tr style="background-color: lightgray; font-weight: bold;">
+                    <td colspan="2" class="text-center">Total for Shift @(shiftGroup.Key == "1" ? "I" : "II")</td>
+                    <td>@IshiftTotalOC</td>
+                    <td>@IshiftTotalBC</td>
+                    <td>@IshiftTotalMBC</td>
+                    <td>@IshiftTotalSCST</td>
+                    <td>@IIshiftTotalOC</td>
+                    <td>@IIshiftTotalBC</td>
+                    <td>@IIshiftTotalMBC</td>
+                    <td>@IIshiftTotalSCST</td>
+                    <td>@IIIshiftTotalOC</td>
+                    <td>@IIIshiftTotalBC</td>
+                    <td>@IIIshiftTotalMBC</td>
+                    <td>@IIIshiftTotalSCST</td>
+                    <td>@ShiftotalCount</td>
+                </tr>
+
+                // Accumulate Grand Total
+                IgrandTotalOC += IshiftTotalOC;
+                IgrandTotalBC += IshiftTotalBC;
+                IgrandTotalMBC += IshiftTotalMBC;
+                IgrandTotalSCST += IshiftTotalSCST;
+                IIgrandTotalOC += IIshiftTotalOC;
+                IIgrandTotalBC += IIshiftTotalBC;
+                IIgrandTotalMBC += IIshiftTotalMBC;
+                IIgrandTotalSCST += IIshiftTotalSCST;
+                IIIgrandTotalOC += IIIshiftTotalOC;
+                IIIgrandTotalBC += IIIshiftTotalBC;
+                IIIgrandTotalMBC += IIIshiftTotalMBC;
+                IIIgrandTotalSCST += IIIshiftTotalSCST;
+                grandTotal += ShiftotalCount;
+            }
+        }
+        <tr style="background-color: darkgray; font-weight: bold;">
+            <td colspan="2" class="text-center">Grand Total</td>
+            <td>@IgrandTotalOC</td>
+            <td>@IgrandTotalBC</td>
+            <td>@IgrandTotalMBC</td>
+            <td>@IgrandTotalSCST</td>
+            <td>@IIgrandTotalOC</td>
+            <td>@IIgrandTotalBC</td>
+            <td>@IIgrandTotalMBC</td>
+            <td>@IIgrandTotalSCST</td>
+            <td>@IIIgrandTotalOC</td>
+            <td>@IIIgrandTotalBC</td>
+            <td>@IIIgrandTotalMBC</td>
+            <td>@IIIgrandTotalSCST</td>
+            <td>@grandTotal</td>
+        </tr>
+    </tbody>
+</table>
+}
+else
+{
+<div class="bg-warning text-center">
+    <h4>No Records Found</h4>
+</div>
+}
+</div>
+
+

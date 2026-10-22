@@ -1,0 +1,388 @@
+﻿@model CMS.ViewModel.ViewModel.TaskManagementViewModel
+
+@{
+    ViewBag.Title = "ListActivityStatusForStaff";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    int count = 0;
+}
+
+
+
+    @*<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />*@
+    @*<link href="~/Content/assets/plugins/summernote/summernote.css" rel="stylesheet" />*@
+<!-- ================== BEGIN PAGE LEVEL STYLE ================== -->
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<!-- ================== END PAGE LEVEL STYLE ================== -->
+
+
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        @*<li><a href="javascript:;" onclick="loadContent('/TaskManagement/GetActivityByUserId?ActivityLevelId=')">Activity</a></li>*@
+        <li class="active">List Activity</li>
+        
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Activity</h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Activity</h4>
+        </div>
+        <div class="panel-body" id="pBody">
+            <div class="col-md-12 table-responsive">
+                <table class="table table-hover table-bordered" id="tblListActivity">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            @*<th>Activity Level</th>*@
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Last Date</th>
+                            <th>File</th>
+                            <th>Image</th>
+                            <th>Status</th>
+                            <th>Submitted Date</th>
+                            @*<th>Active</th>*@
+                            <th>Notifications</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.liActivityList != null && Model.liActivityList.Count > 0)
+                        {
+                            foreach (var item in Model.liActivityList)
+                            {
+                                <tr>
+                                    <td>@{count++;} @count</td>
+                                    @*<td>@item.ACTIVITY_LEVEL</td>*@
+                                    <td>@item.ACTIVITY_TITLE</td>
+                                    <td>@item.DESCRIPTION</td>
+                                    <td>@item.SUBMISSION_DATE</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.FILE_PATH))
+                                        {
+                                            <a href="@item.FILE_PATH" download title="download"> <i class="ion-android-download fa-2x"></i></a>
+                                        }
+                                        else
+                                        {
+                                            <a href="javascript:;" download> <i class="ion-android-download fa-2x"></i></a>
+                                        }
+                                        @*<a href="@item.FILE_PATH"><i class="glyphicon glyphicon-eye-open"></i> </a>*@
+                                      
+                                    </td>
+                                    <td><img src="@item.PHOTO_PATH" style="width:50px; height:50px;" /></td>
+                                    <td>@item.ACTIVITY_STATUS_NAME</td>
+                                    <td>@item.SUBMITTED_DATE</td>
+                                    <td>
+                                        @if (item.FILE_CORRECTION != "" && item.FILE_CORRECTION != null)
+                                        {
+
+                                            <ul class="nav navbar-nav">
+
+                                                <li class="dropdown" style="list-style:none;">
+                                                    <a  data-toggle="modal" class="dropdown-toggle icon" aria-expanded="false" href="#modal-correction"  onclick="FetchCorrection(@item.ACTIVITY_ID)">
+                                                        <i class="ion-android-notifications" style="font-size: 26px;"></i>
+                                                        
+                                                        @if (item.FILE_CORRECTION_STATUS == "0")
+                                                        {
+                                                            <span class="label" id="sRemainder_@item.ACTIVITY_ID"></span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="label" id="sRemainder_@item.ACTIVITY_ID">1</span>
+                                                        }
+
+                                                    </a>   
+                                                </li>
+                                              
+                                            </ul>
+                                            <a href="#modal-correction-send" data-toggle="modal" class="" title="Return Correction" onclick="SendCorrectionReturn(@item.ACTIVITY_ID)"><i class="icon ion-chatbubble-working" style="font-size: 26px;color:#6e7179;"></i></a>
+                                        }
+                                        else
+                                        {
+                                            <ul class="nav navbar-nav">
+                                                <li>
+                                                    <a href="javascript:;" onclick=""><i class="ion-android-notifications-off" style="font-size: 26px;"></i></a>
+                                                </li>
+                                               
+                                                </ul>
+                                                }
+</td>
+                                    @*<td>
+                                        @if (item.STATUS != "3")
+                                        {
+                                            <a href="@Url.Action("GetActivityByUserId","TaskManagement",new { ActivityLevelId=@item.ACTIVITY_LEVEL_ID})"><i class="fa fa-edit text-primary" title="Update"></i></a>
+                                        }
+                                    </td>*@
+                                </tr>
+                                            }
+                                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="modal fade" id="modal-correction" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">File Correction </h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="smodalcorrection">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="control-label col-md-3">File Correction</label>
+                                <div class="col-md-7">
+                                    <textarea class="form-control" style="" rows="5" data-parsley-required="true" id="txtFileCorrection"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           
+            <div class="modal-footer">
+                @*<button type="submit" id="btnModalSubmit" class="btn btn-default" data-dismiss="modal">Submit</button>*@
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-correction-send" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add or Edit File Correction</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="smodalcorrectionreturn">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="control-label col-md-3">File Correction</label>
+                                <div class="col-md-7">
+                                    <textarea class="form-control" style="" rows="5" data-parsley-required="true" id="txtsFileCorrection"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" value="" id="txtActivityId" />
+            <div class="modal-footer">
+                <button type="submit" id="btnModalSubmit" class="btn btn-default" data-dismiss="modal">Submit</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+    <script>
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+        $(".table").DataTable({
+            dom: "lBfrtip", buttons: [{
+                extend: "copy", className: "btn-sm"
+            }
+            , {
+                extend: "excel", className: "btn-sm"
+            }
+            , {
+                extend: "print", className: "btn-sm"
+            }
+            ], responsive: !0,
+        });
+
+
+
+
+        function FetchCorrection(ActivityId)
+        {
+            var Status = 0;
+
+            //update file correction status
+            $.ajax({
+                url: "@Url.Action("UpdateFileCorrectionStatus", "TaskManagement")",
+                method: "POST",
+            async: false,
+            cache: false,
+            datatype: "json",
+            data: { sActivityId: ActivityId, sStatus: Status },
+            success: function (data)
+            {
+                if(data.ErrorCode=="200")
+                {
+                    $('#sRemainder_' + ActivityId + '').text('');
+                }
+                else
+                {
+
+                }
+
+            }, error: function (error)
+            {
+
+            }
+        });
+
+
+            //for fetch file correction text by academic activity id
+
+            if(ActivityId!="" && ActivityId!=null)
+            {
+                $.ajax({
+                    url: "@Url.Action("FetchActivityFileCorrectionByActivityId", "TaskManagement")",
+                    method: "POST",
+                async: false,
+                cache: false,
+                datatype: "json",
+                data: { sActivityId: ActivityId },
+                success: function (data)
+                {
+                    if(data.Message!="" && data.Message!=null)
+                    {
+                        $('#txtFileCorrection').val('');
+
+                    }
+                    else{
+
+                        $('#txtFileCorrection').val('');
+                        $('#txtFileCorrection').val(data[0].FILE_CORRECTION);
+
+
+
+                    }
+
+                }, error: function (error)
+                {
+
+                }
+            });
+        }
+        else
+        {
+
+        }
+        }
+
+
+
+        function SendCorrectionReturn(ActivityId)
+        {
+            $('#txtActivityId').val(ActivityId);
+
+            if(ActivityId!="" && ActivityId!=null)
+            {
+                $.ajax({
+                    url: "@Url.Action("FetchActivityFileCorrectionReturnByActivityId", "TaskManagement")",
+                    method: "POST",
+                async: false,
+                cache: false,
+                datatype: "json",
+                data: { sActivityId: $('#txtActivityId').val() },
+                success: function (data)
+                {
+                    if(data.Message!="" && data.Message!=null)
+                    {
+                        $('#txtsFileCorrection').val('');
+                        swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+                    }
+                    else{
+
+                        $('#txtsFileCorrection').val('');
+                        $('#txtsFileCorrection').val(data[0].FILE_CORRECTION_RETURN);
+                    }
+
+                }, error: function (error)
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+                }
+            });
+        }
+        else
+        {
+            swal({ title: "Info !", text: "Something went wrong please try later!", showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+        }
+        }
+
+
+
+
+
+        $('#btnModalSubmit').on("click", function () {
+           
+            var isValid = true;
+            if ($('#smodalcorrectionreturn').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //myAlert('Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+            $.ajax({
+                url: "@Url.Action("SaveFileCorrectionReturnByActivity", "TaskManagement")",
+                method: "POST",
+            datatype: "json",
+            data: { sActivityId: $('#txtActivityId').val(), sFileCorrectionReturn: $('#txtsFileCorrection').val() },
+            success: function (objResult)
+            {
+                if(objResult.ErrorCode == "200")
+                {
+                    swal({ title: "Success !", text: objResult.Message, showConfirmButton: false, timer: 2000, type: 'success', animation: true });
+                    //FethActivityList();
+                }
+                if (objResult.ErrorCode == "417")
+                {
+                    swal({ title: "Failed !", text: objResult.Message, showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+                }
+
+
+            }, error: function (error)
+            {
+                swal({ title: "Error !", text: objResult.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+            }
+        });
+
+        });
+
+
+    </script>

@@ -1,0 +1,136 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+
+@{
+    int count = 0;
+}
+
+<div class="col-md-12">
+    <div class="col-md-offset-8 col-md-2">
+        <input type="text" id="foliostartno" placeholder="Folio Number" class="form-control">
+    </div>
+    <div class="col-md-2">
+        <a href="#" class="btn btn-success" id="btngenerate">Generate</a>
+    </div>
+   
+</div>
+
+<div>
+  
+    <table class="table table-bordered" style="margin-top:45px" id="tblstudent">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Register No</th>
+                <th>Name</th>
+                <th>Folio Number</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liStudentList != null && Model.liStudentList.Count > 0)
+            {
+                foreach (var item in Model.liStudentList)
+                {
+                    count++;
+                    <tr studentid="@item.STUDENT_ID">
+                        <td>@count</td>
+                        <td>@item.REGISTER_NO</td>
+                        <td>@item.FIRST_NAME</td>
+                        <td><input type="text" studentid="@item.STUDENT_ID" folioid="@item.FOLIO_ID" class="form-control folionumber" value="@item.FOLIO_NUMBER"></td>
+                    </tr>
+                }
+
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4"></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="col-md-12">
+        <div class="col-md-1">
+            <a href="#" class="btn btn-success" id="btnsubmit">Submit</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#btngenerate').on('click', function ()
+    {
+        var foliono = $('#foliostartno').val();
+        var count = foliono - 1;
+        $('#tblstudent tbody tr').each(function ()
+        {
+            $(this).find('input[type="text"]').each(function ()
+            {
+                const zeroPad = (num, places) => String(num).padStart(places, '0')
+                if ($(this).val() == "")
+                {
+                    //parseInt(count) + 1
+                    $(this).val(zeroPad(parseInt(count) + 1, $('#foliostartno').val().length));
+                    count++;
+                }
+            });
+        });
+
+    });
+    $('#btnsubmit').on('click', function ()
+    {
+        var nJsonCount = 0;
+        var sJson = '{"listudentfolionumber" :[';
+        $('#tblstudent tbody tr').each(function ()
+        {
+            $(this).find('input[type="text"]').each(function ()
+            {
+
+                if ($(this).val() != "")
+                {
+                    sJson += '{"STUDENT_ID":"' + $(this).attr('studentid') + '",\
+                               "CERTIFICATE_TYPE":"' + $('#Certificatetype').val() + '",\
+                               "BATCH_ID":"' + $('#Batch').val() + '",\
+                               "FOLIO_ID":"' + $(this).attr('folioid') + '",\
+                               "FOLIO_NUMBER":"' + $(this).val() + '",\
+                               "APPLICATION_TYPE":"' + $('#ApplicationType').val() + '"},';
+                    nJsonCount++;
+                
+                }
+            });
+        });
+        if (nJsonCount != 0)
+        {
+            sJson = sJson.slice(0, -1);
+            sJson += ']}';
+        } else
+        {
+            swal({ title: "Oops !", text: 'Please generate the number !', showConfirmButton: false, timer: 2000, type: 'warning', animation: true });
+            return false;
+        }
+
+        $.ajax({
+         url: "@Url.Action("SaveFolioNumber", "Student")",
+         method: "POST",
+        datatype: "json",
+        data: { sJsonData: sJson },
+        success: function (data)
+        {
+            if(data.ErrorCode=="200")
+            {
+                alert(data.Message);
+                //swal({ title: "Success!", text: data.Message, showConfirmButton: false, timer: 2000, type: 'success', animation: true });
+
+            }
+            else
+            {
+                alert(data.Message);
+                //swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+
+            }
+           
+        }, error: function (error)
+        {
+            alert('Internal Server Error !');
+        }
+    });
+    });
+</script>

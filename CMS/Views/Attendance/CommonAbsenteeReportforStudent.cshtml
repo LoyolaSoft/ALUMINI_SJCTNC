@@ -1,0 +1,204 @@
+
+@{
+    ViewBag.Title = "CommonAbsenteeReportforStudent";
+}
+
+@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+
+@{
+    Layout = null;
+
+    string sExamNotAllowed = string.Empty;
+    string sArrearOnlyAllowed = string.Empty;
+    string sFineAndExamAllowed = string.Empty;
+
+}
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Attendance</a></li>
+        <li class="active">Attendance Report</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Attendance Report<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Attendance Report</h4>
+        </div>
+        <div class="panel-body">
+            <div class="row ">
+                <div class="col-sm-12 col-md-12 pull-right">
+                    <div class="col-sm-6 col-md-2">
+                        <button class="btn btn-success btnPrint" onclick="printDiv('dvAttendanceReport')"> Print </button>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <button class="btn btn-primary btnExport" onclick="Export()"> Export </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12 form-horizontal" id="dvAttendanceReport">
+                <br />
+                @if (Model.liAttAttendanceReport != null && Model.liAttAttendanceReport.Count > 0)
+                {
+                    string sMark = string.Empty;
+                    int nCount = 0;
+                    int totalAbsentCount = 0;
+                    int DayCount = 0;
+                    var liGroupClass = Model.liAttAttendanceReport.GroupBy(x => x.CLASS_ID).ToList();
+                    foreach (var Classitem in liGroupClass)
+                    {
+                        nCount = 0;
+                        var liAttendance = Model.liAttAttendanceReport.Where(x => x.CLASS_ID == Classitem.FirstOrDefault().CLASS_ID).ToList();
+                        if (liAttendance != null && liAttendance.Count > 0)
+                        {
+                            <div class="form-group table-responsive" style="page-break-after:always !important;">
+                                <table class="table table-bordered" border="1">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="6" class="text-center">ST.JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS), CUDDALORE</th>
+
+                                        </tr>
+                                        <tr>
+                                            <th></th>
+                                            <th colspan="3" class="text-center"><b>@Classitem.FirstOrDefault().CLASS_NAME </b> - Attendance Report ( @Classitem.FirstOrDefault().START_DATE - @Classitem.FirstOrDefault().END_DATE )</th>
+
+                                        </tr>
+                                        <tr>
+                                            <th><b>#</b></th>
+                                            <th><b>Reg.No</b></th>
+                                            <th><b>Name</b></th>
+                                            <th><b>Mobile</b></th>
+                                            <th><b>Attendance Date</b></th>
+
+                                            @*<th>Mark</th>*@
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in liAttendance)
+                                        {
+                                            totalAbsentCount += Convert.ToInt32(item.ABSENT_COUNT);
+                                            DayCount = Convert.ToInt32(item.DAYS_COUNT);
+                                            <tr>
+                                                <td>@{nCount++;} @nCount</td>
+                                                <td>@item.ROLL_NO</td>
+                                                <td>@item.FIRST_NAME</td>
+                                                <td>@item.MOBILE</td>
+                                                <td>@item.ATTENDENCE_DATE</td>
+
+                                            </tr>
+                                        }
+                                        <tr>
+
+                                            <td colspan="2"><b>Total</b></td>
+                                            <td>  <b>Absent  count</b></td>
+                                            <td> <b> Working Days </b></td>
+                                            <td> <b>  %</b> </td>
+                                        </tr>
+                                        <tr>
+                                            @{var sAbseentCount = Convert.ToDouble(DayCount) - Convert.ToInt32(totalAbsentCount);
+                                                var sPercentage = Convert.ToDouble(sAbseentCount) / Convert.ToDouble(DayCount) * 100;
+                                                var PercenRound = Math.Round(sPercentage, 2);
+                                            }
+                                            <td colspan="2"></td>
+                                            <td> <b> @totalAbsentCount  </b></td>
+                                            <td> <b> @DayCount  </b></td>
+                                            <td> <b> @PercenRound % </b></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    }
+
+
+                }
+                else
+                {
+
+                    <div class="bg-warning text-center p-2">
+                        <h4>The student has no absent dates. Attendance Percentage 100%</h4>
+                    </div>
+                }
+               
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+   
+    function printDiv(divName) {
+        var table = $('#tbltpmReport').DataTable();
+        table.destroy();
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+
+        loadContent('/attendance/CommonAbsenteeReportforStudent');
+    }
+    function Export() {
+        var title = "";
+        //var sSatff = $('#StaffListByDepartmet option:selected').text();
+        title = "Attendance_report";
+        let file = new Blob([$('#dvAttendanceReport').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: title + ".xls"
+        }).appendTo("body").get(0).click();
+        //$('#btnGet').click();
+        loadContent('/attendance/CommonAbsenteeReportforStudent');
+        //e.preventDefault();
+        // loadContent('/IQAC/IQACDateWiseReportForIncharge');
+    }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

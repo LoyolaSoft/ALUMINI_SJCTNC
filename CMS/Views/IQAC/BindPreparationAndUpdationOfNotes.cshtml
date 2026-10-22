@@ -1,0 +1,626 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+@using System.Security.Cryptography
+@using System.Text
+@{
+    Layout = null;
+    int nCount = 0;
+    string sDomData = string.Empty;
+}
+
+
+
+@functions{
+        public string BindWorload()
+        {
+            string sDom = string.Empty;
+            sDom = @"<td><input type='text' cms-IQACID='' class='form-control'value=''  data-parsley-required='true' data-parsley-maxlength='150'/> </td>
+                     <td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-maxlength='80'/> </td>
+                     <td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-maxlength='80'/> </td>
+                     <td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-type='integer'/> </td>
+                     <td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-maxlength='80'/> </td>
+                     <td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-maxlength='80'/> </td>
+                     <td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-maxlength='80'/> </td>
+                     <td></td>";
+        return sDom;
+    }
+
+    public string BindFileDom(int index)
+    {
+        string fileDom = string.Empty;
+        fileDom = @"<div class='col-md-3'>" +
+                                     "<span class='btn btn-primary fileinput-button m-r-3'>" +
+                                         "<i class='fa fa-plus'></i>" +
+                                         "<span>" +
+                                            " Add File..." +
+                                             "<input type='file' id='fAttachmentForIQAC" + index + "' class='form-control' onchange=readFiles('fAttachmentForIQAC" + index + "','files" + index + "')>" +
+                                         "</span>" +
+                                     "</span>" +
+                                 "</div>" +
+              "<div class='col-md-12 table-responsive'>" +
+              "<table class='table m-b-0'>" +
+              "<thead>" +
+              "<tr>" +
+                        "<th>PREVIEW</th>" +
+                        "<th>FILE INFO</th>" +
+                        "<th>ACTION</th>" +
+               "</tr>" +
+              "</thead>" +
+                "<tbody id='files" + index + "'>" +
+                "</tbody>" +
+            "</table>" +
+        "</div>" +
+    "</div>";
+        return fileDom;
+    }
+
+
+
+    public string GetuniqueNameForImage(string pathName)
+    {
+        //var fileName = file.name;
+        //var File = fileName.split(".");
+        string sgrievanceCode = string.Empty;
+        sgrievanceCode = pathName;
+        StringBuilder builder = new StringBuilder();
+        byte[] hash;
+        using (HMACSHA1 sha1 = new HMACSHA1(ASCIIEncoding.ASCII.GetBytes(pathName)))
+        {
+            hash = sha1.ComputeHash(UTF8Encoding.UTF8.GetBytes("preparationandupdation"));
+            Random random = new Random();
+            for (int i = 0; i < 3; i++)
+            {
+                builder.Append(random.Next(i, hash.Length));
+            }
+
+        }
+        return builder.ToString();
+    }
+
+
+
+    public string EncryptString(string inputString)
+    {
+        byte[] b = System.Text.ASCIIEncoding.ASCII.GetBytes(inputString);
+        string encrypted = Convert.ToBase64String(b);
+        return encrypted;
+    }
+
+    public string BindFileDom1(string filePath)
+    {
+        //if (string.IsNullOrEmpty(filePath))
+        //{
+        //    filePath = ".jpg";
+        //}
+        string Dom1 = @"<div class='col-md-12 table-responsive'>" +
+              "<table class='table m-b-0'>" +
+              "<thead>" +
+              "<tr>" +
+                        "<th>PREVIEW</th>" +
+                        "<th>FILE INFO</th>" +
+                        "<th>ACTION</th>" +
+               "</tr>" +
+              "</thead>" +
+                "<tbody id='thisid'>" +
+                  "dataforbind" +
+                "</tbody>" +
+            "</table>" +
+        "</div>";
+        string fileDom = string.Empty;
+        string fileDom1 = string.Empty;
+        var TotalPath = filePath.Split(',');
+
+        var extension = string.Empty;
+        var uniqueName = string.Empty;
+        var UniqueBodyName = string.Empty;
+        var UniqueFileName = string.Empty;
+        var UniqueNameForFileCancel = string.Empty;
+        var EncryptImagePath = string.Empty;
+        int fCount = 0;
+        var result = string.Empty;
+        foreach (var path in TotalPath)
+        {
+            var File = path.Split('.');
+
+            // var filename = path.match(/[-_\w]+[.][\w]+$/i)[0];
+            var filename = System.IO.Path.GetFileName(path);
+
+            extension = File[1];
+            uniqueName = GetuniqueNameForImage(path);
+            UniqueNameForFileCancel = uniqueName + fCount;
+            UniqueBodyName = uniqueName + "body" + fCount;
+            UniqueFileName = uniqueName + "fAttachmentForIQAC" + fCount;
+            EncryptImagePath = EncryptString(path);
+
+            fileDom1 = extension.ToLower() == "jpg" || extension.ToLower() == "png" ? "<li class=''>" +
+                                          "<div class='document-file'>" +
+                                              "<a href='#'>" +
+                                                  "<img src=" + path + "   alt='' cms-update='1' width=77 height=80  height=''>" +
+                                              "</a>" +
+                                          "</div>" +
+                                          "<div class='document-name'><a href='" + path + "' download>" + filename + "</a></div>" +
+                                      "</li>" : "<li class=''>" +
+                                      "<div class='document-file'>" +
+                                      "<a href='#'>" +
+                                          "<i class='fa fa-file'></i>" +
+                                      "</a>" +
+                                      "</div>" +
+                                     "<div class='document-name'><a href='" + path + "' download  title=" + filename + " cms-update='1'>" + filename + "</a></div>" +
+                                "</li>";
+
+            result = "<ul class='attached-document clearfix'>" + fileDom1 + "</ul> ";
+
+            fileDom += "<tr id = " + UniqueNameForFileCancel + " cms-img-path='" + EncryptImagePath + "'> " +
+                                "<td>" +
+                                    "<span class='preview'>" + result + "</span>" +
+                                "</td>" +
+                                "<td>" +
+                                    "<div>" +
+                                        "<dl>" +
+                                            "<dt class=text-inverse>File Name:</dt>" +
+                                            "<dd class=name>" + filename + "</dd>" +
+                                        "</dl>" +
+                                    "</div>" +
+                                    "<strong class='error text-danger'></strong>" +
+                                "</td>" +
+
+                                "<td nowrap=>" +
+                                "<div class='col-md-6'>" +
+                                        "<button class='btn btn-default cancel width-100 p-r-20' onclick=FileCancel('" + UniqueNameForFileCancel + "')>" +
+                                        "<i class='fa fa-trash fa-fw pull-left m-t-2 m-r-5 text-muted'></i>" +
+                                            "<span>Cancel</span>" +
+                                        "</button>" +
+                                  "</div>" +
+                                  "<div class='col-md-6'>" +
+                                        "thisisforfile" +
+                                   "</div>" +
+
+
+                                "</td>" +
+                            "</tr>";
+
+
+
+
+            if (fCount == 0)
+            {
+                var fileDom3 = @"<span class='btn btn-primary fileinput-button m-r-3'>" +
+                                 "<i class='fa fa-plus'></i>" +
+                                 "<span>" +
+                                    " Add File..." +
+                                     "<input type='file' id='" + UniqueFileName + "' class='form-control' onchange=readFiles('" + UniqueFileName + "','" + UniqueBodyName + "')>" +
+                                 "</span>" +
+                             "</span>";
+                fileDom = fileDom.Replace("thisisforfile", fileDom3);
+                Dom1 = Dom1.Replace("thisid", UniqueBodyName);
+            }
+            else
+            {
+                fileDom = fileDom.Replace("thisisforfile", "");
+            }
+
+
+
+            fCount = fCount + 1;
+        }
+        Dom1 = Dom1.Replace("dataforbind", fileDom);
+
+
+
+        return Dom1;
+
+
+    }
+}
+
+<div class="col-md-12 table-responsive">
+    <table class="table table-bordered " id="tblIQAC">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Class</th>
+                @*<th>Sem</th>*@
+                @*<th>Topic</th>*@
+                <th>Book_Title</th>
+                <th>Author_Name</th>
+                <th>Publication</th>
+                <th>Publication_Year</th>
+                <th>Library_And_Place</th>
+                <th>Website_Reffered</th>
+                <th>E_Resourse_Developed</th>
+                @*<th>Upload Files</th>*@
+                @*<th>Topic Referred</th>*@
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+
+
+            @if (Model.liClassCourseStaff != null && Model.liClassCourseStaff.Count > 0)
+            {
+                foreach (var item in Model.liClassCourseStaff)
+                {
+                    <tr cms-ClassId="@item.CLASS_ID">
+                        <td>@{nCount++;} @nCount</td>
+                        <td>@item.CLASS_CODE</td>
+                        @*<td>@item.SEMESTER_ID</td>*@
+                        @if (Model.liPreparation != null && Model.liPreparation.Count > 0)
+                        {
+                            var liPreparation = Model.liPreparation.Where(x => x.CLASS_ID == item.CLASS_ID && x.COURSE_ID == item.COURSE_ID).ToList();
+                            if (liPreparation != null && liPreparation.Count > 0)
+                            {
+                                @*<td><textarea rows="3" data-parsley-required="true" style="margin: 0px 4px 0px 0px; width: 156px; height: 53px;" maxlength="150" class="form-control"  cms-IQACID="@liPreparation.FirstOrDefault().IQAC_ID">@liPreparation.FirstOrDefault().TOPIC</textarea>  </td>*@
+                                <td><input type="text" data-parsley-required="true" data-parsley-maxlength="150" class="form-control" cms-IQACID="@liPreparation.FirstOrDefault().IQAC_ID" value="@liPreparation.FirstOrDefault().TITLE" /> </td>
+                                <td><input type="text" data-parsley-required="true" data-parsley-maxlength="80" class="form-control" cms-IQACID="@liPreparation.FirstOrDefault().IQAC_ID" value="@liPreparation.FirstOrDefault().AUTHOR" /> </td>
+                                <td><input type="text" data-parsley-required="true" data-parsley-maxlength="80" class="form-control" cms-IQACID="@liPreparation.FirstOrDefault().IQAC_ID" value="@liPreparation.FirstOrDefault().PUBLICATION" /> </td>
+                                <td><input type="text" data-parsley-required="true" class="form-control" cms-IQACID="@liPreparation.FirstOrDefault().IQAC_ID" value="@liPreparation.FirstOrDefault().YEAR_OF_PUBLICATION" data-parsley-type="integer" /> </td>
+                                <td><input type="text" data-parsley-required="true" data-parsley-maxlength="80" class="form-control" cms-IQACID="@liPreparation.FirstOrDefault().IQAC_ID" value="@liPreparation.FirstOrDefault().PLACE_OF_LIBRARY" /> </td>
+                                @*<td><input type="text" data-parsley-required="true" class="form-control" cms-IQACID="@liPreparation.FirstOrDefault().IQAC_ID" value="@liPreparation.FirstOrDefault().TOPIC_REFERRED" /> </td>*@
+                                <td><input type="text" data-parsley-required="true" data-parsley-maxlength="80" class="form-control" cms-IQACID="@liPreparation.FirstOrDefault().IQAC_ID" value="@liPreparation.FirstOrDefault().WEBSITE_REFFERED" /> </td>
+                                <td><input type="text" data-parsley-required="true" data-parsley-maxlength="80" class="form-control" cms-IQACID="@liPreparation.FirstOrDefault().IQAC_ID" value="@liPreparation.FirstOrDefault().E_RESOURSE_DEVELOPED" /> </td>
+                                @*<td><input type="file" name="files[]" multiple value="@liPreparation.FirstOrDefault().FILE_PATH"></td>*@
+                                <td>
+                                    <a onclick="GetConfrim(@liPreparation.FirstOrDefault().IQAC_ID)" href="javascript:;"><i class="fa fa-trash text-danger" title="Click To Delete"></i></a>
+                                </td>
+                            }
+                            else
+                            {
+                                sDomData = BindWorload();
+                                @Html.Raw(sDomData)
+                            }
+                        }
+                        else
+                        {
+                            sDomData = BindWorload();
+                            @Html.Raw(sDomData)
+                        }
+                    </tr>
+                                }
+                            }
+        </tbody>
+    </table>
+
+
+    <table class="table table-bordered " id="tblIQACFileUpload">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Class <span class="text-danger">( Maximum Files 3 )</span> </th>
+                <th>File Upload</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @if (Model.liClassCourseStaff != null && Model.liClassCourseStaff.Count > 0)
+            {
+                foreach (var item in Model.liClassCourseStaff)
+                {
+                    <tr cms-ClassId="@item.CLASS_ID" class="tblCCStaff">
+                        <td>@{nCount++;} @nCount</td>
+                        <td>@item.CLASS_CODE </td>
+                        @*<td>@item.SEMESTER_ID</td>*@
+                        @if (Model.liPreparation != null && Model.liPreparation.Count > 0)
+                        {
+                            var liPreparation = Model.liPreparation.Where(x => x.CLASS_ID == item.CLASS_ID && x.COURSE_ID == item.COURSE_ID).ToList();
+                            if (liPreparation != null && liPreparation.Count > 0)
+                            {
+
+                                var sFile = liPreparation.FirstOrDefault().FILE_PATH;
+                                string dom = string.Empty;
+                                if (!string.IsNullOrEmpty(sFile))
+                                {
+                                    dom=BindFileDom1(sFile); // Save File
+                                }
+                                else
+                                {
+                                    dom = BindFileDom(nCount); // Empty File
+                                }
+
+                                    @*<td><textarea rows="3" data-parsley-required="true" style="margin: 0px 4px 0px 0px; width: 156px; height: 53px;" maxlength="150" class="form-control"  cms-IQACID="@liPreparation.FirstOrDefault().IQAC_ID">@liPreparation.FirstOrDefault().TOPIC</textarea>  </td>*@
+                                    <td>
+                                        <div class="col-md-12">
+                                            <div class="panel-group" id="accordion">
+                                                <div class="panel panel-inverse overflow-hidden">
+                                                    <div class="panel-heading">
+                                                        <h3 class="panel-title">
+                                                            <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#c_@nCount" aria-expanded="false">
+                                                                <i class="fa fa-plus-circle pull-right"></i>
+                                                                @item.CLASS_CODE
+                                                            </a>
+                                                        </h3>
+                                                    </div>
+                                                    <div id="c_@nCount" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                                                        <div class="panel-body">
+                                                            <div class="row" id="cr_@nCount">
+                                                                @Html.Raw(dom)
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                
+                            }
+                            @*else
+                                                {
+                                                    sDomData = BindFileDom(nCount);
+                                @Html.Raw(sDomData)
+
+                                                }*@
+                        }
+                        else
+                        {
+                            sDomData = BindFileDom(nCount);
+                            <td>
+                                <div class="col-md-12">
+                                    <div class="panel-group" id="accordion">
+                                        <div class="panel panel-inverse overflow-hidden">
+                                            <div class="panel-heading">
+                                                <h3 class="panel-title">
+                                                    <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#c_@nCount" aria-expanded="false">
+                                                        <i class="fa fa-plus-circle pull-right"></i>
+                                                        @item.CLASS_CODE
+                                                    </a>
+                                                </h3>
+                                            </div>
+                                            <div id="c_@nCount" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                                                <div class="panel-body">
+                                                    <div class="row" id="cr_@nCount">
+                                                        @Html.Raw(sDomData)
+                                                        @*<div class="panel-heading" style="background-color:#19bef7;"><b>Sports</b></div>*@
+                                                        @*<ul id="Spaginationdiv" style="list-style:none;display:block;" class="list-group"></ul>*@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        }
+                    </tr>
+
+                                }
+                            }
+        </tbody>
+    </table>
+
+</div>
+
+
+
+
+
+<script>
+
+
+    var formData = new FormData();
+    var Dom = "";
+
+    function readFiles(sourceDiv, focusDiv) {
+        var file = document.getElementById('' + sourceDiv + '').files[0];
+        // Read first file
+        Dom = $('#' + focusDiv + '');
+        setup_reader(file, focusDiv);
+    }
+
+    function setup_reader(file, focusDiv) {
+        //var file = files;
+
+        var name = file.name;
+        var reader = new FileReader();
+        reader.onloadend = function (e) {
+
+            readerLoaded(e, file, name, focusDiv);
+        };
+        reader.readAsBinaryString(file);
+        // After reading, read the next file.
+    }
+
+    function readerLoaded(e, file, name, focusDiv) {
+        var _size = file.size;
+        var extension = GetFileExtension(file);
+        var size = GetFileSize(file);
+
+        var UniqueName;
+        var actualKey;
+        //var iProgress = GetProgressRate(_size);
+
+        if (size != null && size != '') {
+            var actualFileDom;
+            UniqueName = GetuniqueNameForFile(file);
+
+
+
+            if (extension != null && extension != '') {
+                if (extension == 'jpg' || extension == 'png') {
+
+
+                    actualFileDom = "<li class=''>" +
+                                                  "<div class='document-file'>" +
+                                                      "<a href='#'>" +
+                                                          "<img src=" + window.URL.createObjectURL(file) + "   alt='' cms-update='1' width=77 height=80  height='' cms-sp=" + UniqueName + ">" +
+                                                      "</a>" +
+                                                  "</div>" +
+                                                  "<div class='document-name'><a href='" + window.URL.createObjectURL(file) + "' download>" + name + "</a></div>" +
+                                              "</li>";
+                    //actualFileDom ="<img src=" + window.URL.createObjectURL(file) + " width=77 height=80 cms-sp=" + UniqueName + "></img>";
+                }
+                else {
+
+                    actualFileDom = "<li class=''>" +
+                                              "<div class='document-file'>" +
+                                              "<a href='#'>" +
+                                                  "<i class='fa fa-file'></i>" +
+                                              "</a>" +
+                                              "</div>" +
+                                             "<div class='document-name'><a href='" + window.URL.createObjectURL(file) + "' download  title=" + name + " cms-update='1'>" + name + "</a></div>" +
+                                        "</li>";
+
+                    //actualFileDom = "<span style='color:green;'>" + name + "</span> ";
+                }
+
+                var result = "<ul class='attached-document clearfix'>" + actualFileDom + "</ul> ";
+                var filedom = AppendFileDom(result, name, size, file, UniqueName);
+                //formData.append(actualKey, file);
+                // Dom.html('');
+
+                Dom.append(filedom);
+            }
+        }
+    }
+
+    function GetFileExtension(file) {
+        // Get uploaded file extension
+        var extension = file.name.split('.').pop().toLowerCase();
+        var validFileExtensions = ['doc', 'docx', 'pdf', 'jpg', 'png', 'txt', 'xlsx'];
+        if ($.inArray(extension, validFileExtensions) == -1) {
+            alert("Sorry!! Upload only 'doc', 'docx', 'pdf','jpf','png','txt','xlsx' file")
+            //$(this).replaceWith($(this).val('').clone(true));
+            return extension = null;
+        }
+        else {
+            return extension;
+        }
+    }
+
+    function GetFileSize(file) {
+        var _size = file.size;
+        var fileSize = _size;
+        var fSExt = new Array('Bytes', 'KB', 'MB', 'GB'),
+        i = 0; while (_size > 900) { _size /= 1024; i++; }
+        var exactSize = (Math.round(_size * 100) / 100) + ' ' + fSExt[i];
+
+        if (fileSize > 1000000) {
+            alert("Sorry!! Max allowed file size is 1 mb");
+            // Clear fileuload control selected file
+            // $(this).replaceWith($(this).val('').clone(true));
+            $('#fAttachment').val('');
+            //Dom.find('img').remove();
+            return exactSize = null;
+
+        }
+        else {
+            return exactSize;
+        }
+
+    }
+
+    function GetProgressRate(size) {
+
+        var dataTotal = 0;
+        // sum up files lengths
+        dataTotal = dataTotal + size;
+        var iProgress = parseInt((dataTotal / 1000) * 100 / 1024);
+        return iProgress;
+    }
+
+    function GetuniqueNameForFile(file) {
+        var fileName = file.name;
+        var File = fileName.split(".");
+        var MaxValue = 100;
+        var randomValue = Math.floor((Math.random() * parseInt(MaxValue)) + 1);
+        var Length = File[0].length;
+        var UniqueName = randomString(Length) + randomValue;
+        return UniqueName;
+    }
+
+    function randomString(Length) {
+        var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+
+        var randomstring = '';
+        for (var i = 0; i < Length; i++) {
+            var rnum = Math.floor(Math.random() * chars.length);
+            randomstring += chars.substring(rnum, rnum + 1);
+        }
+        return randomstring;
+    }
+
+    function AppendFileDom(fileDom, fileName, exactSize, file, uniqueName) {
+        var filedom = "<tr id=" + uniqueName + ">" +
+                        "<td>" +
+                            "<span class='preview'>" + fileDom + "</span>" +
+                        "</td>" +
+                        "<td>" +
+                            "<div>" +
+                                "<dl>" +
+                                    "<dt class=text-inverse>File Name:</dt>" +
+                                    "<dd class=name>" + fileName + "</dd>" +
+                                    "<dt class=text-inverse>File Size:</dt>" +
+                                    "<dd class=size>" + exactSize + "</dd>" +
+                                "</dl>" +
+                            "</div>" +
+                            "<strong class='error text-danger'></strong>" +
+                        "</td>" +
+                        "<td nowrap=>" +
+                                "<button class='btn btn-default cancel width-100 p-r-20' onclick=FileCancel('" + uniqueName + "')>" +
+                                "<i class='fa fa-trash fa-fw pull-left m-t-2 m-r-5 text-muted'></i>" +
+                                    "<span>Cancel</span>" +
+                                "</button>" +
+
+                        "</td>" +
+                    "</tr>";
+        formData.append(uniqueName, file);
+        return filedom;
+
+    }
+
+    //for update image
+    function AppendFileDom1(Data) {
+
+        //
+        if (Data != null && Data != "") {
+            //
+            for (var i = 0; Data.length; i++) {
+                var UniqueName = GetuniqueNameForImage(Data[i].FILE_PATH);
+                formData.append(UniqueName, Data[i].FILE_PATH);
+            }
+
+        }
+
+        var filedom = "<tr id=" + uniqueName + ">" +
+                        "<td>" +
+                            "<span class='preview'>" + fileDom + "</span>" +
+                        "</td>" +
+                        "<td>" +
+                            "<div>" +
+                                "<dl>" +
+                                    "<dt class=text-inverse>File Name:</dt>" +
+                                    "<dd class=name>" + fileName + "</dd>" +
+                                    "<dt class=text-inverse>File Size:</dt>" +
+                                    "<dd class=size>" + exactSize + "</dd>" +
+                                "</dl>" +
+                            "</div>" +
+                            "<strong class='error text-danger'></strong>" +
+                        "</td>" +
+                        "<td>" +
+                                "<div class=progress rounded-corner m-b-15>" +
+                                    "<div class=progress-bar style='width:" + iProgress + "%;max-width:100;'>" + iProgress + "%</div>" +
+                                "</div>" +
+                        "</td>" +
+                        "<td nowrap=>" +
+                                "<button class='btn btn-default cancel width-100 p-r-20' onclick=FileCancel('" + uniqueName + "')>" +
+                                "<i class='fa fa-trash fa-fw pull-left m-t-2 m-r-5 text-muted'></i>" +
+                                    "<span>Cancel</span>" +
+                                "</button>" +
+
+                        "</td>" +
+                    "</tr>";
+        formData.append(uniqueName, file);
+        return filedom;
+
+    }
+
+    function FileCancel(rowId) {
+        var row = document.getElementById(rowId);
+        formData.delete(rowId);
+        row.parentNode.removeChild(row);
+    }
+
+
+
+</script>
+
+
+
+
+

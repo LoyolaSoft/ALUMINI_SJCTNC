@@ -1,0 +1,150 @@
+﻿@model CMS.ViewModel.ViewModel.AcademicsViewModel
+@{
+    ViewBag.Title = "ListCourseStructure";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li class="active">Course Structure List</li>
+        </ol>
+        <h2 class="page-header">Course Structure List</h2>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Course Structure List </h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    
+                    <div class="col-md-12">
+                        <div class="form-group col-md-5">
+                            @Html.LabelFor(model => model.AcademicYear, "Academicyear", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.AcademicYear, (Model.AcademicYear != null) ? Model.AcademicYear : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.AcademicYear, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-5">
+                            @Html.LabelFor(model => model.FacultyList,"Faculty", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.FacultyList, (Model.FacultyList != null) ? Model.FacultyList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker form-control  input-sm", @data_live_search = "true"})
+                                @Html.ValidationMessageFor(model => model.FacultyList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-2 pull-right">
+                            <a class="btn btn-success pull-right hidden" id="btnAdd" href="javascript:;" onclick="loadContent('/Academics/CourseStructure')" @*href="@Url.Action("CourseStructure","Academics")"*@><i class="fa fa-plus" title="Add"> Add</i></a>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-md-12 m-b-5">
+                    <div id="divBindCourseStructure" class="table-responsive">
+                        <!--Need to use this field to bind Course Structure-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+    <script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+    <script>
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        $('#FacultyList').on('change', function ()
+        {
+            GetCourseStructure();
+        });
+
+        function GetCourseStructure() 
+        {
+            var AcademicYear = $('#AcademicYear option:selected').text();;
+            var FacultyId = $("#FacultyList").val();
+            if ($("#AcademicYear").val() != "" && $("#AcademicYear").val() != "0" && FacultyId != '' && FacultyId != '0')
+            {
+                $.ajax({
+                    url: "@Url.Action("BindCourseStructureByAcademicYear", "Academics")",
+                    method: "POST",
+                    datatype: "html",
+                    data: { AcYear: AcademicYear, sFacultyId: FacultyId },
+                    success: function (option) {
+                        var dvBindCourseStructure = $('#divBindCourseStructure');
+                        dvBindCourseStructure.empty();
+                        dvBindCourseStructure.append(option);
+                        $("#CourseStructureList").DataTable();
+                        $('#btnAdd').removeClass('hidden');
+                    }, error: function (error) {
+                        myAlert('Internal Server Error ...!', 'gritter-danger', '');
+                    }
+                });
+            }
+            else
+            {
+                    alert('Please select AcademicYear...!!!');
+            }
+        }
+        $('#AcademicYear').on('change', function () {
+            $("#FacultyList").val($("#FacultyList option:first").val());
+            $('.selectpicker').selectpicker('refresh');
+        });
+
+        // Delete Certificate ...
+        function GetConfirm(ID)
+        {
+            if (!confirm('Are you sure to delete ?'))
+            {
+                return false;
+            } else
+            {
+                $.ajax({
+                    url:"@Url.Action("DeleteCourseStructure", "Academics")",
+                    method: "POST",
+                    datatype:"json",
+                    data: { CourseStructureId: ID },
+                    success:function(data)
+                    {
+                        if (data.Message == "200")
+                        {
+                            myAlert('Record Deleted Successfully !', 'gritter-success', '');
+                        } else {
+                            myAlert(data.Message, 'gritter-warning', '');
+                        }
+                        GetCourseStructure();
+                    },error:function(error)
+                    {
+                        myAlert('Internal Server Error ...!', 'gritter-danger', '');
+                    }
+                });
+            }
+        }
+    </script>

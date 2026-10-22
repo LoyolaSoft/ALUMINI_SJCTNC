@@ -1,0 +1,325 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+@{
+    ViewBag.Title = "BindCITSReportinCourseWise";
+
+    int count = 0;
+
+    int chartCounter = 0;
+}
+<div>
+    <div class="alignRight">
+        <div class="form-group col-md-1">
+            <a class="btn btn-success" id="" onclick="printDiv('printmethandUnit')">Print</a>
+        </div>
+        <div class="form-group col-md-1">
+            <a class="btn btn-success" id="" onclick="btnexport('#printmethandUnit')">Export</a>
+        </div>
+    </div>
+    <div id="printmethandUnit">
+        @{
+            if (Model.liStaffCourseList != null && Model.liStaffCourseList.Count > 0)
+            {
+                int unitCount = 0;
+                var classname = Model.liStaffCourseList.FirstOrDefault().CLASS_NAME;
+                var courseTitle = Model.liStaffCourseList.FirstOrDefault().COURSE_TITLE;
+                var CourseCode = Model.liStaffCourseList.FirstOrDefault().COURSE_CODE;
+                var staffName = Model.liStaffCourseList.FirstOrDefault().STAFF_NAME;
+                chartCounter++;
+                <div class="col-md-12">
+                    <div>
+                        <label><b>Name :</b>@staffName </label><br />
+                        <label><b>Class :</b>@classname </label><br />
+                        <label><b>Course :</b>@courseTitle -@CourseCode</label><br />
+
+                    </div>
+                </div>
+
+                var groupbyUnit = Model.liStaffCourseList.Where(o => o.UNIT_ID != null).GroupBy(o => o.UNIT_ID).OrderBy(o => o.Key);
+
+                <script type="text/javascript">
+                anychart.onDocumentReady(function () {
+
+                    // Prepare chart data
+                    var unitChartData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+            groupbyUnit .Select(items => new {
+                UnitName = items.FirstOrDefault().UNIT_NAME ?? "N/A",
+                TotalEntry = items.Count()
+            })
+            ));
+
+                    // Convert the data into a format suitable for AnyChart
+                    let data = [];
+                    unitChartData.forEach(function (item) {
+                        data.push([item.UnitName, item.TotalEntry]);
+                    });
+
+                    // Create a pie chart with the data
+                    let chart = anychart.pie(data);
+
+                    // Set the chart title
+                    chart.title("Unit Entry");
+                    chart
+                        .labels()
+                        .fontColor("white") // Set the font color of labels to white
+                        .format("{%percentValue}{decimalsCount:0}%");
+
+
+                    // Set container ID for the chart
+                    chart.container("unit_chart_@chartCounter");
+
+                    // Initiate chart drawing
+                    chart.draw();
+                });
+                </script>
+
+                <div class="row">
+                    <div class="col-md-12">
+
+                        <div class="col-md-8">
+                            <div>
+                                <div class="text-center">
+                                    <h4>Unit </h4>
+                                </div>
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th><b>S.No. </b></th>
+                                            <th><b>Unit Name </b></th>
+                                            <th><b>Total Entry</b> </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in groupbyUnit)
+                                        {
+                                            unitCount++;
+                                            <tr>
+                                                <td>@unitCount</td>
+
+                                                @if (item.FirstOrDefault().UNIT_ID != null && item.FirstOrDefault().UNIT_ID != "")
+                                                {
+                                                    <td>
+                                                        <label>Unit @item.FirstOrDefault().UNIT_NAME    </label>
+                                                    </td>
+                                                    <td><b>@item.Count()</b></td>
+
+                                                }
+                                                else
+                                                {
+
+                                                    <td> N / A</td>
+                                                    <td> <b>@item.Count()</b></td>
+
+
+                                                }
+
+
+                                            </tr>
+
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                        <div class="col-md-4">
+                            <div id="unit_chart_@chartCounter" style="width: 350px; height: 380px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div>
+
+                        @if (Model.liTotalMethodology != null && Model.liTotalMethodology.Count > 0)
+                        {
+                            double totalCount = Model.liTotalMethodology.Sum(o => Convert.ToInt64(o.METHODOLOGY_COUNT));
+                            double Methpercentage = 0;
+                            int methCount = 0;
+
+                            <script>
+                                anychart.onDocumentReady(function () {
+
+    // Prepare data for the chart
+                                        var MethChartData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+                                            Model.liTotalMethodology.Select(items => new {
+                                                    MethtName = items.METHODOLOGY_NAME ?? "N/A",
+                                                    TotalEntry = items.METHODOLOGY_COUNT
+                                                })
+                                        ));
+
+                                        let data = [];
+                                        MethChartData.forEach(function (item) {
+                                            data.push([item.MethtName, item.TotalEntry]);
+                                        });
+
+                                        // Generate a dynamic color palette with 23 unique colors
+                                        const generateColors = (count) => {
+                                            const colors = [];
+                                            for (let i = 0; i < count; i++) {
+                                                const hue = Math.floor((360 / count) * i); // Distribute colors evenly in the color spectrum
+                                                colors.push(`hsl(${hue}, 50%, 50%)`); // HSL format for vivid colors
+                                            }
+                                            return colors;
+                                        };
+
+                                        const dynamicColors = generateColors(data.length); // Generate colors based on the number of data items
+
+                                        // Create a pie chart
+                                        let chart = anychart.pie(data);
+
+                                        // Chart title
+                                        chart.title("Methodology Entry");
+
+                                        // Customize labels
+                                        chart.labels().fontColor("white").format("{%percentValue}{decimalsCount:0}%");
+
+                                        // Enable and customize the legend
+                                        chart.legend()
+                                            .enabled(true) // Enable the legend
+                                            .itemsLayout("vertical") // Arrange items vertically
+                                            .align("center") // Align the legend in the center
+                                            .position("right") // Place the legend to the right of the chart
+                                            .fontSize(14) // Set font size for legend
+                                            .padding(10, 20, 10, 20); // Add padding around the legend
+
+                                        // Apply the dynamic palette
+                                        chart.palette(dynamicColors);
+
+                                        // Bind the chart to a container
+                                        chart.container("methodology_chart_@chartCounter");
+
+                                        // Render the chart
+                                        chart.draw();
+                                    });
+                            </script>
+
+                            <div class="col-md-12">
+                                <div id="methodology_chart_@chartCounter" style=" height: 380px;"></div>
+                            </div>
+                            <div>
+                                <div class="text-center">
+                                    <h4>Methodology </h4>
+                                </div>
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th><b>S.No.</b></th>
+                                            <th><b>Methodology Name</b></th>
+                                            <th><b>Total Entry</b></th>
+                                            <th><b>Percentage </b></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.liTotalMethodology)
+                                        {
+                                            methCount++;
+                                            Methpercentage = totalCount > 0 ? Math.Round((Convert.ToDouble(item.METHODOLOGY_COUNT) / totalCount) * 100, 2) : 0;
+
+                                            //Methpercentage = (Convert.ToDouble(item.METHODOLOGY_COUNT) / Convert.ToDouble(totalCount)) * 100;
+                                            Methpercentage = Math.Round(Methpercentage, 2);
+                                            <tr>
+                                                <td>@methCount</td>
+                                                <td>@item.METHODOLOGY_NAME :</td>
+                                                <td><span>@Convert.ToInt64(item.METHODOLOGY_COUNT)/@totalCount</span></td>
+                                                <td><span><b>@Methpercentage % </b></span></td>
+
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        }
+                    </div>
+                </div>
+
+                @*if (Model.liTotalEntry != null && Model.liTotalEntry.Count > 0)
+                    {
+
+                        foreach (var item in Model.liTotalEntry)
+                        {
+                            totalEntryhourCount++;
+                        }
+                    }
+                    <h4>Total Number of Entry :@totalEntryhourCount</h4>*@
+            }
+        }
+    </div>
+</div>
+<br />
+<hr />
+<div>
+    <div class="alignRight">
+        <div class="form-group col-md-1">
+            <a class="btn btn-success" id="" onclick="printDiv('totalentryList')">Print</a>
+        </div>
+        @*<div class="form-group col-md-1">
+                <a class="btn btn-success" id="" onclick="btnexport('#tblCourseWiseReport')">Export</a>
+            </div>*@
+    </div>
+    <div id="totalentryList">
+        <div class="text-center">
+            <h4>Total Entry List</h4>
+        </div>
+        <hr />
+        @if (Model.liStaffCourseList != null && Model.liStaffCourseList.Count > 0)
+        {
+            <div class="form-horizontal">
+                <div class="form-group col-md-12">
+                    <table class="table table-bordered table-hover" id="tbltpmReport">
+                        <thead>
+                            <tr>
+                                <th><b>#</b></th>
+                                <th><b>Date</b></th>
+                                <th><b>Class</b></th>
+                                <th><b>Course Code</b></th>
+                                <th><b>Hour</b></th>
+                                <th><b>Unit</b></th>
+                                <th><b>Topic Title</b></th>
+                                <th><b>Sup Topic</b></th>
+                                <th><b>Methodology</b></th>
+                                <th>Substitute</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var items in Model.liStaffCourseList)
+                            {
+                                count++;
+
+                                <tr>
+                                    <td>@count</td>
+                                    <td>@items.DAY_ORDER_DATE</td>
+                                    <td>@items.CLASS_CODE</td>
+                                    <td>@items.COURSE_CODE</td>
+                                    <td>@items.HOUR</td>
+                                    <td>
+                                        @items.UNIT_NAME
+                                    </td>
+                                    <td>@items.TOPIC_TITLE</td>
+                                    <td>@items.SUP_TOPIC</td>
+                                    <td>
+                                        @items.METHODOLOGY_NAME
+                                    </td>
+                                    <td>@items.FIRST_NAME</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="bg-danger text-center">
+                <h3>No Record's Found</h3>
+            </div>
+        }
+    </div>
+</div>
+<br />
+
+
+
+
+
+

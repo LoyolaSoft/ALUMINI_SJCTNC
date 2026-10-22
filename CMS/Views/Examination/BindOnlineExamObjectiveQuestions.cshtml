@@ -1,0 +1,96 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = null;
+    int Count = 0;
+
+}
+
+<div class="form-group col-md-12 pull-right">
+    <a class="btn btn-success pull-right" href="javascript:;" onclick="loadContent('/Examination/AddOnlineExamQuestions')"><i class="fa fa-plus"> Add </i></a>
+</div>
+
+<br />
+<br />
+
+@*<input type="hidden" id="hdErrorMessage" value="@if (!string.IsNullOrEmpty(Model.sErrorMessage)) { @Model.sErrorMessage }" />*@
+<div class="form-group col-md-12 table-responsive pull-right">
+
+    @if (Model.Lionlineobjectivequestions != null && Model.Lionlineobjectivequestions.Count > 0)
+    {
+        <div class="col-md-12">
+            <table align="center" width="95%">
+                <tr style="padding:5px">
+                    <td style="width:50%"><b>Course</b> : &nbsp;@Model.Lionlineobjectivequestions.FirstOrDefault().COURSE_TITLE</td>
+                    <td style="width:50%" align="right"><b>Course Type</b> : &nbsp;@Model.Lionlineobjectivequestions.FirstOrDefault().COURSE_TYPE</td>
+                </tr>
+                <tr style="padding:5px">
+                    <td style="width:50%"><b>Staff </b> : &nbsp;@Model.Lionlineobjectivequestions.FirstOrDefault().FIRST_NAME</td>
+                    <td style="width:50%" align="right"><b>Department</b> : &nbsp;@Model.Lionlineobjectivequestions.FirstOrDefault().DEPARTMENT</td>
+                </tr>
+                @*<tr>
+                        <td style="width:60%"><b>Degree & Major</b> : &nbsp;@Individual.FirstOrDefault().PROGRAMME_NAME </td>
+                        <td style="width:40%" align="right"><b>Month & Year</b> : &nbsp;@Individual.FirstOrDefault().M_EXAM</td>
+                    </tr>*@
+            </table>
+            <br>
+            <br>
+        </div>
+    }
+    <br>
+    <br>
+    <table class="table table-bordered table-hover pull-right" id="tblquestions">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Question</th>
+                <th>Options</th>
+                <th>Answer</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                if (Model.Lionlineobjectivequestions != null && Model.Lionlineobjectivequestions.Count > 0)
+                {
+                    var groupbyquestions = Model.Lionlineobjectivequestions.GroupBy(o => o.QUESTION_ID).ToList();
+                    if (groupbyquestions != null && groupbyquestions.Count > 0)
+                    {
+                        foreach (var item in groupbyquestions)
+                        {
+                            var lioptions = Model.Lionlineobjectivequestions.Where(o => o.QUESTION_ID == item.FirstOrDefault().QUESTION_ID).ToList();
+                            var answer = Model.Lionlineobjectivequestions.Where(o => o.QUESTION_ID == item.FirstOrDefault().QUESTION_ID && o.OPTION_ID == item.FirstOrDefault().ANSWER_ID).ToList();
+                            <tr>
+                                <td>@{Count++;} @Count</td>
+                                <td>@(new HtmlString(Model.GetStrigFromBase64String(item.FirstOrDefault().QUESTION)))</td>
+                                <td>
+                                    @if (lioptions != null && lioptions.Count > 0)
+                                    {
+                                        int brcount = 0;
+                                        foreach (var options in lioptions)
+                                        {
+                                            brcount++;
+                                            @(new HtmlString(Model.GetStrigFromBase64String(options.OPTIONS))) 
+                                            
+                                          
+                                                <br>
+                                            
+                                        }
+                                    }
+                                </td>
+                                <td>@(new HtmlString(Model.GetStrigFromBase64String(answer.FirstOrDefault().OPTIONS)))</td>
+
+                                <td>
+                                    <a href="#AddorEditModal" id="qi_@item.FirstOrDefault().QUESTION_ID" cms-question="@item.FirstOrDefault().QUESTION" onclick="FetchQuestionsById('@item.FirstOrDefault().QUESTION_ID',this)" data-toggle="modal"><i class="fa fa-edit"></i></a>
+                                    <a href="javasript:;" onclick="GetConfirm('@item.FirstOrDefault().QUESTION_ID');"><i class="fa fa-trash text-danger"></i></a>
+                                </td>
+                            </tr>
+                                            }
+                                        }
+
+                                    }
+
+
+            }
+        </tbody>
+    </table>
+</div>

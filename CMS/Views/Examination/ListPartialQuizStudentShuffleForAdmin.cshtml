@@ -1,0 +1,102 @@
+﻿
+
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    Layout = null;
+}
+
+
+<div class="col-md-12 form-horizontal">
+    @{
+        if (!string.IsNullOrEmpty(Model.sErrorMessage))
+        {
+            <div class="alert alert-warning">@Model.sErrorMessage</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                @*<div class="col-md-12">
+                        <a href="#QuizSetting-dialog" class="btn btn-success pull-right" data-toggle="modal"><i class="fa fa-plus"> Add</i></a>
+                    </div>*@
+                <br /><br />
+                @{int No = 0; int nCount = 0; int nSet = 0; string sSelectedValue = string.Empty;}
+                <table class="table table-hover table-bordered" id="tblQuizStudentShuffle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Roll No</th>
+                            <th>Register No</th>
+                            <th>Name</th>
+                            <th>Class</th>
+                            @*<th>Course</th>*@
+                            <th>Set</th>
+                            @*<th>Semester</th>
+                                <th>Action</th>*@
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.liQuizStudentShuffle != null && Model.liQuizStudentShuffle.Count > 0)
+                        {
+                            nSet = Model.liBatch.Count;
+                            foreach (var item in Model.liQuizStudentShuffle)
+                            {
+                                if (!string.IsNullOrEmpty(item.SET_ID))
+                                {
+                                    sSelectedValue = item.SET_ID;
+                                }
+                                else
+                                {
+                                    if (nCount >= nSet)
+                                    {
+                                        nCount = 0;
+                                    }
+                                    if (Model.liBatch != null && Model.liBatch.Count > 0)
+                                    {
+                                        var sArray = Model.liBatch.Select(x => x.SET_ID).ToArray();
+                                        sSelectedValue = sArray[nCount];
+                                    }
+                                    nCount++;
+                                }
+                                <tr cms-sStudentId="@item.STUDENT_ID" cms-sRollNo="@item.ROLL_NO" cms-QuizShuffleId="@item.QUIZ_SHUFFLE_ID">
+                                    <td>@{No++; } @No</td>
+                                    <td>@item.ROLL_NO</td>
+                                    <td>@item.REGISTER_NO</td>
+                                    <td>@item.FIRST_NAME</td>
+                                    <td>@item.CLASS_NAME</td>
+                                    @*<td>@item.COURSE_CODE - @item.COURSE_TITLE</td>*@
+                                    <td>
+                                        @Html.DropDownListFor(model => model.Batch, (Model.liBatch != null) ? new SelectList(Model.liBatch, "SET_ID", "SET_NAME", sSelectedValue) : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    </td>
+                                    @*<td>@item.SEMESTER_NAME</td>
+                                        <td>
+                                            <a href="#QuizSetting-dialog" onclick="FetchQuizInfo(@item.QUIZ_SHUFFLE_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+                                            <a href="javascrip:;" onclick="GetConfirm(@item.QUIZ_SHUFFLE_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+                                        </td>*@
+                                </tr>
+                                            }
+                                        }
+                    </tbody>
+                </table>
+                <br />
+            </div>
+                                        }
+    }
+</div>
+
+
+
+<script>
+
+    var items = @Html.Raw(Json.Encode(Model.liBatch));
+  
+    $(document).ready(function(){
+        
+        if(items.length<=0)
+        {
+            alert("Please Add Question Before Shuffle the student!");
+        }
+
+    });
+
+</script>

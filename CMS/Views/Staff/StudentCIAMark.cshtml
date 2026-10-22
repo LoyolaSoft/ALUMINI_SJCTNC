@@ -1,0 +1,112 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{ 
+    Layout = null;
+}
+<div class="form-group table-responsive">
+    @if (Model.liCIA_Marks_Info != null && Model.liCIA_Marks_Info.Count > 0)
+    {
+        if (Model.liStudentList != null && Model.liStudentList.Count > 0)
+        {
+
+            foreach (var stuitem in Model.liStudentList)
+            {
+                var liGroupSemester = Model.liCIA_Marks_Info.Where(x => x.STUDENT_ID == stuitem.STUDENT_ID).GroupBy(x => x.SEMESTER_ID).ToList();
+
+
+                <div class="form-group">
+                    <div class="col-md-3">
+                        Roll No : <b> @stuitem.ROLL_NO </b>
+                    </div>
+                    <div class="col-md-3">
+                        Register No : <b> @stuitem.REGISTER_NO </b>
+                    </div>
+                    <div class="col-md-3">
+                        Name : <b> @stuitem.FIRST_NAME </b>
+                    </div>
+                    <div class="col-md-3">
+                        Class : <b> @stuitem.CLASS_NAME </b>
+                    </div>
+                </div> <br /><br />
+
+                foreach (var GroupSemesteritem in liGroupSemester)
+                {
+                    var liCourse = Model.liExamRegistrationList.Where(x => x.STUDENT_ID == stuitem.STUDENT_ID && x.SEMESTER_ID == GroupSemesteritem.FirstOrDefault().SEMESTER_ID).ToList();
+                    var liGroupComponent = Model.liCIA_Marks_Info.Where(x => x.STUDENT_ID == stuitem.STUDENT_ID && x.SEMESTER_ID == GroupSemesteritem.FirstOrDefault().SEMESTER_ID).GroupBy(x => x.COMPONENT_ID).ToList();
+                    <h4 class="text-center">CIA Exam Result For Sem - @GroupSemesteritem.FirstOrDefault().SEMESTER_ID</h4>
+                                                    <table class="table-bordered table-hover">
+                                                        <thead>
+                                                            <tr>
+                                                                <th></th>
+                                                                @if (liCourse != null && liCourse.Count > 0)
+                                                                {
+                                                                    foreach (var item in liCourse)
+                                                                    {
+                                                                        <th style="padding:3px">@item.COURSE_CODE</th>
+                                                                    }
+                                                                }
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @if (Model.liExamRegistrationList != null && Model.liExamRegistrationList.Count > 0)
+                                                            {
+                                                                foreach (var item in liGroupComponent)
+                                                                {
+                                                                    <tr>
+                                                                        <td style="padding:3px">@item.FirstOrDefault().COMPONENT</td>
+                                                                        @{
+                                                                            foreach (var Examitem in liCourse)
+                                                                            {
+                                                                                var liCIAMarks = Model.liCIA_Marks_Info.Where(x => x.COURSE_ID == Examitem.COURSE_ID && x.COMPONENT_ID == item.FirstOrDefault().COMPONENT_ID && x.STUDENT_ID == stuitem.STUDENT_ID).ToList();
+                                                                                if (liCIAMarks != null && liCIAMarks.Count > 0)
+                                                                                {
+                                                                                    if (liCIAMarks.FirstOrDefault().COURSE_GROUP_MARK == "-1")
+                                                                                    {
+                                                                                        liCIAMarks.FirstOrDefault().COURSE_GROUP_MARK = "A";
+                                                                                    }
+                                                                                    <td style="padding:3px">@liCIAMarks.FirstOrDefault().COURSE_GROUP_MARK</td>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    <td> - </td>
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    </tr>
+                                                                            }
+                                                                            <tr>
+                                                                                <td><b>Total</b></td>
+                                                                                @if (Model.liCIA_Total != null && Model.liCIA_Total.Count > 0)
+                                                                                {
+                                                                                    foreach (var Examitem in liCourse)
+                                                                                    {
+                                                                                        var liCIAMarks = Model.liCIA_Total.Where(x => x.COURSE_ID == Examitem.COURSE_ID && x.STUDENT_ID == stuitem.STUDENT_ID).ToList();
+                                                                                        if (liCIAMarks != null && liCIAMarks.Count > 0)
+                                                                                        {
+                                                                                            if (liCIAMarks.FirstOrDefault().TOTAL == "-1")
+                                                                                            {
+                                                                                                <td style="padding:3px"><b>A</b></td>
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                                <td style="padding:3px"><b>@liCIAMarks.FirstOrDefault().TOTAL</b></td>
+                                                                                            }
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            <td></td>
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            </tr>
+                                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                                                        }
+                                                                                    }
+
+
+                                                                                }
+                                                                            }
+
+
+</div>

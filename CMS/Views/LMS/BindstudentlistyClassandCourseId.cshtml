@@ -1,0 +1,115 @@
+﻿@model CMS.ViewModel.ViewModel.LMSViewModel
+@{
+    Layout = null;
+    int No = 0;
+}
+<table class="col-md-12 table table-hover table-bordered" id="tblAssignments">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>
+                <div class="checkbox checkbox-css">
+                    <input type="checkbox" value="" name="myTextEditBox" id="AllchkID" onchange="SelectOrUnselect()" />
+                    <label for="AllchkID"></label>
+                </div>
+            </th>
+            <th>Name</th>
+            <th>Class</th>
+            <th>Course</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.listudent != null)
+        {
+            foreach (var item in Model.listudent)
+            {
+                <tr>
+                    <td>@{No++; } @No</td>
+                    <td>
+                        <div class="checkbox checkbox-css checkbox-inline">
+                            <input type="checkbox" name="myTextEditBox" id="@item.STUDENT_ID" cms-studentid="@item.STUDENT_ID" />
+                            <label for="@item.STUDENT_ID"></label>
+                        </div>
+                    </td>
+                    <td>@item.FIRST_NAME</td>
+                    <td>@item.CLASS_NAME</td>
+                    <td>@item.COURSE_TITLE</td>
+
+                </tr>
+            }
+
+        }
+        else
+        {
+            <tr>
+                <td colspan="6">No Assignment Found...!</td>
+            </tr>
+        }
+
+
+    </tbody>
+</table>
+
+<button id="submitButton" class="btn btn-primary">Submit</button>
+
+<script>
+
+    function SelectOrUnselect() {
+        if (document.getElementById('AllchkID').checked) {
+            $('#tblAssignments tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').prop("checked", true);
+            });
+        } else {
+            $('#tblAssignments tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').prop("checked", false);
+            });
+        }
+    }
+</script>
+<script>
+
+    $('#submitButton').click(function () {
+        var classList = $('#classlist1').val();
+        var courseList = $('#courselist1').val();
+        var setting = $('#SETTING').val();
+        var classGroup = $('#CLASS_GROUP').val();
+        var addionalinfo = $('#addionalinfo').val();
+
+        var studentAccounts = [];
+
+        $('#tblAssignments tbody tr').each(function () {
+            $(this).find('td').each(function () {
+                var chkBox = $(this).find('input[type="checkbox"]');
+                if (chkBox.is(':checked')) {
+                    studentAccounts.push({
+                        STUDENT_ID: chkBox.attr("cms-studentid")
+                    });
+                }
+            });
+        });
+
+        var jsonData = JSON.stringify(studentAccounts);
+
+        $.ajax({
+            url: '@Url.Action("SaveAssignmentstudentgroup", "LMS")',
+            method: 'POST',
+            data: {
+                Sstudentids: jsonData,
+                sclass: classList,
+                Scourse: courseList,
+                ssetting: setting,
+                sgroup: classGroup,
+                assinfo: addionalinfo
+            },
+            success: function (response) {
+                alert("Data submitted successfully!");
+                Getstudentlist();
+            },
+            error: function (error) {
+                alert("An error occurred: " + error.responseText);
+            }
+        });
+    });
+
+
+</script>

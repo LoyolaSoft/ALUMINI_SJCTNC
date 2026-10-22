@@ -1,0 +1,301 @@
+﻿@model CMS.ViewModel.ViewModel.AccountViewModel
+@{
+    ViewBag.Title = "ListUserAccount";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    {@Html.AntiForgeryToken()
+    <ol class="breadcrumb pull-right">
+        <li><a @*href="@Url.Action("Admin", "Dashboard")"*@ href="javascript:;">Home</a></li>
+        <li class="active">User Account List </li>
+    </ol>
+    <h2 class="page-header"> User Account </h2>
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">User Account List </h4>
+        </div>
+        <div class="panel-body">
+            <div class="form-horizontal">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                <div class="col-md-12">
+
+                    <div class="form-group col-md-6">
+                        @Html.LabelFor(model => model.SupRoleList, "Role", htmlAttributes: new { @class = "control-label col-md-3" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.SupRoleList, (Model.SupRoleList != null) ? Model.SupRoleList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(model => model.SupRoleList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-3 pull-right" id="btnAdd">
+                        <a class="btn bg-green pull-right" title="Add User Account" data-toggle="modal" style="cursor:pointer" href="#AddModal-dialog" onclick="Add();"><i class="fa fa-plus"></i> Add</a>
+                    </div>
+                </div>
+                <div id="UserAccountList_filter" class="dataTables_filter pull-right">
+                    <label>
+                        Search:
+                        <input type="search" class="form-control input-sm" placeholder="" aria-controls="UserAccountList">
+                    </label>
+                </div>
+                <div class="col-lg-12">
+                    <div id="divUserAccount">
+                        <!--Need to use this fied to bind Student List-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script>
+
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+</script>
+<script>
+			function ContentLoad() {
+				// Document Ready Function .
+				GetDropDown();
+
+			}
+		$(document).on('input', '#UserAccountList_filter input[type="search"]', function () {
+			loadGirdlikeUsername();
+		});
+			function GetDropDown() {
+				$.ajax({
+					url: '@Url.Action("FetchUsersAndUserType", "Account")',
+					success: function (objResult)
+					{
+						var ddl = JSON.parse(objResult);
+						//$('#ddlUser').empty();
+						//$('#ddlUser').append('<option value="">-- select --</option>' + ddl.USER_ID);
+						$('#ddlRole').empty();
+						$('#ddlRole').append('<option value="">-- select --</option>' + ddl.ROLE);
+						$('#ddlUserType').empty();
+						$('#ddlUserType').append('<option value="">-- select --</option>' + ddl.USER_TYPE);
+						$('.selectpicker').selectpicker('refresh');
+					},
+					error: function (xhr, textStatus, error)
+					{
+						alert(error + "\n");
+					}
+				});
+			}
+			$('#SupRoleList').on('change', function () {
+				loadGird();
+			});
+
+		function loadGirdlikeUsername() {
+			var lUserName = $('input[type="search"]').val();
+			var vRoleId = $('#SupRoleList').val();
+			if ($('input[type="search"]').val()) {
+			$.ajax({
+				url: '@Url.Action("BindUseAccountInfobyuserName", "Account")',
+				data: { Username: lUserName, roleId: vRoleId },
+				success: function (option) {
+					var dvUserAccount = $('#divUserAccount');
+					dvUserAccount.empty();
+					dvUserAccount.append(option);
+				},
+				error: function (xhr, textStatus, error) {
+					swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+				}
+			});
+
+		}
+	}
+	function loadGird() {
+		debugger;
+				var vRoleId = $('#SupRoleList').val();
+				if ($('#SupRoleList').val()) {
+					$.ajax({
+						url: '@Url.Action("BindUseAccountInfo", "Account")',
+						data: { RoleId: vRoleId },
+						success: function (option) {
+							var dvUserAccount = $('#divUserAccount');
+							dvUserAccount.empty();
+							dvUserAccount.append(option);
+						},
+						error: function (xhr, textStatus, error) {
+							swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+						}
+					});
+
+				}
+			}
+			$('#btnSubmit').on('click', function () {
+				SaveUserAccount();
+			});
+			function SaveUserAccount() {
+				var UserName = $('#txtUserName').val();
+				var UserType = $('#ddlUserType').val();
+				var Role = $('#ddlRole').val();
+				var name = $('#txtName').val();
+
+				//var User = $('#').val();
+				var Password = $('#txtPassword').val();
+				var ConfirmPassword = $('#txtConfirmPassword').val();
+				var Json;
+				if (Password == ConfirmPassword)
+				{
+					if ($('#ddlRole').val() == '' && $('#ddlUserType').val() == '')
+					{
+						myAlert('Please Choose Role And User Type...!!!', 'gritter-warning', '');
+						return false;
+					}
+					Json = '{"USER_ACCOUNT_ID":"' + $('#hdUserAccountId').val() + '","NAME":"' + name + '","USERNAME":"' + UserName + '","PASSWORD":"' + ConfirmPassword + '","ROLE":"' + Role + '","USER_TYPE":"' + UserType + '","USER_ID":"' + $('#hdUserId').val() + '"}';
+					$.ajax({
+						url: '@Url.Action("SaveUserAccount", "Account")',
+						data: { sUserAccount: Json },
+						success: function (objResult)
+						{
+							if (objResult.ErrorCode == "200") {
+								swal({ title: "Success!", text: objResult.Message, showConfirmButton: false, timer: 2000, type: 'success', animation: true });
+								$('#mbtnCancel').click();
+								loadGird();
+							}
+							else {
+								swal({ title: "Info!", text: objResult.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+
+							}
+						},
+						error: function (xhr, textStatus, error)
+						{
+							swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+						}
+					});
+				} else
+				{
+					myAlert('Password Does Not Match...!!!', 'gritter-error', '');
+				}
+		}
+		function ShowPassword() {
+			var x = document.getElementById("txtPassword");
+			if (x.type === "password") {
+				x.type = "text";
+			}
+			else {
+				x.type = "password";
+			}
+		}
+
+
+		function Add()
+		{
+			$('#txtUserName').attr('disabled', false);
+
+			$('#txtUserName').attr('value', '');
+			$('#ddlUserType').attr('value', '');
+			$('#ddlRole').attr('value', '');
+			$('#txtName').attr('value', '');
+			$('#txtPassword').attr('value', '');
+			$('#txtConfirmPassword').attr('value', '');
+
+			$('.selectpicker').selectpicker('refresh');
+		}
+</script>
+
+<div class="modal" id="AddModal-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add User Account</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+
+                    @*<div class="form-group">
+                            <label class="control-label col-md-3">User</label>
+                            <div class="col-md-9">
+                                <select id="ddlUser" class="selectpicker show-menu-arrow show-tick drop-down form-control input-sm" data-live-search="true">
+                                    <option value="">-- select --</option>
+                                </select>
+                            </div>
+                        </div>*@
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">User Name</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control input-sm" id="txtUserName" required />
+                        </div>
+                    </div>
+                    @*<div class="form-group">
+                            <label class="control-label col-md-3">Email</label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control input-sm" id="txtEmail" />
+                            </div>
+                        </div>*@
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Name</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control input-sm" id="txtName" required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Password</label>
+                        <div class="col-md-9">
+                            <input type="password" class="form-control input-sm" id="txtPassword" required />
+                            <input type="checkbox" onclick="ShowPassword()"><span style="color: #007ca1;">&nbsp;Show Password</span>
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Re-enter Password</label>
+                        <div class="col-md-9">
+                            <input type="password" class="form-control input-sm" id="txtConfirmPassword" placeholder="Enter PassWord" required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Role</label>
+                        <div class="col-md-9">
+                            <select id="ddlRole" class="selectpicker form-control input-sm" data-live-search="true" required>
+                                <option value="">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">User Type</label>
+                        <div class="col-md-9">
+                            <select id="ddlUserType" class="selectpicker form-control input-sm" data-live-search="true" required>
+                                <option value="">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="text-warning pull-left" id="txtStatic"></span>
+                <button type="submit" id="btnSubmit" class="btn btn-default">Submit</button>
+                <button type="button" id="mbtnCancel" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

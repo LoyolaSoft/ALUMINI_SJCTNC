@@ -1,0 +1,247 @@
+﻿
+@model CMS.ViewModel.ViewModel.StaffViewModel
+
+@{
+    ViewBag.Title = "StaffReportsForOffice";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<!-- ================== END PAGE LEVEL CSS STYLE ================== -->
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="#">Home</a></li>
+        <li class="active">Staff Report </li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Staff Report</h1>
+    <!-- end page-header -->
+    <!-- begin panel -->
+    <div class="panel panel-primary" data-sortable-id="ui-general-1">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Staff Report</h4>
+        </div>
+        <div class="panel-body">
+            <div id="loader" style="display:none; position:fixed; top:70%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+            </div>
+            <div class="col-md-12 form-horizontal">
+                <ul class="nav nav-tabs">
+                    <li class="nav-items active" id="CommunityReport">
+                        <a href="#bindCommunityReport" data-toggle="tab" class="nav-link active">
+                            <span class="d-sm-none">Community  Report</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="DepartmentStaffReport">
+                        <a href="#bindDepartmentStaffReport" data-toggle="tab" class="nav-link">
+                            <span class="d-sm-none"> Department Wise Staff List </span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+
+
+                    @* community report *@
+
+                    <div class="tab-pane fade" id="bindCommunityReport">
+                        <div class="col-md-12 form-horizontal">
+
+                            <div class="col-md-4 form-group">
+                                @Html.Label("Category", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+
+                                    @Html.DropDownListFor(m => m.LiStfCategory, (Model.LiStfCategory != null) ? Model.LiStfCategory : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "staffCategory", @multiple = "multiple" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row pull-right">
+                            <div class="col-md-6 btnPrintDiv">
+                                <button class="btn btn-success btnPrint" onclick="printDiv()"> Print </button>
+                            </div>
+                            <div class="col-md-6 btnExcelDiv">
+                                <button class="btn btn-primary btnExport" onclick="Export()"> Export </button>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+
+                    @* department wise staff report *@
+
+                    <div class="tab-pane fade" id="bindDepartmentStaffReport">
+                        <div class="col-md-12 form-horizontal">
+                            <div class="col-md-4 form-group">
+                                @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(m => m.DepartmentList, (Model.DepartmentList != null) ? Model.DepartmentList : Enumerable.Empty<SelectListItem>(),null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "DepartmentList", @multiple = "multiple", @data_actions_box="true" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row pull-right">
+                            <div class="col-md-6 btnPrintDiv">
+                                <button class="btn btn-success btnPrint" onclick="printDiv()"> Print </button>
+                            </div>
+                            <div class="col-md-6 btnExcelDiv">
+                                <button class="btn btn-primary btnExport" onclick="Export()"> Export </button>
+                            </div>
+                        </div>
+                </div><br />
+                <hr />
+                <div class="form-group col-md-12">
+                    <div id="divbind"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- end panel -->
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<!-- ================== Community Script SCRIPT ================== -->
+
+<script>
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        ContentLoad = function () {
+            $('#bindCommunityReport').addClass("active in");
+
+
+            $('.selectpicker').selectpicker('refresh');
+
+            $('.nav-items').on("click", function () {
+
+                $('#divbind').html('');
+
+            });
+        }
+    $("#staffCategory").on("change", function () {
+        LoadCommunityReport();
+                                    });
+
+    function LoadCommunityReport()
+    {
+        var stfCategory = String($("#staffCategory").val());
+
+        if ($("#staffCategory").val())
+            {
+                $.ajax({
+                    url: "@Url.Action("BindCommunityForStaff", "Staff")",
+                    method: "POST",
+                    datatype: "json",
+                    data: { sStfCategory: stfCategory},
+                    success: function (data) {
+                        $("#divbind").empty();
+                        $("#divbind").append(data);
+                        $(".btnPrintDiv").show();
+                        $(".btnExcelDiv").show();
+                    }, error: function (error) {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+    };
+
+
+</script>
+    
+    <!-- ================== Department Script ================== -->
+
+<script>
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        ContentLoad = function () {
+            $('#bindCommunityReport').addClass("active in");
+
+
+            $('.selectpicker').selectpicker('refresh');
+
+            $('.nav-items').on("click", function () {
+
+                $('#divbind').html('');
+
+            });
+        }
+    $("#DepartmentList").on("change", function () {
+        LoadDepartmentWiseStaffReport();
+                                    });
+
+    function LoadDepartmentWiseStaffReport()
+    {
+        var Department = String($("#DepartmentList").val());
+
+        if ($("#DepartmentList").val())
+            {
+                $.ajax({
+                    url: "@Url.Action("BindDepartmentWiseStaffList", "Staff")",
+                    method: "POST",
+                    datatype: "json",
+                    data: { sDepartment: Department },
+                    success: function (data) {
+                        $("#divbind").empty();
+                        $("#divbind").append(data);
+                        $(".btnPrintDiv").show();
+                        $(".btnExcelDiv").show();
+                    }, error: function (error) {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+    };
+
+
+</script>
+
+
+<script>
+    function printDiv() {
+        var printContents = document.getElementById('divbind').innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        loadContent('/Staff/StaffReportsForOffice');
+    }
+    function Export() {
+        var title = "";
+
+        title = "Staff_Report";
+        let file = new Blob([$('#divbind').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: title + ".xls"
+        }).appendTo("body").get(0).click();
+
+    }
+
+</script>
+
+
+

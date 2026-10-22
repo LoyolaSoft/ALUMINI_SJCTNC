@@ -1,0 +1,358 @@
+@{
+    ViewBag.Title = "BindStudentStrengthReportbyAcYear";
+}
+
+@model CMS.ViewModel.ViewModel.StudentViewModel
+
+@{
+    Layout = null;
+    int Count = 0;
+
+    double grandTotalAllM = 0;
+    double grandTotalAllF = 0;
+    double grandTotalAll = 0;
+
+    // Calculate dynamic colspan based on the number of community and religion columns
+    var communityCount = Model.liCommunityReport.GroupBy(o => o.COMMUNITYID).Count();
+    var religionCount = Model.liCommunityReport.GroupBy(o => o.RELIGIONID).Count();
+    var totalDynamicColspan = (communityCount + religionCount) * 2 + 4; // 2 columns per community/religion (Male, Female) + 6 for S.No, Programme Name, Totals and Grand Totals
+}
+
+<div class="form-group table-responsive" style="page-break-after: always !important;">
+    @if (Model.liCommunityReport != null && Model.liCommunityReport.Count > 0)
+    {
+        var groupedByProgrammeLevel = Model.liCommunityReport
+            .GroupBy(x => x.CLASSLEVELID)
+            .OrderBy(g => g.Key)
+            .ToList();
+
+        var communityGroup = Model.liCommunityReport.GroupBy(o => o.COMMUNITYID).OrderBy(o => Convert.ToDouble(o.FirstOrDefault().COMMUNITYORDER));
+        var religionGroup = Model.liCommunityReport.GroupBy(o => o.RELIGIONID).OrderBy(o => o.Key);
+
+        <table class="table-bordered   table-hover" id="tblStrengthReport">
+            <thead class="sticky-header">
+                <tr>
+                    <th colspan="@totalDynamicColspan">
+                        <div class="text-center">
+                            <b>ST. JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS), CUDDALORE</b>
+                        </div>
+                    </th>
+                </tr>
+                <tr>
+                    <th colspan="@totalDynamicColspan">
+                        <div class="text-center">
+                            <b>Student Community Report (@ViewBag.AcademicYear)</b>
+                        </div>
+                    </th>
+                </tr>
+                <tr>
+                    <th class="text-center"><b>S.No</b></th>
+                    <th class="text-center" style="padding-left: 60px; padding-right: 60px"><b>Programme Name</b></th>
+                    @foreach (var com in communityGroup)
+                    {
+                        <th class="text-center" style="padding-left: 20px; padding-right: 20px" colspan="2">@com.FirstOrDefault().COMMUNITY</th>
+                    }
+                    <th colspan="2" class="text-center"><b> Total</b></th>
+                    @foreach (var rel in religionGroup)
+                    {
+                        <th class="text-center" colspan="2" style="padding-left: 20px; padding-right: 20px">@rel.FirstOrDefault().RELIGION</th>
+                    }
+                    <th colspan="2" class="text-center"><b> Total</b></th>
+                    <th class="text-center"><b>Grand Total</b></th>
+                </tr>
+
+                <tr>
+                    <th colspan="2"></th>
+                    @foreach (var com in communityGroup)
+                    {
+                        <th class="text-center"><b>M</b></th>
+                        <th class="text-center"><b>F</b></th>
+                    }
+                    <th class="text-center"><b>M</b></th>
+                    <th class="text-center"><b>F</b></th>
+                    @foreach (var rel in religionGroup)
+                    {
+                        <th class="text-center"><b>M</b></th>
+                        <th class="text-center"><b>F</b></th>
+                    }
+                    <th class="text-center"><b>M</b></th>
+                    <th class="text-center"><b>F</b></th>
+
+                    <th class="text-center"><b>Total</b></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var levelGroup in groupedByProgrammeLevel)
+                {
+                    <tr>
+                        <th class="text-center" colspan="@totalDynamicColspan">Programme Level: <b>@levelGroup.FirstOrDefault().CLASSLEVEL</b></th>
+                    </tr>
+
+                    var groupedByShift = levelGroup
+                        .GroupBy(x => x.SHIFT_ID)
+                        .OrderBy(g => g.Key)
+                        .ToList();
+
+                    foreach (var shiftGroup in groupedByShift)
+                    {
+                        Count = 0;
+
+                        // Shift Title Row
+                        <tr>
+                            <th colspan="@totalDynamicColspan">SHIFT: @(shiftGroup.Key == "1" ? "I" : "II")</th>
+                        </tr>
+
+                        var groupedByProgramme = shiftGroup
+                            .GroupBy(x => x.PROGRAMME_NAME)
+                            .OrderBy(g => g.Key)
+                            .ToList();
+
+                        double shiftTotalM = 0;
+                        double shiftTotalF = 0;
+                        double shiftGrandTotal = 0;
+
+                        foreach (var programmeGroup in groupedByProgramme)
+                        {
+                            Count++;
+                            double programmeTotalM = 0, programmeTotalF = 0, programmeGrandTotal = 0;
+                            double programmeCommunityM = 0, programmeCommunityF = 0;
+                            double programmeReligionM = 0, programmeReligionF = 0;
+
+                            <tr>
+                                <td class="text-center">@Count</td>
+                                <td><b>@programmeGroup.Key</b></td>
+
+                                @foreach (var com in communityGroup)
+                                {
+                                    var communityData = programmeGroup.Where(x => x.COMMUNITYID == com.Key).ToList();
+                                    var male = communityData.Where(o => o.GENDER_ID == "1").Sum(x => Convert.ToInt32(x.COUNT));
+                                    var female = communityData.Where(o => o.GENDER_ID == "2").Sum(x => Convert.ToInt32(x.COUNT));
+
+                                    programmeCommunityM += male;
+                                    programmeCommunityF += female;
+                                    programmeTotalM += male;
+                                    programmeTotalF += female;
+
+                                    <td class="text-center">@male</td>
+                                    <td class="text-center">@female</td>
+                                }
+
+                                <td class="text-center"><b>@programmeCommunityM</b></td>
+                                <td class="text-center"><b>@programmeCommunityF</b></td>
+
+                                @foreach (var rel in religionGroup)
+                                {
+                                    var religionData = programmeGroup.Where(x => x.RELIGIONID == rel.Key).ToList();
+                                    var male = religionData.Where(o => o.GENDER_ID == "1").Sum(x => Convert.ToInt32(x.COUNT));
+                                    var female = religionData.Where(o => o.GENDER_ID == "2").Sum(x => Convert.ToInt32(x.COUNT));
+
+                                    programmeReligionM += male;
+                                    programmeReligionF += female;
+
+                                    <td class="text-center">@male</td>
+                                    <td class="text-center">@female</td>
+                                }
+
+                                <td class="text-center"><b>@programmeReligionM</b></td>
+                                <td class="text-center"><b>@programmeReligionF</b></td>
+
+                                @{
+                                    programmeGrandTotal = programmeTotalM + programmeTotalF;
+
+                                    shiftTotalM += programmeTotalM;
+                                    shiftTotalF += programmeTotalF;
+                                    shiftGrandTotal += programmeGrandTotal;
+
+                                    <td class="text-center"><b>@programmeGrandTotal</b></td>
+                                }
+                            </tr>
+                        }
+
+                        // Shift Totals Row
+                        <tr>
+                            <th colspan="2">SHIFT: @(shiftGroup.Key == "1" ? "I" : "II") TOTAL</th>
+                            @for (int i = 0; i < communityCount; i++)
+                            {
+                                <th colspan="2"></th>
+                            }
+                            <th class="text-center">@shiftTotalM</th>
+                            <th class="text-center">@shiftTotalF</th>
+                            @for (int i = 0; i < religionCount; i++)
+                            {
+                                <th colspan="2"></th>
+                            }
+                            <th class="text-center">@shiftTotalM</th>
+                            <th class="text-center">@shiftTotalF</th>
+                            @*<th>@shiftTotalM</th>
+                                <th>@shiftTotalF</th>*@
+                            <th class="text-center">@shiftGrandTotal</th>
+                        </tr>
+
+                        // Update the grand total
+                        grandTotalAllM += shiftTotalM;
+                        grandTotalAllF += shiftTotalF;
+                        grandTotalAll += shiftGrandTotal;
+                    }
+                }
+
+                <tr style="font-weight: bold;">
+                    <td colspan="2">Grand Total</td>
+                    @for (int i = 0; i < communityCount + religionCount; i++)
+                    {
+                        <td colspan="2"></td>
+                    }
+                    <td colspan="2"></td>
+                    <td colspan="2"></td>
+                    @*<td>@grandTotalAllM</td>
+                        <td>@grandTotalAllF</td>*@
+                    <td class="text-center"><b>@grandTotalAll</b></td>
+                </tr>
+            </tbody>
+        </table>
+
+
+        <br />
+        <br />
+        <div class="row">
+            <div class="col-md-7 table-responsive">
+                @{
+                    // Assume your Model has the data for all course levels (UG, PG, etc.)
+                    var courseLevels = Model.liCommunityReport.GroupBy(x => x.CLASSLEVELID).ToList(); // Group by course level (UG, PG, M.Phil)
+                    var communityWiseGroup = Model.liCommunityReport.GroupBy(x => x.COMMUNITYID).OrderBy(o => o.Key).ToList(); // Group by community
+
+
+                    <table class="table-bordered  table-hover" id="tblStrengthReport">
+                        <thead class="sticky-header">
+                            <tr>
+                                <th>@ViewBag.AcademicYear Admission Details</th>
+                                <th colspan="@communityWiseGroup.Count + 1">
+                                    <div class="text-center">
+                                        <b>Community Wise Details</b>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th class="text-center">COURSE</th>
+                                @foreach (var com in communityGroup)
+                                {
+                                    <th  style="padding-left: 20px; padding-right: 20px" class="text-center">@com.FirstOrDefault().COMMUNITY</th>
+                                }
+                                <th class="text-center"><b>Total</b></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var course in courseLevels)
+                            {
+                                var courseName = course.FirstOrDefault().CLASSLEVEL;
+                                double totalForCourse = 0;
+
+                                <tr>
+                                    <td>@courseName</td>
+
+                                    @foreach (var community in communityGroup)
+                                    {
+                                        // Calculate the total male and female count for each community in this course
+                                        var communitywiseCount = course.Where(x => x.COMMUNITYID == community.Key).Sum(x => Convert.ToDouble(x.COUNT));
+
+                                        totalForCourse += communitywiseCount;
+
+                                        <td class="text-center">@communitywiseCount</td>
+                                    }
+
+                                    <td class="text-center">@totalForCourse</td>
+                                </tr>
+                            }
+
+
+                            <tr>
+                                <td><b>Total</b></td>
+                                @foreach (var community in communityGroup)
+                                {
+                                    // Calculate the total count for each community across all courses
+                                    var grandTotalForCommunity = Model.liCommunityReport.Where(x => x.COMMUNITYID == community.Key).Sum(x => Convert.ToDouble(x.COUNT));
+
+                                    <td class="text-center"><b>@grandTotalForCommunity</b></td>
+                                }
+                                <td class="text-center">
+                                    <b>@Model.liCommunityReport.Sum(x => Convert.ToDouble(x.COUNT))</b> <!-- Grand total across all communities and courses -->
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                }
+            </div>
+            <div class="col-md-5 table-responsive">
+                @{
+                    var classLevel = Model.liCommunityReport.GroupBy(x => x.CLASSLEVELID).ToList(); // Group by course level (UG, PG, M.Phil)
+                    var ReligionWiseReport = Model.liCommunityReport.GroupBy(x => x.RELIGIONID).OrderBy(o => o.Key).ToList(); // Group by community
+
+                    <table class="table-bordered  table-hover" id="tblStrengthReport">
+                        <thead class="sticky-header">
+                            <tr>
+                                <th>@ViewBag.AcademicYear Admission Details</th>
+                                <th colspan="@ReligionWiseReport.Count + 1">
+                                    <div class="text-center">
+                                        <b>Religion Wise Details</b>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th class="text-center">COURSE</th>
+                                @foreach (var com in ReligionWiseReport)
+                                {
+                                    <th class="text-center" style="padding-left: 20px; padding-right: 20px">@com.FirstOrDefault().RELIGION</th>
+                                }
+                                <th class="text-center"><b>Total</b></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var course in classLevel)
+                            {
+                                var courseName = course.FirstOrDefault().CLASSLEVEL;
+                                double totalForCourse = 0;
+
+                                <tr>
+                                    <td>@courseName</td>
+
+                                    @foreach (var religion in ReligionWiseReport)
+                                    {
+                                        // Calculate the total male and female count for each community in this course
+                                        var communitywiseCount = course.Where(x => x.RELIGIONID == religion.Key).Sum(x => Convert.ToDouble(x.COUNT));
+
+                                        totalForCourse += communitywiseCount;
+
+                                        <td class="text-center">@communitywiseCount</td>
+                                    }
+
+                                    <td class="text-center">@totalForCourse</td>
+                                </tr>
+                            }
+
+
+                            <tr>
+                                <td><b>Total</b></td>
+                                @foreach (var religion in ReligionWiseReport)
+                                {
+                                    // Calculate the total count for each community across all courses
+                                    var grandTotalForCommunity = Model.liCommunityReport.Where(x => x.RELIGIONID == religion.Key).Sum(x => Convert.ToDouble(x.COUNT));
+
+                                    <td class="text-center"><b>@grandTotalForCommunity</b></td>
+                                }
+                                <td class="text-center">
+                                    <b>@Model.liCommunityReport.Sum(x => Convert.ToDouble(x.COUNT))</b> <!-- Grand total across all communities and courses -->
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <div class="bg-warning text-center">
+            <h4>No Records Found</h4>
+        </div>
+    }
+</div>

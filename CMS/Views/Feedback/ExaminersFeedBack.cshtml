@@ -1,0 +1,211 @@
+﻿@model CMS.ViewModel.ViewModel.FeedbackViewModel
+
+@{
+    ViewBag.Title = "ExaminersFeedBack";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+<!-- begin #content -->
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Feedback</a></li>
+        <li class="active">Feedback Entry</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Feedback <small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Feedback Entry</h4>
+        </div>
+        <div class="panel-body">
+
+            @*@{
+                if (TempData["Success"] != null)
+                {
+                    <div class='alert alert-success alert-dismissable'><button type='button' class='close' data-dismiss='alert' aria-hidden='true'>×</button>@TempData["Success"]</div>
+                }
+                else if (TempData["Failed"] != null)
+                {
+                    <div class='alert alert-danger alert-dismissable'><button type='button' class='close' data-dismiss='alert' aria-hidden='true'>×</button>@TempData["Failed"]</div>
+                }
+            }*@
+
+            @using (Html.BeginForm("SaveExaminersFeedBack", "Feedback", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                
+                <div class="form-horizontal">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div id="divQuestionView" data-step="3" data-intro="All the questions Required."></div>                    
+                    @if (!string.IsNullOrEmpty(Model.sErrorMessage))
+                    {
+                        <div class="col-md-12">
+                            <div class="alert-warning alert ">
+                                @Model.sErrorMessage
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+
+                        <div class="col-md-6 row">
+                            <div class="alert-info alert text-center">
+                                All the questions Required .
+                            </div>
+                        </div>
+
+
+                        <div class="col-md-6 row">
+                            <br />
+                            @{
+                                if (Model.ObjectiveList != null && Model.ObjectiveList.Count > 0)
+                                {
+                                    foreach (var item in Model.ObjectiveList)
+                                    {
+                                        <div class="" style="display:inline-block">
+                                            <span class="label label-warning label-lg">
+                                                <b> @item.OBJECTIVESHORTTERM</b> - @item.OBJECTIVES
+                                            </span>
+                                        </div>
+                                    }
+                                }
+                            }
+
+                        </div>
+                    <div class="box-body row">
+
+                        <table class="table table-hover table-bordered">
+                            <thead>
+                                <tr><th>Questions</th><th>Answers</th></tr>
+                            </thead>
+
+                            @{
+
+                                if (Model.QuestionList != null)
+                                {
+                                    string sQuestionType = string.Empty;
+                                    bool bFlag = true;
+                                    foreach (var QuestionItem in Model.QuestionList)
+                                    {
+                                        if (bFlag)
+                                        {
+                                            sQuestionType = QuestionItem.QUESTION_TYPE;
+                                                <tr>
+                                                    <td><b>@sQuestionType </b> @{ bFlag = false; } </td>
+                                                </tr>
+                                                        }
+                                                        else
+                                                        {
+                                                            if (!sQuestionType.Equals(QuestionItem.QUESTION_TYPE))
+                                                            {
+                                                                <tr>
+                                                                    <td> @{ sQuestionType = QuestionItem.QUESTION_TYPE; } <b>@sQuestionType </b></td>
+                                                                </tr>
+                                                                            }
+                                                                        }
+
+                                                                        <tr>
+                                                                            <td width="">
+                                                                                <div class="">
+                                                                                    @if (!string.IsNullOrEmpty(QuestionItem.QUESTION))
+                                                                                    { @QuestionItem.QUESTION }
+                                                                                </div>
+                                                                            </td>
+                                                                            <td width="35%">
+                                                                                <div class="">
+                                                                                    @foreach (var ObjectiveItem in Model.ObjectiveList)
+                                                                                    {
+                                                                                        <div class="radio  radio-inline">
+                                                                                            @*<input type="radio" name="@QuestionItem.QUESTION_ID" id="@ObjectiveItem.OBJECTIVE_ID" />
+                                                                                <label for="@ObjectiveItem.OBJECTIVE_ID">
+                                                                                   @ObjectiveItem.OBJECTIVESHORTTERM
+                                                                                </label>*@
+                                                                                            @Html.RadioButton(QuestionItem.QUESTION_ID, ObjectiveItem.OBJECTIVE_ID, new { }) @ObjectiveItem.OBJECTIVESHORTTERM
+
+                                                                                        </div>
+                                                                                    }
+                                                                                </div>
+                                                                            </td>
+
+                                                                        </tr>
+
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <tr><td><p class="text-yellow">No Records avilable</p> </td></tr>
+                                                                        }
+                                                                        }
+                                                                        
+
+
+                            
+                        </table>
+
+                    </div>
+
+                    <div class="form-group ">
+                        <div class="col-md-12 col-xs-12 row ">
+                            <input type="submit" value="Submit" id="btnSubmit" class="btn btn-success" />
+                        </div>
+                    </div>
+                                                                        }
+                </div>
+                
+            }
+        </div>
+    </div>
+</div>
+<!-- end #content -->
+
+
+
+    <script>
+        ContentLoad = function () {
+            //Ready Function()
+        }
+        $("#btnSubmit").on("click", function ()
+        {
+                var names = [];
+                $('input[type="radio"]').each(function ()
+                {
+                    // Creates an array with the names of all the different checkbox group.
+                    names[$(this).attr('name')] = true;
+                });
+
+                // Goes through all the names and make sure there's at least one checked.
+                for (name in names)
+                {
+                    var radio_buttons = $("input[name='" + name + "']");
+                    if (radio_buttons.filter(':checked').length == 0)
+                    {
+                        alert('All feedback questions are mandatory');
+                        return false;
+                    }
+                    else
+                    {
+                        // If you need to use the result you can do so without
+                        // another (costly) jQuery selector call:
+                        var val = radio_buttons.val();
+                    }
+                }
+            });
+    </script>
+
+
+
+
+

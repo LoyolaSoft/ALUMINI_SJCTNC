@@ -1,0 +1,437 @@
+﻿
+
+
+@using CMS.Utility;
+@using System.Data;
+@using CMS.ViewModel.Model;
+@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    if (Session["USER_ID"] == null)
+    {
+        Response.Redirect("/Account/Index");
+    }
+    string sCollegeCode = string.Empty;
+    string sCollegeLogo = string.Empty;
+    string sCollegeName = string.Empty;
+    string sAddress = string.Empty;
+
+    // Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+}
+
+@if (Model.liCollegeDetails != null && Model.liCollegeDetails.Count > 0)
+{
+    var liCollegeDetails = Model.liCollegeDetails.FirstOrDefault();
+    sCollegeCode = liCollegeDetails.COLLEGE_CODE;
+    sCollegeLogo = liCollegeDetails.COLLEGE_LOGO;
+    sCollegeName = liCollegeDetails.COLLEGE_NAME;
+    sAddress = liCollegeDetails.COLLEGE_ADDRESS;
+}
+<style>
+    .simple-admit-card {
+        width: 100%;
+        max-width: 800px;
+        margin: 20px auto;
+        background: #fff;
+        padding: 30px;
+        border: 2px solid #333;
+        font-family: 'Poppins', sans-serif;
+        color: #000;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .card-logo {
+        height: 90px;
+        margin-right: 20px;
+    }
+
+    .card-college-info {
+        flex: 1;
+        text-align: center;
+    }
+
+    .card-college-name {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+        text-transform: uppercase;
+    }
+
+    .card-college-addr {
+        font-size: 13px;
+        margin: 5px 0 0;
+    }
+
+    .card-title-text {
+        text-align: center;
+        font-size: 20px;
+        font-weight: 600;
+        text-decoration: underline;
+        margin-bottom: 25px;
+    }
+
+    .card-main-content {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .card-details-table {
+        width: 70%;
+    }
+
+        .card-details-table td {
+            padding: 8px 0;
+            vertical-align: top;
+            font-size: 15px;
+        }
+
+    .card-photo-box {
+        width: 25%;
+        text-align: right;
+    }
+
+    .card-student-photo {
+        width: 120px;
+        height: 150px;
+        border: 1px solid #000;
+        padding: 2px;
+        object-fit: cover;
+    }
+
+    .event-info-box {
+        margin-top: 25px;
+        border: 1px dashed #000;
+        padding: 15px;
+    }
+
+    .event-title {
+        font-weight: 700;
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    .card-footer-simple {
+        margin-top: 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    .signature-area {
+        text-align: center;
+    }
+
+    .signature-line {
+        border-top: 1px solid #000;
+        width: 200px;
+        padding-top: 5px;
+        font-weight: 600;
+        font-size: 14px;
+        margin-top: 40px;
+    }
+
+    .timestamp-text {
+        font-size: 11px;
+        color: #666;
+    }
+</style>
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">
+            Alumnaecard
+        </li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">
+        Convocation Admit Card
+    </h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">
+                Convocation Admit Card
+            </h4>
+        </div>
+
+
+        <div class="panel-body">
+            <span class="pull-right">
+                <button id="sPrinting" onclick="printAluminiCard()" class="btn btn-sm btn-success m-b-10">
+                    <i class="fa fa-print m-r-5"></i>Print
+                </button>
+            </span>
+
+            @if (Model.liStudent != null && Model.liStudent.Count > 0)
+            {
+
+                if (Model.liconvocationeligible.FirstOrDefault().DOWNLOAD_AUTH_TYPE == "1")
+                {
+                    <div class="Alumnae" id="Alumnae" style="height: 360px; width: 550px; padding: 0px; top: 0px; top: -366px;">
+                        <img src="http://erp.sjctnc.edu.in//Content/assets/img/alumnae.jpg" alt="" style="width: 550px; height: 360px; border: 1px solid royalblue;">
+                        <div class="ALIGNTOP" style="position: relative;padding: 10px;top: -358px;">
+                            <div class="Alumnae-header  text-center" style="border-bottom:2PX solid #cb2746; padding-bottom: 2px;">
+                                <div class="Alumnae-header-left  text-center">
+                                    @*<img src="http://erp.sjctnc.edu.in//Content/assets/img/logo3.png" alt="" width="70" />*@
+                                    <img src="@sCollegeLogo" alt="" width="70" />
+                                </div>
+                                <div class="Alumnae-header-center text-center">
+                                    <h5 style="text-align: center;font-size: 17px;color: #032897;font-weight: 700;">SJCTNC</h5>
+
+                                </div>
+                                <div class="Alumnae-header-left  text-center" style="padding-left: 15px; ">
+                                    <img src="http://erp.sjctnc.edu.in//Content/assets/img/Alumini_logo.png" alt="" width="70" style="margin-left: 10px;">
+                                    @*<img src="@Model.liStudent.FirstOrDefault().PHOTO" itemprop="thumbnail" class="img-thumb" alt="@Model.liStudent.FirstOrDefault().REGISTER_NO Icon" onerror="this.onerror=null;this.src='@Url.Content("~/Content/assets/img/transparent/e-user.jpg")';" />*@
+
+                                </div>
+                            </div>
+                            <h4 style="font-size: 20px;color: #10247d;font-family: fangsong;text-align: center;font-weight: bold;">ALUMNAE ASSOCIATION</h4>
+                            <div class="Alumnae-header text-center" style="padding-top: 15px;">
+                                <div class="Alumnae-header-left  text-center">
+
+                                    @if (Session[Common.SESSION_VARIABLES.PHOTO] != null && !string.IsNullOrEmpty(Session[Common.SESSION_VARIABLES.PHOTO].ToString()))
+                                    {
+                                        <img src="http://erp.sjctnc.edu.in/@Session[Common.SESSION_VARIABLES.PHOTO].ToString()" alt="" style="border: 2px solid #c94426; width: 100px; height: 110px;" />
+                                    }
+                                    else
+                                    {
+                                        <img alt="" style="border: 2px solid #c94426; width: 100px; height: 110px;" />
+                                    }
+
+                                </div>
+                                <div class="Alumnae-header-left  text-center">
+                                    <table>
+                                        <tr>
+                                            <th style="color: #662010;">Name</th>
+                                            <th style="padding-left: 4px; padding-right: 4px; padding-bottom: 2px; color: #662010;">&nbsp;:</th>
+                                            <th style="color: #662010; text-transform: uppercase !important;">
+                                                @if (Model.liStudent[0].FIRST_NAME != null)
+                                                {
+                                                    @Model.liStudent[0].FIRST_NAME;
+                                                }
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th style="color: #662010;">Reg.No</th>
+                                            <th style="padding-left: 4px; padding-right: 4px; padding-bottom: 2px; color: #662010;">&nbsp;:</th>
+                                            <th style="text-transform: capitalize; color: #662010;">
+                                                @if (Model.liStudent[0].REGISTER_NO != null)
+                                                {
+                                                    @Model.liStudent[0].REGISTER_NO;
+                                                }
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th style="color: #662010;">Programme</th>
+                                            <th style="padding-left: 4px; padding-right: 4px; padding-bottom: 2px; color: #662010;">&nbsp;:</th>
+                                            <th style="color: #662010; white-space: nowrap;">
+                                                @if (Model.liStudent[0].PROGRAMME_NAME != null)
+                                                {
+                                                    @Model.liStudent[0].PROGRAMME_NAME;
+                                                }
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th style="color: #662010;">Batch</th>
+                                            <th style="padding-left: 4px; padding-right: 4px; padding-bottom: 2px; color: #662010;">&nbsp;:</th>
+                                            <th style="color: #662010;">
+                                                @if (Model.liStudent[0].DURATION != null)
+                                                {
+                                                    @Model.liStudent[0].DURATION;
+                                                }
+                                            </th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <p style="padding-top: 35px;font-size: 16px;font-family: ui-monospace;color: #112783;">"Let your Light shine" (Mt. 5:16)</p>
+                            </div>
+                        </div>
+
+                    </div>
+                }
+                else
+                {
+                    <div class="simple-admit-card" id="Alumnae">
+                        <div class="card-header">
+                            <img src="@sCollegeLogo" class="card-logo" alt="Logo">
+                            <div class="card-college-info">
+                                <h1 class="card-college-name">@sCollegeName</h1>
+                                <p class="card-college-addr">@sAddress</p>
+                            </div>
+                        </div>
+
+                        <div class="card-title-text">1<sup>st</sup> GRADUATION DAY - ADMIT CARD</div>
+
+                        <div class="card-main-content">
+                            <table class="card-details-table">
+                                <tr>
+                                    <td width="30%"><strong>Student Name</strong></td>
+                                    <td>: @Model.liStudent.FirstOrDefault().FIRST_NAME</td>
+                                </tr>
+                                @*<tr>
+                                    <td><strong>Register No</strong></td>
+                                    <td>: @Model.liStudent.FirstOrDefault().REGISTER_NO</td>
+                                </tr>*@
+                                <tr>
+                                    <td><strong>Roll No</strong></td>
+                                    <td>: @Model.liStudent.FirstOrDefault().ROLL_NO</td>
+                                </tr>
+                                @*<tr>
+                                    <td><strong>Date of Birth</strong></td>
+                                    <td>: @Model.liStudent.FirstOrDefault().DATE_OF_BIRTH</td>
+                                </tr>*@
+                                <tr>
+                                    <td><strong>Programme</strong></td>
+                                    <td>: MBA</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Year</strong></td>
+                                    <td>: @Model.liconvocationeligible.FirstOrDefault().YEAR_OF_PASSING</td>
+                                </tr>
+                            </table>
+
+                            <div class="card-photo-box">
+                                <img src="@Model.liStudent.FirstOrDefault().PHOTO" class="card-student-photo" onerror="this.src='@Url.Content("~/Content/assets/img/transparent/e-user.jpg")';">
+                            </div>
+                        </div>
+
+                        <div class="event-info-box">
+                            <div class="event-title">EVENT DETAILS:</div>
+                            <div style="font-size: 15px;">
+                                <strong>@(Model.liconvocationeligible.FirstOrDefault().CONVOCATION_NO)<sup>st</sup> Graduation Day</strong><br />
+                                <strong>Date:</strong> @Model.liconvocationeligible.FirstOrDefault().CONVOCATION_DATE
+                            </div>
+                        </div>
+
+                        <div class="card-footer-simple">
+                            <div class="timestamp-text">
+                                Generated on: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+
+                        </div>
+                    </div>
+                }
+
+
+
+            }
+            else
+            {
+                <script>
+                    loadContent('/Alumnae/MbaConvocationRegistration');
+                </script>
+            }
+        </div>
+
+    </div>
+</div>
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/0.9.0rc1/jspdf.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script>
+    function ContentLoad() {
+
+    }
+    function printAluminiCard() {
+        var printWindow = window.open('', '_blank', 'width=1000,height=800');
+        var htmlContent = document.getElementById('Alumnae').outerHTML;
+        var bootstrapCSS = '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">';
+        var googleFonts = '<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">';
+
+        var customCSS = `
+            <style>
+                body {
+                    margin: 0;
+                    padding: 30px;
+                    background-color: #fff;
+                    font-family: 'Poppins', sans-serif;
+                }
+                .simple-admit-card {
+                    width: 100%;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    background: #fff;
+                    padding: 30px;
+                    border: 2px solid #333;
+                    color: #000;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+                .card-header {
+                    display: flex;
+                    align-items: center;
+                    border-bottom: 2px solid #000;
+                    padding-bottom: 15px;
+                    margin-bottom: 20px;
+                }
+                .card-logo { height: 90px; margin-right: 20px; }
+                .card-college-info { flex: 1; text-align: center; }
+                .card-college-name { font-size: 22px; font-weight: 700; margin: 0; text-transform: uppercase; }
+                .card-college-addr { font-size: 13px; margin: 5px 0 0; }
+                .card-title-text { text-align: center; font-size: 20px; font-weight: 600; text-decoration: underline; margin-bottom: 25px; }
+                .card-main-content { display: flex; justify-content: space-between; }
+                .card-details-table { width: 70%; border-collapse: collapse; }
+                .card-details-table td { padding: 8px 0; vertical-align: top; font-size: 15px; }
+                .card-student-photo { width: 120px; height: 150px; border: 1px solid #000; padding: 2px; object-fit: cover; }
+                .event-info-box { margin-top: 25px; border: 1px dashed #000; padding: 15px; }
+                .event-title { font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+                .card-footer-simple { margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
+                .signature-line { border-top: 1px solid #000; width: 220px; padding-top: 5px; font-weight: 600; font-size: 14px; text-align: center; }
+                .timestamp-text { font-size: 11px; color: #666; }
+
+                @@media print {
+                    body { padding: 0; }
+                    .simple-admit-card { border: 2px solid #000 !important; }
+                }
+            </style>
+        `;
+
+        printWindow.document.open();
+        printWindow.document.write('<html><head><title>Convocation Admit Card</title>' + bootstrapCSS + googleFonts + customCSS + '</head><body>' + htmlContent + '</body></html>');
+        printWindow.document.close();
+
+        swal({
+            title: "Preparing Admit Card",
+            text: "Generating your professional Convocation Admit Card...",
+            icon: "info",
+            buttons: false,
+            closeOnClickOutside: false,
+            closeOnEsc: false
+        });
+
+        setTimeout(function () {
+            printWindow.print();
+            swal.close();
+        }, 1500);
+    }
+</script>
+
+
+

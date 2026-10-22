@@ -1,0 +1,347 @@
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "Arrear Exam Registration Receipt";
+    Layout = null; // Loaded dynamically via SPA container
+}
+
+<!-- Google Fonts and FontAwesome -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<style>
+    /* Modern Dashboard Styling */
+    .student-receipts-container {
+        padding: 20px 0;
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Premium Banner */
+    .profile-banner {
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        border-radius: 16px;
+        padding: 30px;
+        color: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+        border: none;
+    }
+
+    .profile-banner::after {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        bottom: -100px;
+        right: -50px;
+        pointer-events: none;
+    }
+
+    .profile-avatar {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 600;
+        margin-right: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(10px);
+    }
+
+    .profile-details h2 {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 0 5px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .profile-details p {
+        font-size: 15px;
+        margin: 0;
+        opacity: 0.85;
+        font-weight: 400;
+    }
+
+    .profile-meta-item {
+        display: inline-block;
+        margin-right: 25px;
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 6px 12px;
+        border-radius: 30px;
+        margin-top: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .profile-meta-item i {
+        margin-right: 6px;
+        color: #00c6ff;
+    }
+
+    /* Modern Glass Panel */
+    .receipts-panel {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        margin-bottom: 25px;
+    }
+
+    .panel-heading-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-top: 0;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        letter-spacing: -0.5px;
+    }
+
+    .panel-heading-title i {
+        margin-right: 10px;
+        color: #0072ff;
+        background: rgba(0, 114, 255, 0.1);
+        padding: 10px;
+        border-radius: 12px;
+        font-size: 18px;
+    }
+
+    /* Receipt Table Customizations */
+    .custom-receipts-table {
+        width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0 12px !important;
+        margin-top: 10px;
+    }
+
+    .custom-receipts-table th {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        font-size: 12px !important;
+        letter-spacing: 0.5px !important;
+        padding: 16px !important;
+        border: none !important;
+    }
+
+    .custom-receipts-table tbody tr {
+        background: #ffffff !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+        transition: all 0.25s ease;
+        border-radius: 12px !important;
+    }
+
+    .custom-receipts-table tbody tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06) !important;
+        background: #fdfdfd !important;
+    }
+
+    .custom-receipts-table td {
+        padding: 18px 16px !important;
+        border-top: 1px solid #f1f5f9 !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        font-size: 14px !important;
+        color: #334155 !important;
+    }
+
+    .custom-receipts-table td:first-child {
+        border-left: 1px solid #f1f5f9 !important;
+        border-top-left-radius: 12px !important;
+        border-bottom-left-radius: 12px !important;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    .custom-receipts-table td:last-child {
+        border-right: 1px solid #f1f5f9 !important;
+        border-top-right-radius: 12px !important;
+        border-bottom-right-radius: 12px !important;
+    }
+
+    /* Paid Badge */
+    .badge-paid {
+        background: rgba(16, 185, 129, 0.1) !important;
+        color: #10b981 !important;
+        padding: 6px 12px !important;
+        border-radius: 30px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        display: inline-block !important;
+        border: 1px solid rgba(16, 185, 129, 0.2) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Eye Success Button */
+    .btn-view-receipt {
+        background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 13px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(0, 114, 255, 0.2) !important;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .btn-view-receipt i {
+        margin-right: 6px;
+        font-size: 14px;
+    }
+
+    .btn-view-receipt:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 20px rgba(0, 114, 255, 0.35) !important;
+        opacity: 0.95 !important;
+    }
+
+    .btn-view-receipt:active {
+        transform: translateY(1px) !important;
+    }
+
+    /* Icon check animated wrapper */
+    .success-check-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        background: rgba(16, 185, 129, 0.1);
+        border-radius: 50%;
+        color: #10b981;
+        font-size: 14px;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+</style>
+
+<div class="content" id="content">
+    <div class="student-receipts-container">
+        <div class="container-fluid">
+        <!-- 2. Receipts Table Panel -->
+        <div class="receipts-panel">
+            <div class="panel-heading-title">
+                <i class="fa fa-file-text"></i> Arrear Exam Receipts Grid
+            </div>
+
+            <div class="table-responsive">
+                <table id="arrearReceiptsTable" class="table custom-receipts-table">
+                    <thead>
+                        <tr>
+                            <th width="80px">#</th>
+                            <th>Frequency</th>
+                            <th>Amount</th>
+                            <th width="120px" class="text-center">Status</th>
+                            <th width="180px" class="text-center">Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.liFeeTransaction != null && Model.liFeeTransaction.Count > 0)
+                        {
+                            int index = 0;
+                            foreach (var item in Model.liFeeTransaction)
+                            {
+                                index++;
+                                <tr>
+                                    <td>@index</td>
+                                    <td>
+                                        <strong>Arrear Exam Fee</strong><br />
+                                        <small class="text-muted">Receipt No: @item.RECEIPT_NO | Date: @item.PAYMENT_DATE</small>
+                                    </td>
+                                    <td>
+                                        <strong style="color: #0f172a; font-size: 15px;">&#8377; @item.COLLECTED</strong><br />
+                                        <small class="text-muted">Mode: @item.PAYMENT_MODE</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge-paid">Paid</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-view-receipt btn-sm view-receipt-btn" data-transaction-id="@item.TRANSACTION_ID">
+                                            <i class="fa fa-eye"></i> View Receipt
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center" style="padding: 40px !important;">
+                                    <div style="font-size: 40px; color: #cbd5e1; margin-bottom: 10px;">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </div>
+                                    <h4 style="color: #64748b; font-weight: 600; margin-bottom: 5px;">No Receipts Found</h4>
+                                    <p class="text-muted" style="margin: 0;">We couldn't find any paid Arrear Exam Registration receipts for your student ID.</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable for dynamic search/sorting
+        if ($('#arrearReceiptsTable tbody tr td').length > 1) {
+            $('#arrearReceiptsTable').DataTable({
+                responsive: true,
+                ordering: true,
+                searching: true,
+                paging: true,
+                info: true,
+                lengthChange: false,
+                pageLength: 10,
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search receipts...",
+                    paginate: {
+                        previous: '<i class="fa fa-angle-left"></i>',
+                        next: '<i class="fa fa-angle-right"></i>'
+                    }
+                }
+            });
+            
+            // Adjust search field styling to fit modern aesthetics
+            $('.dataTables_filter input').addClass('form-control').css({
+                'border-radius': '8px',
+                'padding': '6px 12px',
+                'border': '1px solid #cbd5e1',
+                'font-family': 'Outfit, sans-serif'
+            });
+        }
+
+        // View Receipt Click Handler
+        $('.view-receipt-btn').off('click').on('click', function(e) {
+            e.preventDefault();
+            var transactionId = $(this).data('transaction-id');
+            var studentId = '@ViewBag.StudentId';
+            var frequencyId = '26'; // Arrear Exam Frequency
+
+            var url = '/Examination/DownloadFeeReceiptPDF?sFrequencyId=' + frequencyId + '&sStudentId=' + studentId + '&sTransactionId=' + transactionId;
+            
+            // Redirect to trigger instant PDF file download
+            window.location.href = url;
+        });
+    });
+</script>

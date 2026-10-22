@@ -1,0 +1,326 @@
+﻿@model IEnumerable<CMS.ViewModel.Model.StudentCounseling>
+
+<div id="dvCounselling">
+    <div class="row">
+        <div class="form-group pull-right">
+            <a href="#Counselling-dialog" class="btn btn-sm btn-success pull-right" data-toggle="modal"><i class="fa fa-plus"></i></a>
+        </div>
+    </div>
+    @{int count = 0; }
+    <div class="table-responsive row">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>
+                        Date Of Counselling
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Duration)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Remarks)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Commands)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Batch)
+                    </th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null)
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@{count++;} @count</td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Dateofcounseling)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Duration)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Remarks)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Commands)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Batch)
+                            </td>
+                            <td>
+                                <a href="#Counselling-dialog" onclick="BindCounselling(@item.CounsellingId)" data-toggle="modal" class="fa fa-edit text-primary"></a>
+                                <a href="javascript:;" onclick="GetConfirm(@item.CounsellingId)" class="fa fa-trash text-danger"></a>
+                            </td>
+                        </tr>
+                     }
+                 }
+                 else
+                 {
+                     <tr>
+                         <td>No Data Found ...!</td>
+                     </tr>
+                 }
+
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+
+        $(document).ready(function ()
+        {
+            $("#btnEditCounseling").hide();
+            ////FormMultipleUpload.init();
+            handleDatePicker = function ()
+            {
+                "use strict";
+                $("#DateOfCounselling").datepicker({
+                    todayHighlight: true,
+                    autoclose: true,
+                    endDate: new Date(),
+                    format: "dd/mm/yyyy",
+                    orientation: "right bottom"
+                    // 'top': top,
+                    // 'left': left
+                });
+            }
+            handleDatePicker();
+
+            BindDDLBatch = function ()
+            {
+                $.ajax({
+                    url: "@Url.Action("BindCounsellingDDL", "Student")",
+                    method: "POST",
+                    datatype: "json",
+                    success: function (option)
+                    {
+                        $("#Batch").empty();
+                        $("#Batch").append('<option value="">-- select --</option>' + option);
+
+                    }, error: function (error)
+                    {
+                        alert('Internal Server Error ! ');
+                    }
+                });
+            }
+            BindDDLBatch();
+        });
+
+
+        // Delete Counselling ...
+        function GetConfirm(ID)
+        {
+            if (!confirm('Are sure to delete ?'))
+            {
+                return false;
+            } else
+            {
+                $.ajax({
+                    url:"@Url.Action("DeleteCounselling", "Student")",
+                    method:"POST",
+                    datatype:"json",
+                    data: { sCounsellingId: ID },
+                    success:function(data)
+                    {
+                        alert(data);
+                        GetCounsellingInfo();
+                    },error:function(error)
+                    {
+                        alert('Internal Server Error ! ');
+                    }
+                });
+            }
+        }
+        // Bind CounsellingInfo
+        GetCounsellingInfo=function()
+        {
+            $.ajax({
+                url:"@Url.Action("EditStuCounsellingInfo", "Student")",
+                method:"POST",
+                datatype:"json",
+                success:function(data)
+                {
+                    $("#dvCounselling").empty();
+                    $("#dvCounselling").append(data);
+                },error:function(error)
+                {
+                    alert('No Data Found ..!');
+                }
+            });
+        }
+
+        // BindCounselling
+        BindCounselling=function(ID)
+        {
+            $.ajax({
+                url:"@Url.Action("BindCounsellingInfo", "Student")",
+                method:"POST",
+                datatype:"json",
+                data: { sCounsellingId: ID },
+                success: function(data)
+                {
+                    $("#DateOfCounselling").val(data.Dateofcounseling);
+                    $("#txtDuration").val(data.Duration);
+                    $("#Batch").val(data.Batch);
+                    $("#txtRemarks").val(data.Remarks);
+                    $("#txtCommands").val(data.Commands);
+                    $("#btnEditCounseling").show();
+                    $("#btnCounseling").hide();
+                },error:function(error)
+                {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+
+        // Insert Counseling ...
+        $("#btnCounseling").on("click", function ()
+        {
+            var isValid = true;
+            if ($('#nav-tab2-8').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //gritter-info,danger,success,warning,default
+                myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+            var DateOfCounselling = $("#DateOfCounselling").val();
+            var DURATION = $("#txtDuration").val();
+            var CBATCH = $("#Batch").val();
+            var CREMARKS = $("#txtRemarks").val();
+            var COMMENTS = $("#txtCommands").val();
+            var JsonData;
+            if (JsonData == null)
+            {
+                JsonData = '{"Dateofcounseling":"' + DateOfCounselling + '","Duration":"' + DURATION + '","Batch":"' + CBATCH + '","Remarks":"' + CREMARKS + '","Commands":"' + COMMENTS + '"}';
+            }
+
+            $.ajax({
+                url:"@Url.Action("InsertCounseling", "Student")",
+                method: "POST",
+                datatype: "html",
+                data: { JsonCounselling: JsonData },
+                success:function(data)
+                {
+                    alert(data);
+                    GetCounsellingInfo();
+                },error:function(error)
+                {
+                    alert('Your record not saved .....!');
+                }
+            });
+        });
+
+        // Update Counseling ...
+        $("#btnEditCounseling").on("click", function ()
+        {
+            var isValid = true;
+            if ($('#nav-tab2-8').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //gritter-info,danger,success,warning,default
+                myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+            var DateOfCounselling = $("#DateOfCounselling").val();
+            var DURATION = $("#txtDuration").val();
+            var CBATCH = $("#Batch").val();
+            var CREMARKS = $("#txtRemarks").val();
+            var COMMENTS = $("#txtCommands").val();
+            var JsonData;
+            if (JsonData == null)
+            {
+                JsonData = '{"Dateofcounseling":"' + DateOfCounselling + '","Duration":"' + DURATION + '","Batch":"' + CBATCH + '","Remarks":"' + CREMARKS + '","Commands":"' + COMMENTS + '"}';
+            }
+
+            $.ajax({
+                url:"@Url.Action("UpdateCouselling", "Student")",
+                method: "POST",
+                datatype: "html",
+                data: { JsonCounselling: JsonData },
+                success:function(data)
+                {
+                    alert(data);
+                    GetCounsellingInfo();
+                },error:function(error)
+                {
+                    alert('Your record not saved .....!');
+                }
+            });
+        });
+    </script>
+</div>
+
+
+
+<div class="modal fade" id="Counselling-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Counselling</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Date Of Counselling</label>
+                                    <div class="col-md-9">
+                                        <div class="input-group date" id="datetimepicker1">
+                                            <input type="text" class="form-control input-sm" id="DateOfCounselling" placeholder="DateOfCounselling" data-parsley-required="true" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Duration</label>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control input-sm" id="txtDuration" placeholder="Duration" data-parsley-length="[5,20]" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Batch</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" id="ddlBatch" data-parsley-required="true">
+                                            <option>-- Select --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Remarks</label>
+                                    <div class="col-md-9">
+                                        <textarea rows="3" id="txtRemarks" placeholder="Enter Remarks" class="form-control" data-parsley-length="[5,100]" data-parsley-required="true"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Comments</label>
+                                    <div class="col-md-9">
+                                        <textarea rows="3" id="txtCommands" placeholder="Enter Comments" class="form-control" data-parsley-length="[5,200]"></textarea>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnCounseling" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" id="btnEditCounseling" class="btn btn-sm btn-primary" data-dismiss="modal">Update</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+
+            </div>
+        </div>
+    </div>
+</div>

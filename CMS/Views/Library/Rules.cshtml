@@ -1,0 +1,577 @@
+﻿@model CMS.ViewModel.ViewModel.LibraryViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "Rules";
+}
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Rules</li>
+    </ol>
+    <h1 class="page-header">List Rules Details </h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Rules Details</h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="form-group col-md-12">
+                <a class="btn btn-success pull-right form-group m-b-5" href="#Rules-dialog" data-toggle="modal"  id="Add"><i class="fa fa-plus" title="Add"> Add</i></a>
+            </div>
+
+            <div class="form-group col-md-12 table-responsive">
+                <table class="table table-hover table-bordered" id="tblLiRules">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                          
+                            <th>User Type</th>
+                            <th>Role</th>
+                            <th>Application Type</th>
+                            <th>No of books</th>
+                            <th>No of days</th>
+                            <th>No of renew days</th>
+                            <th>Per day due cost</th>
+                            <th>Revised due dates</th>
+                            <th>Revised due cost</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @if (Model.liRules != null && Model.liRules.Count > 0)
+                        {
+                            var count = 0;
+                                foreach (var item in Model.liRules)
+                                {
+                                    count = count + 1;
+                                <tr>
+                                    <td>@count</td>
+                                   
+                                   <td>@item.USER_TYPE</td>
+                                    <td>@item.ROLE</td>
+                                    <td>@item.PROGRAMME_LEVEL</td>
+                                    <td>@item.NO_OF_BOOKS</td>
+                                   <td>@item.NO_OF_DAYS</td>
+                                    <td>@item.NO_OF_RENEW_DAYS</td>
+                                    <td>@item.PER_DAY_DUE_COST</td>
+                                    <td>@item.REVISED_DUE_DATES</td>
+                                   <td>@item.REVISED_DUE_COST</td>
+                                    
+                                 
+                                    <td>
+                                        <a href="#Rules-dialog" onclick="FetchLiRuleById(@item.RULE_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+                                       
+                                            <a href="javascrip:;" onclick="GetConfirm(@item.RULE_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+                                       
+                                    </td>
+                                </tr>
+                            }
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="Rules-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit Rules</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <div class="col-md-12 form-group">
+                                        @Html.Label("User Type", htmlAttributes: new { @class = "col-md-3 control-label " })
+                                        <div class="col-md-9">
+                                            @Html.DropDownListFor(m => m.UserType, (Model.UserType != null) ? Model.UserType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.UserType, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group hidden" id="divSupRole">
+                                        @Html.Label("Role", htmlAttributes: new { @class = "col-md-3 control-label " })
+                                        <div class="col-md-9">
+                                            @Html.DropDownListFor(m => m.SupRole, (Model.SupRole != null) ? Model.SupRole : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_parsley_required = "false", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.SupRole, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 form-group hidden" id="divProgrammeLevel">
+                                        @Html.Label("Application Type", htmlAttributes: new { @class = "col-md-3 control-label " })
+                                        <div class="col-md-9">
+                                            @Html.DropDownListFor(m => m.ApplicationType, (Model.ApplicationType != null) ? Model.ApplicationType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.ApplicationType, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-3 control-label">No of books</label>
+
+                                        <div class="col-md-9">
+                                            <input type="number" id="txtNoofbooks" class="form-control" placeholder="Enter No of  Books" data-parsley-required="true" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-3 control-label">No of days</label>
+
+                                        <div class="col-md-9">
+                                            <input type="number" id="txtNoOfDays" class="form-control" placeholder="Enter No of days" data-parsley-required="true" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-3 control-label">No of renew days</label>
+
+                                        <div class="col-md-9">
+                                            <input type="number" id="txtNoOfRenewDays" class="form-control" placeholder="Enter No of renew days" data-parsley-required="true" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-3 control-label">Per day due cost</label>
+
+                                        <div class="col-md-9">
+                                            <input type="number" id="txtPerDayDueCost" class="form-control" placeholder="Enter Per day due cost" data-parsley-required="true" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-3 control-label">Revised due dates</label>
+
+                                        <div class="col-md-9">
+                                            <input type="number" id="txtRevisedDueDates" class="form-control" placeholder="Enter Revised Due Dates" data-parsley-required="true" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-3 control-label">Revised due cost</label>
+
+                                        <div class="col-md-9">
+                                            <input type="number" id="txtRevisedDueCost" class="form-control" placeholder="Enter revised  due cost" data-parsley-required="true" min="0">
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+        <input type="hidden" id="RuleId" value="" />
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+
+        var tbl=$('#tblLiRules').DataTable();
+
+
+        function FetchLiRuleById(RuleId)
+        {
+            $('#pBody').parsley().destroy();
+
+            $('#pBody').parsley().destroy();
+          
+            $('#SupRole option[value=""]').attr("selected", "selected");
+            $('#UserType option[value=""]').attr("selected", "selected");
+            $('#ApplicationType option[value=""]').attr("selected", "selected");
+
+            $('#txtNoofbooks').attr('value', '');
+            $('#txtNoOfDays').attr('value', '');
+            $('#txtPerDayDueCost').attr('value', '');
+            $('#txtNoOfRenewDays').attr('value', '');
+           
+            $('#txtRevisedDueDates').attr('value', '');
+            $('#txtRevisedDueCost').attr('value', '');
+            //$('#txtExtraBooks').attr('value', '');
+            $('#RuleId').attr('value', '');
+            //$('#ApplicationType option[value=""]').attr("selected", "selected");
+            //$('#MemberCategory').trigger("change");
+            $('.selectpicker').selectpicker('refresh');
+
+
+            if(RuleId!=null)
+            {
+                $.ajax({
+                    url: "/Library/FetchLiRuleById",
+                    type:"post",
+                    data: { sRuleId: RuleId },
+                    success:function(data)
+                    {
+                        if(data.Message!=null)  
+                        {
+                            alert(data.Message);
+                        }
+                        else {
+                            if (data.oResult[0] != null)
+                            {
+
+                                $('#UserType option[value="' + data.oResult[0].USER_TYPE + '"]').attr("selected", "selected");
+
+                                $('#UserType').trigger('change');
+
+                                $('#SupRole option[value="' + data.oResult[0].ROLE + '"]').attr("selected", "selected");
+                                $('#ApplicationType option[value="' + data.oResult[0].PROGRAMME_LEVEL + '"]').attr("selected", "selected");
+                              
+                                $('#txtNoofbooks').attr('value', data.oResult[0].NO_OF_BOOKS);
+                                $('#txtNoOfDays').attr('value', data.oResult[0].NO_OF_DAYS);
+                                $('#txtNoOfRenewDays').attr('value', data.oResult[0].NO_OF_RENEW_DAYS);
+                                $('#txtPerDayDueCost').attr('value', data.oResult[0].PER_DAY_DUE_COST);
+                                $('#txtRevisedDueDates').attr('value', data.oResult[0].REVISED_DUE_DATES);
+                                $('#txtRevisedDueCost').attr('value', data.oResult[0].REVISED_DUE_COST);
+
+                               
+                            
+                                //if(data.oResult[0].MEM_CATEGORY=="1")
+                                //{
+                                //    $('#MemberCategory').trigger("change");
+                                //    $('#ApplicationType option[value="' + data.oResult[0].APPTYPE_ID + '"]').attr("selected", "selected");
+                                //}
+
+                               
+                              
+                                //$('#txtExtraBooks').attr('value', data.oResult[0].EXTRA_BOOKS);
+                                $('#RuleId').attr('value', data.oResult[0].RULE_ID);
+                                $('.selectpicker').selectpicker('refresh');
+                            }
+
+
+                        }
+
+                    },
+                    error:function(ex)
+                    {
+                        alert(ex.Message);
+                    }
+                });
+            }
+        }
+
+        $('#btnSubmit').click(function () {
+
+            var isValid = true;
+            if ($('#pBody').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //gritter-info,danger,success,warning,default
+                //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+
+            var ruleId = $('#RuleId').val();
+            var UserType = $('#UserType').val();
+            var Role = $('#SupRole').val()!="" ? $('#SupRole').val():"0";
+            var ProgrammeLevel = $('#ApplicationType').val() != "" ? $('#ApplicationType').val() :"0";
+            var Noofbook = $('#txtNoofbooks').val();
+            var NoofDays = $('#txtNoOfDays').val();
+            var PerdayDueAmount = $('#txtPerDayDueCost').val();
+            var NoofrenewDays = $('#txtNoOfRenewDays').val();
+           
+            var NoOfRevisedDates = $('#txtRevisedDueDates').val();
+            var RevisedDuecost = $('#txtRevisedDueCost').val();
+           
+            //var Deposit = $('#txtDeposit').val();
+            //var AutoReneval;
+            //if ($('#AutoReneval').is(":checked"))
+            //{
+            //     AutoReneval = 1;
+            //}
+            //else
+            //{
+            //    AutoReneval = 0;
+            //}
+            //var ExtraBook = $('#txtExtraBooks').val();
+
+
+            var jsonData = '{"RULE_ID":"' + ruleId + '","USER_TYPE":"' + UserType + '","ROLE":"' + Role + '",'+
+                            '"PROGRAMME_LEVEL":"' + ProgrammeLevel + '","NO_OF_BOOKS":"' + Noofbook + '","NO_OF_DAYS":"' + NoofDays + '",'+
+                            '"NO_OF_RENEW_DAYS":"' + NoofrenewDays + '","PER_DAY_DUE_COST":"' + PerdayDueAmount + '",'+
+                            '"REVISED_DUE_DATES":"' + NoOfRevisedDates + '","REVISED_DUE_COST":"' + RevisedDuecost + '"}';
+
+
+              var req=  $.ajax({
+                    url: "/Library/SaveRules",
+                    type: "post",
+                    data: { sJsonData: jsonData },
+                    success: function (data) {
+
+                        if (data.ErrorCode == "200")
+                        {
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                            loadContent('/Library/Rules');
+                        }
+                        if (data.ErrorCode == "417") {
+                            swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                        }
+                        if (data.ErrorCode == "503" || data.ErrorCode == "208") {
+                            swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'info', animation: true });
+                        }
+                       
+
+
+                    },
+                    error: function (ex) {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                    }
+
+              });
+              @*req.done(function (response) {
+                  var item = @Html.Raw(Json.Encode(Model.liRules));
+                  alert(item[0].MAX_BOOKS);
+                  tbl.rows().remove().draw();
+                  for(var i=0;i<item.length;i++)
+                  { 
+                      
+                         //alert(item[i].MAX_BOOKS);
+                         var result=[];
+                         result.push(i);
+                         result.push(item[i].CATEGORY_NAME);
+                         result.push(item[i].MAX_BOOKS);
+                         result.push(item[i].LOAN_PERIOD);
+                         result.push(item[i].FINE_AMOUNT);
+                         result.push(item[i].DEPOSIT);
+                         result.push(item[i].AUTORENEVAL);
+                         result.push(item[i].EXTRA_BOOKS);
+                         result.push(item[i].EXTRA_BOOKS);
+                        
+                  }
+                  tbl.rows.add(result);
+                  tbl.draw();
+              });*@
+
+           
+        });
+
+
+
+        GetConfirm=function(RuleId)
+        {
+            if(alert("Are you sure want to delete?"))
+            {
+                return false;
+            }
+
+        var req=    $.ajax({
+                url: "/Library/DeleteLiRuleById",
+                type:"post",
+                data: { sRuleId: RuleId },
+                success:function(data)
+                {
+                    if (data.ErrorCode == "200")
+                    {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                        loadContent('/Library/Rules');
+                    }
+                    if (data.ErrorCode == "417") {
+                        swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                    }
+                   
+
+
+                },
+                error:function(ex)
+                {
+                    alert(ex.Message);
+                }
+
+
+        });
+        req.done(function (response) {
+            tbl.rows().remove().draw();
+            tbl.rows.add(response).draw();
+        });
+        }
+
+        $('#Add').click(function () {
+
+            $('#pBody').parsley().destroy();
+          
+            $('#SupRole option[value=""]').attr("selected", "selected");
+            $('#UserType option[value=""]').attr("selected", "selected");
+            $('#ApplicationType option[value=""]').attr("selected", "selected");
+
+            $('#txtNoofbooks').attr('value', '');
+            $('#txtNoOfDays').attr('value', '');
+            $('#txtPerDayDueCost').attr('value', '');
+            $('#txtNoOfRenewDays').attr('value', '');
+           
+            $('#txtRevisedDueDates').attr('value', '');
+            $('#txtRevisedDueCost').attr('value', '');
+            //$('#txtExtraBooks').attr('value', '');
+            $('#RuleId').attr('value', '');
+            //$('#ApplicationType option[value=""]').attr("selected", "selected");
+            //$('#MemberCategory').trigger("change");
+            $('.selectpicker').selectpicker('refresh');
+
+        });
+
+
+
+   
+        function refreshTable() {
+            $('#tblLiRules').each(function () {
+                dt = $(this).dataTable();
+                dt.fnDraw();
+            });
+        }
+
+
+
+</script>
+<script>
+    $('#UserType').on("change", function () {
+
+      
+        var NTS=@Common.USER_TYPE.NON_TEACHING_STAFF;
+        var TS=@Common.USER_TYPE.TEACHING_STAFF;
+        var S=@Common.USER_TYPE.STUDENT;
+        var EX=@Common.USER_TYPE.EXTERNAL_USER_FOR_LIBRARY;
+      
+
+
+        if($('#UserType').val()== NTS)
+        {
+            //role
+            
+           
+            if ($('#divSupRole').hasClass("hidden")) {
+
+                $('#divSupRole').removeClass("hidden");
+               // $('#divSupRole').find("select").show();
+                $('#divSupRole').find("select").attr('data-parsley-required',true);
+              
+            }
+            else {
+              
+            }
+
+            if ($('#divProgrammeLevel').hasClass("hidden")) {
+
+
+            }
+            else {
+                $('#divProgrammeLevel').addClass("hidden");
+                $('#divProgrammeLevel').find("select").attr('data-parsley-required',false);
+            }
+
+        }
+
+
+
+      if($('#UserType').val()== TS)
+      {
+          if ($('#divSupRole').hasClass("hidden")) {
+
+              $('#divSupRole').removeClass("hidden");
+              // $('#divSupRole').find("select").show();
+              $('#divSupRole').find("select").attr('data-parsley-required',true);
+          }
+          else {
+
+          }
+
+          if ($('#divProgrammeLevel').hasClass("hidden")) {
+
+
+          }
+          else {
+              $('#divProgrammeLevel').addClass("hidden");
+              $('#divProgrammeLevel').find("select").attr('data-parsley-required',false);
+          }
+
+      }
+        if ($('#UserType').val() == S) {
+            if ($('#divSupRole').hasClass("hidden")) {
+
+                $('#divSupRole').removeClass("hidden");
+                // $('#divSupRole').find("select").show();
+                $('#divSupRole').find("select").attr('data-parsley-required',true);
+            }
+            else {
+
+            }
+
+            if ($('#divProgrammeLevel').hasClass("hidden")) {
+
+                $('#divProgrammeLevel').removeClass("hidden");
+                // $('#divSupRole').find("select").show();
+                $('#divProgrammeLevel').find("select").attr('data-parsley-required',true);
+            }
+            else {
+
+            }
+        }
+
+        if ($('#UserType').val() == EX) {
+            if ($('#divSupRole').hasClass("hidden")) {
+
+               
+            }
+            else {
+                $('#divSupRole').addClass("hidden");
+                $('#divSupRole').find("select").attr('data-parsley-required',false);
+            }
+
+            if ($('#divProgrammeLevel').hasClass("hidden")) {
+
+               
+            }
+            else {
+                $('#divProgrammeLevel').addClass("hidden");
+                $('#divProgrammeLevel').find("select").attr('data-parsley-required',false);
+            }
+        }
+
+    });
+
+
+  
+</script>
+
+<script>
+
+
+    $('#txtAsd').on("change",function (e) {
+
+      
+        if($('#txtAsd').val())
+        {
+            $('#txtAsdFineAmount').attr("data-parsley-required", "true");
+        }
+        else {
+            $('#txtAsdFineAmount').attr("data-parsley-required", "false");
+        }
+    });
+
+</script>

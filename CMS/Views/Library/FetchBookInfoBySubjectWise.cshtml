@@ -1,0 +1,385 @@
+﻿
+@model CMS.ViewModel.ViewModel.LibraryViewModel
+@using CMS.Utility
+@{
+    Layout = null;
+    int count = 0;
+    int PrintCount = 0;
+    int ncount = 0;
+    int pncount = 0;
+}
+<style>
+    .fixTableHead {
+        height: 600px;
+    }
+
+        .fixTableHead thead th {
+            position: sticky;
+            top: 0;
+        }
+
+    th {
+        padding: 8px 15px;
+        border: 2px solid #529432;
+    }
+
+    th {
+        background: #ABDD93;
+    }
+</style>
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<div class="col-md-12 table-responsive">
+    @if (Model.liReportFields != null && Model.liReportFields.Count > 0)
+    {
+        if (Model.liCollegeDetails != null && Model.liCollegeDetails.Count > 0)
+        {
+            <div class="text-center">
+                <img src="~/Content/assets/img/hcc-img/HCCCLGLOGO.png" style="height:95px; width:70%" />
+
+                <h4>
+                    Library Report For <label id="lblReportName">Title Search List </label> &nbsp;- @ViewBag.title  <br />
+                </h4>
+                <h4>@Model.liReportFields.FirstOrDefault().SUBJECT  - @ViewBag.selectedyear</h4>
+            </div>
+        }
+        <hr />
+        <div class="form-group col-md-2 pull-right">
+            <a href="javascript:;" id="sExcel" onclick="Export()" class="btn btn-sm btn-primary pull-right"><i class="fa fa-print m-r-5"></i> Excel</a>
+        </div>
+        <div class=" col-md-1">
+            <a href="javascript:;" id="btnPrinTitletSearchReport" onclick="printDiv('PrintTitleSearchReport')" class="btn  btn-success ">Print</a>
+        </div>
+        <div class="col-md-1 ms-1">
+            <button class="btn btn-success " id="PdfPrinTitleSearchReport" onclick="downloadPDF('PrintTitleSearchReport')"> PDF</button>
+        </div>
+        <div style="page-break-after:avoid !important;page-break-inside:avoid !important;" id="divsearch">
+            <div class="fixTableHead">
+                <table border="1" id="tbllibReport8" style="white-space:nowrap;width:100%;">
+                    <thead>
+                        <tr>
+                            <th style="padding:3px;position:sticky;top:0;">#</th>
+                            @if (Model.liTotalAutherCount.FirstOrDefault().MEMBER_TYPE == "AUTHER")
+                            {
+                                <th style="padding:3px;position:sticky;top:0;">S.No Author</th>
+                                <th style="padding:3px;position:sticky;top:0;">Author</th>
+                                <th style="padding:3px;position:sticky;top:0;">Access No</th>
+                                <th style="padding:3px;position:sticky;top:0;">Book Title</th>
+                            }
+                            else
+                            {
+                                <th style="padding:3px;position:sticky;top:0;">S.No Title</th>
+                                <th style="padding:3px;position:sticky;top:0;">Book Title</th>
+                                <th style="padding:3px;position:sticky;top:0;">Access No</th>
+                                <th style="padding:3px;position:sticky;top:0;">Author</th>
+                            }
+                            <th style="padding:3px;position:sticky;top:0;">Call No</th>
+                            <th style="padding:3px;position:sticky;top:0;">Subject</th>
+                            <th style="padding:3px;position:sticky;top:0;">Publisher</th>
+                            <th style="padding:3px;position:sticky;top:0;">Price</th>
+                            <th style="padding:3px;position:sticky;top:0;">Bill No</th>
+                            <th style="padding:3px;position:sticky;top:0;">Bill Amount</th>
+                            <th style="padding:3px;position:sticky;top:0;">Book Type</th>
+
+                            <th style="padding:3px;position:sticky;top:0;">Rack No</th>
+                            <th style="padding:3px;position:sticky;top:0;">Account</th>
+                            <th style="padding:3px;position:sticky;top:0;">Ac Year</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.liReportFields)
+                        {
+                            <tr>
+                                <td style="padding:3px;width:2%">@{count++;}@count</td>
+
+                                @if (Model.liTotalAutherCount != null && Model.liTotalAutherCount.Count > 0)
+                                {
+                                    if (Model.liTotalAutherCount.FirstOrDefault().MEMBER_TYPE == "AUTHER")
+                                    {
+                                        var conditionMet = false;
+
+                                        foreach (var nitem in Model.liTotalAutherCount)
+                                        {
+                                            if (string.Equals(nitem.PERSONAL_AUTHOR1, item.PERSONAL_AUTHOR1, StringComparison.OrdinalIgnoreCase) && nitem.TOTAL_COUNT != "1")
+                                            {
+                                                <td style="padding:3px;width:5%">@{ncount++;}@ncount</td>
+                                                conditionMet = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (!conditionMet)
+                                        {
+                                            <td style="padding:3px;width:5%">@{ncount = 0;} 1</td>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        var conditionMet = false;
+
+                                        foreach (var nitem in Model.liTotalAutherCount)
+                                        {
+                                            if (string.Equals(nitem.DOC_TITLE, item.DOC_TITLE, StringComparison.OrdinalIgnoreCase) && nitem.TOTAL_COUNT != "1")
+                                            {
+                                                <td style="padding:3px;width:5%">@{ncount++;}@ncount  </td>
+                                                conditionMet = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (!conditionMet)
+                                        {
+                                            <td style="padding:3px;width:5%">@{ncount = 0;} 1</td>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    <td style="padding:3px;width:5%"> 1</td>
+                                }
+                                @if (Model.liTotalAutherCount.FirstOrDefault().MEMBER_TYPE == "AUTHER")
+                                {
+                                    <td style="padding:3px;width:5%">@item.PERSONAL_AUTHOR1</td>
+                                    <td style="padding:3px;width:5%">@item.ACCESS_NO</td>
+                                    <td style="padding:3px;width:auto">@item.DOC_TITLE</td>
+                                }
+                                else
+                                {
+                                    <td style="padding:3px;width:auto">@item.DOC_TITLE</td>
+                                    <td style="padding:3px;width:5%">@item.ACCESS_NO</td>
+                                    <td style="padding:3px;width:5%">@item.PERSONAL_AUTHOR1</td>
+                                }
+                                <td style="padding:3px;width:auto">@item.CALL_NO</td>
+                                <td style="padding:3px;width:3%">@item.SUBJECT</td>
+                                <td style="padding:3px;width:5%">@item.NAME_OF_PUBLISHER</td>
+                                <td style="padding:3px;width:3%">@item.PRICE</td>
+                                <td style="padding:3px;width:3%">@item.BILL_NO</td>
+                                <td style="padding:3px;width:3%">@item.BILL_AMOUNT</td>
+                                <td style="padding:3px;width:8%">@item.STATUS_NAME</td>
+                                <td style="padding:3px;width:8%">@item.RACK_NO</td>
+                                <td style="padding:3px;width:8%">@item.ACCOUNT_NAME</td>
+                                <td style="padding:3px;width:8%">@item.AC_YEAR</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <hr />
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger">No Record(s) Found !</div>
+    }
+</div>
+<div class="col-md-12 hidden" id="PrintTitleSearchReport" style="page-break-after:avoid !important;page-break-inside:avoid !important;">
+    @if (Model.liReportFields != null && Model.liReportFields.Count > 0)
+    {
+        <div class="col-md-12">
+            @if (Model.liCollegeDetails != null)
+            {
+                foreach (var item in Model.liCollegeDetails)
+                {
+                    <div class="text-center">
+                        <img src="~/Content/assets/img/hcc-img/HCCCLGLOGO.png" style="height:105px; width:70%" />
+
+                        <h4>
+                            Library Report For <label id="lblReportName">Title Search List </label> &nbsp;-(@{if (Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] != null)
+                                { @Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] } })
+                        </h4>
+                        <h4>@Model.liReportFields.FirstOrDefault().SUBJECT</h4>
+                    </div>
+                }
+            }
+        </div>
+        <br /><br />
+        <div class="col-md-12">
+            <table class="table table-bordered table-responsive table-hover" id="tblSearchReport">
+                <thead>
+                    <tr>
+                        <th style="padding:3px;position:sticky;top:0;">#</th>
+                        @if (Model.liTotalAutherCount.FirstOrDefault().MEMBER_TYPE == "AUTHER")
+                        {
+                            <th style="padding:3px;position:sticky;top:0;">S.No Author</th>
+                            <th style="padding:3px;position:sticky;top:0;">Author</th>
+                            <th style="padding:3px;position:sticky;top:0;">Access No</th>
+                            <th style="padding:3px;position:sticky;top:0;">Book Title</th>
+                        }
+                        else
+                        {
+                            <th style="padding:3px;position:sticky;top:0;">S.No Title</th>
+                            <th style="padding:3px;position:sticky;top:0;">Book Title</th>
+                            <th style="padding:3px;position:sticky;top:0;">Access No</th>
+                            <th style="padding:3px;position:sticky;top:0;">Author</th>
+                        }
+                        <th style="padding:3px;position:sticky;top:0;">Call No</th>
+                        <th style="padding:3px;position:sticky;top:0;">Subject</th>
+                        <th style="padding:3px;position:sticky;top:0;">Publisher</th>
+                        <th style="padding:3px;position:sticky;top:0;">Price</th>
+                        <th style="padding:3px;position:sticky;top:0;">Bill No</th>
+                        <th style="padding:3px;position:sticky;top:0;">Bill Amount</th>
+                        <th style="padding:3px;position:sticky;top:0;">Book Type</th>
+                        <th style="padding:3px;position:sticky;top:0;">Account</th>
+                        <th style="padding:3px;position:sticky;top:0;">Ac Year</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.liReportFields)
+                    {
+                        <tr>
+                            <td style="padding:3px;width:2%">@{PrintCount++;}@PrintCount</td>
+                            @if (Model.liTotalAutherCount != null && Model.liTotalAutherCount.Count > 0)
+                            {
+                                if (Model.liTotalAutherCount.FirstOrDefault().MEMBER_TYPE == "AUTHER")
+                                {
+                                    var condition = false;
+
+                                    foreach (var nitem in Model.liTotalAutherCount)
+                                    {
+                                        if (string.Equals(nitem.PERSONAL_AUTHOR1, item.PERSONAL_AUTHOR1, StringComparison.OrdinalIgnoreCase) && nitem.TOTAL_COUNT != "1")
+                                        {
+                                            <td style="padding:3px;width:5%">@{pncount++;}@pncount</td>
+                                            condition = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!condition)
+                                    {
+                                        <td style="padding:3px;width:5%">@{pncount = 0;} 1</td>
+                                    }
+                                }
+                                else
+                                {
+                                    var condition = false;
+
+                                    foreach (var nitem in Model.liTotalAutherCount)
+                                    {
+                                        if (string.Equals(nitem.DOC_TITLE, item.DOC_TITLE, StringComparison.OrdinalIgnoreCase) && nitem.TOTAL_COUNT != "1")
+                                        {
+                                            <td style="padding:3px;width:5%">@{pncount++;}@pncount</td>
+                                            condition = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!condition)
+                                    {
+                                        <td style="padding:3px;width:5%">@{pncount = 0;} 1</td>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <td style="padding:3px;width:5%"> 1</td>
+                            }
+                            @if (Model.liTotalAutherCount.FirstOrDefault().MEMBER_TYPE == "AUTHER")
+                            {
+                                <td style="padding:3px;width:5%">@item.PERSONAL_AUTHOR1</td>
+                                <td style="padding:3px;width:5%">@item.ACCESS_NO</td>
+                                <td style="padding:3px;width:auto">@item.DOC_TITLE</td>
+                            }
+                            else
+                            {
+                                <td style="padding:3px;width:auto">@item.DOC_TITLE</td>
+                                <td style="padding:3px;width:5%">@item.ACCESS_NO</td>
+                                <td style="padding:3px;width:5%">@item.PERSONAL_AUTHOR1</td>
+                            }
+                            <td style="padding:3px;width:auto">@item.CALL_NO</td>
+                            <td style="padding:3px;width:3%">@item.SUBJECT</td>
+                            <td style="padding:3px;width:5%">@item.NAME_OF_PUBLISHER</td>
+                            <td style="padding:3px;width:3%">@item.PRICE</td>
+                            <td style="padding:3px;width:3%">@item.BILL_NO</td>
+                            <td style="padding:3px;width:3%">@item.BILL_AMOUNT</td>
+                            <td style="padding:3px;width:8%">@item.STATUS_NAME</td>
+                            <td style="padding:3px;width:8%">@item.ACCOUNT_NAME</td>
+                            <td style="padding:3px;width:8%">@item.AC_YEAR </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+
+    function Export() {
+        var currentdate = new Date();
+        var datetime = currentdate.getDate() + "-"
+            + (currentdate.getMonth() + 1) + "-"
+            + currentdate.getFullYear() + "-"
+            + currentdate.getHours() + ":"
+            + currentdate.getMinutes() + ":"
+            + currentdate.getSeconds();
+        var title = "Title Search_" + datetime;
+        let file = new Blob([$('#divsearch').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: title + ".xls"
+        }).appendTo("body").get(0).click();
+    }
+    function printDiv(divName) {
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        loadContent('/Library/LibraryDailyReport');
+    }
+
+    function downloadPDF(divName) {
+        var element = document.getElementById(divName);
+
+        $('#PrintTitleSearchReport').removeClass('hidden');
+        html2pdf(element, {
+            margin: 10,
+            filename: 'TitleSearchReport.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: {
+                unit: 'mm',
+                format: 'a3',
+                orientation: 'landscape',
+                putOnlyUsedFonts: true,
+                floatPrecision: 16
+            },
+            pagebreak: { avoid: '.page-break' },
+            callback: function (pdf) {
+                pdf.save();
+            }
+        });
+    }
+    $(document).ready(function () {
+        $('#PdfPrinTitleSearchReport').on('click', function () {
+
+            setTimeout(function () {
+
+                $('#PrintTitleSearchReport').addClass('hidden');
+            }, 1000);
+        });
+
+
+    });
+</script>
+
+
+
+
+
+
+
+
+
+

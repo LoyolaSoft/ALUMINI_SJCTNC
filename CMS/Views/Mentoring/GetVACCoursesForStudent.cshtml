@@ -1,0 +1,265 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+    int n = 0;
+}
+
+<input type="hidden" id="VAC_STUDENT_ID" value="@ViewBag.StudentId" />
+
+<div class="container mt-3">
+    <h4 class="text-center mb-3">
+        <b>VAC / Professional / Certification Courses</b>
+    </h4>
+
+    <div class="text-right mb-2">
+        <button type="button" class="btn btn-success btn-sm" id="btnOpenAddVAC">
+            <i class="fa fa-plus"></i> Add Course
+        </button>
+    </div>
+
+    <table class="table table-bordered table-hover" id="tblVACCourses">
+        <thead class="text-center">
+            <tr>
+                <th>S.No</th>
+                <th>Semester</th>
+                <th>Course</th>
+                <th>Duration</th>
+                <th>Institution</th>
+                <th>Outcome</th>
+                <th width="120">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liVACCourses != null && Model.liVACCourses.Any())
+            {
+                foreach (var item in Model.liVACCourses)
+                {
+                    n++;
+                    <tr>
+                        <td class="text-center">@n</td>
+                        <td class="text-center">@item.SEMESTER</td>
+                        <td>@item.COURSE_NAME</td>
+                        <td>@item.DURATION</td>
+                        <td>@item.INSTITUTION_PLATFORM</td>
+                        <td>@item.OUTCOME_CERTIFICATE</td>
+                        <td class="text-center">
+                            <button type="button"
+                                    class="btn btn-warning btn-xs edit-vac"
+                                    data-id="@item.VAC_ID"
+                                    data-sem="@item.SEMESTER"
+                                    data-course="@item.COURSE_NAME"
+                                    data-duration="@item.DURATION"
+                                    data-inst="@item.INSTITUTION_PLATFORM"
+                                    data-out="@item.OUTCOME_CERTIFICATE">
+                                <i class="fa fa-edit"></i>
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-danger btn-xs delete-vac"
+                                    data-id="@item.VAC_ID">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        No records found
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div class="modal fade" id="vacModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="vacModalTitle">Add Course</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    &times;
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="VAC_ID" />
+
+                <div class="form-group">
+                    <label>Semester <span class="text-danger">*</span></label>
+                    <select id="VAC_SEMESTER" class="form-control">
+                        <option value="">-- Select --</option>
+                        <option>I</option>
+                        <option>II</option>
+                        <option>III</option>
+                        <option>IV</option>
+                        <option>V</option>
+                        <option>VI</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Course Name <span class="text-danger">*</span></label>
+                    <input type="text" id="VAC_COURSE_NAME" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label>Duration</label>
+                    <input type="text" id="VAC_DURATION" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label>Institution / Platform</label>
+                    <input type="text" id="VAC_INSTITUTION_PLATFORM" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label>Outcome / Certificate</label>
+                    <input type="text" id="VAC_OUTCOME_CERTIFICATE" class="form-control" />
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="btnSaveVAC">
+                    Save
+                </button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+$(document).ready(function () {
+
+    // ---------------- ADD ----------------
+    $('#btnOpenAddVAC').on('click', function () {
+        $('#vacModalTitle').text('Add Course');
+        $('#VAC_ID').val('');
+        $('#VAC_SEMESTER').val('');
+        $('#VAC_COURSE_NAME').val('');
+        $('#VAC_DURATION').val('');
+        $('#VAC_INSTITUTION_PLATFORM').val('');
+        $('#VAC_OUTCOME_CERTIFICATE').val('');
+        $('#vacModal').modal('show');
+    });
+
+    // ---------------- EDIT ----------------
+    $('#tblVACCourses').on('click', '.edit-vac', function () {
+        $('#vacModalTitle').text('Edit Course');
+        $('#VAC_ID').val($(this).data('id'));
+        $('#VAC_SEMESTER').val($(this).data('sem'));
+        $('#VAC_COURSE_NAME').val($(this).data('course'));
+        $('#VAC_DURATION').val($(this).data('duration'));
+        $('#VAC_INSTITUTION_PLATFORM').val($(this).data('inst'));
+        $('#VAC_OUTCOME_CERTIFICATE').val($(this).data('out'));
+        $('#vacModal').modal('show');
+    });
+
+    // ---------------- SAVE / UPDATE ----------------
+    $('#btnSaveVAC').on('click', function () {
+
+        var data = {
+            VAC_ID: $('#VAC_ID').val(),
+            STUDENT_ID: $('#VAC_STUDENT_ID').val(),
+            SEMESTER: $('#VAC_SEMESTER').val(),
+            COURSE_NAME: $('#VAC_COURSE_NAME').val(),
+            DURATION: $('#VAC_DURATION').val(),
+            INSTITUTION_PLATFORM: $('#VAC_INSTITUTION_PLATFORM').val(),
+            OUTCOME_CERTIFICATE: $('#VAC_OUTCOME_CERTIFICATE').val()
+        };
+
+        if (!data.STUDENT_ID) {
+            swal('Error', 'Student ID missing', 'error');
+            return;
+        }
+
+        if (!data.SEMESTER || !data.COURSE_NAME) {
+            swal('Warning', 'Semester & Course Name are required', 'warning');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("SaveVACCourse","Mentoring")',
+            type: 'POST',
+            data: data, // ✅ NORMAL FORM POST for MVC binding
+            success: function (res) {
+                if (res.success) {
+                    $('#vacModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
+                    swal('Success', res.message, 'success');
+                    $('#vacModal').modal('hide');
+                    setTimeout(function () {
+                        if (typeof BindCertification === 'function') {
+                            BindCertification();
+                        } else {
+                            $('#stuCertification').click();
+                        }
+                    }, 300);
+                } else {
+                    swal('Error', res.message, 'error');
+                }
+            },
+            error: function (xhr) {
+                console.log(xhr.responseText);
+                swal('Error', 'Server error', 'error');
+            }
+        });
+    });
+
+    // ---------------- DELETE ----------------
+   $('#tblVACCourses').on('click', '.delete-vac', function () {
+
+    var id = $(this).data('id');
+
+    swal({
+        title: "Delete this course?",
+        text: "You cannot undo this!",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel",
+        closeOnConfirm: false
+    }, function (isConfirm) {
+
+        if (isConfirm) {
+            $.post('@Url.Action("DeleteVACCourse","Mentoring")',
+                { id: id },
+                function (res) {
+
+                    if (res.success) {
+                        swal("Deleted!", "Course removed successfully", "success");
+                        setTimeout(function () {
+                            if (typeof BindCertification === 'function') {
+                                BindCertification();
+                            } else {
+                                $('#stuCertification').click();
+                            }
+                        }, 300);
+                    } else {
+                        swal("Error", "Could not delete course", "error");
+                    }
+                }
+            ).fail(function () {
+                swal("Error", "Server error", "error");
+            });
+        }
+    });
+});
+
+
+});
+</script>

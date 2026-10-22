@@ -1,0 +1,280 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "ClassWiseOBEReport";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/css/jquery.jqGauges.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/morris/morris.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">OBE Report</li>
+    </ol>
+    <h1 class="page-header">OBE Report</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">OBE Report</h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="col-md-3">
+                @Html.Label("Exam", htmlAttributes: new { @class = "col-md-3 control-label " })
+                <div class="col-md-9">
+                    @Html.DropDownListFor(m => m.ExamList, (Model.ExamList != null) ? Model.ExamList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control  selectpicker", @data_live_search = "true" })
+                    @Html.ValidationMessageFor(m => m.ExamList, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-4">
+                @Html.Label("Class", htmlAttributes: new { @class = "col-md-3 control-label " })
+                <div class="col-md-9">
+                    @Html.DropDownListFor(m => m.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control  selectpicker", @data_live_search = "true" })
+                    @Html.ValidationMessageFor(m => m.ClassList, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="col-md-1">
+                <button class="btn btn-primary" id="btnget">Get</button>
+            </div>
+            <br>
+            <br><br>
+            <div class="form-group col-md-12" id="bindquestiondiv">
+             
+            </div>
+            <div class="col-md-12" id="bindcanvas" style="background-color: #fff;height:100%;width:100%">
+
+            </div>
+            <div class="col-md-12 hidden" id="printdiv">
+                <div class="col-md-1 col-md-offset-11"><button class="btn btn-success" onclick="printDiv('bindquestiondiv')">Download</button></div>
+                    
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.js" type="text/javascript" xml="space"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js"></script>
+<script src="~/Content/assets/plugins/chart-js/Chart.min.js"></script>
+<script src="~/Content/assets/plugins/morris/raphael.min.js"></script>
+<script src="~/Content/assets/plugins/morris/morris.js"></script>
+<script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap.min.js"></script>
+<script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap-world-merc-en.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $('.selectpicker').selectpicker('refresh');
+
+    $('#btnget').on('click', function () {
+        var classid = $('#ClassList').val();
+        var examid = $('#ExamList').val();
+        $.ajax({
+            url: "@Url.Action("FetchClasswiseScoreSheet", "Examination")",
+            type: "post",
+            data: { sExamId: examid, sClassId: classid },
+            success: function (data)
+            {
+                
+                $('#printdiv').removeClass('hidden');
+                $('#bindquestiondiv').empty();
+                var classdetails = '<h5><b>Class:' + data.liStudentMark[0].CLASS_NAME + '<b></h5><br><br>';
+                $('#bindquestiondiv').append(classdetails);
+                $.each(data.liOBECourese, function (i, course) {
+                    var coursetitle = '<center><h4>' + course.COURSE_TITLE + '-' + course.COURSE_CODE + '</h4></center><br><br>';
+                    var charts = '<canvas id=' + course.COURSE_ID + ' class="morris-inverse" style="height: 260px;" data-colors="#0079fd,#41c94f,#1ab394"></canvas><br><br>';
+                    $('#bindquestiondiv').append(coursetitle);
+                    $('#bindquestiondiv').append(charts);
+                    var labelarray=[];
+                    var chartdata=[];
+                    $.each(data.liStudentMark, function (i, mark)
+                    {
+                        if (course.COURSE_ID == mark.COURSE_ID)
+                        {
+                            labelarray.push(mark.QUESTION_LEVEL);
+                            chartdata.push(mark.MARK);
+                        }
+                    });
+                    
+               
+                  
+                    var $arrColors = ['#0079fd', '#26B99A', '#f8465d', '#a550dd', '#f6ac24', '#24e3f6'];
+
+                    var ctx = document.getElementById(course.COURSE_ID).getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labelarray,
+                            datasets: [{
+                                barPercentage: 0.2,
+                                label: 'Percentage',
+                                data: chartdata,
+                                backgroundColor:[
+                                    'rgb(241, 12, 40)',
+                                    'rgb(239, 158, 5)',
+                                    'rgba(81, 160, 240)',
+                                    'rgb(147, 8, 236)',
+                                    'rgb(39, 255, 0)',
+                                    'rgb(0, 55, 255)', 'rgb(241, 12, 40)'
+                                                    ],
+                                
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true,
+                                        min: 0,
+                                        max: 100
+                                    }
+                                }]
+                            },
+                            legend: {
+                                labels: {
+                                    // This more specific font property overrides the global property
+                                    fontColor: 'black'
+                                }
+                            },
+                            animation: {
+                                onComplete: function () {
+                                    var chartInstance = this.chart,
+                                    ctx = chartInstance.ctx;
+                                    ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontColor="black", Chart.defaults.global.defaultFontSize, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'bottom';
+
+                                    this.data.datasets.forEach(function (dataset, i) {
+                                        var meta = chartInstance.controller.getDatasetMeta(i);
+                                        meta.data.forEach(function (bar, index) {
+                                            var data = dataset.data[index];
+                                            ctx.fillText(data+"%", bar._model.x, bar._model.y - 5);
+                                        });
+                                    });
+                                    // set the PDF printing trigger when the animation is done
+                                    // to have this working, the phantom-pdf menu in the left must
+                                    // have the wait for printing trigger option selected
+                                    window.JSREPORT_READY_TO_START = true
+                                }
+                            }
+                        }
+                    });
+                });
+            },
+            error: function (ex) {
+                alert(ex.Message);
+            }
+        });
+    });
+
+</script>
+<script>
+
+    function printDiv(divName)
+    {
+    
+        var div = $("#bindquestiondiv")[0];
+        var rect = div.getBoundingClientRect();
+        var image;
+        var canvas = document.createElement("canvas");
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        var ctx = canvas.getContext("2d");
+        ctx.translate(-rect.left, -rect.top);
+
+        html2canvas(div, {
+            canvas: canvas,
+            height: rect.height,
+            width: rect.width,
+            onrendered: function (canvas)
+            {
+                image = canvas.toDataURL("image/jpg");
+
+                var pHtml = "<img src=" + image + " />";
+                $("#bindcanvas").append(pHtml);
+                
+                var link = document.createElement('a');
+                link.download = "OBE_Report.jpg";
+                link.href = image;
+                link.click();
+                loadContent('/Examination/ClassWiseOBEReport');
+            }
+
+        });
+        
+
+    }
+</script>
+@*<script>
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+        datasets: [{
+          label: 'apples',
+          data: [12, 19, 3, 17, 6, 3, 7],
+          backgroundColor: "rgba(153,255,51,0.4)"
+        }, {
+          label: 'oranges',
+          data: [2, 29, 5, 5, 2, 3, 10],
+          backgroundColor: "rgba(255,153,0,0.4)"
+        }]
+      },
+      options: {
+            animation: {
+                onComplete: function () {
+                    // set the PDF printing trigger when the animation is done
+                    // to have this working, the phantom-pdf menu in the left must
+                    // have the wait for printing trigger option selected
+                    window.JSREPORT_READY_TO_START = true
+                }
+            }
+        }
+    });
+     var ctx1 = document.getElementById('myChart1').getContext('2d');
+    var myChart = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+        datasets: [{
+          label: 'apples',
+          data: [12, 19, 3, 17, 6, 3, 7],
+          backgroundColor: "rgba(153,255,51,0.4)"
+        }, {
+          label: 'oranges',
+          data: [2, 29, 5, 5, 2, 3, 10],
+          backgroundColor: "rgba(255,153,0,0.4)"
+        }]
+      },
+      options: {
+            animation: {
+                onComplete: function () {
+                    // set the PDF printing trigger when the animation is done
+                    // to have this working, the phantom-pdf menu in the left must
+                    // have the wait for printing trigger option selected
+                    window.JSREPORT_READY_TO_START = true
+                }
+            }
+        }
+    });
+</script>*@    

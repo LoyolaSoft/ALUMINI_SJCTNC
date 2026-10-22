@@ -1,0 +1,122 @@
+﻿@model CMS.ViewModel.ViewModel.FeedbackViewModel
+
+@{ 
+    Layout = null;
+    string sFilePath = string.Empty;
+}
+
+<div class="form-group">
+    @{sFilePath = "/Syllabus/" + Model.Question + ".pdf"; }
+    @*<a href="@sFilePath" class="btn btn-success pull-right">View Syllabus</a>*@ 
+</div>
+<div class="form-group table-responsive">
+    <table class="table table-bordered table-hover" id="tblSyllabus">
+        <thead>
+            <tr>
+                <td width="40%">Question</td>
+                <td width="60%">Answer</td>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.QuestionList!=null && Model.QuestionList.Count>0 && Model.liOptions!=null && Model.liOptions.Count>0)
+            {
+                foreach (var item in Model.QuestionList)
+                {
+                    var liOptions = Model.liOptions.Where(x => x.QUESTION_ID == item.QUESTION_ID).ToList();
+                    <tr cms-QuestionId="@item.QUESTION_ID">
+                        <td>@item.QUESTION</td>
+                        <td>
+                            @if (liOptions != null && liOptions.Count > 0)
+                            {
+                                foreach (var opitem in liOptions)
+                                {
+                                    <div class="radio radio-css radio-inline">
+                                        <input type="radio" name="Radio_@item.QUESTION_ID" id="rbtn_@opitem.OPTION_ID@opitem.QUESTION_ID" onchange="EnableCommand('@item.QUESTION_ID','@opitem.OPTION_ID')" value="@opitem.OPTION_ID" data-parsley-required="true"/>
+                                        <label for="rbtn_@opitem.OPTION_ID@item.QUESTION_ID">@opitem.OPTION_NAME</label> &nbsp; &nbsp; &nbsp;
+                                    </div>
+                                    if (opitem.OPTION_ID == "15")
+                                    {
+                                        <div class="form-group col-md-12 hidden" id="14_@item.QUESTION_ID">
+                                            <textarea rows="5" cols="20" class="form-control" data-parsley-maxlength="1000"></textarea>
+                                        </div>
+                                    }
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    <div class="col-md-12 form-group">
+        <a class="btn btn-primary" href="javascript:;" id="btnSubmit">Submit</a>
+    </div>
+</div>
+
+
+<script>
+    function EnableCommand(sQuestionId,sOptionId)
+    {
+        if (sOptionId=="14") 
+        {
+            $('#14_' + sQuestionId).removeClass('hidden');
+        } else if(sOptionId == "15")
+        {
+            $('#14_' + sQuestionId).addClass('hidden');
+        }
+    }
+
+    $('#btnSubmit').on('click', function ()
+    {
+        // Validation Check ,...
+        var isValid = true;
+        if ($('#dvSyllabusEntry').parsley().validate() !== true) isValid = false;
+        if (!isValid)
+        {
+            //gritter-info,danger,success,warning,default
+            swal({ title: "Warning !", text: 'Something went wrong ! Please check your inputs !', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+
+        var nCount = 0;
+        var sJsonData = '{liFbEvaluationSyllabus:[';
+        $('#tblSyllabus tbody tr').each(function ()
+        {
+            if ($(this).find('td input').is(":checked")) 
+            {
+                sJsonData += '{"QUESTION_ID":"' + $(this).attr('cms-QuestionId') + '","ANSWER_ID":"' + $('input[name=Radio_' + $(this).attr('cms-QuestionId') + ']:checked').attr("value") + '","COMMENTS":"' + $(this).find('td textarea').val() + '"},';
+                nCount++;
+            }
+        });
+
+        if (nCount != 0)
+        {
+            sJsonData = sJsonData.slice(0, -1);
+            sJsonData = sJsonData + "]}";
+        } else
+        {
+            swal({ title: "Warning !", text: 'Something went wrong ! Please check your inputs !', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+        $.ajax({
+            url: '@Url.Action("SaveFbSyllabusEntry", "Feedback")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sJson: sJsonData, sCourseId: $('#CourseList').val(), sFeedbackId: $('#FeedBackSettingList').val() },
+            success: function (data)
+            {
+                if (data.ErrorCode=="200") 
+                {
+                    swal({ title: "Success!", text: data.Message, showConfirmButton: false, timer: 3500, type: 'success', animation: true });
+                } else
+                {
+                    swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 2500, type: 'error', animation: true });
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 2500, type: 'error', animation: true });
+            }
+        });
+    });
+</script>

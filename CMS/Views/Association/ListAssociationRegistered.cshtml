@@ -1,0 +1,220 @@
+﻿@model CMS.ViewModel.ViewModel.AssociationViewModel
+@{
+    // ViewBag.Title = "ListAssociationRegistered";
+
+    Layout = null;
+    int count = 0;
+}
+<div class="col-md-12">
+    <a class="btn btn-success pull-right form-group m-b-5" href="#Registration-dialog" data-toggle="modal"><i class="fa fa-plus" title="Add" id="btnAdd"> Add</i></a>
+</div>
+<br />
+
+<div class="table-responsive col-md-12">
+    <table class="table table-bordered table-hover" id="tblAssociationRegistration">
+        <thead>
+            <tr>
+                <th>
+                    #
+                </th>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Roll No
+                </th>
+                <th>
+                    Class
+                </th>
+                <th>
+                    Course
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liAssociationRegistration != null)
+            {
+                foreach (var item in Model.liAssociationRegistration)
+                {
+                    <tr>
+                        <td>
+                            @{ count++;}
+                            @count
+                        </td>
+                        <td>
+                            @item.FIRST_NAME
+                        </td>
+                        <td>
+                            @item.ROLL_NO
+                        </td>
+                        <td>
+                            @item.CLASS_NAME
+                        </td>
+                        <td>
+                            @item.ASSOCIATION_GROUP
+                        </td>
+
+                        <td>
+                            <a href="#Registration-dialog" onclick="FetchRegistration(@item.REGISTRATION_ID);" data-toggle="modal"><i class="fa fa-edit text-primary" title="Update"></i></a>
+                            <a onclick="DeleteRegistration(@item.REGISTRATION_ID);"><i class="fa fa-trash text-danger" title="Delete"></i></a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="modal" id="Registration-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title">Add / Edit Student Registration</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.AcademicYearList, htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.AcademicYearList,
+                                            (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(),
+                                            "-- Select --",
+                                            new { @class = "selectpicker form-control input-sm", @data_live_search = "true", @data_parsley_required = "true", @id = "ddlacyear" })
+                                        @Html.ValidationMessageFor(model => model.AcademicYearList, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Class, htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Class, (Model.Class != null) ? Model.Class : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @data_live_search = "true", @data_parsley_required = "true" })
+                                        @Html.ValidationMessageFor(model => model.Class, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.StudentList, htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.StudentList,
+                                            (Model.StudentList != null) ? Model.StudentList : Enumerable.Empty<SelectListItem>(),
+                                            "-- Select --",
+                                            new
+                                            {
+                                                @class = "selectpicker form-control input-sm",
+                                                @data_live_search = "true",
+                                                @data_parsley_required = "true",
+                                                @id = "StudentList"
+                                            })
+                                        @Html.ValidationMessageFor(model => model.StudentList, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.AssociationGroup, htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.AssociationGroup, (Model.AssociationGroup != null) ? Model.AssociationGroup : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @data_live_search = "true", @data_parsley_required = "true", @id = "ddlgroups" })
+                                        @Html.ValidationMessageFor(model => model.AssociationGroup, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+      $('#btnSubmit').off('click').on('click', function (e) {
+        e.preventDefault();
+
+        var isValid = true;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            //gritter-info,danger,success,warning,default
+            //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+            return false;
+        }
+
+        $.ajax({
+            url: '@Url.Action("SaveAssociationRegistration", "Association")',
+            method: 'POST',
+            datatype: 'json',
+            data:
+            {
+                sAcyear: $('#ddlacyear option:selected').text(),
+                sClassId: $('#Class option:selected').val(),
+                sCourseId: $('#ddlgroups option:selected').val(),
+                sStudentId: $('#StudentList option:selected').val(),
+                //sSettingId: $('#AssociationGroup option:selected').attr("cms-setting-id"),
+                sRegistrationId: $('#txtRegistrationId').val()
+            },
+            success: function (data) {
+                if(data.ErrorCode=="200")
+                {
+                    alert(data.Message);
+                  //  loadContent('/Association/ListAssociationRegistered');
+                    $("#btnget").click();
+
+                }
+                if (data.ErrorCode == "208") {
+                    alert(data.Message);
+                }
+                if (data.ErrorCode == "417") {
+                    alert(data.Message);
+                }
+                if (data.ErrorCode == "304") {
+                    alert(data.Message);
+                }
+                if (data.ErrorCode == "503") {
+                    alert(data.Message);
+                }
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+      });
+
+     $('#Class').on('change', function () {
+        $.ajax({
+            url: '@Url.Action("FetchClassStudentByClassID", "Association")',
+            method: 'POST',
+            dataType: 'json', // Corrected typo: 'datatype' should be 'dataType'
+            async: false,
+            data: { sClassId: $('#Class').val(), sAcyear: $('#AcademicYearList option:selected').text() },
+            success: function (data) {
+                if (data.Success) {
+                    var studentList = data.StudentList;
+                    $('#StudentList').empty();
+                    $('#StudentList').append('<option value=""> -- Select -- </option>');
+                    $.each(studentList, function (index, student) {
+                        $('#StudentList').append('<option value="' + student.StudentId + '">' + student.FirstName + '</option>');
+                    });
+                    $('.selectpicker').selectpicker('refresh');
+                } else {
+                    alert(data.Message);
+                }
+            },
+            error: function (error) {
+                alert('Internal Server Error!');
+            }
+        });
+    });
+
+</script>
+@*  @Html.DropDownListFor(model => model.StudentList, (Model.StudentList != null) ? Model.StudentList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control input-sm", @data_live_search = "true", @data_parsley_required = "true" })
+    @Html.ValidationMessageFor(model => model.StudentList, "", new { @class = "text-danger" })*@

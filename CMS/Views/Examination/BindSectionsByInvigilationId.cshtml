@@ -1,0 +1,166 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a @*href="@Url.Action("Staff","Dashboard")"*@ href="javascript:;">Home</a></li>
+        <li class="active">Evaluation</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Evaluation</h1>
+    <!-- end page-header -->
+    <!-- begin row -->
+    <div class="row">
+        <!-- begin col-12 -->
+        <div class="col-md-12">
+            <!-- begin panel -->
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h4 class="panel-title">Evaluation</h4>
+                </div>
+                <div class="panel-body">
+                    <div class="form-horizontal">
+                        <div class="row">
+                            <div class="col-md-12">
+                                @if (Model.Liexamquesions != null && Model.Liexamquesions.Count > 0)
+                                {
+                                    <input type="hidden" id="invigilationid" value="@Model.Liexamquesions.FirstOrDefault().EXAM_INVIGILATION_ID">
+                                    <div class="col-md-12 form-inline"> 
+                                        <div class="col-md-2">
+                                          <a href="#" class="btn btn-success" title="Student List" onclick="Confirmation()" ><i class="fa fa-address-card" title="Student List"></i></a>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div><b> Course Code</b> @Model.Liexamquesions.FirstOrDefault().COURSE_CODE</div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div><b> Course Title</b> @Model.Liexamquesions.FirstOrDefault().COURSE_TITLE</div>
+                                        </div>
+
+                                        
+
+                                    </div>
+                                }
+                                <br /><br />
+                                <br />
+                                <div class="col-md-12">
+                                    @if(@Model.liexamsection != null && @Model.liexamsection.Count > 0)
+                                    {
+                                        foreach (var item in Model.liexamsection)
+                                        {
+                                            <div class="col-md-3">
+                                                <div class="radio radio-css radio-inline" style="padding-top: 0px !important">
+                                                    <input type="radio" class="radio-inline" id="section_@item.SECTION_ID" radio-id="RadioOption" value="@item.SECTION_ID" name="section" />
+                                                    <label for="section_@item.SECTION_ID" class="control-label">@item.SECTION_NAME</label>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+
+                                </div>
+                                <br><br>
+                                <div class="col-md-12" style="height:2px !important;background-color: #337ab7 !important"></div>
+                                <div class="col-md-12" id="bindsectionwiseanswers">
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!-- end panel -->
+        </div>
+        <!-- end col-6 -->
+    </div>
+    <!-- end row -->
+</div>
+
+<input type="hidden" id="evaluationid" value="@Model.sEvaluationid">
+<input type="hidden" id="evaluationtype" value="@Model.sEvaluationtype">
+<!-- End Modal -->
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<script>
+
+    $('input[name=section]').on('change', function ()
+    {
+        var invigilationid = $('#invigilationid').val();
+        var evaluationid = $('#evaluationid').val();
+        var evalutiontype = $('#evaluationtype').val();
+        var sectionid = $(this).val();
+        $.ajax({
+            url: '@Url.Action("BindAnswersandSheetsBySectionandInvigilation", "Examination")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sSectionId: sectionid, sInvigilationId: invigilationid, sEvaluationtype: evalutiontype },
+            success: function (data)
+            {
+                $('#bindsectionwiseanswers').empty();
+                $('#bindsectionwiseanswers').append(data);
+            },
+            error: function (error) {
+                console.log('Internal Server Error !');
+            }
+        });
+
+
+    });
+    
+
+    function Confirmation()
+    {
+        var evaluationid = $('#evaluationid').val();
+        swal({
+            title: "Are you evaluated this student..?",
+            type: "info",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes",
+            closeOnConfirm: true
+        }, function ()
+        {
+            $.ajax({
+                url: "@Url.Action("UpdateEvaluationStatus", "Examination")",
+                type: "post",
+                data: { sEvaluationId: evaluationid },
+            success: function (data)
+            {
+                if (data.ErrorCode != "406")
+                {
+                    
+                    loadContent('/Examination/EvaluationForEvaluators');
+                } 
+            },
+            error: function (ex)
+            {
+                swal({ title: "Error..!!", text: "Internal Server Error..!!", showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+            }
+
+
+        });
+    });
+
+    }
+</script>
+
+
+
+

@@ -1,0 +1,499 @@
+﻿@using CMS.Utility;
+@using System.Data;
+@using CMS.ViewModel.Model;
+@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    if (Session["USER_ID"] == null)
+    {
+        Response.Redirect("/Account/Index");
+    }
+
+    string sCollegeCode = string.Empty;
+    string sCollegeLogo = string.Empty;
+    string sCollegeName = string.Empty;
+}
+
+@if (Session[Common.SESSION_VARIABLES.COLLEGE_DETAILS] != null)
+{
+    var liCollegeDetails = (List<CollegeDetails>)Session[Common.SESSION_VARIABLES.COLLEGE_DETAILS];
+    sCollegeCode = liCollegeDetails.FirstOrDefault().COLLEGE_CODE;
+    sCollegeLogo = liCollegeDetails.FirstOrDefault().COLLEGE_LOGO;
+    sCollegeName = liCollegeDetails.FirstOrDefault().COLLEGE_NAME;
+}
+
+<!-- Include Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- External CSS Plugins -->
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<style>
+    /* General Styling */
+    .header-college p {
+        font-size: 14px;
+        color: #607d8b;
+        margin-bottom: 0;
+    }
+
+    .header-college h2 {
+        font-weight: 700;
+        color: #0d47a1;
+    }
+
+    #feedbackarea {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin: 20px auto;
+        /*  max-width: 900px;*/
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        border: 1px solid #e1e8ed;
+    }
+
+    /* Form Elements */
+    label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        display: inline-block;
+    }
+
+    /* Student Info Section */
+    #feedbackarea label:first-of-type,
+    #feedbackarea label:nth-of-type(2) {
+        background: #e8f4fc;
+        padding: 12px 20px;
+        border-radius: 8px;
+        border-left: 4px solid #3498db;
+        margin-bottom: 15px;
+    }
+
+    /* Questionnaire Styling */
+    #curriculumquestionlists {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 10px;
+        border: 2px dashed #bdc3c7;
+    }
+
+    /* Questions Styling - Darker Colors */
+    .question {
+        color: #1a2530; /* Much darker color */
+        font-size: 1.1em;
+        font-weight: 700;
+        padding: 15px 0 10px 0;
+        display: block;
+        background: none;
+        -webkit-background-clip: unset;
+        -webkit-text-fill-color: unset;
+        line-height: 1.5;
+        border-bottom: 2px solid #e74c3c;
+        margin-bottom: 15px;
+    }
+
+    /* Radio Options Container */
+    .form-group.d-flex {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border: 1px solid #e1e8ed;
+        transition: all 0.3s ease;
+    }
+
+        .form-group.d-flex:hover {
+            background: #f1f9ff;
+            border-color: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        /* Color Pattern for Rating Options */
+        .form-group.d-flex input[type="radio"]:nth-of-type(1) + label {
+            color: #27ae60;
+        }
+        /* Strongly Agree - Green */
+        .form-group.d-flex input[type="radio"]:nth-of-type(2) + label {
+            color: #2ecc71;
+        }
+        /* Agree - Light Green */
+        .form-group.d-flex input[type="radio"]:nth-of-type(3) + label {
+            color: #f39c12;
+        }
+        /* Neutral - Orange */
+        .form-group.d-flex input[type="radio"]:nth-of-type(4) + label {
+            color: #e67e22;
+        }
+        /* Disagree - Dark Orange */
+        .form-group.d-flex input[type="radio"]:nth-of-type(5) + label {
+            color: #e74c3c;
+        }
+    /* Strongly Disagree - Red */
+
+    /* Custom Radio Buttons with matching colors */
+    input[type="radio"] {
+        margin-right: 8px;
+        transform: scale(1.2);
+        accent-color: currentColor;
+    }
+
+    /* Hover effects for radio labels */
+    .form-group.d-flex label {
+        padding: 8px 15px;
+        border-radius: 20px;
+        margin-right: 10px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+
+        .form-group.d-flex label:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            transform: scale(1.05);
+        }
+
+
+    /* Textarea Styling */
+    textarea.form-control {
+        border: 2px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: #fdfdfd;
+        margin-top: 10px;
+    }
+
+        textarea.form-control:focus {
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+            background: white;
+            outline: none;
+        }
+
+    /* Submit Button Styling */
+    #submitButton {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        border: none;
+        padding: 12px 35px;
+        font-size: 1.1em;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        margin-top: 20px;
+    }
+
+        #submitButton:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+        }
+
+        #submitButton:active {
+            transform: translateY(-1px);
+        }
+
+    /* List Item Styling */
+    li.form-group {
+        margin-bottom: 25px;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        #feedbackarea {
+            padding: 20px;
+            margin: 10px;
+        }
+
+        .form-group.d-flex {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+            .form-group.d-flex label {
+                margin-bottom: 8px;
+                display: block;
+                width: 100%;
+            }
+    }
+
+    /* Animation for form elements */
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    li.form-group {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    /* Custom scrollbar for textarea */
+    textarea::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    textarea::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    textarea::-webkit-scrollbar-thumb {
+        background: #e74c3c;
+        border-radius: 4px;
+    }
+
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #c0392b;
+        }
+</style>
+
+<div id="content" class="content">
+    <!-- Breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Convocation Registration</li>
+    </ol>
+
+    <!-- Page Header -->
+    <h1 class="page-header">Convocation Registration</h1>
+
+    <!-- Panel -->
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Convocation Registration</h4>
+        </div>
+        <div class="panel-body">
+            @if (Model.liStudent != null && Model.liStudent.Count > 0)
+            {
+                <!-- College Information -->
+                <center class="header-college">
+                    <h2>@sCollegeName</h2>
+                </center>
+
+                <!-- Feedback Form -->
+                <div id="feedbackarea">
+                    <center><h2 style="text-decoration: underline;"> Alumni Feedback on Curriculum</h2></center>
+                    <br />
+                    <label><b>Name:</b> @Model.liStudent[0].FIRST_NAME</label>&nbsp;&nbsp;&nbsp;
+                    <label style="float:right"><b>Batch:</b> @Model.liStudent[0].DURATION</label>&nbsp;&nbsp;&nbsp;
+                    <br />
+                    <label><b>Programme:</b> @Model.liStudent[0].PROGRAMME_NAME</label>&nbsp;&nbsp;&nbsp;
+                    <label style="float:right"><b>Department:</b> @Model.liStudent[0].DEPARTMENT</label>
+                    <br /><br />
+
+                    <!-- Questionnaire -->
+                    <ol id="curriculumquestionlists">
+                        @if (Model.licurriculumquestions != null)
+                        {
+                            foreach (var item in Model.licurriculumquestions)
+                            {
+                                if (item.IS_SHORT_ANSWER != "1")
+                                {
+                                    <li class="form-group">
+                                        <b style="line-height:60px;" class="question">@item.QUESTION</b><br />
+                                        <div class="form-group d-flex align-items-center">
+                                            @if (Model.liobjective != null)
+                                            {
+                                                foreach (var item2 in Model.liobjective)
+                                                {
+                                                    var NAME = item.ACF_ID + "ACF";
+                                                    <input type="radio" name="@NAME" value="@item2.OBJECTIVE_ID" data-store-question="@item.ACF_ID" data-is_shortawnser="@item.IS_SHORT_ANSWER">
+                                                    <label>@item2.OBJECTIVE_TEXT &nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                                }
+                                            }
+                                        </div>
+                                    </li>
+                                    <br />
+                                }
+                                else
+                                {
+                                    <li class="form-group">
+                                        <b class="question">@item.QUESTION</b>
+                                        <textarea class="form-control" rows="3" data-store-question="@item.ACF_ID" data-is_shortawnser="@item.IS_SHORT_ANSWER" id="Suggestions" style="max-width: 450px;"></textarea>
+                                    </li>
+                                }
+                            }
+                        }
+                    </ol>
+
+                    <!-- Submit Button -->
+                    <div class="col-12">
+                        <button id="submitButton" class="btn btn-primary pull-right">Save and Proceed</button>
+                        <br />
+                        <br />
+                    </div>
+
+                </div>
+            }
+            else
+            {
+                <script>loadContent('/Alumnae/Convocationinfo');</script>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- External JS Plugins -->
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#submitButton').click(function (e) {
+            debugger;
+            e.preventDefault();
+
+            var feedbackData = [];
+            var isValid = true;
+
+
+            $('#curriculumquestionlists input[type="radio"]').each(function () {
+                var name = $(this).attr('name');
+                if ($('input[name="' + name + '"]:checked').length === 0) {
+                    isValid = false;
+                }
+            });
+            if (!isValid) {
+                showAlert('warning', 'Please fill in all fields before submitting.');
+                return;
+            }
+            var suggestions = $("#Suggestions").val();
+            function wordCount(str) {
+                return str.trim().split(/\s+/).length;
+            }
+            //if (!suggestions || wordCount(suggestions) < 10 || suggestions.length < 80) {
+            //    showAlert('warning', 'Please provide a suggestion with at least 10 words and 80 characters!');
+            //    return;
+            //}
+            $('input[type="radio"]:checked').each(function () {
+                var questionId = $(this).data('store-question');
+                var isShortAnswer = $(this).data('is_shortawnser');
+                var answer = $(this).val();
+
+                feedbackData.push({
+                    QUESTION_ID: questionId,
+                    IS_SHORT_ANSWER: isShortAnswer,
+                    ANSWER_ID: answer,
+                    SHORT_ANSWER: 0
+                });
+            });
+
+            $('textarea').each(function () {
+                var questionId = $(this).data('store-question');
+                var isShortAnswer = $(this).data('is_shortawnser');
+                var answer = $(this).val();
+
+                feedbackData.push({
+                    QUESTION_ID: questionId,
+                    IS_SHORT_ANSWER: isShortAnswer,
+                    ANSWER_ID: 0,
+                    SHORT_ANSWER: answer
+                });
+            });
+
+            $.ajax({
+                url: '/alumnae/savealumnaefeedbackoncurriculum',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(feedbackData),
+                success: function (data) {
+                    if (data.Message === "Feedback submitted successfully!") {
+                        showAlert('success', 'Response recorded.', function () {
+                            loadContent('/Alumnae/Alumnaeprogression');
+                        });
+                    }
+                    else if (data.Message == "Session Expired..!") {
+                        showAlert('error', 'Session Expired..!', function () {
+                            loadContent('/Alumnae/Convocationinfo');
+                        });
+                    }
+                    else if (data.Message == "Record Already Exists..!") {
+                        showAlert('error', 'Record Already Exists..!', function () {
+                            loadContent('/Alumnae/Convocationinfo');
+                        });
+                    }
+                    else{
+                        showAlert('error', 'Failed to save records');
+                    }
+
+                },
+                error: function (error) {
+                    showAlert('error', 'Error submitting feedback.');
+                }
+            });
+
+
+            function showAlert(type, message, callback) {
+                const titles = {
+                    success: "Success!",
+                    error: "Error!",
+                    warning: "Warning!"
+                };
+
+                const swalOptions = {
+                    title: titles[type] || "Notification",
+                    text: message,
+                    showConfirmButton: type === "success",
+                    confirmButtonText: 'OK',
+                    animation: true,
+                    type: type
+                };
+
+                if (type !== "success") {
+                    swalOptions.timer = 1500;
+                    swalOptions.showConfirmButton = false;
+                } else {
+                    swalOptions.timer = 40000;
+                }
+                swal(swalOptions);
+                if (type !== "success") {
+                    setTimeout(() => {
+                        swal.close();
+                        if (callback) {
+                            callback();
+                        }
+                    }, swalOptions.timer);
+                } else {
+                    swal(swalOptions, function () {
+                        if (callback) {
+                            callback();
+                        }
+                    });
+                }
+            }
+
+
+        });
+    });
+    $(document).on('click', '.form-group label', function () {
+        // Find the radio just before this label
+        $(this).prev('input[type="radio"]').prop('checked', true).trigger('change');
+    });
+
+
+</script>
+

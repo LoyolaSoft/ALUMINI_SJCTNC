@@ -1,0 +1,183 @@
+﻿@model CMS.ViewModel.ViewModel.LibraryViewModel
+@{
+     Layout = "~/Views/Shared/LibraryAdminLayoutPage.cshtml";
+   // Layout = null;
+}
+
+@*<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />*@
+
+
+
+<div class="content" id="content" style="padding: 0px 0px;">
+    <ol class="breadcrumb pull-right">
+        
+        <li class="active"></li>
+    </ol>
+    <h2 class="page-header"></h2>
+    <div class="panel">
+        @*<div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title"></h4>
+        </div>*@
+        <div class="panel-body" id="panel">
+            <ul class="nav nav-pills">
+                <li class="active">
+                    <a href="#BindIssue" data-toggle="tab">
+                        <span class="visible-xs">Issue</span>
+                        <span class="hidden-xs">Issue</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#BindReturn" data-toggle="tab">
+                        <span class="visible-xs">Return</span>
+                        <span class="hidden-xs">Return</span>
+                    </a>
+                </li>
+               
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade active in" id="BindIssue">
+                    @*<h3 class="m-t-10">Book Issue/Reading</h3>*@
+                   
+                    <div class="form-group col-md-12">
+                        <div class="col-md-12 form-group">
+                            <label class="control-label col-md-1 libFont">ScanId</label>
+                            <div class="col-md-4">
+                                @Html.TextBoxFor(model => model.objLoginFields.USER_ID, new { @class = "form-control input-sm", @placeholder = "User Id", @data_parsley_required = "true" })
+                                @*<input class="form-control" data-parsley-required="true" id="txtUserId" name="USER_ID" placeholder="" type="text" value="">*@
+                            </div>
+                        </div>
+                    </div>
+                    <div id="page-loader-index" class="fade in hide"><span class="spinner"></span></div>
+                    <div class="divBind" id="divBindForIssue">
+                                 
+                        
+
+
+                    </div>
+                    </div>
+                <div class="tab-pane fade" id="BindReturn">
+                    @*<h3 class="m-t-10">Book Return</h3>*@
+                   
+                    <div class="form-group col-md-12">
+                        <div class="col-md-12 form-group">
+                            <label class="control-label col-md-1 libFont">ScanId</label>
+                            <div class="col-md-4">
+                                @Html.TextBoxFor(model => model.objLoginFields.USER_ID, new { @class = "form-control input-sm", @placeholder = "User Id", @data_parsley_required = "true" })
+                                @*<input class="form-control" data-parsley-required="true" id="txtUserId" name="USER_ID" placeholder="" type="text" value="">*@
+                            </div>
+                        </div>
+                    </div>
+                    <div id="page-loader-index" class="fade in hide"><span class="spinner"></span></div>
+                    <div class="divBind" id="divBindForReturn">
+
+                        
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@Scripts.Render("~/bundles/footerbasejs")
+@*<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>*@
+<script>
+    function ContentLoad()
+    {
+        //$('.selectpicker').selectpicker({
+        //    size: 5
+        //});
+        //$('.selectpicker').selectpicker('refresh');
+    }
+   
+
+
+    $('input[name="objLoginFields.USER_ID"]').keypress(function (e) {
+
+      
+        var BindDiv = $('.tab-pane.fade.active.in').find('.divBind');
+        var action = $('.tab-pane.fade.active.in').attr('id');
+
+        if (e.keyCode == "13") { 
+            var id = $('.tab-pane.fade.active.in').find('input[name="objLoginFields.USER_ID"]').val();
+            if (id) {
+                $.ajax({
+
+                    url: "/Library/"+action+"",
+                    type: "post",
+                    data: { sUserId: id },
+                    success: function (data) {
+                        if (data.Message != null) {
+                            swal({ title: "error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                            //loadContent('/Library/LiUserList');
+                        }
+                        else {
+
+                            BindDiv.html("");
+                            BindDiv.append(data);
+                            //$('.selectpicker').selectpicker('refresh');
+                        }
+
+                    },
+                    error: function () {
+                        if (data.Message != null)
+                        {
+                            swal({ title: "error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                        }
+                        else
+                        {
+                            swal({ title: "error !", text: "Internal Server Error!", showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                        }
+                       
+                        // loadContent('/Library/LiUserList');
+                    }
+
+                });
+            }
+            else {
+                swal({ title: "error !", text: "Please Enter Your Boid!", showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                BindDiv.html("");
+            }
+
+        }
+
+
+    });
+    
+    
+    function loadContent1(link,Div) {
+        currentUrl = link;
+        $('#page-loader-index').removeClass('fade in hide');
+        $('#page-loader-index').addClass('fade in ');
+        //alert("#" + Div + "");
+        $("#"+ Div + "").empty();
+        $("#" + Div + "").load(link, function (responseTxt, statusTxt, jqXHR) {
+            if (statusTxt == "success") {
+                $('#page-loader-index').removeClass('fade in ');
+                $('#page-loader-index').addClass('fade in hide');
+
+                ContentLoad();
+                // myAlert('sucess', 'bg-green-lighter');
+            } else {
+                alert(responseTxt);
+                $('#page-loader-index').removeClass('fade in');
+                $('#page-loader-index').addClass('fade in hide');
+            }
+            if (statusTxt == "error") {
+                alert("Error: " + jqXHR.status + " " + jqXHR.statusText);
+                $('#page-loader-index').removeClass('fade in ');
+                $('#page-loader-index').addClass('fade in hide');
+            }
+        });
+    }
+
+
+
+</script>

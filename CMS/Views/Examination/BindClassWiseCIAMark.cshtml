@@ -1,0 +1,83 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{ 
+    Layout = null;
+    var duration = ViewBag.academicYear + " - " + (Convert.ToInt64(ViewBag.academicYear) + 1);
+}
+
+@if (Model.liCIA_Total != null && Model.liCIA_Total.Count > 0)
+{
+
+    <div>
+        <div class="invoice-company text-center">
+            @Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME <br />
+            INTERNAL ASSESSMENT (CIA) - MARK SHEET <b>(@duration) </b>
+        </div>
+        <div class="invoice-from">
+
+            <address class="m-t-5 m-b-5 text-center" >
+                <strong>
+                    <label>Class Name : </label><span class="semi-bold"><b> @Model.liCourseInfo.FirstOrDefault().CLASS_NAME </b></span>
+                </strong><br />
+                
+            </address>
+        </div>
+    </div>
+
+    <div class="col-md-12">
+        <table class="table table-bordered" id="tblCIACumulative" border="1">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Roll No</th>
+                    @if (Model.liCourseInfo != null && Model.liCourseInfo.Count > 0)
+                    {
+                        foreach (var item in Model.liCourseInfo)
+                        {
+                            <th>@item.COURSE_CODE</th>
+                        }
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    //int nCount = 0;
+                    var liStudentList = Model.liCIA_Total.GroupBy(x => x.STUDENT_ID).OrderBy(x => x.FirstOrDefault().ROLL_NO).ToList();
+
+                    if (liStudentList != null && liStudentList.Count > 0)
+                    {
+                        int nCount = 0;
+                        foreach (var item in liStudentList)
+                        {
+                            <tr>
+                                <td>@{nCount++;} @nCount</td>
+                                <td>@item.FirstOrDefault().ROLL_NO</td>
+                                @{
+                                    foreach (var Courseitem in Model.liCourseInfo)
+                                    {
+                                        var liCIAMark = Model.liCIA_Total.Where(x => x.STUDENT_ID == item.FirstOrDefault().STUDENT_ID && x.COURSE_ID == Courseitem.COURSE_ROOT_ID).ToList();
+                                        if (liCIAMark != null && liCIAMark.Count > 0)
+                                        {
+                                             if (liCIAMark.FirstOrDefault().TOTAL=="-1")
+                                             {
+                                                <td>A</td>
+                                             }
+                                             else
+                                             {
+                                                 <td>@liCIAMark.FirstOrDefault().TOTAL</td>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <td>0</td>
+                                        }
+                                    }
+                                }
+                            </tr>
+                         }
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+}

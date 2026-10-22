@@ -1,0 +1,1004 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+@using CMS.Utility;
+
+@{
+    ViewBag.Title = "Calender";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/fullcalendar/fullcalendar.print.css" rel="stylesheet" media='print' />
+<link href="~/Content/assets/plugins/fullcalendar/fullcalendar.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+@*<style>
+         .modal-header {
+        padding: 50px;
+        border-bottom-color: #eee;
+        }
+        h4 {
+        display: block;
+        -webkit-margin-before: 1.33em;
+        -webkit-margin-after: 0.33em;
+        -webkit-margin-start: 5px;
+        -webkit-margin-end: 0px;
+        font-weight: bold;
+    }
+        </style>*@
+
+
+<!-- begin #content -->
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Calendar</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Calendar</h1>
+    <!-- end page-header -->
+    <!-- begin panel -->
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Calendar</h4>
+        </div>
+        <div class="panel-body p-0">
+            <div class="vertical-box">
+                <div class="vertical-box-column p-15 bg-silver width-200">
+                    <div id="external-events" class="fc-event-list">
+                        <h5 class="m-t-0 m-b-10">Draggable Events</h5>
+                        <div class="fc-event" data-color="#00acac"><div class="fc-event-icon"><i class="fa fa-circle-o fa-fw text-success"></i></div> Meeting with Commitee</div>
+                        <div class="fc-event" data-color="#348fe2"><div class="fc-event-icon"><i class="fa fa-circle-o fa-fw text-primary"></i></div> Confrence</div>
+                        <div class="fc-event" data-color="#f59c1a"><div class="fc-event-icon"><i class="fa fa-circle-o fa-fw text-warning"></i></div> Birthdays</div>
+                        <div class="fc-event" data-color="#ff5b57"><div class="fc-event-icon"><i class="fa fa-circle-o fa-fw text-danger"></i></div>Special Holi Days</div>
+                        <div class="fc-event"><div class="fc-event-icon"><i class="fa fa-circle-o fa-fw text-inverse"></i></div> Functions</div>
+                        <h5 class="m-t-20 m-b-10">Other Events</h5>
+                        <div class="fc-event" data-color="#b6c2c9"><div class="fc-event-icon"><i class="fa fa-circle-o fa-fw text-muted"></i></div> Other Event 1</div>
+                        <div class="fc-event" data-color="#b6c2c9"><div class="fc-event-icon"><i class="fa fa-circle-o fa-fw text-muted"></i></div> Other Event 2</div>
+                        <div class="fc-event" data-color="#b6c2c9"><div class="fc-event-icon"><i class="fa fa-circle-o fa-fw text-muted"></i></div> Other Event 3</div>
+                        <div class="fc-event" data-color="#b6c2c9"><div class="fc-event-icon"><i class="fa fa-circle-o fa-fw text-muted"></i></div> Other Event 4</div>
+                        <div class="fc-event" data-color="#b6c2c9"><div class="fc-event-icon"><i class="fa fa-circle-o fa-fw text-muted"></i></div> Other Event 5</div>
+                    </div>
+                    <div class="hidden" id="UserRole"></div>
+                    <div class="hidden" id="DayOrderId"></div>
+                    <div class="hidden" id="DragDate"></div>
+                    <div class="hidden" id="UserId"></div>
+                </div>
+                <div id="calendar" class="vertical-box-column p-15 calendar"></div>
+            </div>
+        </div>
+    </div>
+    <!-- end panel -->
+</div>
+
+<!-- Hidden -->
+<div class="hidden">
+    <a href="" onclick="loadContent('/Student/Calender')" id="btnCalender">Get</a>
+</div>
+<!-- Hidden-->
+<!-- end #content -->
+<script src="~/Content/assets/plugins/fullcalendar/lib/moment.min.js"></script>
+<script src="~/Content/assets/plugins/fullcalendar/fullcalendar.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/js/calendar.demo.min.js"></script>
+<script src="~/Content/assets/plugins/flot/jquery.flot.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+
+@* Ready Function *@
+<script>
+    function ContentLoad()
+    {
+
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        $('.selectpicker').selectpicker('refresh');
+
+            var events = [];
+            $("#btnEventUpdate").hide();
+            $("#btnDelete").hide();
+            handleDatePicker = function () {
+                "use strict";
+                $("#StartDate,#EndDate").datepicker({
+                    todayHighlight: true,
+                    autoclose: true,
+                    format: "dd/mm/yyyy",
+                    orientation: "right bottom"
+                    // 'top': top,
+                    // 'left': left
+                });
+            }
+            handleDatePicker();
+
+            App.init();
+            //GetCalender DayOrder....
+            GetCalender = function () {
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("GetCalender", "Student")",
+                    success: function (data) {
+                        $.each(data, function (i, v) {
+                            events.push({
+                                id: v.DAY_ID,
+                                dayorderid: v.DAY_ORDER_ID,
+                                title: v.DAY_ORDER,
+                                start: v.SYEAR + "-" + v.SMONTH + v.SDAY,
+                                end: v.EYEAR + "-" + v.EMONTH + v.EDAY,
+                                color: v.COLOR,
+                                holiday: v.IS_HOLIDAY,
+                                allDay: v.DAY_ORDER
+                            });
+                        })
+                        handleCalendarDemo(events);
+                    }, error: function (error) {
+                        alert('Falied To Get Record ...!');
+                    }
+                });
+            }
+
+            // GetCalenderEvents ...\
+            GetCalenderEvent = function () {
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("GetCalenderEvent", "Student")",
+                    success: function (data) {
+                        $.each(data, function (i, v) {
+                            if (v.EVENT_ID != '')
+                            {
+                                if (v.DAY_ORDER != '')
+                                {
+                                    events.push({
+                                        id: v.EVENT_ID,
+                                        title: v.DAY_ORDER,
+                                        start: v.SYEAR + "-" + v.SMONTH + v.SDAY,
+                                        end: v.EYEAR + "-" + v.EMONTH + v.EDAY,
+                                        color: v.COLOR,
+                                        description: v.EVENT_DESCRIPTION,
+                                        EventType: v.EVENT_TYPE,
+                                        type: "event",
+                                        allDay: true
+                                    });
+                                }
+                            } else
+                            {
+                                if (v.DAY_ORDER != '')
+                                {
+                                    events.push({
+                                        id: v.DAY_ID,
+                                        dayorderid: v.DAY_ORDER_ID,
+                                        title: v.DAY_ORDER,
+                                        start: v.SYEAR + "-" + v.SMONTH + v.SDAY,
+                                        end: v.EYEAR + "-" + v.EMONTH + v.EDAY,
+                                        color: v.COLOR,
+                                        description: v.EVENT_DESCRIPTION,
+                                        holiday: v.IS_HOLIDAY,
+                                        EventType: v.EVENT_TYPE,
+                                        type:"dayorder",
+                                        allDay: true
+                                    });
+
+                                }
+                            //alert('day_order');
+                            }
+
+                        })
+                        handleCalendarDemo(events);
+                    }, error: function (error) {
+                        alert('Falied To Get Record ...!');
+                    }
+                });
+            }
+            GetCalenderEvent();
+            FetchDepartment();
+    }
+    //$("#cbxIsHoliday").on("click", function () {
+    //    if ($('#cbxIsHoliday').attr("checked", "checked"))
+    //    {
+
+    //    $('#ReasonDiv').removeClass('hidden')
+    //}
+    //    else
+    //    {
+    //    $('#ReasonDiv').addClass('hidden')
+    //    }
+    //})
+</script>
+
+@* Calender Script *@
+<script>
+    // For flag updates
+    var IsFlag = 0;
+
+
+
+        // FEtchDepartment ..
+        function FetchDepartment()
+        {
+            $.ajax({
+                url:"@Url.Action("FetchDepartment","Student")",
+                success: function (option)
+                {
+                    $("#Department").empty();
+                    $("#Department").append('<option value="0"> -- Select -- </option>' + option);
+                },error:function(error)
+                {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+
+
+        var Title = null;
+        var StartDate = null;
+        var EndDate = null;
+        var JsonData = null;
+        var blue = "#007aff",
+        blueLight = "#409bff",
+        blueDark = "#005bbf",
+        aqua = "#5AC8FA",
+        aquaLight = "#83d6fb",
+        aquaDark = "#4396bb",
+        green = "#4CD964",
+        greenLight = "#79e38b",
+        greenDark = "#39a34b",
+        orange = "#FF9500",
+        orangeLight = "#ffb040",
+        orangeDark = "#bf7000",
+        dark = "#222222",
+        grey = "#bbbbbb",
+        purple = "#5856D6",
+        purpleLight = "#8280e0",
+        purpleDark = "#4240a0",
+        red = "#FF3B30";
+
+        handleCalendarDemo = function (events) {
+            $("#external-events .fc-event").each(function () {
+                $(this).data("event", {
+                    title: $.trim($(this).text()), stick: !0, color: $(this).attr("data-color") ? $(this).attr("data-color") : ""
+                }),
+               $(this).draggable({
+                   zIndex: 999, revert: !0, revertDuration: 0,
+               })
+            });
+            var e = new Date,
+            t = e.getFullYear(),
+            r = e.getMonth() + 1;
+            r = 10 > r ? "0" + r : r,
+            $("#calendar").fullCalendar({
+                header: {
+                    left: "month,agendaWeek,agendaDay", center: "title", right: "prev,today,next "
+                }
+                , droppable: !0, drop: function (date) {
+                    //$(this).draggable
+                    $("#DragDate").val(convert(date));
+                    //alert(date);
+                }, eventReceive: function (event) {
+                    var DragDate = $("#DragDate").val();
+                    var Json = null;
+                    Json = '{"EVENT_TITLE":"' + event.title + '","COLOR":"' + event.color + '","StartDate":"' + DragDate + '"}';
+                    // DragExternalEvent(Json)
+                }
+                , selectable: !0, selectHelper: !0, select: function (e, t) {
+
+                    var r, a;
+                    //alert(convert(e) + '-' + convert(t));
+                    $(".StartDate").val(convert(e));
+                    $(".EndDate").val(convert(t));
+                    $("#btnEventUpdate").hide();
+                    $("#btnSubmitEvent").show();
+                    $('#Event-dialog').modal('show');
+
+                    if ($('#IsVerify').hide())
+                        $('#IsVerify').show();
+                    $('#DayorderFields').hide();
+                    $('#EventFields').hide();
+                    if($('#cbxIsHoliday').attr("checked", "checked"))
+                        $('#cbxIsHoliday').removeAttr("checked");
+
+                    //for adding day order
+                    DayIdByDayOrderDateandDayOrderEndDate(convert(e), convert(t));
+                    $('#dayOrderDate').attr('value', convert(e));
+                    $('#dayOrderEndDate').attr('value', convert(t));
+
+                    //AddEvents(a,e,t);
+                }
+                , editable: !0, eventLimit: !0, events, eventDrop: function (event) {
+
+                    if (event.type == "dayorder")
+                    {
+
+                        var Data =
+                        {
+                            dayOrder: event.dayorderid,
+                            isHoliday: '0',
+                            startDate: event.start.format('DD/MM/YYYY'),
+                            endDate: event.end.format('DD/MM/YYYY'),
+                            dayId: event.id,
+                            type:"0"
+                            //  title: event.title,
+
+                            //color: event.color
+                        }
+                        GetDayIdForDayOrderUpdate(Data);
+
+                    }
+                    else
+                    {
+                        var data =
+                        {
+                            id: event.id,
+                            title: event.title,
+                            start: event.start.format('DD/MM/YYYY'),
+                            end: event.end.format('DD/MM/YYYY'),
+                            color: event.color
+                        }
+
+                        UpdateEvent(data);
+                    }
+
+
+                }, eventClick: function (calEvent, jsEvent, view) {
+                    //FetchCalenderByID(calEvent.id);
+                    $(".StartDate").val(convert(calEvent.start));
+                    $(".EndDate").val(convert(calEvent.end));
+                    $("#EventTitle").val(calEvent.title);
+                    $("#btnEventUpdate").show();
+                    $("#btnSubmitEvent").hide();
+                    $('#IsVerify').hide();
+                    // this is for updating events
+                    if (calEvent.color == "ORANGE")
+                    {
+                        // for events updating and inserting
+                        //IsFlag = 0;
+
+                        //$("#eventTitle span").text(calEvent.title);
+                        //$('#Event-dialog').modal('show');
+                        ////$('#IsHoliday').hide();
+
+                        //if ($('#DayorderFields').show())
+                        //    $('#DayorderFields').hide();
+
+                        //if($('#EventFields').hide())
+                        //    $('#EventFields').show();
+                    }
+                    // this is for updating day order
+                    if (calEvent.color == "GRAY")
+                    {
+                        // for dayorder updating and inserting
+                        IsFlag = 1;
+
+                        $('#dayOrderDate').attr('value', calEvent.start.format('DD/MM/YYYY'));
+                        $('#dayOrderEndDate').attr('value', calEvent.end.format('DD/MM/YYYY'));
+                        $('#dayId').attr('value', calEvent.id);
+
+                        $('#cbxIsHoliday').removeAttr("checked");
+
+                        $('#ddlDayOrderList option[value=' + calEvent.dayorderid + ']').attr('selected', 'selected');
+                        $('.selectpicker').selectpicker('refresh');
+
+
+                        if(calEvent.holiday =="1")
+                        {
+                            $('#cbxIsHoliday').attr("checked", "checked");
+                        }
+
+                        if ($('#IsHoliday').hide())
+                            $('#IsHoliday').show();
+
+                        $('#Event-dialog').modal('show');
+
+                        if ($('#DayorderFields').hide())
+                            $('#DayorderFields').show();
+
+                        $('#EventFields').hide();
+
+                    }
+                }//, eventResizeStop: function (event, view) {
+                //    alert(view.end);
+                //}, eventRender: function (event, element) {
+
+                //    //if (event.rendering == 'background') {
+                //    //    element.append(event.title);
+                //    //}
+                //}
+            })
+
+        }
+        // Convert DateFormat ..
+        function convert(str) {
+            var date = new Date(str),
+                mnth = ("0" + (date.getMonth() + 1)).slice(-2),
+                day = ("0" + date.getDate()).slice(-2);
+            return [day, mnth, date.getFullYear()].join("/");
+        }
+
+        // FetcheventbyId
+        FetchCalenderByID = function (ID) {
+            alert(ID);
+            $.ajax({
+                url: "@Url.Action("FetchCalenderById", "Student")",
+                method: "POST",
+                datatype: "json",
+                data: { sCalenderId: ID },
+                success: function (data) {
+                    $("#Title").val(data.EVENT_TITLE);
+                    $("#StartDate").val(data.StartDate);
+                    $("#EndDate").val(data.EndDate);
+                    $("#Description").val(data.DESCRIPTION);
+                    $("#CalenderId").val(data.CALENDER_ID);
+                    $("#btnUpdate").show();
+                    $("#btnDelete").show();
+                    $("#btnSubmit").hide();
+                    $("#Delete").hide();
+                }, error: function (error) {
+                    alert('Felied To Fetch Record ..!');
+                }
+            });
+        }
+        // Update Event ...
+    DragExternalEvent = function (data) {
+
+            $.ajax({
+                url: "@Url.Action("UpdateEvent", "Student")",
+                method: "POST",
+                datatype: "json",
+                data: { Event: data },
+                success: function (data) {
+                    alert(data);
+                    loadContent('/Student/Calender');
+                }, error: function (error) {
+                    alert('Internal Server Error ..!');
+                }
+            });
+    }
+
+
+
+
+
+
+
+
+        // Update Event ...
+    UpdateEvent = function (data) {
+
+            var JsonData;
+            if (JsonData == null) {
+                JsonData = '{"EVENT_ID":"' + data.id + '","EVENT_NAME":"' + data.title + '","EVENT_START_DATE":"' + data.start + '","EVENT_END_DATE":"' + data.end + '","COLOR":"' + data.color + '"}';
+            }
+            //alert(JsonData);
+            $.ajax({
+                url: "@Url.Action("UpdateEvent", "Student")",
+                method: "POST",
+                datatype: "json",
+                data: { Event: JsonData },
+                success: function (data) {
+                    alert(data);
+                    loadContent('/Student/Calender');
+                }, error: function (error) {
+                    alert('internal Server Error ..!');
+                }
+            });
+    }
+
+    //function for
+    function GetDayIdForDayOrderUpdate(Data) {
+
+        if (Data.type == "0") {
+            //before getting dayId for this start date and end date update day order 0
+            if (Data.dayId != null && Data.dayId != "")
+            {
+                var JsonData;
+                if (JsonData == null) {
+                    JsonData = '{"DAY_ID":"' + Data.dayId + '","DAY_ORDER":"0","DAY_ORDER_DATE":"' + Data.startDate + '","DAY_ORDER_END_DATE":"' + Data.endDate + '","IS_HOLIDAY":"' + Data.isHoliday + '"}';
+                }
+                $.ajax({
+                    url: "@Url.Action("UpdateDayOrder", "Student")",
+                    method: "POST",
+                datatype: "json",
+                data: { Event: JsonData },
+                success: function (data) {
+                    if(data.Message!=null)
+                    {
+                        alert(data.Message);
+                    }
+                    else
+                    {
+                       // alert("success fully update dayorder 0");
+                    }
+                }, error: function (error) {
+                    alert('Internal Server Error ...!');
+                }
+            });
+
+            }
+
+
+            if (Data.dayId != null && Data.dayId != "") {
+                $.ajax({
+
+                    url: "@Url.Action("FetchDayIdByDayOrderDate", "Student")",
+                    method: "POST",
+                    datatype: "json",
+                    data: { sDayOrderDate: Data.startDate, sdayOrderEndDate: Data.endDate },
+                    success: function (data) {
+                        if (data.Message != null) {
+                            alert(data.Message);
+                        }
+                        else {
+
+                            $('#dayId').attr('value', data.sResult);
+                            Data.dayId = $('#dayId').val();
+
+
+                            if (Data.dayId != null && Data.dayId != "" && Data.dayId != "0") {
+                                UpdateDayOrder(Data);
+                            }
+                            //return data.sResult;
+                        }
+                    },
+                    error: function (error) {
+                        alert("Internal Server Error ...!");
+                    }
+                });
+            }
+        }
+    }
+
+    //update dayorder
+    function UpdateDayOrder(data)
+    {
+        if(data.dayId!=null && data.dayId!="" && data.dayId!="0")
+        {
+            var JsonData;
+            if (JsonData == null) {
+                JsonData = '{"DAY_ID":"' + data.dayId + '","DAY_ORDER":"' + data.dayOrder + '","DAY_ORDER_DATE":"' + data.startDate + '","DAY_ORDER_END_DATE":"' + data.endDate + '","IS_HOLIDAY":"' + data.isHoliday + '","EVENT":"' + data.Event + '"}';
+            }
+            $.ajax({
+                url: "@Url.Action("UpdateDayOrder", "Student")",
+                method: "POST",
+                datatype: "json",
+                data: { Event: JsonData },
+                success: function (data)
+                {
+                    alert(data);
+                    loadContent('/Student/Calender');
+                    $('.modal-backdrop').removeClass('modal-backdrop');
+                    $('#Event-dialog').modal();
+                    $('#Event-dialog').modal('show');
+                    $('#Delete').click();
+                }, error: function (error)
+                {
+                    alert('Internal Server Error ...!');
+                }
+            });
+        }
+    }
+
+
+        // Update Event ...
+    $("#btnEventUpdate").on("click", function () {
+
+        if (IsFlag == 1) {
+            var Data =
+                       {
+                           startDate : $('#dayOrderDate').val(),
+                           endDate : $('#dayOrderEndDate').val(),
+                           dayId : $('#dayId').val(),
+                           dayOrder : $('#ddlDayOrderList').val(),
+                           isHoliday : $('#cbxIsHoliday').attr('checked') ? 1 : 0
+                       }
+            UpdateDayOrder(Data);
+
+
+        }
+        else {
+            var Title = $("#EventTitle").val();
+            var StartDate = $("#StartDate").val();
+            var EndDate = $("#EndDate").val();
+            var Description = $("#Description").val();
+            var EventReport = $("#EventReport").val();
+            var Department = $("#Department").val();
+            var VisibleType = $("#VisibleType").val();
+            var AccessType = $("#AccessType").val();
+            var EventBudget = $("#EventBudget").val();
+            var AmountSpend = $("#AmountSpend").val();
+            var HoliDayType = $("#HoliDayType").val();
+            var EventParticipation = $("#EventParticipation").val();
+            var Color = $("#color option:selected").text();
+            var JsonData;
+            if (JsonData == null) {
+                JsonData = '{"CALENDER_ID":"' + CalenderId + '","EVENT_TITLE":"' + Title + '","StartDate":"' + StartDate + '","EndDate":"' + EndDate + '","DESCRIPTION":"' + Description + '","COLOR":"' + Color + '"}';
+            }
+            $.ajax({
+                url: "@Url.Action("UpdateEvent", "Student")",
+                method: "POST",
+                datatype: "json",
+                data: { Event: JsonData },
+                success: function (data) {
+                    alert(data);
+                    loadContent('/Student/Calender');
+                }, error: function (error) {
+                    alert('Internal Server Error ...!');
+                }
+            });
+        }
+
+        });
+        // Add Event .....
+    $("#btnSubmitEvent").on("click", function () {
+
+        if (IsFlag == 1)
+        {
+            var Data =
+                      {
+                          startDate: $('#dayOrderDate').val(),
+                          endDate: $('#dayOrderEndDate').val(),
+                          dayId: $('#dayId').val(),
+                          dayOrder: $('#ddlDayOrderList').val(),
+                           Event: $('#holidayReason').val(),
+                          isHoliday: $('#cbxIsHoliday').attr('checked') ? 1 : 0
+                      }
+            UpdateDayOrder(Data);
+
+        }
+        else {
+            var Title = $("#EventTitle").val();
+            var StartDate = $("#StartDate").val();
+            var EndDate = $("#EndDate").val();
+            var Description = $("#Description").val();
+            var EventReport = $("#EventReport").val();
+            var Department = $("#Department").val();
+            var VisibleType = $("#VisibleType").val();
+            var AccessType = $("#AccessType").val();
+            var EventBudget = $("#EventBudget").val();
+            var AmountSpend = $("#AmountSpend").val();
+            var HoliDayType = $("#HoliDayType").val();
+            var EventParticipation = $("#EventParticipation").val();
+            var Color = $("#color option:selected").text();
+            var JsonData;
+            if (JsonData == null) {
+                JsonData = '{"EVENT_PARTICIPANTS":"' + EventParticipation + '","HOLIDAY_TYPE":"' + HoliDayType + '","AMOUNT_SPENT":"' + AmountSpend + '","EVENT_BUDGET":"' + EventBudget + '","STAFF_CATEGORY":"' + AccessType + '","ACCESS_VISIBILITY":"' + VisibleType + '","EVENT_DEPARTMENT":"' + Department + '","EVENT_REPORT":"' + EventReport + '","EVENT_NAME":"' + Title + '","EVENT_START_DATE":"' + StartDate + '","EVENT_END_DATE":"' + EndDate + '","DESCRIPTION":"' + Description + '","COLOR":"' + Color + '"}';
+            }
+            $.ajax({
+                url: "@Url.Action("InsertCalender", "Student")",
+                method: "POST",
+            datatype: "json",
+            data: { CalenderJson: JsonData },
+            success: function (data) {
+                alert(data);
+                loadContent('/Student/Calender');
+
+            }, error: function (error) {
+                alert('Internal Server Error ...!');
+            }
+        });
+        }
+
+
+        });
+
+        //Delete Confirm ..
+        DeleteConfrim = function () {
+            var CalenderId = $("#CalenderId").val();
+            if (!confirm('Are You Sure To Delete ..?')) {
+                return false;
+            } else {
+                $.ajax({
+                    url: "@Url.Action("DeleteCalender", "Student")",
+                    method: "POST",
+                    datatype: "json",
+                    data: { sCalenderId: CalenderId },
+                    success: function (data) {
+                        alert(data);
+                        loadContent('/Student/Calender');
+                    }, error: function (error) {
+                        alert('Internal Server Error ..!');
+                    }
+                });
+            }
+        }
+
+
+    //Show fields for adding dayorder and event
+    $('input[name="optionsRadios"]').on("click", function () {
+
+        if($(this).val()=="dayorder")
+        {
+            // for dayorder updating and inserting
+            IsFlag = 1;
+
+            if ($('#EventFields').show()) { $('#EventFields').hide() }
+            $('#DayorderFields').show();
+            $('#ddlDayOrderList option[value=""]').attr('selected', 'selected');
+            $('.selectpicker').selectpicker('refresh');
+        }
+        if($(this).val()=="event")
+        {
+            // for events updating and inserting
+            //IsFlag = 0;
+
+            alert("Temporaly events cant be added or modified!");
+            //if ($('#DayorderFields').show()) { $('#DayorderFields').hide() }
+
+            //$('#EventFields').show();
+        }
+    });
+
+    // Fetch DayId By Day order date and day order end date
+    function DayIdByDayOrderDateandDayOrderEndDate(dayOrderDate,dayOrderEndDate)
+    {
+        if (dayOrderDate != null && dayOrderEndDate!=null)
+        {
+            $.ajax({
+
+                url: "@Url.Action("FetchDayIdByDayOrderDate", "Student")",
+                method: "POST",
+            datatype: "json",
+            data: { sDayOrderDate: dayOrderDate, sdayOrderEndDate: dayOrderEndDate },
+            success:function(data)
+            {
+                if(data.Message!=null)
+                {
+                    alert(data.Message);
+                }
+                else
+                {
+                    //alert("FROM SERVER" + data.sResult);
+                    $('#dayId').attr('value', data.sResult);
+
+                    //return data.sResult;
+                }
+            },
+            error: function (error) {
+                alert("Internal Server Error ...!");
+            }
+        });
+    }
+        else
+        {
+            alert("Please select all the fields");
+        }
+    }
+
+    $('#ddlDayOrderList').on('change', function ()
+    {
+
+        $('#cbxIsHoliday').attr('checked',false);
+        
+    });
+</script>
+
+
+
+@* Day Order Modal Dialog  *@
+
+
+
+@* Event Modal Dialog  *@
+<div class="modal fade" id="Event-dialog" tabindex="-1" role="dialog" aria-labelledby="Event-dialogLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-silver">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="eventTitle"><span>Event Title</span></h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+
+                        <div class="col-md-12" id="IsVerify">
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Select The Option</label>
+                                <div class="col-md-9">
+                                    <label class="radio">
+                                        <input type="radio" name="optionsRadios" value="dayorder" />
+                                        Day Order
+                                    </label>
+                                    <label class="radio">
+                                        <input type="radio" name="optionsRadios" value="event" />
+                                        Event
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="DayorderFields" class="col-md-12">
+                            <div class="col-md-12 form-group">
+                                @Html.Label("Day Order", htmlAttributes: new { @class = "col-md-6 control-label " })
+                                <div class="col-md-6">
+                                    @Html.DropDownListFor(m => m.DayOrderList, (Model.DayOrderList != null) ? Model.DayOrderList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @id = "ddlDayOrderList" })
+                                    @Html.ValidationMessageFor(m => m.DayOrderList, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group" id="IsHoliday">
+                                <label class="control-label col-md-6">Is Holiday</label>
+                                <div class="col-md-6">
+                                    <input type="checkbox" class="checkbox checkbox-css" id="cbxIsHoliday" />
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group" id="ReasonDiv">
+                                <label class="control-label col-md-6">Event</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="holidayReason" />
+                                </div>
+                            </div>
+                            <input type="hidden" value="" id="dayOrderDate" />
+                            <input type="hidden" value="" id="dayOrderEndDate" />
+                            <input type="hidden" value="" id="dayId" />
+                        </div>
+
+                        <div id="EventFields" class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Event Title</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control" id="EventTitle" placeholder="Enter Event Title" />
+                                </div>
+
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Date From</label>
+                                <div class="col-md-9">
+                                    <div class="input-group date" id="datetimepicker1">
+                                        <input type="text" class="form-control input-sm StartDate" id="StartDate" placeholder="SelectDate" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Date To</label>
+                                <div class="col-md-9">
+                                    <div class="input-group date" id="datetimepicker1">
+                                        <input type="text" class="form-control input-sm EndDate" id="EndDate" placeholder="SelectDate" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Description</label>
+                                <div class="col-md-9">
+                                    <textarea type="text" class="form-control input-sm" id="Description" placeholder="Enter Description" rows="3" maxlength="100"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Event Report</label>
+                                <div class="col-md-9">
+                                    <textarea type="text" class="form-control input-sm" id="EventReport" placeholder="Enter Event Report" rows="3" maxlength="100"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Department</label>
+                                <div class="col-md-9">
+                                    <select id="Department" class="form-control input-sm">
+                                        <option value="0">-- select --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Access Type</label>
+                                <div class="col-md-9">
+                                    <select id="AccessType" class="form-control input-sm">
+                                        <option value="0">-- select --</option>
+                                        <option value="1">Principal</option>
+                                        <option value="2">Vice-Principal</option>
+                                        <option value="3">Dean</option>
+                                        <option value="4">Hod</option>
+                                        <option value="5">Teaching</option>
+                                        <option value="6">Non-Teaching</option>
+                                        <option value="7">Hostel-Assistent</option>
+                                        <option value="8">Office-Administrative</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Visible Type</label>
+                                <div class="col-md-9">
+                                    <select id="VisibleType" class="form-control input-sm">
+                                        <option value="0">-- select --</option>
+                                        <option value="1">Principal</option>
+                                        <option value="2">Vice-Principal</option>
+                                        <option value="2">Hostler</option>
+                                        <option value="2">Management-Staff</option>
+                                        <option value="2">Teaching-Staff</option>
+                                        <option value="2">Non-Teaching-Staff</option>
+                                        <option value="2">Students</option>
+                                        <option value="2">Only-Community</option>
+                                        <option value="2">Visible-All (Common)</option>
+                                        <option value="2">Department</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Event Budget</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control" id="EventBudget" placeholder="Enter Total Budget" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Amount Spend</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control" id="AmountSpend" placeholder="Enter Amount Spend" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">HoliDay Type</label>
+                                <div class="col-md-9">
+                                    <select id="HoliDayType" class="form-control input-sm">
+                                        <option value="0">-- select --</option>
+                                        <option value="1">Working Day</option>
+                                        <option value="2"> Holiday </option>
+                                        <option value="3"> Working Day - Staff Only </option>
+                                        <option value="4"> Working Day - Non Teaching Staff Only </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Color</label>
+                                <div class="col-md-9">
+                                    <select id="color" class="form-control input-sm">
+                                        <option value="0">-- select --</option>
+                                        <option value="1">blue</option>
+                                        <option value="2"> orange </option>
+                                        <option value="3"> purple </option>
+                                        <option value="4"> red </option>
+                                        <option value="5"> green </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Event Participation</label>
+                                <div class="col-md-9">
+                                    <textarea type="text" class="form-control input-sm" id="EventParticipation" placeholder="Enter Event Participations" rows="3" maxlength="60"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Event Status</label>
+                                <div class="col-md-9">
+                                    <textarea type="text" class="form-control input-sm" placeholder="Enter Event Participations" rows="3" maxlength="60"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-12 form-group">
+                    <a href="javascript:;" id="btnSubmitEvent" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                    <a href="javascript:;" id="btnEventUpdate" class="btn btn-sm btn-primary" data-dismiss="modal">Update</a>
+                    <a href="javascript:;" id="btnDelete" onclick="DeleteConfrim()" class="btn btn-sm btn-danger" data-dismiss="modal">Delete</a>
+                    <a href="javascript:;" class="btn btn-sm btn-danger" id="Delete" data-dismiss="modal">Cancel</a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@*<script>
+        function ContentLoad()
+        {
+
+        }
+    </script>*@

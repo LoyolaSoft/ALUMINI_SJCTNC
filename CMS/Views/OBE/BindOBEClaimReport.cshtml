@@ -1,0 +1,151 @@
+@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    Layout = null;
+}
+
+<style>
+    .data-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .custom-table {
+        margin-bottom: 0;
+    }
+
+    .custom-table thead th {
+        background: #f8fafc;
+        color: #475569;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        padding: 15px 20px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .custom-table tbody td {
+        padding: 18px 20px;
+        vertical-align: middle;
+        color: #1e293b;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.95rem;
+    }
+
+    .custom-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+
+    .status-draft {
+        background: #fffbeb;
+        color: #b45309;
+        border: 1px solid #fef3c7;
+    }
+
+    .status-submitted {
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #dcfce7;
+    }
+
+    .staff-name {
+        font-weight: 600;
+        color: #2d3748;
+        display: block;
+    }
+
+    .course-info {
+        font-size: 0.85rem;
+        color: #718096;
+    }
+
+    .amount-cell {
+        font-weight: 700;
+        color: #2a5298;
+        font-family: 'Courier New', Courier, monospace;
+    }
+
+    .empty-state {
+        padding: 50px;
+        text-align: center;
+        background: white;
+        border-radius: 15px;
+    }
+</style>
+
+<div class="data-card">
+    @if (Model.LiOBEClaimEntry != null && Model.LiOBEClaimEntry.Count > 0)
+    {
+        <div class="table-responsive">
+            <table class="table custom-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Staff Details</th>
+                        <th>Course & Exam</th>
+                        <th>Claim Details</th>
+                        <th class="text-right">Total Amount</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int count = 1; }
+                    @foreach (var claim in Model.LiOBEClaimEntry)
+                    {
+                        <tr>
+                            <td>@count</td>
+                            <td>
+                                <span class="staff-name">@claim.STAFF_NAME</span>
+                                <small class="text-muted"><i class="fa fa-id-card-o"></i> @claim.STAFF_ID</small>
+                            </td>
+                            <td>
+                                <div><strong>@claim.COURSE_CODE</strong></div>
+                                <div class="course-info">@claim.COURSE_TITLE</div>
+                                <div class="badge badge-light" style="margin-top:5px;"><i class="fa fa-calendar-check-o"></i> @claim.EXAM_NAME</div>
+                            </td>
+                            <td>
+                                <div><small>Type:</small> <strong>@claim.REMUNERATION_TYPE</strong></div>
+                                <div><small>Questions:</small> <strong>@claim.NO_OF_QUESTION</strong></div>
+                            </td>
+                            <td class="text-right amount-cell">
+                                <span style="font-size: 1.1rem;">₹ @claim.TOTAL_CLAIM</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="status-badge @(claim.SUBMISSION_STATUS == "2" ? "status-submitted" : "status-draft")">
+                                    @(claim.SUBMISSION_STATUS == "2" ? "Final Submitted" : "Draft")
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <a href="@Url.Action("PrintClaimForm", "OBE", new { claimId = claim.CLAIM_ID })" target="_blank" class="btn btn-sm btn-outline-primary" title="Print/View PDF">
+                                    <i class="fa fa-print"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        count++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div style="font-size: 3rem; color: #cbd5e0;"><i class="fa fa-inbox"></i></div>
+            <h4 style="color: #4a5568; margin-top: 20px;">No claim records found for the selected criteria.</h4>
+            <p class="text-muted">Once staff save their claim forms, they will appear here.</p>
+        </div>
+    }
+</div>

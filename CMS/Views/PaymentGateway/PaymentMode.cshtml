@@ -1,0 +1,175 @@
+﻿@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+@{
+    ViewBag.Title = "PaymentMode";
+    Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<style>
+    .widget {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        background-color: #ffffff;
+        transition: transform 0.3s ease;
+    }
+
+        .widget:hover {
+            transform: scale(1.02);
+        }
+
+    .widget-header {
+        padding: 10px 15px;
+        border-bottom: 1px solid #ddd;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        background-color: #007bff; /* fallback in case bg-primary fails */
+    }
+
+    .widget-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .widget-body {
+        padding: 15px;
+        font-size: 14px;
+    }
+
+    .widget-separator {
+        margin: 0;
+        border-top: 1px solid #eee;
+    }
+</style>
+
+<div id="AlertId" class="" data-bs-toggle="notification"
+     data-title="Alert"
+     data-btn="true"
+     data-autoclose-time="3000"
+     data-autoclose="true"
+     data-btn-attr="data-click='trigger-details'"></div>
+<div class="content" id="content">
+
+    <ol class="breadcrumb pull-right">
+        <li class="breadcrumb-item"><a href="@Url.Action("DashboardIndex", "Dashboard")">Home</a></li>
+        <li class="breadcrumb-item active">Online Payment Methods</li>
+    </ol>
+    <br />
+    <br />
+    <div class="row">
+        @{
+
+            if (Model.liPAYMENT_MODE_CHARGES != null && Model.liPAYMENT_MODE_CHARGES.Count > 0)
+            {
+                foreach (var item in Model.liPAYMENT_MODE_CHARGES)
+                {
+                    <div class="col-md-3 col-sm-6 " title="Pay by @item.PAYMENT_MODE_NAME">
+                        <div class="widget">
+                            <header class="widget-header  bg-primary">
+                                <h3 class="widget-title text-white"> @item.PAYMENT_MODE_NAME</h3>
+                            </header>
+
+                            <div class="widget-body p-t-lg">
+
+                                <h5 class="m-b-5 ">Convocation Fees : @item.FEE_AMOUNT</h5>
+                                <h5 class="m-b-5 ">Convenience Charges: @item.TRANSACTION_FEE</h5>
+                                <h5 class="m-b-5 ">GST on Convenience Charges : @item.GST_AMOUNT_ON_TRANSACTION_FEE</h5>
+                                <h5 class="m-b-5 ">  <b>Total : @item.TOTAL_AMOUNT</b></h5>
+                                <input type="hidden" id="@item.PAYMENT_MODE" value="@item.PAYMENT_MODE" />
+
+                            </div>
+                            <hr class="widget-separator">
+                            <center><input type="button" title="Click to Pay by @item.PAYMENT_MODE_NAME" onclick="CreateOrder('@item.PAYMENT_MODE')" name="Pay" class=" btn btn-success" value="Pay Now" /></center>
+                            <br />
+                        </div>
+
+                    </div>
+                }
+                if (Model.liFeeStudentAccount != null && Model.liFeeStudentAccount.Count > 0)
+                {
+                    <div>
+                        <input type="hidden" id="sFrequencyTypeId" value="@Model.liFeeStudentAccount.FirstOrDefault().FREQUENCY_TYPE_ID" />
+                        <input type="hidden" id="sFeeRootId" value="@Model.liFeeStudentAccount.FirstOrDefault().FEE_ROOT_ID" />
+                        <input type="hidden" id="sStudentId" value="@Model.liFeeStudentAccount.FirstOrDefault().STUDENT_ID" />
+                        <input type="hidden" id="sFrequencyId" value="@Model.liFeeStudentAccount.FirstOrDefault().FREQUENCY_ID" />
+                        <input type="hidden" id="sAcademicYear" value="@Model.liFeeStudentAccount.FirstOrDefault().ACADEMIC_YEAR" />
+                        <input type="hidden" id="sAmount" value="@Model.liPAYMENT_MODE_CHARGES.FirstOrDefault().FEE_AMOUNT" />
+                    </div>
+                }
+            }
+            else
+            {
+                <div class=" alert alert-primary">No Payment methods enabled.</div>
+            }
+
+        }
+    </div>
+</div>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@if (System.Configuration.ConfigurationManager.AppSettings["ISPG_LIVE"].ToString() == "1")
+{
+    <script src="https://sdk.cashfree.com/js/ui/2.0.0/cashfree.prod.js"></script>
+}
+else
+{
+    <script src="https://sdk.cashfree.com/js/ui/2.0.0/cashfree.sandbox.js"></script>
+}
+
+<script>
+        $(document).ready(function ()
+        {
+            $('.selectpicker').selectpicker('refresh');
+        });
+
+    function CreateOrder(e) {
+        ;
+            $.ajax({
+            url: "@Url.Action("CFCreateOrder", "PaymentGateway")",
+            method: "POST",
+                datatype: "json",
+                async:true,
+                data: { sFrequencyTypeId: $('#sFrequencyTypeId').val(), sFeeRootId: $('#sFeeRootId').val(), sFrequencyId: $('#sFrequencyId').val(), sAcademicYear: $('#sAcademicYear').val(), sPaymentMode: e,  sAmount: $('#sAmount').val()},
+            success: function (data)
+            {
+
+                if (data.status) {
+                    render(data.PaymentList);
+                } else {
+
+                    $('#AlertId').attr('data-content', data.Message);
+                    $('#AlertId').attr('data-icon', 'ti-info');
+                    $('#AlertId').attr('data-icon-class', 'bg-info');
+                    $('#AlertId').click();
+                }
+
+            },
+            error: function (data)
+            {
+                $('#AlertId').attr('data-content', 'Internal Server Error ..!');
+                $('#AlertId').attr('data-icon', 'ti-close');
+                $('#AlertId').attr('data-icon-class', 'bg-danger');
+                $('#AlertId').click();
+            }
+        });
+
+    }
+
+    function render(sessionId) {
+        let paymentSessionId = sessionId;
+        if (paymentSessionId == "") {
+            $('#AlertId').attr('data-content', 'No session_id specified');
+            $('#AlertId').attr('data-icon', 'ti-close');
+            $('#AlertId').attr('data-icon-class', 'bg-danger');
+            $('#AlertId').click();
+            return
+        };
+        const cf = new Cashfree(paymentSessionId);
+        cf.redirect();
+    };
+</script>
+
+
+
+

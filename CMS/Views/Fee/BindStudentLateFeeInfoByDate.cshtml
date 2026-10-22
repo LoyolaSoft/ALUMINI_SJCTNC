@@ -1,0 +1,120 @@
+﻿@model CMS.ViewModel.ViewModel.FeeViewModel
+
+
+
+@{
+    Layout = null;
+    int nCount = 0;
+}
+<div class="row pull-right">
+    <div class="col-md-12">
+        <a class="btn btn-primary" id="btnSubmit" onclick="SubmitData()"><i class="fa fa-paper-plane"></i>  Send Bulk SMS </a>
+    </div>
+</div>
+<br />
+<div class="col-md-12 form-group table-responsive">
+    <br />
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Staff Code</th>
+                <th>Staff Name</th>
+                <th>Date</th>
+                <th>Fine Amount</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liStuLateFee != null && Model.liStuLateFee.Count > 0)
+            {
+                foreach (var item in Model.liStuLateFee)
+                {
+                    <tr>
+                        <td>@{nCount++;} @nCount</td>
+                        <td>@item.ROLL_NO</td>
+                        <td>@item.FIRST_NAME</td>
+                        <td>@item.STAFF_CODE</td>
+                        <td>@item.STAFF_NAME</td>
+                        <td>@item.ENTRY_DATE</td>
+                        <td>@item.FINE_AMOUNT</td>
+                        <td>
+                            <a href="javascrip:;" onclick="GetConfirm(@item.LATE_FEE_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="text-center text-muted">No records found.</td>
+                </tr>
+
+            }
+        </tbody>
+    </table>
+</div>
+
+
+
+<script>
+    function SubmitData()
+    {
+        $.ajax({
+            url:'@Url.Action("SendSMS", "Fee")',
+            method: 'POST',
+            datatype: 'json',
+            data: {},
+            success: function (data)
+            {
+                if (data.ErrorCode == "200") {
+                    // alert(data.Message);
+                    swal({ title: "Success!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    LoadData();
+                } else {
+                    swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+    GetConfirm = function (sProjectId) {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+
+            function () {
+                $.ajax({
+                    url: "/Fee/DeleteStuLateEntry",
+                    type: "post",
+                    data: { lateId: sProjectId },
+                    success: function (data) {
+                        if (data.Message != null && data.Message != "") {
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'success', animation: true });
+                            loadContent('/Fee/GateFeeEntry');
+                        }
+                    },
+                    error: function (ex) {
+                        swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+
+                    }
+
+
+                });
+            });
+
+    }
+</script>
+

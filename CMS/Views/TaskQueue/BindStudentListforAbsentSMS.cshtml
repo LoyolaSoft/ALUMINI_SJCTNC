@@ -1,0 +1,213 @@
+﻿@model CMS.ViewModel.ViewModel.CommunicationViewModel
+@{Layout = null; int count = 0;}
+@*<div class="col-lg-12">
+        <div class="row">
+
+        </div>
+        <div class="col-lg-5" id="divToSelect">
+            <div class="table-responsive">
+                @*<table class="table table-hover" id="StudentToSelect">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" name="myTextEditBox" id="AllchkID" onchange="SelectOrUnselect()" /> Select All
+                            </th>
+                            <th>Name</th>
+                            <th>Class</th>
+                            <th>Mobile</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ if (Model.LIStudentDetails != null)
+                            {
+                                foreach (var item in Model.LIStudentDetails)
+                                {
+                        <tr cms-studentid="@item.USER_ID" cms-StuClassId="@item.CLASS_ID">
+                            <td>
+                                <input type="checkbox" name="myTextEditBox" id="chkID" cms-studentid="@item.USER_ID" />
+                            </td>
+                            <td>@Html.DisplayFor(modelItem => item.FIRST_NAME)</td>
+                            <td>@Html.DisplayFor(modelItem => item.CLASS)</td>
+                            <td>@Html.DisplayFor(modelItem => item.MOBILE)</td>
+                        </tr>
+                                }
+                            }
+                            else
+                            {
+                        <tr>
+                            <td><p>No records available !!!</p></td>
+                        </tr>
+                            }
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <h3 id="divArrow" class="col-lg-1"><i class="fa fas fa-angle-double-right" onclick="SendSelectedStudent()"></i></h3>
+        <h3 id="leftArrow" class="col-lg-1"><i class="fa fas fa-angle-double-left" onclick="SendBackSelectedStudent()"></i></h3>
+        <div class="col-lg-5 hidden" id="SelectedTable">
+            <div class="table-responsive">
+                <table class="table table-hover" id="SelectedStudent">
+                    <thead>
+                        <tr>
+                            <th>
+                                Select
+                            </th>
+                            <th>Name</th>
+                            <th>Class</th>
+                            <th>Mobile</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>*@
+
+<div class="col-md-12">
+    <div class="col-md-12" id="divToSelect">
+        <div class="table-responsive">
+            <table class="table table-hover" id="StudentToSelect">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>
+                            @*<input type="checkbox" name="myTextEditBox" id="AllchkID" onchange="SelectOrUnselect()" /> Select All*@
+                        </th>
+                        <th>RollNo</th>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Mobile</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ if (Model.LIStudentDetails != null)
+                        {
+                            foreach (var item in Model.LIStudentDetails)
+                            {
+                                <tr cms-studentid="@item.STUDENT_ID" cms-StuClassId="@item.CLASS_ID">
+                                    <td>@{ count++;}@count</td>
+                                    <td>
+                                        <input type="checkbox" name="myTextEditBox" id="chkID" cms-studentid="@item.STUDENT_ID" />
+                                    </td>
+                                    <td>@Html.DisplayFor(modelItem => item.ROLL_NO)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.FIRST_NAME)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.CLASS_NAME)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.FR_MOBILE)</td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <center><div class="col-md-2" id="divArrow"><h1><i class="fa fa-long-arrow-right" onclick="SendSelectedStudent()"></i></h1></div></center>
+    <div class="col-md-12 hidden" id="SelectedTable">
+        <div class="table-responsive">
+            <table class="table table-hover" id="SelectedStudent">
+                <thead>
+                    <tr>
+                        <th>RollNo</th>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Mobile</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+
+    SendSelectedStudent = function () {
+        var StudentId;
+        if (parseInt($('#ClassList').val()) != null) {
+            $('#StudentToSelect tbody tr').each(function () {
+                $(this).find('td').each(function () {
+                    var chkBox = $(this).find('input[type="checkbox"]');
+                    if (chkBox.is(':checked')) {
+                        StudentId = '"' + $(this).find('input[type="checkbox"]').attr("cms-studentid") + '"';
+                    }
+                });
+            });
+            if (StudentId == null) {
+                alert('Please select the student to move...!!!');
+                return false;
+            }
+        }
+        var CommonRollno = '';
+        $('#SelectedTable').removeClass('hidden');
+        $('#StudentToSelect tbody tr').each(function () {
+            $(this).find('td').each(function () {
+                var chkBox = $(this).find('input[type="checkbox"]');
+                if (chkBox.is(':checked')) {
+                    var Rollno = ($(this).closest('tr').find('td:eq(2)').text());
+                    $('#SelectedStudent tbody tr').each(function () {
+                        $(this).find('td:eq(1)').each(function () {
+                            var sRollno = ($(this).closest('tr').find('td:eq(0)').text());
+                            if (Rollno == sRollno) {
+                                CommonRollno += '"' + Rollno + '",';
+                            }
+                        });
+                    });
+                }
+            });
+        });
+        CommonRollno = CommonRollno.slice(0, -1);
+        if (CommonRollno != '') {
+            alert(CommonRollno + " This Student(s) Exist Already");
+            $('#StudentToSelect tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').each(function () {
+                    $('input[type="checkbox"]').attr("checked", false);
+                });
+            });
+            return false;
+        }
+        else {
+            $('#StudentToSelect tbody tr').each(function () {
+                var StudentId = $(this).attr("cms-studentid");
+                var StuClassId = $(this).attr("cms-StuClassId");
+                $(this).find('td').each(function () {
+                    var chkBox = $(this).find('input[type="checkbox"]');
+                    var Rollno = ($(this).closest('tr').find('td:eq(2)').text());
+                    var Name = ($(this).closest('tr').find('td:eq(3)').text());
+                    var Class = ($(this).closest('tr').find('td:eq(4)').text());
+                    var Mobile = ($(this).closest('tr').find('td:eq(5)').text());
+                    if (chkBox.is(':checked')) {
+                        var table = document.getElementById("SelectedStudent");
+                        var row = table.insertRow(1);
+                        $("#SelectedStudent tbody").append(row);
+                        row.setAttribute("cms-studentid", StudentId);
+                        row.setAttribute("cms-rollno", Rollno);
+                        row.setAttribute("cms-StuClassId", StuClassId);
+                        var cell1 = row.insertCell(0);
+                        var cell2 = row.insertCell(1);
+                        var cell3 = row.insertCell(2);
+                        var cell4 = row.insertCell(3);
+                        var cell5 = row.insertCell(4);
+                        cell1.innerHTML = Rollno;
+                        cell2.innerHTML = Name;
+                        cell3.innerHTML = Class;
+                        cell4.innerHTML = Mobile;
+                        cell5.innerHTML = '<a class="remove"><i class="fa fa-trash text-danger" title="Delete"></i></a>';
+                    }
+                });
+            });
+            $('#StudentList tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').each(function () {
+                    $('input[type="checkbox"]').attr("checked", false);
+                });
+            });
+        }
+    };
+    $("table.table a.remove").live("click", function () {
+        $(this).parents("tr").remove();
+        $(this).parents("tr").remove(Attr.chkBox);
+    });
+</script>
+
+

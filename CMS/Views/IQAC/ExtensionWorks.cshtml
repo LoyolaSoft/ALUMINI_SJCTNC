@@ -1,0 +1,251 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+
+@{ 
+    Layout = null;
+}
+
+@*<link href="~/Content/assets/plugins/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet" />*@
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">IQAC</a></li>
+        <li class="active">Extension Work</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Extension Work<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Extension Work</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+
+                    <div class="form-group  col-md-12">
+                        <div class="col-md-6">
+                            @Html.Label("Month List", htmlAttributes: new { @class = "col-md-4 control-label " })
+                            <div class="col-md-8">
+                                @*@Html.DropDownListFor(m => m.sMonthList, (Model.sMonthList != null) ? Model.sMonthList : Enumerable.Empty<SelectListItem>(), new { @class = "form-control  selectpicker", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(m => m.sMonthList, "", new { @class = "text-danger" })*@
+
+                                <select class="form-control  selectpicker" data-live-search="true" id="sMonthList">
+                                    @if (Model.liMonthList != null && Model.liMonthList.Count > 0)
+                                    {
+                                        <option value=""> -- Select -- </option>
+                                        @*<option value="15">2016</option>
+                                        <option value="14">2017</option>
+                                        <option value="13"> 2018 </option>*@
+                                        foreach (var item in Model.liMonthList)
+                                        {
+                                            <option value="@item.DAY_ID">@item.DAY_ORDER_MONTH</option>
+                                        }
+                                    }
+                                </select>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dvIQACBind" data-parsley-validate="true">
+
+                </div>
+            }
+            <div class="col-lg-12">
+                <a href="javascript:;" class="btn btn-success hidden" id="btnSubmit">Submit</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@*<script src="~/Content/assets/plugins/bootstrap3-editable/js/bootstrap-editable.min.js"></script>*@
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+</script>
+
+<script>
+
+    $('#sMonthList').on('change', function ()
+    {
+        if ($('#sMonthList').val())
+        {
+            BindList();
+        }
+    });
+
+    function BindList()
+    {
+        $.ajax({
+            url:'@Url.Action("BindExtensionWorks", "IQAC")',
+            method:'POST',
+            datatype:'json',
+            data: { sMonthId: $('#sMonthList').val() },
+            success: function (data)
+            {
+                $('#dvIQACBind').empty();
+                if (data.Message != null && data.Message != '')
+                {
+                    alert(data.Message);
+                } else
+                {
+                    $('#dvIQACBind').append(data);
+                    $('#btnSubmit').removeClass('hidden');
+                    //$(".editable").editable({ prepend: "not selected", source: [{ value: 1, text: "Male" }, { value: 2, text: "Female" }] });
+                }
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+
+    $('#btnSubmit').on('click', function ()
+    {
+        var count = 0;
+        var sProgram = null;
+        var nCount = 1;
+        var sJsonData = '{liExtensionWorks:[';
+        $('#tblIQAC tbody tr.tblclass').each(function ()
+        {
+            if ($('#cssRadio1_' + nCount).is(':checked'))
+            {
+                sProgram = "VSL";
+            } else if ($('#cssRadio2_' + nCount).is(':checked'))
+            {
+                sProgram = "Department Extention Program";
+            }
+
+            var filetablecount = $(this).find("table").length;
+            if (filetablecount > 0) {
+                var FilePath = "";
+                var ImagePath = "";
+                var fCount = 0;
+                var iCount = 0;
+
+
+                $(this).find("table tbody tr").each(function () {
+                    if ($(this).attr("cms-img-path")) {
+                        ImagePath += $(this).attr("cms-img-path") + ",";
+                        iCount = parseInt(fCount) + 1;
+                    }
+                    else {
+                        if ($(this).attr("id")) {
+                            FilePath += $(this).attr("id") + ",";
+                            fCount = parseInt(fCount) + 1;
+                        }
+                    }
+                });
+                if (fCount > 0) {
+                    FilePath = FilePath.slice(0, -1);
+                    FilePath += '';
+                    //sJsonData += '{"IQAC_ID":"' + IQACId + '","DEPT_CODE":"' + CourseCode + '","COURSE_ID":"' + $('#sCourseList').val() + '","MONTH_ID":"' + $('#sMonthList').val() + '","FILE_PATH":"' + FilePath + '","IMG_PATH":""},';
+                    count = parseInt(count) + 1;
+                }
+                if (iCount > 0) {
+                    ImagePath = ImagePath.slice(0, -1);
+                    ImagePath += '';
+                    //sJsonData += '{"IQAC_ID":"' + IQACId + '","DEPT_CODE":"' + CourseCode + '","COURSE_ID":"' + $('#sCourseList').val() + '","MONTH_ID":"' + $('#sMonthList').val() + '","FILE_PATH":"","IMG_PATH":"' + ImagePath + '"},';
+                    count = parseInt(count) + 1;
+                }
+            }
+
+            sJsonData += '{"IQAC_ID":"' + $(this).attr('cms-IQACID') + '","DEPT_CODE":"' + $(this).closest('tr').find('input:eq(0)').val() + '","MONTH_ID":"' + $('#sMonthList').val() + '","ACTIVITY_DATE":"' + $(this).closest('tr').find('input:eq(1)').val() + '","NAME_OF_THE_PROGRAMME":"' + sProgram + '","ACTIVITY_COMPLETED":"' + $(this).closest('tr').find('input:eq(2)').val() + '","NO_OF_PARTICIPANTS":"' + $(this).closest('tr').find('input:eq(3)').val() + '","PLACE":"' + $(this).closest('tr').find('input:eq(4)').val() + '","FILE_PATH":"' + FilePath + '","IMG_PATH":"' + ImagePath + '"},';
+            nCount++;
+        });
+        sJsonData.slice(0, -1);
+        sJsonData = sJsonData + "]}";
+
+        // Validation Check ,...
+        var isValid = true;
+        if ($('#dvIQACBind').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            //gritter-info,danger,success,warning,default
+            swal({ title: "Warning !", text: 'Something went wrong ! Please check your inputs !', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+
+        //clearing formdata sJsonData
+        if (formData.has('sJsonData')) {
+
+            formData.delete("sJsonData");
+        }
+        formData.append("sJsonData", sJsonData);
+
+        $.ajax({
+            url:'@Url.Action("SaveExtensionWorks", "IQAC")',
+            type: "post",
+            data: formData,
+            contentType: false,
+            processData: false,
+            datatype: "json",
+            success: function (data)
+            {
+                if (data.ErrorCode=="200")
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    BindList();
+                } else
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+
+    function GetConfrim(ID) {
+        if (!confirm('Are You Sure To Delete ?')) {
+            return false;
+        }
+        $.ajax({
+            url: '@Url.Action("DeleteExtensionWorks", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sIQACID: ID },
+            success: function (data) {
+                if (data.ErrorCode == "200") {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    BindList();
+                } else {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+</script>

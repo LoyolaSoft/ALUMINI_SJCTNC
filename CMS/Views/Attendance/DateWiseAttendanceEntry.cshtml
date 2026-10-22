@@ -1,0 +1,295 @@
+﻿@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+
+@{ 
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Attendance</a></li>
+        <li class="active">Date Wise Online Attendance</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Date Wise Online Attendance<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Date Wise Online Attendance</h4>
+        </div>
+        <div class="panel-body">
+            <div class="col-md-12 form-horizontal">
+
+                <div class="col-md-3 form-group">
+                    @Html.Label("Class", htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                    </div>
+                </div>
+
+                <div class="col-md-3 form-group">
+                    @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                        @Html.ValidationMessageFor(model => model.CourseList, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="col-md-3 form-group">
+                    @*@Html.Label("Date", htmlAttributes: new { @class = "control-label col-md-1" })*@
+                    <label class="control-label col-md-3"> Date</label>
+                    <div class="col-md-9">
+                        <div class="input-group date" id="datetimepicker1">
+                            @Html.Editor("txtDate", new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Select  Date" } })
+                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 form-group">
+                    @Html.Label("Hour", htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.DropDownListFor(model => model.Hours, (Model.Hours != null) ? Model.Hours : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                        @Html.ValidationMessageFor(model => model.Hours, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="col-md-1">
+                    <button class="btn btn-primary" id="btnGet"> Get </button>
+                </div>
+
+                <div class="form-group col-md-12">
+                    <div id="dvAttendanceReport"></div>
+
+                    <div class="pull-right">
+                        <a href="#" id="btnSubmit" class="btn btn-primary hidden">Submit</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+        function ContentLoad() {
+            // Document Ready Function .
+            $("#txtDate").datepicker({
+                todayHighlight: true,
+                autoclose: true,
+                endDate: new Date(),
+                format: "dd/mm/yyyy",
+                orientation: "right bottom"
+            });
+
+            $('.selectpicker').selectpicker({
+                size: 6
+            });
+            $('.selectpicker').selectpicker('refresh');
+        }
+        //$(document).ready(function ()
+        //{
+
+        //});
+
+
+        // Get Course By ClassId .
+        $('#ClassList').on('change', function ()
+        {
+            $('#Hours').val(0);
+            $('#CourseList').val(0);
+            if ($('#ClassList').val())
+            {
+                $.ajax({
+                    url: '@Url.Action("FetchCourseByClassId", "Attendance")',
+                    method: 'POST',
+                    datatype: 'json',
+                    data: { sClassId: $('#ClassList').val()},
+                    success: function (data)
+                    {
+                        $('#CourseList').empty();
+                        if (data.Message != null && data.Message != '')
+                        {
+                            alert(data.Message);
+                        } else
+                        {
+                            $('#CourseList').append(data.sResult);
+                            $('.selectpicker').selectpicker('refresh');
+                        }
+                    }, error: function (error)
+                    {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+        });
+
+        // Get Hour By Class & Course .
+        $('#CourseList').on('change', function ()
+        {
+            FetchHour();
+        });
+
+        // Get Hour By Class & Course .
+        $('#txtDate').on('change', function ()
+        {
+            FetchHour();
+        });
+
+        function FetchHour()
+        {
+            $('#Hours').val(0);
+            if ($('#CourseList').val() && $('#ClassList').val() && $('#txtDate').val()) {
+                $.ajax({
+                    url: '@Url.Action("FetchOnlineHourByClassIdAndCourseIdAndDate", "Attendance")',
+                    method: 'POST',
+                    datatype: 'json',
+                    data: { sClassId: $('#ClassList').val(), sDate: $('#txtDate').val(), sCourseId: $('#CourseList').val() },
+                    success: function (data) {
+                        $('#Hours').empty();
+                        if (data.Message != null && data.Message != '') {
+                            alert(data.Message);
+                        } else {
+                            $('#Hours').append(data.sResult);
+                            $('.selectpicker').selectpicker('refresh');
+                        }
+                    }, error: function (error) {
+                        alert('Internal Server Error !');
+                    }
+                });
+
+            }
+        }
+        // Get Attendance Report By Date And Student Id ...
+        $('#btnGet').on('click', function ()
+        {
+            if ($('#txtDate').val() && $('#ClassList').val() && $('#CourseList').val() && $('#Hours').val())
+            {
+                $.ajax({
+                    url:'@Url.Action("BindStudentsForOnlineDateWiseAttendance", "Attendance")',
+                    method: 'POST',
+                    datatype:'json',
+                    data: { sClassId: $('#ClassList').val(), sCourseId: $('#CourseList').val(), sHourId: $('#Hours').val(), sDate: $('#txtDate').val() },
+                    success: function (data)
+                    {
+                        $('#dvAttendanceReport').empty();
+                        if (data.Message != null && data.Message != '')
+                        {
+                            alert(data.Message);
+                        } else
+                        {
+                            $('#dvAttendanceReport').append(data);
+                            $('#txtClass').text($('#ClassList Option:selected').text());
+                            $('#txtCourse').text($('#CourseList Option:selected').text());
+                            $('#tblAttendance').DataTable({ "bPaginate": false });
+                            $('#btnSubmit').removeClass('hidden');
+                        }
+                    }, error: function (error)
+                    {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }else
+            {
+                alert('Please Select All Fileds To Continue !');
+                return false;
+            }
+        });
+
+
+        // Button Click For Submit .
+        $('#btnSubmit').on('click', function ()
+        {
+
+            var Search = $('input[type="search"]').val();
+            if (Search != '')
+            {
+                alert('Please Clear the Search Box !...');
+                return false;
+            }
+            var flag = false;
+            var DateForAttendance = $('#txtDate').val();
+            var sJson = '{"ATT_ABSENTEE_LIST":[';
+            $('#tblAttendance tbody tr').each(function ()
+            {
+                var AttendanceId;
+                var StudentId;
+                var SClassId;
+                var Authorized;
+                var sSplAttendanceType = $('#ReasonList').val();
+                var AttendanceDate = $(this).attr("cms-date");
+
+                StudentId = $(this).attr('cms-student-id');
+                AttendanceId = $(this).attr('cms-attendance-id');
+                SClassId = $(this).attr('cms-s-class-id');
+
+                if ($(this).find('#attendanceType option:selected').text().toLowerCase() != 'Present'.toLowerCase() || AttendanceId != '')
+                {
+
+                    sJson += '{"ENTRY_DATE":"' + AttendanceDate + '","ATTENDENCE_DATE":"' + $('#txtDate').val() + '","ATTENDANCE_ID":"' + $(this).attr('cms-attendance-id') + '","COURSE_ID":"' + $('#CourseList').val() + '","HOUR_FROM":"' + $('#Hours').val() + '","HOUR_TO":"' + $('#Hours').val() + '","STUDENT_ID":"' + StudentId + '","CLASS_ID":"' + $('#ClassList').val() + '","S_CLASS_ID":"' + SClassId + '","ATTENDANCE_TYPE_ID":"' + $(this).find('#attendanceType option:selected').val() + '","REASON_ID":"' + $(this).find('#reason option:selected').val() + '","SPL_ATTENDANCE_TYPE_ID":"' + sSplAttendanceType + '"},'
+                    flag = true;
+                }
+            });
+
+            if (flag)
+            {
+                sJson = sJson.slice(0, -1) + ']}';
+                $.ajax({
+                    url: '@Url.Action("SaveDateWiseOnlineAttendance", "Attendance")',
+                    method: 'POST',
+                    datatype: 'json',
+                    data: { sJsonString: sJson },
+                    success: function (data)
+                    {
+                        if (data.ErrorCode == "200")
+                        {
+                            alert(data.sResult + " " + 'Successful request,Please verify Absentees list !!');
+                            $('#btnGet').click();
+                        }
+                        else
+                        {
+                            alert(data.sResult + " " + data.Message);
+                        }
+                    },
+                    error: function (xhr, textStatus, error) {
+                        alert('Internal Server Error !' + "\n");
+                        $('#btnSubmit').addClass("disabled");
+                    }
+
+                });
+            } else
+            {
+                return false;
+            }
+
+        });
+
+</script>
+
+
+

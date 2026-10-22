@@ -1,0 +1,347 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    double pgpa = 0;
+    double pmax = 0;
+    double psec = 0;
+    double pmulti = 0;
+    double pcredit = 0;
+}
+@{
+    if (Model.LiSemesterMarks != null && Model.LiSemesterMarks.Count > 0)
+    {
+        var StudentList = Model.LiSemesterMarks.GroupBy(s => s.STUDENT_ID).OrderBy(s=>s.FirstOrDefault().REGISTER_NO).ToList();
+        if (StudentList != null && StudentList.Count > 0)
+        {
+            foreach (var stuitem in StudentList)
+            {
+                var Individual = Model.LiSemesterMarks.Where(s => s.STUDENT_ID == stuitem.FirstOrDefault().STUDENT_ID).ToList();
+                var Partlist = Model.LiSemesterMarks.GroupBy(s => s.PART).ToList();
+                var SemesterList = Model.LiSemesterMarks.GroupBy(s => s.SEMESTER).OrderBy(s=>s.FirstOrDefault().SEMESTER).ToList();
+                <div style="page-break-after:always !important;page-break-inside:avoid !important;">
+                    @if (Individual != null && Individual.Count() > 0)
+                    {
+                       
+                        <div class="col-md-12">
+                            <br><br>
+                            <table align="center" style="width:98%">
+                                @*<tr>
+                                    <td colspan="3"><div style="height:2px;background-color:black;width:100%"></div></td>
+                                </tr>*@
+                                <tr>
+                                    <td style="width:30%"><b>Register No</b> : &nbsp;@Individual.FirstOrDefault().REGISTER_NO</td>
+                                    <td style="width:30%" align="left"><b>Name</b> : &nbsp;@Individual.FirstOrDefault().NAME.ToUpper()</td>
+                                    <td style="width:30%" align="right"><b>Roll No</b> : &nbsp;@Individual.FirstOrDefault().ROLL_NO</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" style="border:1px solid;"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    }
+                    <br/>
+                    @if (Individual.FirstOrDefault().APPLICATION_TYPE_ID == "2" || Individual.FirstOrDefault().APPLICATION_TYPE_ID == "4")
+                    {
+                        <div class="col-md-12">
+                            <table align="center" style="width:98%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width:40% !important;padding-left:5px;" align="left"></th>
+                                        <th style="width:5% !important;padding-left:5px;" align="left">IM</th>
+                                        <th style="width:5% !important;padding-left:5px;" align="left">EM</th>
+                                        <th style="width:8% !important;padding-left:5px;" align="left">TOT</th>
+                                        <th style="width:5% !important;padding-left:5px;" align="left">R</th>
+                                        <th style="width:5% !important;padding-left:5px;" align="left">C</th>
+                                        <th style="width:10% !important;padding-left:5px;" align="left">GR.PT</th>
+                                        <th style="width:5% !important;padding-left:5px;" align="left">G</th>
+                                        <th style="width:10% !important;padding-left:5px;" align="left">M & YEAR</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        if (SemesterList != null && SemesterList.Count() > 0)
+                                        {
+                                            foreach (var semitem in SemesterList)
+                                            {
+                                                <tr>
+                                                    <td colspan="9" style="border:1px solid;"></td>
+                                                </tr>
+                                                <tr>
+                                                    
+                                                    <td><b>SEMESTER</b>:@semitem.FirstOrDefault().SEMESTER_NAME &nbsp;</td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="9" style="border:1px solid;"></td>
+                                                </tr>
+                                                var SemesterWise = Model.LiSemesterMarks.Where(s => s.SEMESTER == semitem.FirstOrDefault().SEMESTER && s.STUDENT_ID==stuitem.FirstOrDefault().STUDENT_ID).ToList();
+                                                var parttotal = SemesterWise.Where(o => semitem.FirstOrDefault().UGC_COURSE_TYPE != "49").Sum(s => Convert.ToDouble(s.TOTAL));
+                                                foreach (var sem in SemesterWise)
+                                                {
+                                                    <tr>
+                                                        <td style="width:5% !important; padding-left:5px;" align="left">@sem.COURSE_CODE</td>
+                                                        @if (sem.INTERNAL_MARK != "0")
+                                                        {
+                                                            <td style="width:5% !important; padding-left:5px;" align="left">@sem.INTERNAL_MARK</td>
+                                                        }
+                                                        else
+                                                        {
+                                                            <td style="width:5% !important; padding-left:5px;" align="left">-</td>
+                                                        }
+                                                        <td style="width:5% !important; padding-left:5px;" align="left">@sem.EXTERNAL_MARK</td>
+                                                        <td style="width:5% !important; padding-left:5px;" align="left">@sem.TOTAL</td>       
+                                                        <td style="width:5% !important; padding-left:5px;" align="left">@sem.RESULT</td>
+                                                        <td style="width:5% !important; padding-left:5px;" align="left">@sem.CREDIT</td>
+                                                        <td style="width:5% !important; padding-left:5px;" align="left">@sem.GRADE_POINT</td>
+                                                        <td style="width:5% !important; padding-left:5px;" align="left">@sem.GRADE</td>
+                                                        <td style="width:5% !important; padding-left:5px;" align="left">@sem.M_PASS</td>
+                                                    </tr>
+                                                }
+                                                <tr>
+                                                    <td colspan="9" align="right">
+                                                        <b>Total</b> : &nbsp;@parttotal
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-12">
+                            <table align="center" style="width:98%">
+                                <tr>
+                                    <td colspan="3" style="border:1px solid;"></td>
+                                </tr>
+                                @{
+                                    if (Individual.Count() > 0)
+                                    {
+                                        pmulti = 0;
+                                        pcredit = 0;
+                                        pmax = 0;
+                                        psec = 0;
+                                        foreach (var sitem in Individual)
+                                        {
+                                            if (sitem.RESULT.ToUpper().Contains("A") || sitem.RESULT.ToUpper().Contains("F") || sitem.UGC_COURSE_TYPE == "49")
+                                            {
+
+                                            }
+                                            else
+                                            {
+                                                pmulti += (Convert.ToDouble(sitem.CREDIT) * Convert.ToDouble(sitem.GRADE_POINT));
+                                                pcredit += Convert.ToDouble(sitem.CREDIT);
+                                                pmax += Convert.ToDouble(sitem.MAXIMUM);
+                                                psec += Convert.ToDouble(sitem.TOTAL);
+                                            }
+                                        }
+                                        pgpa = pmulti / pcredit;
+                                    }
+                                    <tr>
+                                        <td><b>Total Mark</b> : &nbsp;@psec/@pmax</td>
+                                        <td><b>GPA</b> : &nbsp;@pgpa.ToString("#.##")</td>
+                                        @if (pgpa >= 9.00)
+                                        {
+                                            <td><b>GRADE</b> : &nbsp;O</td>
+                                        }
+                                        else
+                                        {
+                                            if (pgpa >= 8.00)
+                                            {
+                                                <td><b>GRADE</b> : &nbsp;A+</td>
+                                            }
+                                            else
+                                            {
+                                                if (pgpa >= 7.00)
+                                                {
+                                                    <td><b>GRADE</b> : &nbsp;A</td>
+                                                }
+                                                else
+                                                {
+                                                    if (pgpa >= 6.00)
+                                                    {
+                                                        <td><b>GRADE</b> : &nbsp;B+</td>
+                                                    }
+                                                    else
+                                                    {
+                                                        if (pgpa >= 5.00)
+                                                        {
+                                                            <td><b>GRADE</b> : &nbsp;B</td>
+                                                        }
+                                                        else
+                                                        {
+                                                            if (pgpa < 5.00)
+                                                            {
+                                                                <td><b>GRADE</b> : &nbsp;R.A</td>
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" style="border:1px solid;"></td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+
+                   }
+                                    else
+                                    {
+                                        <div class="col-md-12">
+                                            <table align="center" style="width:98%;">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:40% !important;padding-left:5px;" align="left"></th>
+                                                        <th style="width:5% !important;padding-left:5px;" align="left">IM</th>
+                                                        <th style="width:5% !important;padding-left:5px;" align="left">EM</th>
+                                                        <th style="width:8% !important;padding-left:5px;" align="left">TOT</th>
+                                                        <th style="width:5% !important;padding-left:5px;" align="left">R</th>
+                                                        <th style="width:5% !important;padding-left:5px;" align="left">C</th>
+                                                        <th style="width:10% !important;padding-left:5px;" align="left">GR.PT</th>
+                                                        <th style="width:5% !important;padding-left:5px;" align="left">G</th>
+                                                        <th style="width:10% !important;padding-left:5px;" align="left">M & YEAR</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @{
+                                                        if (SemesterList != null && SemesterList.Count() > 0)
+                                                        {
+                                                            foreach (var semitem in SemesterList)
+                                                            {
+                                                                <tr>
+                                                                    <td colspan="9" style="border:1px solid;"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td><b>SEMESTER</b> :@semitem.FirstOrDefault().SEMESTER_NAME &nbsp;</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td colspan="9" style="border:1px solid;"></td>
+                                                                </tr>
+                                                                var SemesterWise = Model.LiSemesterMarks.Where(s => s.SEMESTER == semitem.FirstOrDefault().SEMESTER && s.STUDENT_ID == stuitem.FirstOrDefault().STUDENT_ID).ToList();
+                                                                var parttotal = SemesterWise.Where(o => o.PART == "3").Sum(s => Convert.ToDouble(s.TOTAL));
+                                                                foreach (var sem in SemesterWise)
+                                                                {
+                                                                    <tr>
+                                                                        <td style="width:40% !important; padding-left:5px;" align="left">@sem.COURSE_CODE</td>
+                                                                        @if (sem.INTERNAL_MARK != "0")
+                                                                        {
+                                                                            <td style="width:5% !important; padding-left:5px;" align="left">@sem.INTERNAL_MARK</td>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <td style="width:5% !important; padding-left:5px;" align="left">-</td>
+                                                                        }
+                                                                        <td style="width:5% !important; padding-left:5px;" align="left">@sem.EXTERNAL_MARK</td>
+                                                                        <td style="width:5% !important; padding-left:5px;" align="left">@sem.TOTAL</td>
+                                                                        <td style="width:8% !important; padding-left:5px;" align="left">@sem.RESULT</td>           
+                                                                        <td style="width:5% !important; padding-left:5px;" align="left">@sem.CREDIT</td>
+                                                                        <td style="width:10% !important; padding-left:5px;" align="left">@sem.GRADE_POINT</td>
+                                                                        <td style="width:5% !important; padding-left:5px;" align="left">@sem.GRADE</td>
+                                                                        <td style="width:10% !important; padding-left:5px;" align="left">@sem.M_PASS</td>
+                                                                    </tr>
+                                                                }
+                                                                <tr>
+                                                                    <td colspan="9" align="right">
+                                                                        <b>Total</b> : &nbsp;@parttotal
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        }
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <table align="center" style="width:98%">
+                                                <tr>
+                                                    <td colspan="3" style="border:1px solid;"></td>
+                                                </tr>
+                                                @{
+
+                                                    foreach (var partitem in Partlist)
+                                                    {
+                                                        if (Convert.ToInt64(partitem.FirstOrDefault().PART) <= 3)
+                                                        {
+                                                            var Gpa = Individual.Where(s => s.PART == partitem.FirstOrDefault().PART).ToList();
+                                                            pgpa = 0;
+                                                            pmax = 0;
+                                                            psec = 0;
+                                                            pmulti = 0;
+                                                            pcredit = 0;
+                                                            foreach (var gitem in Gpa)
+                                                            {
+                                                                pgpa += Convert.ToDouble(gitem.GRADE_POINT);
+                                                                pmax += Convert.ToDouble(gitem.MAXIMUM);
+                                                                psec += Convert.ToDouble(gitem.TOTAL);
+                                                                pcredit += Convert.ToDouble(gitem.CREDIT);
+                                                                pmulti += (Convert.ToDouble(gitem.CREDIT) * Convert.ToDouble(gitem.GRADE_POINT));
+                                                            }
+                                                            pgpa = pmulti / pcredit;
+                                                           
+                                                            <tr>
+                                                                <td><b>PART @Gpa.FirstOrDefault().PART_NAME</b> : &nbsp;@psec/@pmax</td>
+                                                                <td><b>P @Gpa.FirstOrDefault().PART GPA</b> : &nbsp;@pgpa.ToString("#.##")</td>
+                                                                @if (pgpa >= 9.00)
+                                                                {
+                                                                    <td><b>P @Gpa.FirstOrDefault().PART GRADE</b> : &nbsp;O</td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    if (pgpa >= 8.00)
+                                                                    {
+                                                                        <td><b>P @Gpa.FirstOrDefault().PART GRADE</b> : &nbsp;A+</td>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        if (pgpa >= 7.00)
+                                                                        {
+                                                                            <td><b>P @Gpa.FirstOrDefault().PART GRADE</b> : &nbsp;A</td>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            if (pgpa >= 6.00)
+                                                                            {
+                                                                                <td><b>P @Gpa.FirstOrDefault().PART GRADE</b> : &nbsp;B+</td>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                if (pgpa >= 5.00)
+                                                                                {
+                                                                                    <td><b>P @Gpa.FirstOrDefault().PART GRADE</b> : &nbsp;B</td>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    if (pgpa <= 4.00)
+                                                                                    {
+                                                                                        <td><b>P @Gpa.FirstOrDefault().PART GRADE</b> : &nbsp;C</td>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        if (pgpa < 4.00)
+                                                                                        {
+                                                                                            <td><b>P @Gpa.FirstOrDefault().PART GRADE</b> : &nbsp;R.A</td>
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            </tr>
+
+                                                        }
+                                                    }
+                                                    <tr>
+                                                        <td colspan="3" style="border:1px solid;"></td>
+                                                    </tr>
+                                                }
+                                            </table>
+
+                                        </div>
+
+                                                    }
+                </div>
+                                                            }
+                                                        }
+                                                    }
+}

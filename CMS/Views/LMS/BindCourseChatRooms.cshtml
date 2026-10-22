@@ -1,0 +1,153 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = null;
+}
+<style>
+
+    .chat-room-card {
+        min-height: 160px;
+        border-radius: 12px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .chat-room-card .stats-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .chat-room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+
+        .chat-room-card .stats-icon {
+            opacity: 0.15;
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            font-size: 4em;
+        }
+
+    a.card-link, a.card-link:hover {
+        text-decoration: none !important;
+    }
+
+
+    .unread-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #ff5b5b;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        border: 2px solid white;
+    }
+</style>
+
+<!-- The row layout remains the same -->
+<div class="row justify-content-center">
+    @if (Model.liExamRegistrationListChatRooms != null && Model.liExamRegistrationListChatRooms.Any())
+    {
+        foreach (var course in Model.liExamRegistrationListChatRooms)
+        {
+            <div class="col-lg-4 col-md-6 mb-4">
+                <a class="card-link" href="javascript:;" onclick="openChatRoom('@course.COURSE_ROOT_ID', '@course.COURSE_TITLE', '@course.COURSE_CODE')">
+                    <div class="widget widget-stats bg-gradient-blue chat-room-card">
+                        <div class="stats-icon stats-icon-lg"><i class="fa fa-comments fa-fw"></i></div>
+
+
+                        @{
+                            int unreadCount = 0;
+                            int.TryParse(course.UNREADCOUNT, out unreadCount);
+                        }
+
+                        @if (unreadCount > 0)
+                        {
+                            <div class="unread-badge">
+                                @(unreadCount > 99 ? "99+" : unreadCount.ToString())
+                            </div>
+                        }
+
+
+                        <div class="stats-content">
+                            <div class="stats-title" style="font-size:16px; color:white; font-weight:bold;">
+                                @course.COURSE_TITLE
+                            </div>
+                            <div class="stats-number" style="color:white; font-size:13px; opacity: 0.9;">
+                                @course.COURSE_CODE
+                            </div>
+                            <div class="small text-light mt-2" style="color: #eee;">
+                                Staff: @course.FIRST_NAME
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12 text-center text-muted">
+            <h4>No registered courses are available for chat.</h4>
+        </div>
+    }
+</div>
+
+
+<form id="chatRoomForm" action="@Url.Action("ChatRoom", "LMS")" method="post" style="display:none;">
+    <input type="hidden" name="courseId" id="formCourseId" />
+    <input type="hidden" name="courseName" id="formCourseName" />
+    <input type="hidden" name="courseCode" id="formCourseCode" />
+    <input type="hidden" name="courseclassid" id="formCourseclassid" />
+</form>
+
+<script>
+    function openChatRoom(courseId, courseName, courseCode) {
+        // 1. Set the values of the hidden input fields in the form
+        document.getElementById('formCourseId').value = courseId;
+        document.getElementById('formCourseName').value = courseName;
+        document.getElementById('formCourseCode').value = courseCode;
+
+        // 2. NEW: Update the 'LastReadOn' timestamp via an AJAX call.
+        // This will "clear" the unread count for the next time the page loads.
+        fetch('@Url.Action("UpdateLastRead", "LMS")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            },
+            body: 'courseId=' + courseId
+        }).catch(error => {
+            console.error('Failed to update read status:', error);
+        }).finally(() => {
+            // 3. Submit the form to navigate to the chat room.
+            // The .finally() block ensures this happens even if the fetch call fails,
+            // so the user experience is not interrupted.
+            document.getElementById('chatRoomForm').submit();
+        });
+
+
+        window.addEventListener('pageshow', function (event) {
+
+            if (event.persisted) {
+
+                window.location.reload();
+            }
+        });
+    }
+</script>

@@ -1,0 +1,170 @@
+@model List<CMS.ViewModel.Model.ConsolidatedFeeRecord>
+
+@{
+    decimal totalCollege = 0;
+    decimal totalHostel = 0;
+    decimal totalBus = 0;
+    decimal totalExam = 0;
+    decimal grandTotal = 0;
+
+    if (Model != null)
+    {
+        foreach (var item in Model)
+        {
+            totalCollege += item.COLLEGE_FEE;
+            totalHostel += item.HOSTELFEEDUE;
+            totalBus += item.BUSFEEDUE;
+            totalExam += item.EXAMFEEDUE;
+            grandTotal += item.TOTAL_DUE;
+        }
+    }
+}
+
+<style>
+    .fee-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 25px;
+    }
+
+    .fee-card {
+        border-radius: 8px;
+        padding: 18px;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        position: relative;
+    }
+
+    .fee-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .fee-card-college::before { background-color: #1e3a8a; }
+    .fee-card-hostel::before { background-color: #f59e0b; }
+    .fee-card-bus::before { background-color: #3b82f6; }
+    .fee-card-exam::before { background-color: #8b5cf6; }
+    .fee-card-overall::before { background-color: #ef4444; }
+
+    .fee-num {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: #0f172a;
+    }
+
+    .fee-lbl {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+</style>
+
+<div class="row m-b-20" style="margin-top: 10px;">
+    <div class="col-md-6">
+        <h4 style="font-weight: 800; font-size: 1.25rem; color: #1e3a8a; margin-top: 5px;"><i class="fa fa-money"></i> Student Dues Status</h4>
+    </div>
+    @*<div class="col-md-6 text-right">
+        <a href="loadcontent(/Student/FetchNodueFormForAdmin)?sRollNo=@ViewBag.RollNo" target="_blank" class="btn btn-danger btn-sm" style="font-weight: 600; border-radius: 6px; padding: 6px 16px; background-color: #ef4444; border-color: #ef4444;">
+            <i class="fa fa-print"></i> Generate No Due Form PDF
+        </a>
+    </div>*@
+</div>
+
+<div class="fee-summary-grid">
+    <div class="fee-card fee-card-overall" style="background-color: #fff5f5;">
+        <div class="fee-num" style="color: #ef4444;">&#8377;@grandTotal</div>
+        <div class="fee-lbl" style="color: #c53030;">Grand Total Dues</div>
+    </div>
+    <div class="fee-card fee-card-college">
+        <div class="fee-num" style="color: #1e3a8a;">&#8377;@totalCollege</div>
+        <div class="fee-lbl">College Fee Dues</div>
+    </div>
+    <div class="fee-card fee-card-hostel">
+        <div class="fee-num" style="color: #f59e0b;">&#8377;@totalHostel</div>
+        <div class="fee-lbl">Hostel Dues</div>
+    </div>
+    <div class="fee-card fee-card-bus">
+        <div class="fee-num" style="color: #3b82f6;">&#8377;@totalBus</div>
+        <div class="fee-lbl">Bus Dues</div>
+    </div>
+    <div class="fee-card fee-card-exam">
+        <div class="fee-num" style="color: #8b5cf6;">&#8377;@totalExam</div>
+        <div class="fee-lbl">Exam Dues</div>
+    </div>
+
+</div>
+
+<div class="table-responsive">
+    <h5 class="m-b-15" style="font-weight: 600; color: #334155;"><i class="fa fa-list"></i> Academic Year Wise Dues Breakdown</h5>
+    
+    @if (Model != null && Model.Count > 0)
+    {
+        <table class="table table-bordered table-striped" id="tblConsolidatedFees" width="100%" style="font-size: 1.05rem; color: #0f172a;">
+            <thead>
+                <tr style="background-color: #f8fafc; font-weight: 700; color: #1e293b;">
+                    <th><b>Academic Year</b></th>
+                    <th><b>Class Name</b></th>
+                    <th><b>College Fee Dues</b></th>
+                    <th><b>Hostel Dues</b></th>
+                    <th><b>Bus Dues</b></th>
+                    <th><b>Exam Dues</b></th>
+                    <th><b>Total Dues</b></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td><b>@item.ACADEMIC_YEAR</b></td>
+                        <td>@item.CLASS_NAME</td>
+                        <td class="@(item.COLLEGE_FEE > 0 ? "text-danger" : "text-success")">&#8377;@item.COLLEGE_FEE</td>
+                        <td class="@(item.HOSTELFEEDUE > 0 ? "text-danger" : "text-success")">&#8377;@item.HOSTELFEEDUE</td>
+                        <td class="@(item.BUSFEEDUE > 0 ? "text-danger" : "text-success")">&#8377;@item.BUSFEEDUE</td>
+                        <td class="@(item.EXAMFEEDUE > 0 ? "text-danger" : "text-success")">&#8377;@item.EXAMFEEDUE</td>
+                        <td><b style="color: #0f172a;">&#8377;@item.TOTAL_DUE</b></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="text-center text-muted p-5">
+            <i class="fa fa-smile-o fa-3x text-success m-b-10"></i>
+            <p>Perfect! No dues records found for this student.</p>
+        </div>
+    }
+</div>
+
+<script>
+    $(document).ready(function () {
+        if ($.fn.DataTable.isDataTable('#tblConsolidatedFees')) {
+            $('#tblConsolidatedFees').DataTable().destroy();
+        }
+        $('#tblConsolidatedFees').DataTable({
+            responsive: true,
+            paging: true,
+            pageLength: 10,
+            ordering: true,
+            dom: 'lBfrtip',
+            buttons: [
+                {
+                    extend: 'excel',
+                    text: '<i class="fa fa-file-excel-o"></i> Export Dues',
+                    className: 'btn btn-primary btn-sm'
+                }
+            ]
+        });
+    });
+</script>

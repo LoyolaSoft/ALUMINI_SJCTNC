@@ -1,0 +1,89 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{ 
+    Layout = null;
+    int nCount = 0;
+    string sDisabled = string.Empty;
+}
+<div class="form-group col-md-12 table-responsive">
+    <table class="table table-bordered table-hover" id="tblExamHeads">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Head</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liFeeMainHead!=null && Model.liFeeMainHead.Count>0)
+            {
+                foreach (var item in Model.liFeeMainHead)
+                {
+                    <tr cms-sExamHeadId="@item.EXAM_HEAD_ID" cms-sExamSettingId="@item.EXAM_SETTING_ID" cms-FeeMainHeadId="@item.FEE_MAIN_HEAD_ID" cms-sCost="@item.COST">
+                        <td>@{nCount++;} @nCount</td>
+                        <td>@item.MAIN_HEAD</td>
+                        <td>
+                            <input type="number" @if (item.MAIN_HEAD.Contains("Examination Fees")) { sDisabled = "disabled"; } else if (item.MAIN_HEAD.Contains("Arrears")) { sDisabled = "disabled"; } else { sDisabled = string.Empty; } class="form-control" @sDisabled id="txtAmount" value="@item.COST" maxlength="4"/>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    <div class="form-group col-md-12">
+        <a href="javascript:;" id="btnSubmit" class="btn btn-primary">Submit</a>
+    </div>
+</div>
+
+
+<script>
+    $('#btnSubmit').on('click', function () {
+        if ($('#ExamList').val() != '0') {
+            var JsonData = '{"liExamHeads":[';
+            var nJsonCount = 0;
+            var sApplicationType = $('#ApplicationType').val();
+            var sProgrammeYear = $('#ProgrammeYear').val();
+            var sShift = $('#Shift').val();
+            var sFrequencyId = $('#FrequencyList').val();
+            $('#tblExamHeads tbody tr').each(function () {
+                if ($(this).find('input').val() != null && $(this).find('input').val() != '') {
+                    if ($(this).find('input').val() != $(this).attr('cms-sCost')) {
+                        JsonData += '{"EXAM_HEAD_ID":"' + $(this).attr('cms-sExamHeadId') + '",\
+                              "PROGRAMME_TYPE_ID":"' + sApplicationType + '",\
+                              "PROGRAMME_LEVEL_ID":"' + sProgrammeYear + '",\
+                              "SHIFT_ID":"' + sShift + '",\
+                              "EXAM_SETTING_ID":"' + $('#ExamList').val() + '",\
+                              "FREQUENCY_ID":"' + sFrequencyId + '",\
+                              "FEE_MAIN_HEAD_ID":"' + $(this).attr('cms-FeeMainHeadId') + '",\
+                              "COST":"' + $(this).find('input').val() + '"},';
+                        nJsonCount++;
+                    }
+                }
+            });
+
+            if (nJsonCount != 0) {
+                JsonData = JsonData.slice(0, -1);
+                JsonData += "]}";
+            } else {
+                swal({ title: "Information !", text: 'No changes made !', showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+                return false;
+            }
+
+            $.ajax({
+                url: '@Url.Action("SaveExamHeads", "Examination")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sJsonSaveExamHeads: JsonData },
+                success: function (data) {                   
+                        swal({ title: "Information !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'info', animation: true });
+                        $('#btnGet').click();
+                }, error: function (error) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        } else {
+            swal({ title: "Failed !", text: 'Please provide valid inputs !', showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+        }
+    });
+</script>

@@ -1,0 +1,210 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+
+    CMS.ViewModel.Model.MENTORING_STUDENT_ACADEMIC_DETAILS editData = null;
+
+    if (Model != null && Model.listuacademicdet != null && Model.listuacademicdet.Count > 0)
+    {
+        editData = Model.listuacademicdet[0];
+    }
+}
+
+<div class="form-container mt-3">
+    <h4 class="text-primary mb-3">
+        <b><i class="fa fa-pencil-square-o"></i> Academic Background – School Education</b>
+    </h4>
+    
+    <div class="card p-3 shadow-sm mb-4">
+        <form id="AcademicDetailsForm">
+            <input type="hidden" id="ACADEMIC_RECORD_ID" value="@(editData != null ? editData.STU_ACADEMIC_ID : "")" />
+
+            <div class="row">
+                <div class="col-md-6 form-group">
+                    <label><b>SSLC School</b></label>
+                    <input type="text" id="ACADEMIC_SSLC_SCHOOL" class="form-control"
+                           value="@(editData != null ? editData.SSLC_SCHOOL : "")" />
+                </div>
+
+                <div class="col-md-6 form-group">
+                    <label><b>SSLC Percentage</b></label>
+                    <input type="text" id="ACADEMIC_SSLC_PERCENT" class="form-control"
+                           value="@(editData != null ? editData.SSLC_PERCENTAGE : "")" />
+                </div>
+
+                <div class="col-md-6 form-group">
+                    <label><b>HSC School</b></label>
+                    <input type="text" id="ACADEMIC_HSC_SCHOOL" class="form-control"
+                           value="@(editData != null ? editData.HSC_SCHOOL : "")" />
+                </div>
+
+                <div class="col-md-6 form-group">
+                    <label><b>HSC Percentage</b></label>
+                    <input type="text" id="ACADEMIC_HSC_PERCENT" class="form-control"
+                           value="@(editData != null ? editData.HSC_PERCENTAGE : "")" />
+                </div>
+            </div>
+
+            <div class="mt-2">
+                <button type="button" id="btnSaveAcademicDetails" class="btn btn-primary">
+                    <i class="fa fa-save"></i> Save Academic Info
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!--Semester Summary-->
+    <div id="semesterSummaryArea" class="mt-4">
+        <h4 class="text-primary mb-3">
+            <b><i class="fa fa-list-alt"></i> Academic Analysis - Semester Summary</b>
+        </h4>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="bg-silver">
+                    <tr>
+                        <th class="text-center">Semester</th>
+                        <th class="text-center">Total no.of Subjects</th>
+                        <th class="text-center">No.of Subjects Passed</th>
+                        <th class="text-center">No.of Arrears</th>
+                        <th class="text-center">Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.liSemesterMarks != null && Model.liSemesterMarks.Count > 0)
+                    {
+                        var groupMarks = Model.liSemesterMarks.GroupBy(x => x.SEMESTER).OrderBy(x => x.FirstOrDefault().SEMESTER_ID).ToList();
+                        foreach (var group in groupMarks)
+                        {
+                            var total = group.Count();
+                            var passed = group.Count(x => x.RESULT != "F" && x.RESULT != "W" && x.RESULT != "A");
+                            var arrears = total - passed;
+                            var percentage = total > 0 ? (Math.Round((double)passed / total * 100, 2)) : 0;
+
+                            <tr>
+                                <td class="text-center">@group.Key</td>
+                                <td class="text-center">@total</td>
+                                <td class="text-center">@passed</td>
+                                <td class="text-center">@arrears</td>
+                                <td class="text-center">@percentage %</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No summary available</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!--Semester marks-->
+    <div id="semesterPrintArea" class="mt-4">
+        <div class="row align-items-center mb-3">
+            <div class="col-md-6">
+                <h4 class="text-success mb-0">
+                    <b><i class="fa fa-graduation-cap"></i> Academic Analysis - Semester Details</b>
+                </h4>
+            </div>
+            <div class="col-md-6 text-right">
+                <button type="button" class="btn btn-success btn-sm" onclick="printSemesterMarks()">
+                    <i class="fa fa-print"></i> Print Details
+                </button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="bg-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Semester</th>
+                        <th>Course Code</th>
+                        <th>Course Title</th>
+                        <th class="text-center">Internal</th>
+                        <th class="text-center">External</th>
+                        <th class="text-center">Total</th>
+                        <th>Month / Year</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.liSemesterMarks != null && Model.liSemesterMarks.Count > 0)
+                    {
+                        int i = 0;
+                        foreach (var item in Model.liSemesterMarks)
+                        {
+                            string rowClass = (item.RESULT == "F" || item.RESULT == "W") ? "text-danger font-weight-bold" : "";
+
+                            <tr class="@rowClass">
+                                <td class="text-center">@(++i)</td>
+                                <td>@item.SEMESTER</td>
+                                <td>@item.COURSE_CODE</td>
+                                <td>@item.COURSE_TITLE</td>
+                                <td class="text-center">@item.INTERNAL_MARK</td>
+                                <td class="text-center">@item.EXTERNAL_MARK</td>
+                                <td class="text-center">@item.TOTAL</td>
+                                <td>@item.M_PASS</td>
+                                <td class="text-center">
+                                    @if (item.RESULT == "F") { <span>FAIL</span> }
+                                    else if (item.RESULT == "W") { <span>WITHHELD</span> }
+                                    else if (item.RESULT == "A") { <span>ABSENT</span> }
+                                    else { <span>PASS</span> }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">No semester marks available</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#btnSaveAcademicDetails').click(function () {
+        var data = {
+            STU_ACADEMIC_ID: $('#ACADEMIC_RECORD_ID').val(),
+            STUDENT_ID: $('#studentlist').val(),
+            SSLC_SCHOOL: $('#ACADEMIC_SSLC_SCHOOL').val(),
+            SSLC_PERCENTAGE: $('#ACADEMIC_SSLC_PERCENT').val(),
+            HSC_SCHOOL: $('#ACADEMIC_HSC_SCHOOL').val(),
+            HSC_PERCENTAGE: $('#ACADEMIC_HSC_PERCENT').val()
+        };
+
+        if (!data.SSLC_SCHOOL || !data.SSLC_PERCENTAGE || !data.HSC_SCHOOL || !data.HSC_PERCENTAGE) {
+            swal("Warning", "Please fill all required school academic fields", "warning");
+            return false;
+        }
+
+        $.ajax({
+            url: '@Url.Action("SaveAcademicDetails", "Mentoring")',
+            type: 'POST',
+            data: data,
+            success: function (res) {
+                swal("Success", "Academic details saved successfully", "success");
+            },
+            error: function () {
+                swal("Error", "Something went wrong. Please try again.", "error");
+            }
+        });
+    });
+});
+
+function printSemesterMarks() {
+    var printContents = document.getElementById('semesterPrintArea').innerHTML;
+    var originalContents = document.body.innerHTML;
+    document.body.innerHTML = '<html><head><title>Semester Marks</title></head><body>' + printContents + '</body></html>';
+    window.print();
+    document.body.innerHTML = originalContents;
+    // Re-bind events or just trigger tab click
+    $('#StudentAcademicDet').click();
+}
+</script>

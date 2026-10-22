@@ -1,0 +1,85 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = null;
+    int Count = 0;
+    string sSelected = "selected";
+    string Sstaff = string.Empty;
+    //string Empty = "0";
+    var invigilationRoom = new List<CMS.ViewModel.Model.EXAM_SEATING_INVIGILATOR>();
+}
+<div class="table-responsive">
+    <table class="table table-bordered table-hover" id="tblInvigilation">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Room No</th>
+                <th>Room Capacity</th>
+                <th>Exam Capacity</th>
+                <th>Staff</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.LiSupRoom != null && Model.LiSupRoom.Count > 0)
+            {
+                foreach (var item in Model.LiSupRoom)
+                {
+                    if (Model.liExamSeatingInvigilator != null && Model.liExamSeatingInvigilator.Count > 0)
+                    {
+                        invigilationRoom = Model.liExamSeatingInvigilator.Where(s => s.ROOM_ID == item.ROOM_ID).ToList();
+                        if (invigilationRoom != null && invigilationRoom.Count > 0)
+                        {
+                            sSelected = string.Join(",", invigilationRoom.Select(s => s.SEATING_INVIGILATOR_ID)).ToString();
+                            Sstaff = string.Join(",", invigilationRoom.Select(s => s.FIRST_NAME)).ToString();
+                        }
+                        else
+                        {
+                            sSelected = string.Empty;
+                            Sstaff = string.Empty;
+                        }
+                    }
+                    var SeatingsRoom = Model.LiExamSeatingAllotment.Where(s => s.ROOM_ID == item.ROOM_ID).ToList();
+                    <tr>
+                        <td>@{Count++;}@Count</td>
+                        <td>@item.ROOM_NO</td>
+                        <td>@item.EXAM_CAPACITY</td>
+                        @if (SeatingsRoom != null && SeatingsRoom.Count > 0)
+                        {
+                            <td>@SeatingsRoom.FirstOrDefault().EXAM_CAPACITY</td>
+                            <td class="AddStaff" cms-examinvigilatorid="@sSelected" cms-roomid="@item.ROOM_ID" cms-roomno="@item.ROOM_NO"
+                                cms-examdate="@SeatingsRoom.FirstOrDefault().EXAM_DATE" cms-examsession="@SeatingsRoom.FirstOrDefault().EXAM_SESSION_ID">
+                                @Sstaff
+                            </td>
+                        }
+                        else
+                        {
+                            <td>0</td> 
+                            <td></td>
+                        }
+                        
+
+                        @if (string.IsNullOrEmpty(sSelected))
+                        {
+                            <td>                              
+                            </td>
+                        }
+                        else if (invigilationRoom.Count > 1)
+                        {
+                            <td>
+                                <a href="#ViewExamInvigilator" onclick="FetchExtraExamInvigilators('@sSelected')" data-toggle="modal"><i class="glyphicon glyphicon-eye-open text-primary" title="View"></i></a>                               
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                <a href="#ExamTTGrouping" onclick="FetchItemDetails(@sSelected)" data-toggle="modal" title="Edit" class="text-primary"><i class="fa fa-edit"></i></a>
+                                <a href="javascript:;" onclick="GetConfirm(@sSelected);"><i class="fa fa-trash text-danger" title="Delete"></i></a>                                
+                            </td>
+                        }
+
+                    </tr>
+                                }
+                            }
+        </tbody>
+    </table>
+</div>

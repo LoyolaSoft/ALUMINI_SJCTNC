@@ -1,0 +1,161 @@
+﻿@model CMS.ViewModel.ViewModel.HallTicketValidationViewModel
+@{ Layout = null; int count = 0;}
+
+<div class="col-md-12 form-group">
+    <a class="btn btn-success pull-right" style="cursor:pointer" href="#HallTicket-dialog" data-toggle="modal"><i class="fa fa-plus"></i> Add </a>
+</div>
+
+@if (Model.lstHallTicketValidation != null && Model.lstHallTicketValidation.Count > 0)
+{
+        <table class="table table-hover table-bordered" id="ClassWiseStudentFeeUnPaidStatusList">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Roll No</th>
+                    <th>Register No</th>
+                    <th>Class</th>
+                    <th>Name</th>
+                    <th>Reason</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                    @foreach (var item in Model.lstHallTicketValidation)
+                    {
+                        <tr>
+                            <td>
+                                @{ count++;}@count
+                            </td>
+                            <td>@item.ROLL_NO</td>
+                            <td>@item.REGISTER_NO</td>
+                            <td>@item.CLASS_NAME</td>
+                            <td>@item.FIRST_NAME</td>
+                            <td>@item.REASON</td>
+                            <td>
+                                <a href="#HallTicket-dialog" data-toggle="modal" onclick="UpdateHAllTicket(@item.HALL_TICKET_VALIDATION_ID,'@item.REASON',@item.STUDENT_ID);"><i class="fa fa-edit" title="Click To Update"></i></a>
+                                <a href=";;" onclick="GetConfirm(@item.HALL_TICKET_VALIDATION_ID);"><i class="fa fa-trash text-danger" title="Click To Delete"></i></a>
+                            </td>
+                        </tr>
+                    }
+            </tbody>
+        </table>
+ }
+ else
+ {
+     <tr>
+         <td>No Records Available...!!!</td>
+     </tr>
+ }
+
+
+
+<div class="modal fade" id="HallTicket-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Hall Ticket Validation</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                <div class="form-group">
+                                    @*<label class="control-label col-md-3">Student</label>
+                                    <div class="col-md-9">
+                                        <select id="StudentList" class="selectpicker form-control" data-live-search="true">
+                                            <option value="">-- Select --</option>
+                                        </select>
+                                    </div>*@
+                                    @Html.LabelFor(model => model.StudentList, "Student List", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.StudentList, (Model.StudentList != null) ? Model.StudentList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true",multiple="multiple" })
+                                        @Html.ValidationMessageFor(model => model.StudentList, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3"> Reason </label>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control input-sm" id="txtReason" placeholder="Enter Reason " maxlength="98" />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Filed -->
+<input type="text" id="txtValidationId" class="hidden" value=""/>
+<!-- Hidden Filed -->
+
+<script>
+    $('#btnSubmit').on('click', function ()
+    {
+        SaveRecord();
+    });
+    SaveRecord = function ()
+    {
+        var Class = $('#liClassList').val();
+        var Student = ($('#StudentList').val()).toString();
+        //    var Amount = $('#txtBalanceAmount').val();
+        var Reason = $('#txtReason').val();
+        var ValidationId = $('#txtValidationId').val();
+        var JsonData;
+        if (Student != '0' && Student!=null)
+        {
+                JsonData = '{"HALL_TICKET_VALIDATION_ID":"' + ValidationId + '","CLASS_ID":"' + Class + '","STUDENT_ID":"' + Student + '","REASON":"' + Reason + '"}';
+                $.ajax({
+                    url: "@Url.Action("SaveOrUpdateHallTicketValidation", "Fee")",
+                    method: "POST",
+                    data: { sValidation: JsonData },
+                    success: function (objResult)
+                    {
+                        alert(ObjJsonData.Message);
+                       // window.location.reload();
+                       // loadContent('/Fee/NMECourseAllotmentList');
+                    }, error: function (error)
+                    {
+                        alert('Record not saved try again ..!');
+                    }
+            });
+        }
+        else
+        {
+             alert('Please Enter Correct Values...!!!');
+             return false;
+        }
+    }
+
+    function UpdateHAllTicket(ValidationId,Reason,StudentId)
+    {
+        $('#txtValidationId').val(ValidationId);
+        $('#txtReason').val(Reason);
+        $('#StudentList').val(StudentId);
+        $('#StudentList').attr('disabled', true);
+        $('.selectpicker').selectpicker('refresh');
+    }
+
+    $(function ()
+    {
+        $('#HallTicket-dialog').on('hidden.bs.modal', function (e)
+        {
+            $('#txtValidationId').val('');
+            $('#txtReason').val('');
+            $('#StudentList').val(0);
+            $('.selectpicker').selectpicker('refresh');
+        });
+    });
+</script>

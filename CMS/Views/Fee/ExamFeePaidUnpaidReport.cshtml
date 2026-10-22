@@ -1,0 +1,366 @@
+@model CMS.ViewModel.ViewModel.FeeReportViewModel
+@{
+    ViewBag.Title = "ExamFeePaidUnpaidReport";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Fee</a></li>
+        <li class="active">Exam Fee Paid &amp; Unpaid Report</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Exam Fee Paid &amp; Unpaid Report</h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Exam Fee Paid and Unpaid Report</h4>
+        </div>
+
+        <div class="panel-body">
+            <div id="loader" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+                <img src="~/Content/assets/img/loading-7528_128.gif" alt="Loading..." />
+            </div>
+
+            <div class="col-md-12 form-horizontal">
+                <ul class="nav nav-tabs">
+                    <li class="nav-items active" id="tabStudentPaid">
+                        <a href="#studentPaidPane" data-toggle="tab" class="nav-link active" onclick="SetTab('student_paid')">
+                            <i class="fa fa-check-circle text-success"></i> <span>Student Paid Date Wise</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabStudentBalance">
+                        <a href="#studentBalancePane" data-toggle="tab" class="nav-link" onclick="SetTab('student_balance')">
+                            <i class="fa fa-exclamation-circle text-danger"></i> <span>Student Unpaid / Balance Report</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabStudentFreq">
+                        <a href="#studentFreqPane" data-toggle="tab" class="nav-link" onclick="SetTab('student_freq')">
+                            <i class="fa fa-list-alt text-info"></i> <span>Student Frequency / Overall Status</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <input type="hidden" id="hdnActiveTab" value="student_paid" />
+
+                <div class="tab-content" style="padding: 15px 0;">
+                    <!-- Filter Area -->
+                    <div class="row">
+                        <!-- Academic Year Filter -->
+                        <div class="form-group col-md-3">
+                            <label class="control-label col-md-4">Academic Year</label>
+                            <div class="col-md-8">
+                                @Html.DropDownList("AcademicYearList", (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick drop-down", @data_live_search = "true", @id = "AcademicYearList" })
+                            </div>
+                        </div>
+
+                        <!-- Class Filter -->
+                        <div class="form-group col-md-3">
+                            <label class="control-label col-md-4">Class</label>
+                            <div class="col-md-8">
+                                <select id="ClassList" class="form-control selectpicker show-menu-arrow show-tick" data-live-search="true">
+                                    <option value="">All Classes</option>
+                                    @if (Model.ClassList != null)
+                                    {
+                                        foreach (var c in Model.ClassList)
+                                        {
+                                            <option value="@c.Value">@c.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Frequency Filter -->
+                        <div id="divFrequencyFilter" class="form-group col-md-3">
+                            <label class="control-label col-md-4">Session/Freq</label>
+                            <div class="col-md-8">
+                                <select id="FrequencyList" class="form-control selectpicker show-menu-arrow show-tick" data-live-search="true">
+                                    <option value="">All Frequencies</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Head wrapper -->
+                        <div id="divHeadFilter" class="form-group col-md-3">
+                            <label class="control-label col-md-4">Exam Heads</label>
+                            <div class="col-md-8">
+                                <select id="MainHeadList" class="form-control selectpicker show-menu-arrow show-tick" data-live-search="true" multiple data-actions-box="true" title="All Heads">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date range wrapper for Paidwise Tab -->
+                    <div class="row" id="divDateFilters">
+                        <div class="form-group col-md-3">
+                            <label class="control-label col-md-4">From Date</label>
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <input class="form-control date-picker" id="txtFromDate" placeholder="From Date" autocomplete="off" />
+                                    <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="control-label col-md-4">To Date</label>
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <input class="form-control date-picker" id="txtToDate" placeholder="To Date" autocomplete="off" />
+                                    <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 text-right">
+                            <button class="btn btn-sm btn-primary" onclick="GetExamFeeReport()"> <i class="fa fa-search"></i> Get </button>
+                            <button class="btn btn-sm btn-success btnPrint hidden" onclick="printDiv('dvReportBind')"> <i class="fa fa-print"></i> Print </button>
+                            <button class="btn btn-sm btn-primary btnExport hidden" onclick="Export()"> <i class="fa fa-file-excel-o"></i> Export </button>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="margin-top: 10px; margin-bottom: 20px;" />
+                <div id="dvReportBind" class="table-responsive"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        ContentLoad();
+    });
+
+    function ContentLoad() {
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.date-picker').datepicker({
+            format: 'dd/mm/yyyy',
+            todayHighlight: true,
+            autoclose: true
+        });
+
+        var currentYear = $('#AcademicYearList option:selected').text();
+        if (currentYear && currentYear !== "-- Select --") {
+            LoadExamFeeFrequencies(currentYear);
+        }
+    }
+
+    $('#AcademicYearList').on('change', function () {
+        var vAcademicyear = $('#AcademicYearList option:selected').text();
+        LoadExamFeeFrequencies(vAcademicyear);
+        LoadClasses(vAcademicyear);
+    });
+
+    function LoadExamFeeFrequencies(vAcademicyear) {
+        if (!vAcademicyear || vAcademicyear === "-- Select --") {
+            $('#FrequencyList').empty().append('<option value="">All Frequencies</option>');
+            $('#MainHeadList').empty();
+            $('.selectpicker').selectpicker('refresh');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("FetchExamFeeFrequencyByAcademicYear", "Fee")',
+            data: { Academicyear: vAcademicyear },
+            success: function (objResult) {
+                $('#FrequencyList').empty().append('<option value="">All Frequencies</option>' + (objResult.sResult || ''));
+                $('.selectpicker').selectpicker('refresh');
+            }
+        });
+    }
+
+    function LoadClasses(vAcademicyear) {
+        if (!vAcademicyear || vAcademicyear === "-- Select --") {
+            $('#ClassList').empty().append('<option value="">All Classes</option>');
+            $('.selectpicker').selectpicker('refresh');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("FetchClassByAcademicYear", "Fee")',
+            data: { AcademicYear: vAcademicyear },
+            success: function (objResult) {
+                $('#ClassList').empty().append('<option value="">All Classes</option>' + (objResult.sResult || ''));
+                $('.selectpicker').selectpicker('refresh');
+            }
+        });
+    }
+
+    $('#FrequencyList').on('change', function () {
+        var vAcademicyear = $('#AcademicYearList option:selected').text();
+        var vFrequency = $(this).val();
+        if (!vFrequency) {
+            $('#MainHeadList').empty();
+            $('.selectpicker').selectpicker('refresh');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("FetchExamFeeHeadsByFrequencyId", "Fee")',
+            data: { sFrequencyId: vFrequency, Academicyear: vAcademicyear },
+            success: function (objResult) {
+                $('#MainHeadList').empty().append(objResult.sResult || '');
+                $('.selectpicker').selectpicker('refresh');
+            }
+        });
+    });
+
+    function SetTab(tabName) {
+        $('#hdnActiveTab').val(tabName);
+        $('#dvReportBind').empty();
+        $('.btnPrint').addClass('hidden');
+        $('.btnExport').addClass('hidden');
+
+        // Toggle Date filters for Paid tab
+        if (tabName === 'student_paid') {
+            $('#divDateFilters').show();
+        } else {
+            $('#divDateFilters').hide();
+        }
+        $('.selectpicker').selectpicker('refresh');
+    }
+
+    function GetExamFeeReport() {
+        var tab = $('#hdnActiveTab').val();
+        var acYear = $('#AcademicYearList option:selected').text();
+        var fromDate = $('#txtFromDate').val();
+        var toDate = $('#txtToDate').val();
+        var frequency = $('#FrequencyList').val();
+        var classId = $('#ClassList').val();
+        var head = $('#MainHeadList').val();
+        if (Array.isArray(head)) {
+            head = head.join(',');
+        }
+
+        if (!acYear || acYear === "-- Select --") {
+            swal("Error!", "Please select Academic Year.", "error");
+            return;
+        }
+
+        if (tab === 'student_paid') {
+            if ((fromDate && !toDate) || (!fromDate && toDate)) {
+                swal("Error!", "Please choose both From Date and To Date, or leave both blank for all records.", "error");
+                return;
+            }
+        }
+
+        $('#loader').show();
+
+        $.ajax({
+            url: '@Url.Action("BindExamFeeReport", "Fee")',
+            method: 'POST',
+            data: {
+                sTab: tab,
+                sAcYear: acYear,
+                FromDate: fromDate,
+                ToDate: toDate,
+                sFrequency: frequency,
+                sHead: head,
+                sClassId: classId
+            },
+            success: function (data) {
+                $('#loader').hide();
+                $('#dvReportBind').html(data);
+
+                if ($.fn.DataTable.isDataTable('#tblExamFeeReport')) {
+                    $('#tblExamFeeReport').DataTable().destroy();
+                }
+
+                $('#tblExamFeeReport').DataTable({
+                    "paging": true,
+                    "lengthChange": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": true,
+                    "autoWidth": false,
+                    "responsive": true,
+                    "pageLength": 25
+                });
+
+                $('.btnPrint').removeClass('hidden');
+                $('.btnExport').removeClass('hidden');
+            },
+            error: function () {
+                $('#loader').hide();
+                swal("Error!", "Failed to fetch exam fee report data.", "error");
+            }
+        });
+    }
+
+    function printDiv(divId) {
+        var printContents = document.getElementById(divId).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+
+        // Reload to restore JS events
+        loadContent('/Fee/ExamFeePaidUnpaidReport');
+    }
+
+    function Export() {
+        var table = $('#tblExamFeeReport').DataTable();
+        if (table) {
+            var data = table.rows({ search: 'applied' }).data();
+            var csv = [];
+            
+            // Header
+            var headers = [];
+            $('#tblExamFeeReport thead th').each(function () {
+                headers.push('"' + $(this).text().trim() + '"');
+            });
+            csv.push(headers.join(','));
+
+            // Rows
+            for (var i = 0; i < data.length; i++) {
+                var rowData = [];
+                for (var j = 0; j < data[i].length; j++) {
+                    var cell = $('<div>' + data[i][j] + '</div>').text().trim();
+                    rowData.push('"' + cell.replace(/"/g, '""') + '"');
+                }
+                csv.push(rowData.join(','));
+            }
+
+            var csvString = csv.join('\r\n');
+            var blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement("a");
+            if (link.download !== undefined) {
+                var url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "ExamFeeReport_" + $('#hdnActiveTab').val() + ".csv");
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+    }
+</script>

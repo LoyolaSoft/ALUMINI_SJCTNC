@@ -1,0 +1,287 @@
+@{
+    ViewBag.Title = "Arrear Overall Eligible Report";
+    Layout = null; // Loaded dynamically via Single Page Application (loadContent)
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+
+<style>
+    @media print {
+        .dt-buttons, .dataTables_filter, .dataTables_length,
+        .dataTables_info, .dataTables_paginate,
+        .filter-row, .no-print {
+            display: none !important;
+        }
+        .panel { box-shadow: none !important; border: none !important; }
+        .table th { background-color: #f1f3f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .print-header { display: block !important; }
+    }
+    .print-header { display: none; }
+    .filter-row { margin-bottom: 15px; }
+</style>
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">Arrear Overall Eligible Report</li>
+    </ol>
+    <h1 class="page-header">Arrear Overall Eligible Report <small>Academic Year: @ViewBag.AcademicYear</small></h1>
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Overall Eligible Report</h4>
+        </div>
+        <div class="panel-body">
+            <div id="arr-loader" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999;">
+                <img src="~/Content/assets/img/loading-7528_128.gif" alt="Loading..." />
+            </div>
+
+            <!-- Printable header (hidden on screen) -->
+            <div class="print-header text-center" style="border-bottom: 2px solid #2C3E50; padding-bottom: 10px; margin-bottom: 20px;">
+                <h3 style="margin:0; font-weight:700; text-transform:uppercase;">St. Joseph's College (Autonomous)</h3>
+                <h5 style="margin:4px 0;">Arrear Registration Report — Overall Eligible List</h5>
+                <small>Academic Year: @ViewBag.AcademicYear</small>
+            </div>
+
+            <!-- Dashboard Summary Cards -->
+            <div class="row no-print" style="margin-top: 5px; margin-bottom: 20px;">
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget widget-stats bg-gradient-blue" style="margin-bottom:10px; border-radius: 4px;">
+                        <div class="stats-icon"><i class="fa fa-users"></i></div>
+                        <div class="stats-info">
+                            <h4>Total Eligible</h4>
+                            <p id="cntTotalEligible" style="font-size:24px; font-weight:700;">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget widget-stats bg-gradient-purple" style="margin-bottom:10px; border-radius: 4px;">
+                        <div class="stats-icon"><i class="fa fa-pencil-square-o"></i></div>
+                        <div class="stats-info">
+                            <h4>Registered</h4>
+                            <p id="cntRegistered" style="font-size:24px; font-weight:700;">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget widget-stats bg-gradient-green" style="margin-bottom:10px; border-radius: 4px;">
+                        <div class="stats-icon"><i class="fa fa-check-circle"></i></div>
+                        <div class="stats-info">
+                            <h4>Paid (Reg & Paid)</h4>
+                            <p id="cntPaid" style="font-size:24px; font-weight:700;">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget widget-stats bg-gradient-orange" style="margin-bottom:10px; border-radius: 4px;">
+                        <div class="stats-icon"><i class="fa fa-exclamation-circle"></i></div>
+                        <div class="stats-info">
+                            <h4>Not Registered</h4>
+                            <p id="cntNotRegistered" style="font-size:24px; font-weight:700;">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row filter-row no-print">
+                <div class="col-md-12 text-right">
+                    <button id="btnLoadOverallEligible" class="btn btn-sm btn-primary">
+                        <i class="fa fa-refresh m-r-5"></i> Load Report
+                    </button>
+                    <button class="btn btn-sm btn-success m-l-5" id="btnPrintReport">
+                        <i class="fa fa-print m-r-5"></i> Print
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered table-striped" id="overallEligibleTable" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th style="width:50px;">#</th>
+                            <th>Student Name</th>
+                            <th>Roll No</th>
+                            <th>Course Details</th>
+                            <th>Semester</th>
+                            <th>Exam Setting</th>
+                            <th>Register Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+
+<script>
+    var overallEligibleTableInstance;
+    var isDashboardInitialized = false;
+
+    // SPA loader hook
+    LoadArrearOverallEligibleReport = function () {
+        loadContent('/Examination/ArrearOverallEligibleReport');
+    }
+
+    ContentLoad = function () {
+        initializeDashboard();
+        loadOverallEligibleList();
+    }
+
+    function initializeDashboard() {
+        if (isDashboardInitialized) return;
+        isDashboardInitialized = true;
+
+        // ---- DataTable: Overall Eligible ----
+        overallEligibleTableInstance = $('#overallEligibleTable').DataTable({
+            destroy: true,
+            dom: 'lBfrtip',
+            buttons: [
+                { extend: 'copy', className: 'btn-sm btn-info' },
+                { extend: 'excel', className: 'btn-sm btn-success', title: 'Overall_Eligible_List' },
+                { extend: 'pdf', className: 'btn-sm btn-danger', title: 'Overall_Eligible_List' }
+            ],
+            responsive: true,
+            paging: true,
+            pageLength: 25,
+            lengthMenu: [10, 25, 50, 100],
+            ordering: true,
+            columnDefs: [{ orderable: false, targets: [0] }]
+        });
+
+        $('#btnReload').on('click', function () {
+            loadOverallEligibleList();
+        });
+
+        $('#btnLoadOverallEligible').on('click', function () {
+            loadOverallEligibleList();
+        });
+
+        $('#btnPrintReport').on('click', function () {
+            printCurrentReport();
+        });
+    }
+
+    function loadOverallEligibleList() {
+        $('#arr-loader').show();
+        $.ajax({
+            url: '/Examination/GetArrearOverallEligibleList',
+            type: 'POST',
+            success: function (res) {
+                $('#arr-loader').hide();
+                if (!res.Success) {
+                    alert('Failed to load overall eligible list: ' + (res.Message || 'Unknown error'));
+                    return;
+                }
+                var table = $('#overallEligibleTable').DataTable();
+                table.clear();
+                var rows = res.Data || [];
+
+                var totalEligible = rows.length;
+                var registered = 0;
+                var paid = 0;
+                var notRegistered = 0;
+
+                $.each(rows, function (i, item) {
+                    var examSettingId = String(item.EXAM_SETTING_ID || '').trim();
+                    var examStr = getExamSettingLabel(examSettingId, item.EXAM_NAME);
+                    var statusStr = getStatusLabel(item.IS_REGISTERED, item.IS_PAID);
+                    var registerDate = (item.IS_REGISTERED === '1' || item.IS_REGISTERED === 'True') ? (item.REGISTER_DATE_DISPLAY || '') : '<span class="text-muted">-</span>';
+
+                    var isReg = (item.IS_REGISTERED === '1' || item.IS_REGISTERED === 'True');
+                    var isPaid = (item.IS_PAID === '1' || item.IS_PAID === 'True');
+
+                    if (isPaid) {
+                        paid++;
+                    } else if (isReg) {
+                        registered++;
+                    } else {
+                        notRegistered++;
+                    }
+
+                    table.row.add([
+                        i + 1,
+                        '<strong>' + (item.STUDENT_NAME || '') + '</strong>',
+                        item.ROLL_NO || item.REGISTER_NO || '',
+                        '<strong>' + (item.COURSE_CODE || '') + '</strong><br/><small class="text-muted">' + (item.COURSE_TITLE || '') + '</small>',
+                        item.SEMESTER || '',
+                        examStr,
+                        registerDate,
+                        statusStr
+                    ]);
+                });
+                table.draw();
+
+                // Update metrics counters
+                $('#cntTotalEligible').text(totalEligible);
+                $('#cntRegistered').text(registered);
+                $('#cntPaid').text(paid);
+                $('#cntNotRegistered').text(notRegistered);
+            },
+            error: function () {
+                $('#arr-loader').hide();
+                alert('An error occurred while loading overall eligible list.');
+            }
+        });
+    }
+
+    // ==================== Helpers ====================
+    function getExamSettingLabel(id, fallbackName) {
+        if (id === '1') return '<span class="label label-primary">Semester Exam</span>';
+        if (id === '2') return '<span class="label label-warning" style="color:#212529;">CIA</span>';
+        if (id === '3') return '<span class="label label-info">Semester / CIA</span>';
+        return '<span class="label label-default">' + (fallbackName || 'Arrear Exam') + '</span>';
+    }
+
+    function getStatusLabel(isReg, isPaid) {
+        var reg  = String(isReg  || '').trim();
+        var paid = String(isPaid || '').trim();
+        if (reg === '1' && paid === '1')
+            return '<span class="label label-success">Registered &amp; Paid</span>';
+        if (reg === '1')
+            return '<span class="label label-info">Registered</span>';
+        return '<span class="label label-default">Not Registered</span>';
+    }
+
+    function printCurrentReport() {
+        var printContents = document.getElementById('panel').innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        LoadArrearOverallEligibleReport();
+    }
+
+    // Auto-initialize on direct page load
+    $(document).ready(function () {
+        initializeDashboard();
+        loadOverallEligibleList();
+    });
+</script>

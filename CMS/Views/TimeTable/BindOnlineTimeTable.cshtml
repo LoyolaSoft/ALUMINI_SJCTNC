@@ -1,0 +1,82 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+
+@{ Layout = null; string CourseCode = string.Empty; string ttTimeTable = string.Empty; int tcount = 0;}
+
+<table class="table table-bordered text-center" id="TimeTableClassWiseList">
+    <thead>
+        <tr>
+            <th></th>
+            @if (Model.lstHours != null)
+            {
+                foreach (var dataitem in Model.lstHours)
+                {
+                    <th><b> Hour- @dataitem.HOUR</b></th>
+                }
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.lstDayOrders != null)
+        {
+            foreach (var dataitem in Model.lstDayOrders)
+            {
+                <tr cms-timetableid="@dataitem.DAY_ORDER_ID">
+                    <td><b> Day- @dataitem.DAY</b></td>
+                    @foreach (var item in Model.lstHours)
+                    {
+                        if (Model.lstTimeTable != null && Model.lstTimeTable.Count > 0)
+                        {
+                            var TimeTableList = Model.lstTimeTable.Where(s => s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                            var TimeTable = TimeTableList.Where(s => s.Hour_Id == item.HOUR_ID).ToList();
+                            if (TimeTable != null && TimeTable.Count > 0)
+                            {
+                                tcount = 0;
+                                ttTimeTable = TimeTable.FirstOrDefault().Time_Table_Id;
+                                if (TimeTable.Count > 1)
+                                {
+                                    ttTimeTable = string.Join(",", TimeTable.Select(x => x.Time_Table_Id.ToString()).ToArray());
+                                    tcount = 1;
+                                }
+                                <td id="tdTimeTable"
+                                    cms-semesterid="@TimeTable.FirstOrDefault().Semester_Id"
+                                    cms-classid="@TimeTable.FirstOrDefault().Class_Id"
+                                    cms-courseid="@TimeTable.FirstOrDefault().Course_Id"
+                                    cms-dayid="@TimeTable.FirstOrDefault().Day_Order_Id"
+                                    cms-hourtype="@TimeTable.FirstOrDefault().hour_type_id"
+                                    cms-staffid="@TimeTable.FirstOrDefault().Staff_Id"
+                                    class="editable" cms-hourid="@TimeTable.FirstOrDefault().Hour_Id"
+                                    cms-timetalbeid="@ttTimeTable" cms-tcount="@tcount">
+
+                                    @TimeTable.FirstOrDefault().hourType
+                                    @{  CourseCode = "(" + @TimeTable.FirstOrDefault().COURSE_CODE + ")"; }
+                                    @if (tcount == 0 && CourseCode != "()")
+                                    {
+                                        @CourseCode <br />
+                                        @TimeTable.FirstOrDefault().STAFF_CODE
+                                    }
+                                </td>
+
+                                        }
+                                        else
+                                        {
+                                            <td class="editable" cms-dayid="@dataitem.DAY_ORDER_ID" cms-hourid="@item.HOUR_ID"></td>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <td class="editable" cms-dayid="@dataitem.DAY_ORDER_ID" cms-hourid="@item.HOUR_ID"></td>
+                                            }
+                                        }
+                </tr>
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td><p>No records available !!!</p></td>
+                                            </tr>
+                                        }
+
+    </tbody>
+</table>

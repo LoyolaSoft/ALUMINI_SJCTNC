@@ -1,0 +1,363 @@
+﻿@model IEnumerable<CMS.ViewModel.Model.StaffPaper>
+
+
+<div id="dvPaperInfo">
+    <div class="row">
+        <div class="form-group pull-right">
+            <div class="col-md-12 pull-right">
+                <a href="#Paper-dialog" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="table-responsive">
+            @{int count = 0; }
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Paper Name</th>
+                        <th>Level</th>
+                        <th>Publish Category</th>
+                        <th>Journal Name</th>
+                        <th>No Of Pages</th>
+                        @*  <th>
+                                @Html.DisplayNameFor(model => model.PAGESFROM)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.PAGESTO)
+                            </th>*@
+                        <th>Volume</th>
+                        <th>Year Published</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null)
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @{count++;} @count
+                                </td>
+                                <td>@Html.DisplayFor(modelItem => item.PAPERNAME)</td>
+                                <td>@Html.DisplayFor(modelItem => item.LEVEL)</td>
+                                <td>@Html.DisplayFor(modelItem => item.PUBLISHINGCATEGORY)</td>
+                                <td>@Html.DisplayFor(modelItem => item.JOURNALNAME)</td>
+                                <td>@Html.DisplayFor(modelItem => item.NOOFPAGES)</td>
+                                @*<td>
+                                        @Html.DisplayFor(modelItem => item.PAGESFROM)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.PAGESTO)
+                                    </td>*@
+                                <td>@Html.DisplayFor(modelItem => item.VOLUME)</td>
+                                <td>@Html.DisplayFor(modelItem => item.YEARPUBLISHED)</td>
+                                <td>
+                                    <a href="#Paper-dialog" onclick="GetPaperData(@item.PAPERID)" data-toggle="modal"><i class="fa fa-edit text-primary"></i></a>
+                                    <a href="javascript:;" onclick="GetConfirm(@item.PAPERID);"><i class="fa fa-trash text-danger"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td>No Data Found ....!</td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+        <script>
+            $(document).ready(function () {
+                $("#btnEditPaper").hide();
+                ////FormMultipleUpload.init();
+                handleDatePicker = function () {
+                    "use strict";
+                    $("#YearPublished").datepicker({
+                        todayHighlight: true,
+                        autoclose: true,
+                        endDate: new Date(),
+                        format: "dd/mm/yyyy",
+                        orientation: "right bottom"
+                        // 'top': top,
+                        // 'left': left
+                    });
+                }
+                handleDatePicker();
+                // Load Paper List ..
+                GetDropDown = function () {
+                    $.ajax({
+                        url: "@Url.Action("StaffPaperDropDown", "Staff")",
+                        method: "POST",
+                        datatype: "json",
+                        success: function (data) {
+
+                            var ddl = JSON.parse(data);
+                            $('#ddlVolume').empty();
+                            $('#ddlVolume').append('<option value="">-- select --</option>' + ddl.Volume);
+
+                            $('#ddlLevel').empty();
+                            $('#ddlLevel').append('<option value="">-- select --</option>' + ddl.Level);
+
+                            $('#ddlPublish').empty();
+                            $('#ddlPublish').append('<option value="">-- select --</option>' + ddl.PublishCategory);
+
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+                GetDropDown();
+            });
+            // List Paper Information ..
+            GetPaperInfo = function () {
+                $.ajax({
+                    url: "@Url.Action("StaffPaperInfo", "Staff")",
+                    method: "POST",
+                    datatype: "html",
+                    success: function (data) {
+                        $('#dvPaperInfo').empty();
+                        $('#dvPaperInfo').append(data);
+                    }, error: function (error) {
+                        alert('Internal Server Error ..!');
+                    }
+                });
+            }
+
+            // Delete paper ...
+            function GetConfirm(ID)
+            {
+                if (!confirm('Are you sure to delete ?'))
+                {
+                    return false;
+                } else
+                {
+                    $.ajax({
+                        url:"@Url.Action("DeleteStaffPaper", "Staff")",
+                        method: "POST",
+                        datatype:"json",
+                        data: { sPaperID: ID },
+                        success:function(data)
+                        {
+                            alert(data);
+                            GetPaperInfo();
+                        },error:function(error)
+                        {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+            }
+
+
+            // Edit Data ...
+            GetPaperData = function (ID) {
+                $.ajax({
+                    url: "@Url.Action("BindControles", "Staff")",
+                    method: "POST",
+                    datatype: "html",
+                    data: { sPaperID: ID },
+                    success: function (data) {
+                        $("#txtPaperName").val(data.PAPERNAME);
+                        $("#txtJournalName").val(data.JOURNALNAME);
+                        $("#txtNoOfPages").val(data.NOOFPAGES);
+                        $("#txtPagesFrom").val(data.PAGESFROM);
+                        $("#txtPagesTo").val(data.PAGESTO);
+                        $("#YearPublished").val(data.YEARPUBLISHED);
+                        $("#ddlLevel").val(data.LEVEL);
+                        $("#ddlPublish").val(data.PUBLISHINGCATEGORY);
+                        $("#ddlVolume").val(data.VOLUME);
+                        $("#btnEditPaper").show();
+                        $("#btnPaper").hide();
+                    }, error: function (error) {
+                        alert('Internal Server Error ..!');
+                    }
+                });
+            }
+
+            // Update Paper
+            $("#btnEditPaper").on("click", function ()
+            {
+                var isValid = true;
+                if ($('#nav-tab1-7').parsley().validate() !== true) isValid = false;
+                if (!isValid) {
+                    //gritter-info,danger,success,warning,default
+                    myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                    return false;
+                }
+                var txtPaperName = $("#txtPaperName").val();
+                var txtJournalName = $("#txtJournalName").val();
+                var txtNoOfPages = $("#txtNoOfPages").val();
+                var txtPagesFrom = $("#txtPagesFrom").val();
+                var txtPagesTo = $("#txtPagesTo").val();
+                var txtplaceofbirth = $("#txtplaceofbirth").val();
+                var YEARPUBLISHED = $("#YearPublished").val();
+                var Level = $("#ddlLevel").val();
+                var Publish = $("#ddlPublish").val();
+                var Volume = $("#ddlVolume").val();
+                var JsonData;
+                if (JsonData == null) {
+                    JsonData = '{"LEVEL":"' + Level + '","PUBLISHINGCATEGORY":"' + Publish + '","VOLUME":"' + Volume + '","PAPERNAME":"' + txtPaperName + '","JOURNALNAME":"' + txtJournalName + '","NOOFPAGES":"' + txtNoOfPages + '","PAGESFROM":"' + txtPagesFrom + '","PAGESTO":"' + txtPagesTo + '","YEARPUBLISHED":"' + YEARPUBLISHED + '"}';
+                }
+
+                $.ajax({
+                    url: "@Url.Action("UpdateStaffPaper", "Staff")",
+                    method: "POST",
+                    datatype: "html",
+                    data: { JsonPaperInfo: JsonData },
+                    success: function (data) {
+                        alert(data);
+                        GetPaperInfo();
+                    }, error: function (error) {
+                        alert('Internal Server Error ..!');
+                    }
+                });
+            });
+
+            //Add Paper
+            $("#btnPaper").on("click", function ()
+            {
+                var isValid = true;
+                if ($('#nav-tab1-7').parsley().validate() !== true) isValid = false;
+                if (!isValid) {
+                    //gritter-info,danger,success,warning,default
+                    myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                    return false;
+                }
+                var txtPaperName = $("#txtPaperName").val();
+                var txtJournalName = $("#txtJournalName").val();
+                var txtNoOfPages = $("#txtNoOfPages").val();
+                var txtPagesFrom = $("#txtPagesFrom").val();
+                var txtPagesTo = $("#txtPagesTo").val();
+                var txtplaceofbirth = $("#txtplaceofbirth").val();
+                var YEARPUBLISHED = $("#YearPublished").val();
+                var Level = $("#ddlLevel").val();
+                var Publish = $("#ddlPublish").val();
+                var Volume = $("#ddlVolume").val();
+                var JsonData;
+                if (JsonData == null) {
+                    JsonData = '{"LEVEL":"' + Level + '","PUBLISHINGCATEGORY":"' + Publish + '","VOLUME":"' + Volume + '","PAPERNAME":"' + txtPaperName + '","JOURNALNAME":"' + txtJournalName + '","NOOFPAGES":"' + txtNoOfPages + '","PAGESFROM":"' + txtPagesFrom + '","PAGESTO":"' + txtPagesTo + '","YEARPUBLISHED":"' + YEARPUBLISHED + '"}';
+                }
+
+                $.ajax({
+                    url: "@Url.Action("Paper", "Staff")",
+                    method: "POST",
+                    datatype: "html",
+                    data: { JsonPaperInfo: JsonData },
+                    success: function (data) {
+                        alert(data);
+                        GetPaperInfo();
+                    }, error: function (error) {
+                        alert('Internal Server Error ..!');
+                    }
+                });
+            });
+        </script>
+    </div>
+    <!--Modal-->
+    <div class="modal" id="Paper-dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Paper Published</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <div class="form-horizontal">
+                                <div class="col-md-12">
+                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Paper Name</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtPaperName" placeholder="Enter PaperName" data-parsley-required="true" data-parsley-length="[5,45]" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Level</label>
+                                        <div class="col-md-9">
+                                            <select id="ddlLevel" class="form-control input-sm" data-parsley-required="true">
+                                                <option value="">-- select --</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Publishing Category</label>
+                                        <div class="col-md-9">
+                                            <select id="ddlPublish" class="form-control input-sm" data-parsley-required="true">
+                                                <option value="">-- select --</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Year Published</label>
+                                        <div class="col-md-9">
+                                            <div class="input-group date" id="datetimepicker1">
+                                                <input type="text" class="form-control input-sm" id="YearPublished" placeholder="Select Date" data-parsley-required="true" />
+                                                <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Journal Name</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtJournalName" placeholder="Enter JournalName" data-parsley-required="true" data-parsley-length="[5,45]" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">No Of Pages</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtNoOfPages" placeholder="Enter NoOfPages" data-parsley-required="true" data-parsley-type="number" data-parsley-length="[1,4]"  />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Pages From</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtPagesFrom" placeholder="Enter Starting PageNo" data-parsley-required="true" data-parsley-type="number" data-parsley-length="[1,4]"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Pages To</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="txtPagesTo" placeholder="Enter EndPageNo" data-parsley-required="true" data-parsley-type="number" data-parsley-length="[1,4]"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Volume</label>
+                                        <div class="col-md-9">
+                                            <select id="ddlVolume" class="form-control input-sm" data-parsley-required="true">
+                                                <option value="">-- select --</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="btnPaper" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                    <a id="btnEditPaper" class="btn btn-sm btn-primary" data-dismiss="modal">Update</a>
+                    <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Modal-->
+</div>

@@ -1,0 +1,326 @@
+﻿@model CMS.ViewModel.ViewModel.DashboardViewModel
+@{
+    var userId = Model.UserId;
+    var filteredMeetings = new List<CMS.ViewModel.Model.MeetingCreation>();
+
+    if (Model.liUpcomingMeetings != null && Model.liUpcomingMeetings.Count > 0)
+    {
+        foreach (var meeting in Model.liUpcomingMeetings)
+        {
+            if (meeting.ATTENDEES != null)
+            {
+                var attendees = meeting.ATTENDEES.Split(',');
+                var attendeeFound = false;
+
+                foreach (var attendee in attendees)
+                {
+                    if (attendee.Trim() == userId)
+                    {
+                        attendeeFound = true;
+                        break;
+                    }
+                }
+
+                if (attendeeFound)
+                {
+                    filteredMeetings.Add(meeting);
+                }
+            }
+        }
+    }
+
+    var meetingCount = filteredMeetings.Count;
+}
+
+<!-- Custom Alert Modal -->
+<div id="customAlertModal" class="modal" data-keyboard="false" role="dialog" style="display: none;">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">
+                    <i class="fa fa-bell"></i> Meeting Reminder
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="alert alert-info">
+                            <h4>
+                                <i class="fa fa-calendar-check-o"></i>
+                                You have <strong id="meetingCount">@meetingCount</strong> upcoming meeting(s)
+                            </h4>
+                            <p class="mb-0">This notification will auto-close in <span id="countdown">30</span> seconds</p>
+                        </div>
+
+                        <div class="progress" style="height: 20px; margin: 15px 0; border-radius: 10px; background-color: #f5f5f5; overflow: hidden;">
+                            <div id="countdownProgress" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                 role="progressbar" style="width: 100%; border-radius: 10px; position: relative; transition: width 1s linear;">
+                                <span class="progress-text" style="position: absolute; width: 100%; text-align: center; font-weight: bold; color: #000; text-shadow: 1px 1px 0 rgba(255,255,255,0.5);"></span>
+                            </div>
+                        </div>
+
+                        <div id="meetingsList" style="max-height: 300px; overflow-y: auto;">
+                            @if (meetingCount > 0)
+                            {
+                                foreach (var item in filteredMeetings)
+                                {
+                                    string staffCategory = "---";
+                                    if (item.STAFF_CATEGORY == "1")
+                                    {
+                                        staffCategory = "Teaching Staffs";
+                                    }
+                                    else if (item.STAFF_CATEGORY == "2")
+                                    {
+                                        staffCategory = "Non-Teaching Staffs";
+                                    }
+                                    else if (item.STAFF_CATEGORY == "5")
+                                    {
+                                        staffCategory = "All Staffs";
+                                    }
+                                    else if (item.STAFF_CATEGORY == "3")
+                                    {
+                                        staffCategory = "HOD's";
+                                    }
+                                    else if (item.STAFF_CATEGORY == "4")
+                                    {
+                                        staffCategory = "DEAN's";
+                                    }
+                                    else if (item.STAFF_CATEGORY == "7")
+                                    {
+                                        staffCategory = "Staffs of Shift-I";
+                                    }
+                                    else if (item.STAFF_CATEGORY == "8")
+                                    {
+                                        staffCategory = "Staffs of Shift-II";
+                                    }
+                                    else if (item.STAFF_CATEGORY == "6")
+                                    {
+                                        staffCategory = "Selected Staff's";
+                                    }
+
+                                    <div class="meeting-item" style="padding: 10px; margin-bottom: 10px; border-left: 4px solid #007bff; background-color: #f8f9fa; border-radius: 0 5px 5px 0;">
+                                        <h5 style="margin: 0 0 5px 0;">
+                                            <i class="fa fa-users"></i> @item.MEETING_NAME
+                                            <span class="badge badge-info pull-right" style="font-size: 0.8em; padding: 3px 8px; margin-left: 5px;">
+                                                @staffCategory
+                                            </span>
+                                        </h5>
+                                        <div class="meeting-time" style="font-size: 0.9em; color: #6c757d; margin-top: 5px;">
+                                            <i class="fa fa-calendar"></i> @item.DATE
+                                            <br />
+                                            <i class="fa fa-clock-o"></i> @item.START_TIME - @item.END_TIME
+                                            <br />
+                                            <i class="fa fa-hourglass-start"></i> Arrival Before: @item.ARRIVAL_BEFORE
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning">
+                                    <i class="fa fa-info-circle"></i> No upcoming meetings scheduled for you.
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" id="closeModalBtn">
+                    <i class="fa fa-times"></i> Close Now
+                </button>
+                <button type="button" class="btn btn-primary" id="viewAllMeetingsBtn"
+                        onclick="$('.modal-backdrop').remove();">
+                    <i class="fa fa-calendar"></i> View All Meetings
+                </button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Original Dashboard Panel -->
+<div class="col-md-4">
+    <div class="panel panel-inverse">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <i class="fa fa-calendar"> Upcoming Meetings </i>
+                <span class="label bg-blue pull-right">
+
+                    <span> Meetings - @meetingCount </span>
+
+                </span>
+            </h4>
+        </div>
+        <div class="panel-body">
+            <marquee direction="up" onmouseover="stop();" onmouseout="start();">
+                <div class="height-sm">
+                    <ul class="media-list media-list-with-divider media-messaging">
+                        @if (filteredMeetings.Count > 0)
+                        {
+                            foreach (var item in filteredMeetings)
+                            {
+                                <li class="media media-sm">
+                                    <div class="media-body">
+                                        <h5 class="media-heading"><b>@item.MEETING_NAME</b></h5>
+                                        <p>
+                                            Date : @item.DATE <br />
+                                            Start Time : @item.START_TIME <br />
+                                            End Time : @item.END_TIME <br />
+                                            Arrival Before : @item.ARRIVAL_BEFORE <br />
+                                            Staff Category :
+                                            @if (item.STAFF_CATEGORY == "1")
+                                            {
+                                                <span>Teaching Staffs</span>
+                                            }
+                                            else if (item.STAFF_CATEGORY == "2")
+                                            {
+                                                <span>Non-Teaching Staffs</span>
+                                            }
+                                            else if (item.STAFF_CATEGORY == "5")
+                                            {
+                                                <span>All Staffs</span>
+                                            }
+                                            else if (item.STAFF_CATEGORY == "3")
+                                            {
+                                                <span>HOD's</span>
+                                            }
+                                            else if (item.STAFF_CATEGORY == "4")
+                                            {
+                                                <span>DEAN's</span>
+                                            }
+                                            else if (item.STAFF_CATEGORY == "7")
+                                            {
+                                                <span>Staffs of Shift-I</span>
+                                            }
+                                            else if (item.STAFF_CATEGORY == "8")
+                                            {
+                                                <span>Staffs of Shift-II</span>
+                                            }
+                                            else
+                                            {
+                                                <span>---</span>
+                                            }
+                                            <br />
+                                        </p>
+                                    </div>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="media media-sm">
+                                <div class="media-body">
+                                    <h5 class="media-heading"><b>No Upcoming Meetings</b></h5>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </marquee>
+        </div>
+    </div>
+</div>
+<script>
+// Shortcuts
+const el = (id) => document.getElementById(id);
+const q = (sel) => document.querySelector(sel);
+const qa = (sel) => document.querySelectorAll(sel);
+
+// Show modal (Bootstrap 3 compatible)
+function showModal() {
+    $('#customAlertModal').modal('show'); // Bootstrap requires this one jQuery call
+}
+
+// Hide modal
+function hideModal() {
+    $('#customAlertModal').modal('hide');
+}
+
+let countdown = 30;
+let countdownInterval;
+const totalTime = 30;
+
+function startCountdown() {
+    countdown = totalTime;
+
+    el('countdown').textContent = countdown;
+    updateProgressBar(100);
+
+    clearInterval(countdownInterval);
+
+    countdownInterval = setInterval(() => {
+
+        countdown--;
+        el('countdown').textContent = countdown;
+
+        const percent = (countdown / totalTime) * 100;
+        updateProgressBar(percent);
+
+        if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            hideModal();
+        }
+
+    }, 1000);
+}
+
+function updateProgressBar(percent) {
+    const bar = el('countdownProgress');
+
+    bar.style.width = percent + '%';
+
+    bar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+    if (percent > 50) bar.classList.add('bg-success');
+    else if (percent > 20) bar.classList.add('bg-warning');
+    else bar.classList.add('bg-danger');
+
+    const txt = bar.querySelector('.progress-text');
+    if (txt) txt.textContent = '';
+}
+
+// Ready
+document.addEventListener('DOMContentLoaded', function () {
+
+    // Show modal only if meetings exist
+    @if (meetingCount > 0)
+    {
+        <text>
+        setTimeout(() => {
+            showModal();
+        }, 1000);
+        </text>
+    }
+
+    // Bootstrap event for modal shown (requires jQuery only to trigger)
+    $('#customAlertModal').on('shown.bs.modal', function () {
+        startCountdown();
+    });
+
+    // Close buttons
+    if (el('closeModalBtn')) {
+        el('closeModalBtn').addEventListener('click', () => {
+            clearInterval(countdownInterval);
+            hideModal();
+        });
+    }
+
+    qa('#customAlertModal .close').forEach(btn => {
+        btn.addEventListener('click', () => {
+            clearInterval(countdownInterval);
+            hideModal();
+        });
+    });
+
+    // View all meetings
+    if (el('viewAllMeetingsBtn')) {
+        el('viewAllMeetingsBtn').addEventListener('click', () => {
+            loadContent('/Meeting/ListMeetingForStaffs');
+        });
+    }
+
+});
+</script>

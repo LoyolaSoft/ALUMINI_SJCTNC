@@ -1,0 +1,180 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+
+
+@{
+    
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    { @Html.AntiForgeryToken()
+        <ol class="breadcrumb pull-right">
+            <li><a @*href="@Url.Action("Admin", "Dashboard")"*@ href="javascript:;">Home</a></li>
+
+            <li class="active">Timetable Classwise List </li>
+        </ol>
+        <h2 class="page-header"> Timetable </h2>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Timetable Classwise List </h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="col-md-12">
+
+                        <div class="form-group col-md-6">
+                            @Html.LabelFor(model => model.ClassList, htmlAttributes: new { @class = "control-label col-md-1" })
+                            <div class="col-md-10">
+                                @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.ClassList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        @*<DIV CLASS="FORM-GROUP COL-MD-3 PULL-RIGHT HIDDEN" ID="BTNADD">
+                                <A CLASS="BTN BTN-SUCCESS PULL-RIGHT" HREF="JAVASCRIPT:;" ONCLICK="FETCHALLDROPDOWNFORTIMETABLE();"><I CLASS="FA FA-PLUS" TITLE="ADD"> ADD</I></A>
+                            </DIV>*@
+
+                    </div>
+
+                    <div class="col-lg-12">
+                        <div id="divTimeTableInfo">
+                            <!--Need to use this fied to bind Student List-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    }
+</div>
+
+<script src="~/Content/assets/plugins/select2/dist/js/select2.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        //$("#ClassList").select2();
+</script>
+
+@* Class Change Event *@
+<script>
+        $('#ClassList').on('change', function ()
+        {
+            $('#btnAdd').removeClass('hidden');
+            loadGird();
+        });
+        function loadGird()
+        {
+            var vClassId = $('#ClassList').val();
+            if (vClassId != 0)
+            {
+                $.ajax({
+                    url: '@Url.Action("BindTimeTableInfo", "TimeTable")',
+                    data: { sClassId: vClassId },
+                    success: function (option)
+                    {
+                        var dvStudentPromotion = $('#divTimeTableInfo');
+                        dvStudentPromotion.empty();
+                        dvStudentPromotion.append(option);
+                    },
+                    error: function (xhr, textStatus, error)
+                    {
+                        alert(error + "\n");
+                    }
+                });
+
+            } else
+            {
+                alert('Please Select Class...!!!');
+            }
+        }
+</script>
+
+
+@* Value td Click Event *@
+<script>
+        var sCourseId;
+        var sStaffId;
+        var Is_Static = null;
+        $("table.table td.editable").live("click", function ()
+        {
+            var ClassId = $('#ClassList').val();
+            var SelectedClassId = $('#ClassList').val();
+            var HourId = $(this).attr('cms-hourid');
+            var DayId = $(this).attr('cms-dayid');
+            var HourType = $(this).attr('cms-hourtype');
+            var TimeTableId = $(this).attr('cms-timetalbeid');
+            var SemesterId = $(this).attr('cms-semesterid');
+            var CourseId = $(this).attr('cms-courseid');
+            var StaffId = $(this).attr('cms-staffid');
+            var tCount = $(this).attr('cms-tcount');
+
+            var sJson;
+            sJson = '{"Count":"' + tCount + '","Class_Id":"' + ClassId + '","S_CLASS_ID":"' + SelectedClassId + '","Day_Order_Id":"' + DayId + '","Hour_Id":"' + HourId + '","hourType":"' + HourType + '","Time_Table_Id":"' + TimeTableId + '","Semester_Id":"' + SemesterId + '","Course_Id":"' + CourseId + '","Staff_Id":"' + StaffId + '"}';
+            $.ajax({
+                url: '@Url.Action("EditClassWiseTimeTable", "TimeTable")',
+                data: { sTimetable: sJson },
+                success: function (data)
+                {
+                    if (data.Message != null && data.Message != '')
+                    {
+                        alert(data.Message); // To Show Error Message ....
+                    } else if (data.hourType != null && data.hourType != '')
+                    {
+                    } else
+                    {
+                        // If Multiple TimeTable Value Retruns ...
+                        $('#dvMultiTimeTable').empty();
+                        $('#dvMultiTimeTable').append(data);
+                        $('#MultiTimeTable').modal();
+                        $('.table tr td').find('a').addClass('hidden');
+                    }
+
+                   // $('.selectpicker').selectpicker('refresh');
+                },
+                error: function (xhr, textStatus, error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+</script>
+
+<!-- Multiple TimeTable Bind Modal-->
+<div class="modal" id="MultiTimeTable">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Edit Class Wise Time Table</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group table-responsive">
+                        <div id="dvMultiTimeTable"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span>Multiple TimeTable Edit List</span>
+            </div>
+        </div>
+    </div>
+</div>

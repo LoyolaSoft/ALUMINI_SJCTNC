@@ -1,0 +1,152 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+
+@using CMS.ViewModel.Model;
+@{
+    Layout = null;
+    int nCount = 0;
+}
+
+<br />
+@{
+    if (Model.liCourseInfo != null && Model.liCourseInfo.Count > 0)
+    {
+        <table class="table" style="border:none">
+            <tbody>
+                <tr>
+                    <th>Course Code</th>
+                    <td>@Model.liCourseInfo.FirstOrDefault().COURSE_CODE</td>
+                    <th>Course Title</th>
+                    <td>@Model.liCourseInfo.FirstOrDefault().COURSE_TITLE</td>
+                    <th>Class</th>
+                    <td>@Model.liCourseInfo.FirstOrDefault().CLASS_NAME</td>
+                </tr>
+                <tr>
+                    <th>Staff Name</th>
+                    <td>@Model.liCourseInfo.FirstOrDefault().STAFF_NAME</td>
+                    <th>Date</th>
+                    <td>@Model.liCourseInfo.FirstOrDefault().DATE</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Hidden Filed -->
+        <input class="hidden" id="hdClassId" value="@Model.liCourseInfo.FirstOrDefault().CLASS_ID" />
+        <input class="hidden" id="hdSemesterId" value="@Model.liCourseInfo.FirstOrDefault().SEMESTER_ID" />
+        <input class="hidden" id="hdStudentId" value="@Model.liCourseInfo.FirstOrDefault().STUDENT_ID" />
+        <!-- Hidden Filed -->
+    }
+}
+
+<br />
+
+<!-- Hidden Filed For Quiz Time -->
+<input type="text" value="@Model.sErrorMessage" id="hdQuizTime" class="hidden" />
+<!-- Hidden Filed For Quiz Time -->
+
+<div class="col-md-12">
+    <table class="table table-bordered table-hover" id="tblOnlineQuiz">
+        <thead>
+            <tr><th>Questions</th><th>Answers</th></tr>
+        </thead>
+        <tbody>
+            @if (Model.liOnlineQuiz != null && Model.liOnlineQuiz.Count > 0)
+            {
+                var liGroupQuiz = Model.liOnlineQuiz.GroupBy(x => x.QUIZ_ID).Select(x => new OnlineQuizTest() { QUIZ_QUESTION = x.FirstOrDefault().QUIZ_QUESTION, QUIZ_ID = x.FirstOrDefault().QUIZ_ID }).ToList();
+                if (liGroupQuiz != null && liGroupQuiz.Count > 0)
+                {
+                    foreach (var item in liGroupQuiz)
+                    {
+                        var liGroupOptions = Model.liOnlineQuiz.Where(x => x.QUIZ_ID == item.QUIZ_ID).ToList();
+                        if (liGroupOptions != null && liGroupOptions.Count > 0)
+                        {
+                            <tr cms-Head="1">
+                                <td colspan="2"><b>@item.QUIZ_QUESTION</b></td>
+                            </tr>
+
+                            foreach (var GpOptionitem in liGroupOptions)
+                            {
+                                nCount++;
+                                <tr>
+                                    <td> @nCount . @GpOptionitem.QUESTION </td>
+                                    <td>
+                                        <select id="ddlAnswer" class="selectpicker  form-control  input-sm" data-live-search="true">
+                                            <option value="0">-- select --</option>
+                                            @{
+                                                var ddlOptions = liGroupOptions.OrderBy(x => Guid.NewGuid());
+                                                foreach (var ddlitem in ddlOptions)
+                                                {
+                                                    <option value="@ddlitem.OPTION_ID" cms-SetId="@ddlitem.SET_ID" cms-OptionId="@GpOptionitem.OPTION_ID" cms-sQuizId="@ddlitem.QUIZ_ID">@ddlitem.ANSWER</option>
+                                                }
+                                            }
+                                        </select>
+                                    </td>
+                                </tr>
+                            }           
+                       }
+                   }
+               }
+           }
+        </tbody>
+    </table>
+</div>
+
+
+@*<script>
+
+        var refreshTimerId;
+
+        function startTimer(duration, display) {
+            var timer = duration, hours, minutes, seconds;
+            refreshTimerId = setInterval(function () {
+                hours = parseInt(timer / 3600, 10);
+                minutes = parseInt(timer / 60, 10);
+                minutes = parseInt(minutes % 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                hours = hours < 10 ? "0" + hours : hours;
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+                if ($('#hdQuizTime').val() - minutes!=0)
+                {
+                    document.getElementById("dvQuizTime").innerHTML = minutes + " : " + seconds + " ";
+                } else
+                {
+                    alert("Time's Up");
+                    $("#txtsubmit").val('0');
+                    $("#btnSubmit").click();
+                }
+
+                if (++timer < 0)
+                {
+                    timer = duration;
+                }
+            }, 1000);
+        }
+
+        function LoadTimer() {
+            alert($('#hdQuizTime').val());
+            var fiveMinutes = 0;
+            fiveMinutes = 60 * 60;
+            display = document.querySelector('#hdQuizTime');
+            startTimer(fiveMinutes, display);
+        };
+
+        function StopTimer() {
+            clearInterval(refreshTimerId);
+        };
+
+
+
+</script>
+
+
+<script>
+    StopTimer();
+    LoadTimer();
+    $('#dvQuizHeaderForTime').removeClass('hidden');
+
+   // $('#dvQuizTime').val();
+   // $('#hdQuizTime').val()
+</script>*@
+

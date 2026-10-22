@@ -1,0 +1,125 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    Layout = null;
+    int nCount = 0;
+
+}
+
+<div class="col-md-12 table-responsive">
+    <br>
+    <br>
+    <table class="table table-bordered" id="tblStudentTable">
+        <thead>
+            <tr>
+                <th>S.No.</th>
+                <th>Student Name</th>
+                <th>Class Name</th>
+                <th>Roll No.</th>
+                <th>Mentor</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                if (Model.liStudent != null && Model.liStudent.Count > 0)
+                {
+                    foreach (var item in Model.liStudent)
+                    {
+                        <tr cms-StudentId="@item.STUDENT_ID">
+                            <td>@{ nCount++;} @nCount</td>
+                            <td>@item.FIRST_NAME</td>
+                            <td>@item.CLASS_NAME</td>
+                            <td>@item.ROLL_NO</td>
+                            <td>
+                                <div class="col-md-8">
+                                    <select class="selectpicker form-control" data-live-search="true" id="mentorlist">
+                                        <option value="">-- Select --</option>
+                                        @foreach (var newitem in Model.listaffinfo)
+                                        {
+                                            if (item.STAFF_ID == newitem.STAFF_ID)
+                                            {
+                                                <option value="@newitem.STAFF_ID" selected>@newitem.FIRST_NAME - [ @newitem.DEPARTMENT ]</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@newitem.STAFF_ID">@newitem.FIRST_NAME - [ @newitem.DEPARTMENT ]</option>
+                                            }
+
+                                        }
+                                    </select>
+                                    <input type="hidden" value="@item.MENTORINT_ID" id="mentorid"/>
+                                </div>
+                            </td>
+
+                            <td>
+                                <a href="javascript:;" class="text-success" onclick="Savementorbyadmin('@item.STUDENT_ID')"><i class="glyphicon glyphicon-floppy-save" style="font-size: 20px;"></i></a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6">No Record Found...!</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+</script>
+<script>
+    function Savementorbyadmin(studentId) {
+        const row = document.querySelector(`tr[cms-StudentId="${studentId}"]`);
+        const MentorInput = row.querySelector('#mentorlist');
+        const MentoridInput = row.querySelector('#mentorid');
+        const mentor = MentorInput.value;
+        const mentorid = MentoridInput.value;
+
+        if (!mentor) {
+            swal({ title: "Failed !", text: "Please select mentor", showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+            return;
+        }
+
+        swal({
+            title: "Are you sure?",
+            text: "To save mentor for this Student!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                url: '@Url.Action("Savementorforstudentforadmin", "Mentoring")',
+                method: 'POST',
+                datatype: 'json',
+                data: {
+                    sSTUDENT_ID: studentId,
+                    sMentor: mentor,
+                    sMentorid: mentorid
+                },
+                success: function (data) {
+                    console.log(data)
+                    if (data == 'Mentor save Success...!') {
+                        swal({ title: "Success !", text: data, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    } else {
+                        swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+                    }
+                },
+                error: function (error) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        });
+    }
+
+</script>
+
+

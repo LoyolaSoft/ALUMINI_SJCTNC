@@ -1,0 +1,1571 @@
+﻿@model CMS.ViewModel.ViewModel.DashboardViewModel
+@using CMS.Utility
+@using CMS.ViewModel.ViewModel
+@{
+    ViewBag.Title = "Student";
+    Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    //Layout = null;
+    string CourseCode = string.Empty;
+    string ttTimeTable = string.Empty;
+    string sDayOrder = string.Empty;
+    int nCourses = 0;
+    var sAcedemicYear = (Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR] != null) ? Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR].ToString() : string.Empty;
+
+    var sAcedemicYearPlusOne = Convert.ToInt64(sAcedemicYear) + 1;
+}
+
+<style>
+    #ourmanna-verse {
+        padding: 10px;
+        margin: 10px;
+        /*background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(0, 0, 0, 0.3);*/
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+    }
+
+    #mannaverse {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    #mannaverse-reference:before {
+        content: "- ";
+    }
+
+    #mannaverse-reference {
+        text-align: right;
+        font-size: 12px;
+    }
+
+    #mannaverse-version {
+        color: #ddd;
+    }
+</style>
+
+
+
+<link href="~/Content/assets/plugins/fullcalendar/fullcalendar.print.css" rel="stylesheet" media='print' />
+<link href="~/Content/assets/plugins/fullcalendar/fullcalendar.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/morris/morris.css" rel="stylesheet" />
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">StudentDashboard</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Student Dashboard</h1>
+    <div class="row">
+        <!-- begin col-3 -->
+        <div class="col-lg-12">
+            <div class="widget widget-stats bg-gradient-blue">
+                <div class="stats-icon"><i class="fa fa-inbo"></i></div>
+                <div class="stats-info">
+                    <h4>Word Of The Day</h4>
+                    <p><div id="ourmanna-verse">Loading...</div></p>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="widget widget-stats bg-gradient-blue">
+                <div class="stats-icon"><i class="fa fa-calendar"></i></div>
+                <div class="stats-info">
+                    <h4>Day Order</h4>
+                    <p>
+                        @if (!string.IsNullOrEmpty(Session[Common.SESSION_VARIABLES.DAY_ORDER].ToString()))
+                        {
+                            sDayOrder = Session[Common.SESSION_VARIABLES.DAY_ORDER].ToString();
+                        }
+                        else
+                        {
+                            sDayOrder = "0";
+                        }
+                        @sDayOrder
+                    </p>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- end col-3 -->
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="widget widget-stats bg-gradient-aqua">
+                <div class="stats-icon"><i class="fa fa-qrcode"></i></div>
+                <div class="stats-info">
+                    <h4>Attendance Percentage</h4>
+                    <p>
+                        @*@{
+                                var percentage =ViewBag.CurrentSemAttendancePercentage;
+                            }
+                            @percentage*@
+                        0
+                    </p>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- end col-3 -->
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="widget widget-stats bg-gradient-purple">
+                <div class="stats-icon"><i class="fa fa-tachometer"></i></div>
+                <div class="stats-info">
+                    <h4>Courses</h4>
+                    <p>
+                        @if (Model.liCourseDetails != null && Model.liCourseDetails.Count > 0)
+                        {
+                            nCourses = Model.liCourseDetails.Count;
+                        }
+                        @nCourses
+
+                    </p>
+                </div>
+                <div class="stats-link">
+                    <a href="#Course-dialog" data-toggle="modal">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- end col-3 -->
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="widget widget-stats bg-gradient-orange">
+                <div class="stats-icon"><i class="ion-ios-clock"></i></div>
+                <div class="stats-info">
+                    <h4>Time</h4>
+                    <p id="currenttime"></p>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- end col-3 -->
+    </div>
+    <style>
+        .lms-box {
+            background: #fff;
+            border-left: 6px solid #007bff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px;
+            transition: 0.3s ease;
+        }
+
+            .lms-box:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+
+            .lms-box .lms-info {
+                flex-grow: 1;
+            }
+
+                .lms-box .lms-info h5 {
+                    font-size: 18px;
+                    margin: 0;
+                    color: #333;
+                }
+
+                .lms-box .lms-info p {
+                    margin: 5px 0 0;
+                    font-size: 20px;
+                    font-weight: bold;
+                    color: #444;
+                }
+
+            .lms-box .lms-icon {
+                font-size: 32px;
+                color: #007bff;
+                margin-right: 15px;
+            }
+
+            .lms-box .lms-action a {
+                font-weight: 600;
+                color: #007bff;
+                text-decoration: none;
+            }
+
+        @@media (max-width: 576px) {
+            .lms-box {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+                .lms-box .lms-action {
+                    margin-top: 10px;
+                }
+        }
+    </style>
+
+    <div class="row">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel ">
+                            <div class="panel-heading">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-inbox"></i> Fees Link</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <style>
+                                    .fees-link-container {
+                                        padding: 20px;
+                                        background: #f8f9fa;
+                                        border-radius: 12px;
+                                    }
+
+                                    .fees-card {
+                                        background: #fff;
+                                        border-radius: 10px;
+                                        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                                        border-left: 5px solid #28a745;
+                                        margin-bottom: 20px;
+                                        transition: all 0.3s ease;
+                                        padding: 15px;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 20px;
+                                    }
+
+                                        .fees-card:hover {
+                                            transform: translateY(-5px);
+                                            box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+                                            border-left-color: #218838;
+                                        }
+
+                                    .fees-icon {
+                                        width: 60px;
+                                        height: 60px;
+                                        background: #e9ecef;
+                                        border-radius: 50%;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        font-size: 24px;
+                                        color: #28a745;
+                                        flex-shrink: 0;
+                                    }
+
+                                    .fees-content {
+                                        flex-grow: 1;
+                                    }
+
+                                    .fees-title {
+                                        font-size: 18px;
+                                        font-weight: 600;
+                                        color: #333;
+                                        margin-bottom: 5px;
+                                    }
+
+                                    .fees-desc {
+                                        font-size: 14px;
+                                        color: #666;
+                                        margin-bottom: 10px;
+                                        line-height: 1.5;
+                                    }
+
+                                    .fees-meta {
+                                        font-size: 12px;
+                                        color: #999;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 15px;
+                                    }
+
+                                    .fees-action {
+                                        flex-shrink: 0;
+                                    }
+
+                                    .btn-pay {
+                                        background: #28a745;
+                                        color: white;
+                                        padding: 8px 20px;
+                                        border-radius: 50px;
+                                        text-transform: uppercase;
+                                        font-weight: 600;
+                                        font-size: 12px;
+                                        letter-spacing: 1px;
+                                        transition: 0.2s;
+                                        text-decoration: none !important;
+                                    }
+
+                                        .btn-pay:hover {
+                                            background: #218838;
+                                            color: white;
+                                            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+                                        }
+
+                                    .empty-state {
+                                        text-align: center;
+                                        padding: 50px;
+                                        color: #888;
+                                    }
+
+                                        .empty-state i {
+                                            font-size: 48px;
+                                            margin-bottom: 15px;
+                                            opacity: 0.5;
+                                        }
+
+                                    /* Responsive Adjustments */
+                                    @@media (max-width: 768px) {
+                                        .fees-card {
+                                            flex-direction: column;
+                                            align-items: flex-start;
+                                            gap: 15px;
+                                            padding: 20px;
+                                        }
+
+                                        .fees-icon {
+                                            width: 50px;
+                                            height: 50px;
+                                            font-size: 20px;
+                                        }
+
+                                        .fees-action {
+                                            width: 100%;
+                                        }
+
+                                            .fees-action .btn-pay {
+                                                display: block;
+                                                text-align: center;
+                                                width: 100%;
+                                            }
+
+                                        .fees-meta {
+                                            flex-wrap: wrap;
+                                            gap: 10px;
+                                        }
+                                    }
+                                </style>
+
+                                <div class="fees-link-container">
+                                    <div class="alert alert-warning m-b-20">
+                                        <i class="fa fa-info-circle"></i> <strong>Note:</strong> Please ensure you select the correct Term and Academic Year (2025-2026) as mentioned in the instructions for each link.
+                                    </div>
+
+                                    <!-- Term 2 2025-2026 -->
+                                    <div class="fees-card" style="border-left-color: #007bff;">
+                                        <div class="fees-icon" style="color: #007bff;">
+                                            <i class="fa fa-university"></i>
+                                        </div>
+                                        <div class="fees-content">
+                                            <div class="fees-title">Term 2 Fees (2025-2026)</div>
+                                            <div class="fees-desc">General payment portal for second term academic fees through SBI Collect.</div>
+                                            <div class="fees-meta">
+                                                <span><i class="fa fa-calendar"></i> Academic Year: 2025-2026</span>
+                                            </div>
+                                        </div>
+                                        <div class="fees-action">
+                                            <form action="https://www.onlinesbi.sbi/sbicollect/icollecthome.htm" method="POST" target="_blank">
+                                                <input type="hidden" name="corpID" value="5364211">
+                                                <button type="submit" class="btn-pay" style="background: #007bff; border: none; cursor: pointer;">
+                                                    Pay Now <i class="fa fa-chevron-right"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <!-- Fees concession holder -->
+                                    <div class="fees-card" style="border-left-color: #f39c12;">
+                                        <div class="fees-icon" style="color: #f39c12;">
+                                            <i class="fa fa-star"></i>
+                                        </div>
+                                        <div class="fees-content">
+                                            <div class="fees-title">Fees Concession Holders</div>
+                                            <div class="fees-desc">Specifically for students with fee concessions. <strong>Note: Select Term 2</strong> during payment.</div>
+                                            <div class="fees-meta">
+                                                <span><i class="fa fa-handshake-o"></i> Axis Bank EasyPay</span>
+                                            </div>
+                                        </div>
+                                        <div class="fees-action">
+                                            <a href="https://easypay.axisbank.co.in/easyPay/makePayment?mid=NDI0ODY%3D" target="_blank" class="btn-pay" style="background: #f39c12;">Pay Now <i class="fa fa-chevron-right"></i></a>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hostel Fee -->
+                                    <div class="fees-card" style="border-left-color: #e74c3c;">
+                                        <div class="fees-icon" style="color: #e74c3c;">
+                                            <i class="fa fa-building"></i>
+                                        </div>
+                                        <div class="fees-content">
+                                            <div class="fees-title">Hostel Fee (2025–2026)</div>
+                                            <div class="fees-desc">Payment portal for hostel accommodation and facilities for the current academic year.</div>
+                                            <div class="fees-meta">
+                                                <span><i class="fa fa-home"></i> Axis Bank EasyPay</span>
+                                            </div>
+                                        </div>
+                                        <div class="fees-action">
+                                            <a href="https://easypay.axisbank.co.in/easyPay/makePayment?mid=NDE0ODY%3D" target="_blank" class="btn-pay" style="background: #e74c3c;">Pay Now <i class="fa fa-chevron-right"></i></a>
+                                        </div>
+                                    </div>
+
+                                    <!-- Bus Fee -->
+                                    <div class="fees-card" style="border-left-color: #34495e;">
+                                        <div class="fees-icon" style="color: #34495e;">
+                                            <i class="fa fa-bus"></i>
+                                        </div>
+                                        <div class="fees-content">
+                                            <div class="fees-title">Bus Fee (2025–2026)</div>
+                                            <div class="fees-desc">Payment for transport services. <strong>Note: Select Term 2</strong> during payment.</div>
+                                            <div class="fees-meta">
+                                                <span><i class="fa fa-id-card"></i> Axis Bank EasyPay</span>
+                                            </div>
+                                        </div>
+                                        <div class="fees-action">
+                                            <a href="https://easypay.axisbank.co.in/easyPay/makePayment?mid=MzM1NDU%3D" target="_blank" class="btn-pay" style="background: #34495e;">Pay Now <i class="fa fa-chevron-right"></i></a>
+                                        </div>
+                                    </div>
+
+                                    <!-- Old Balance -->
+                                    <div class="fees-card" style="border-left-color: #95a5a6;">
+                                        <div class="fees-icon" style="color: #95a5a6;">
+                                            <i class="fa fa-history"></i>
+                                        </div>
+                                        <div class="fees-content">
+                                            <div class="fees-title">Old Balance Term Fees</div>
+                                            <div class="fees-desc">Clear your outstanding dues from previous terms. <strong>Note: Select Term 1</strong> during payment.</div>
+                                            <div class="fees-meta">
+                                                <span><i class="fa fa-clock-o"></i> Axis Bank EasyPay</span>
+                                            </div>
+                                        </div>
+                                        <div class="fees-action">
+                                            <a href="https://easypay.axisbank.co.in/easyPay/makePayment?mid=NDI0ODY%3D" target="_blank" class="btn-pay" style="background: #95a5a6;">Pay Now <i class="fa fa-chevron-right"></i></a>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="panel ">
+                        <div class="panel-heading">
+                            <div class="panel-heading-btn">
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                            </div>
+                            <h3 class="panel-title"><i class="fa fa-inbox"></i>Learning Mangement System</h3>
+                        </div>
+                        <div class="panel-body noPadding">
+
+                            <style>
+                                .lms-grid {
+                                    display: flex;
+                                    flex-wrap: wrap;
+                                    gap: 15px;
+                                    padding: 20px;
+                                }
+
+                                .lms-tile {
+                                    flex: 1 1 calc(33.33% - 10px);
+                                    min-width: 280px;
+                                    background: #fff;
+                                    border-radius: 10px;
+                                    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+                                    padding: 20px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: space-between;
+                                    transition: 0.2s;
+                                    border-left: 8px solid #007bff;
+                                }
+
+                                    .lms-tile:hover {
+                                        transform: scale(1.01);
+                                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                                    }
+
+                                .lms-content h5 {
+                                    margin: 0;
+                                    font-size: 18px;
+                                    color: #333;
+                                }
+
+                                .lms-content p {
+                                    margin: 4px 0 0;
+                                    font-size: 24px;
+                                    font-weight: bold;
+                                }
+
+                                .lms-action a {
+                                    color: #007bff;
+                                    font-weight: bold;
+                                    font-size: 14px;
+                                    text-decoration: none;
+                                }
+
+                                .lms-icon {
+                                    font-size: 36px;
+                                    color: #007bff;
+                                }
+
+                                @@media (max-width: 768px) {
+                                    .lms-tile {
+                                        flex: 1 1 100%;
+                                    }
+                                }
+                            </style>
+
+                            <div class="container-fluid">
+                                <table class="table table-borderless align-middle">
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-center" style="width:50px;">
+                                                <i class="fa fa-book fa-lg text-primary"></i>
+                                            </td>
+                                            <td>
+                                                <strong>Courses</strong><br />
+                                                @{
+                                                    int isn = 0;
+                                                    if (Model.liExamRegistrationList != null && Model.liExamRegistrationList.Count > 0)
+                                                    {
+                                                        isn = Model.liExamRegistrationList.Count();
+                                                    }
+                                                }
+
+
+                                                <small>@isn courses</small>
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="javascript:;" onclick="loadContent('/LMS/LMSHomepageforstudent')" class="btn btn-sm btn-outline-primary">View</a>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="text-center">
+                                                <i class="fa fa-bullhorn fa-lg text-success"></i>
+                                            </td>
+                                            <td>
+                                                <strong>Announcements</strong><br />
+                                                @{
+                                                    int isnaa = 0;
+                                                    if (Model.liAnnouncement != null && Model.liAnnouncement.Count > 0)
+                                                    {
+                                                        isnaa = Model.liAnnouncement.Count();
+                                                    }
+                                                }
+
+                                                <small>@isnaa Announcements</small>
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="javascript:;" onclick="loadContent('/LMS/LMSHomepageforstudent')" class="btn btn-sm btn-outline-success">View</a>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="text-center">
+                                                <i class="fa fa-pie-chart fa-lg text-warning"></i>
+                                            </td>
+                                            <td>
+                                                <strong>Attachement</strong><br />
+                                                @{
+                                                    int isna = 0;
+                                                    if (Model.lilmscoursewiseatt != null && Model.lilmscoursewiseatt.Count > 0)
+                                                    {
+                                                        isnaa = Model.lilmscoursewiseatt.Count();
+                                                    }
+                                                }
+
+                                                <small>@isna entries</small>
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="javascript:;" onclick="loadContent('/LMS/LMSHomepageforstudent')" class="btn btn-sm btn-outline-warning">View</a>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="text-center">
+                                                <i class="fa fa-pencil-square fa-lg text-danger"></i>
+                                            </td>
+                                            <td>
+                                                <strong>Class Test</strong><br />
+                                                @{
+                                                    int isnacLAS = 0;
+                                                    if (Model.liQuizSetting != null && Model.liQuizSetting.Count > 0)
+                                                    {
+                                                        isnacLAS = Model.liQuizSetting.Count();
+                                                    }
+                                                }
+
+                                                <small>@isnacLAS tests</small>
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="javascript:;" onclick="loadContent('/LMS/LMSHomepageforstudent')" class="btn btn-sm btn-outline-danger">View</a>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="text-center">
+                                                <i class="fa fa-tasks fa-lg text-info"></i>
+                                            </td>
+                                            <td>
+                                                <strong>Class Assignment</strong><br />
+                                                @{
+                                                    int isas = 0;
+                                                    if (Model.liassignmentsetting != null && Model.liassignmentsetting.Count > 0)
+                                                    {
+                                                        isas = Model.liassignmentsetting.Count();
+                                                    }
+                                                }
+
+                                                <small>@isas assignments</small>
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="javascript:;" onclick="loadContent('/LMS/LMSHomepageforstudent')" class="btn btn-sm btn-outline-info">View</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+
+                            @*<div class="col-md-12 table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Description</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>
+                                                <img src="~/Content/assets/img/New_Gif.gif" /> Course List
+                                                <p>
+                                                    @{
+                                                        int iser = 0;
+                                                        if (Model.liExamRegistrationList != null && Model.liExamRegistrationList.Count > 0)
+                                                        {
+                                                            iser = Model.liExamRegistrationList.Count();
+                                                        }
+                                                    }
+                                                    @iser
+                                                </p>
+                                            </td>
+
+                                            <td>
+                                            <a href="javascript:;" onclick="loadContent('/LMS/LMSHomepageforstudent')" >Click here</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>
+                                                <img src="~/Content/assets/img/New_Gif.gif" />
+                                                <h5>Announcements</h5>
+                                                <p>
+                                                    @{
+                                                        int isnaa = 0;
+                                                        if (Model.liAnnouncement != null && Model.liAnnouncement.Count > 0)
+                                                        {
+                                                            isnaa = Model.liAnnouncement.Count();
+                                                        }
+                                                    }
+                                                    @isnaa
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <a href="javascript:;" onclick="loadContent('/LMS/LMSHomepageforstudent')">Click here</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td>
+                                                <img src="~/Content/assets/img/New_Gif.gif" /><h5>Class Notes & Files</h5>
+                                                <p>
+                                                    @{
+                                                        int isna = 0;
+                                                        if (Model.lilmscoursewiseatt != null && Model.lilmscoursewiseatt.Count > 0)
+                                                        {
+                                                            isna = Model.lilmscoursewiseatt.Count();
+                                                        }
+                                                    }
+                                                    @isna
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <a href="javascript:;" onclick="loadContent('/LMS/LMSHomepageforstudent')">Click here</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>4</td>
+                                            <td>
+                                                <img src="~/Content/assets/img/New_Gif.gif" /> <h5>Class Test</h5>
+                                                <p>
+                                                    @{
+                                                        int isn = 0;
+                                                        if (Model.liQuizSetting != null && Model.liQuizSetting.Count > 0)
+                                                        {
+                                                            isn = Model.liQuizSetting.Count();
+                                                        }
+                                                    }
+                                                    @isn
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <a href="javascript:;" onclick="loadContent('/LMS/LMSHomepageforstudent')">Click here</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>5</td>
+                                            <td>
+                                                <img src="" /> <h5>Class Assignment</h5>
+                                                <p>
+                                                    @{
+                                                        int isas = 0;
+                                                        if (Model.liassignmentsetting != null && Model.liassignmentsetting.Count > 0)
+                                                        {
+                                                            isas = Model.liassignmentsetting.Count();
+                                                        }
+                                                    }
+                                                    @isas
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <a href="javascript:;" onclick="loadContent('/LMS/LMSHomepageforstudent')">Click here</a>
+                                            </td>
+                                        </tr>
+
+                                    </tbody>
+                                </table>
+                            </div>*@
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+ 
+
+
+    <!-- begin row -->
+    <div class="row">
+        <!--<div class="col-md-12">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="panel ">
+                        <div class="panel-heading">
+                            <div class="panel-heading-btn">
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                            </div>
+                            <h3 class="panel-title"><i class="fa fa-inbox"></i> Notice Board</h3>
+                        </div>
+                        <div class="panel-body noPadding">
+                            <div class="col-md-12 table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Description</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>
+                                                <img src="~/Content/assets/img/New_Gif.gif" /> Exam Result For April 2025
+                                            </td>-->
+        @*<td><a href="javascript:;" onclick="loadContent('/Examination/SemesterResult')" class="btn btn-success"> View </a></td>*@
+        <!--<td><a href="http://result.sjctnc.edu.in/Examination/ExaminationResult?sAcYear=2025&sExamSettingId=14&sResultMonth=April">Click here</a></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>
+                                                <img src="~/Content/assets/img/New_Gif.gif" /> Hostel Fee (@sAcedemicYear-@sAcedemicYearPlusOne)
+                                            </td>
+                                            <td>
+                                                <a href="https://easypay.axisbank.co.in/easyPay/makePayment?mid=NDE0ODY%3D">Click here</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td>
+                                                <img src="~/Content/assets/img/New_Gif.gif" />Bus Fee   -    @sAcedemicYear-@sAcedemicYearPlusOne ( Please Select Term 1 )
+                                            </td>
+                                            <td>
+                                                <a href="https://easypay.axisbank.co.in/easyPay/makePayment?mid=MzM1NDU%3D">Click here</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>4</td>
+                                            <td>
+                                                <img src="~/Content/assets/img/New_Gif.gif" />Final  Installment of Term Fees  - @sAcedemicYear-@sAcedemicYearPlusOne ( Please Select Term 1 )
+                                            </td>
+                                            <td>
+                                                <a href="https://easypay.axisbank.co.in/easyPay/makePayment?mid=NDI0ODY%3D">Click here</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>5</td>
+                                            <td>
+                                                <img src="" /> Exam Fees  - @sAcedemicYear ( Please Select Exam Fee 2 )
+                                            </td>
+                                            <td>
+                                                <a href="https://www.onlinesbi.sbi/sbicollect/icollecthome.htm?corpID=5364211">Click here</a>
+                                            </td>
+                                        </tr>
+
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>-->
+
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="panel ">
+                        <div class="panel-heading">
+                            <div class="panel-heading-btn">
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                            </div>
+                            <h3 class="panel-title"><i class="fa fa-inbox"></i>Exam Report</h3>
+                        </div>
+                        <div class="panel-body noPadding">
+                            <div class="col-md-12 table-responsive">
+                                <div class="" id="chartsdiv" data-colors="#0079fd,#41c94f,#1ab394">
+
+                                </div>
+                                <br>
+                                <br>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- begin col-4 -->
+        <!-- <div class="col-md-4">
+              <div class="panel panel-inverse">
+                  <div class="panel-heading">
+                      <div class="panel-heading-btn">
+                          <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                          <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                          <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                          <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                      </div>
+                      <h4 class="panel-title">Calendar</h4>
+                  </div>
+                  <div class="panel-body">
+                      <div id="datepicker-inline" class="datepicker-full-width"><div></div></div>
+                  </div>
+              </div>
+          </div> -->
+        <!-- end col-4 -->
+        <!--begin timetablerow -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel">
+                            <div class="panel-heading bg-blue">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript: ;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-calendar-o"></i> Timetable</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="row myMargin table-responsive" id="Timetable">
+                                    <table class="table table-bordered text-center" id="TimeTableClassWiseList">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                @if (Model.lstHours != null)
+                                                {
+                                                    foreach (var dataitem in Model.lstHours)
+                                                    {
+                                                        <th><b> Hour- @dataitem.HOUR</b></th>
+                                                    }
+                                                }
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.lstDayOrders != null)
+                                            {
+                                                foreach (var dataitem in Model.lstDayOrders)
+                                                {
+                                                    <tr cms-timetableid="@dataitem.DAY_ORDER_ID">
+                                                        <td><b> Day- @dataitem.DAY</b></td>
+                                                        @foreach (var item in Model.lstHours)
+                                                        {
+                                                            if (Model.liTimetable != null && Model.liTimetable.Count > 0)
+                                                            {
+                                                                var TimeTableList = Model.liTimetable.Where(s => s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                                                                var TimeTable = TimeTableList.Where(s => s.Hour_Id == item.HOUR_ID).ToList();
+                                                                if (TimeTable != null && TimeTable.Count > 0)
+                                                                {
+
+                                                                    ttTimeTable = TimeTable.FirstOrDefault().Time_Table_Id;
+                                                                    if (TimeTable.Count > 1)
+                                                                    {
+                                                                        ttTimeTable = string.Join(",", TimeTable.Select(x => x.Time_Table_Id.ToString()).ToArray());
+
+                                                                    }
+                                                                    <td id="tdTimeTable">
+                                                                        @foreach (var item1 in TimeTable)
+                                                                        {
+                                                                            @item1.COURSE_TITLE
+                                                                            { CourseCode = "(" + @item1.COURSE_CODE + ")"; }
+                                                                            if (CourseCode != "()")
+                                                                            {
+                                                                                @CourseCode <br />
+                                                                                @item1.STAFF_CODE
+                                                                            }
+                                                                            <br>
+                                                                        }
+
+                                                                    </td>
+
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td class="editable" cms-dayid="@dataitem.DAY_ORDER_ID" cms-hourid="@item.HOUR_ID"></td>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <td class="editable" cms-dayid="@dataitem.DAY_ORDER_ID" cms-hourid="@item.HOUR_ID"></td>
+                                                            }
+                                                        }
+                                                    </tr>
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td><p>No records available !!!</p></td>
+                                                </tr>
+                                            }
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--begin calendar row-->
+        @*<div class="row">
+                <div class="col-sm-12">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="panel">
+                                <div class="panel-heading bg-blue">
+                                    <div class="panel-heading-btn">
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                        <a href="javascript: ;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                    </div>
+                                    <h3 class="panel-title"><i class="fa fa-calendar-o"></i>Academic Calendar</h3>
+                                </div>
+                                <div class="panel-body noPadding">
+                                    <div class="row myMargin" id="divcalendar">
+                                        <div id="calendar" class="vertical-box-column p-15 calendar"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>*@
+
+        <!-- Begin Event
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="panel panel-primary">
+                                <div class="panel-heading">
+                                    <div class="panel-heading-btn">
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                    </div>
+                                    <h3 class="panel-title"><i class="fa fa-flag"></i> Events</h3>
+                                </div>
+                                <div class="panel-body noPadding">
+                                    <div class="row myMargin" id="event">
+                                        <marquee direction="up" scrolldelay="150" onmouseover="stop();" onmouseout="start();">
+                                            <div class="height-sm" @*data-scrollbar="true"*@>
+                                                @if (Model.liCalenderEvents != null && Model.liCalenderEvents.Count > 0)
+                                                {
+                                                    <ul class="media-list media-list-with-divider media-messaging">
+                                                        @foreach (var item in Model.liCalenderEvents)
+                                                        {
+                                                            <li class="media media-sm">
+                                                                <a href="javascript:;" class="pull-left">
+                                                                    <img src="" alt="" class="media-object rounded-corner" />
+                                                                </a>
+                                                                <div class="media-body">
+                                                                    <h5 class="media-heading"><b>@item.EVENT_START_DATE</b></h5>
+                                                                    <p>
+                                                                        @item.EVENT_NAME
+                                                                    </p>
+                                                                </div>
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                }
+                                            </div>
+                                        </marquee>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="panel">
+                                <div class="panel-heading bg-purple">
+                                    <div class="panel-heading-btn">
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                    </div>
+                                    <h3 class="panel-title"><i class="fa fa-calendar-o"></i>Tasks</h3>
+                                </div>
+                                <div class="panel-body noPadding">
+                                    <div class="row myMargin" id="Tasks">
+
+                                            <marquee direction="up" scrolldelay="150" onmouseover="stop();" onmouseout="start();">
+                                                <div class="height-sm" @*data-scrollbar="true"*@>
+        @if (Model.liAssignment != null && Model.liStaff != null)
+        {
+
+
+                                                    <ul class="media-list media-list-with-divider media-messaging">
+
+                                                        @foreach (var item in Model.liStaff)
+                                                        {
+
+                                                            var TempList = Model.liAssignment.Where(s => s.STAFF_ID == item.STAFF_ID && s.COURSE_ID == item.COURSE_ID).ToList();
+
+                                                            foreach (var list in TempList)
+                                                            {
+                                                                <li class="media media-sm">
+                                                                    @if (@item.PHOTO != "")
+                                                                    {
+                                                                        @*<a class="media-left" href="javascript:;">
+                                                                                <img src="@item.PHOTO" alt="" class="media-object rounded-corner">
+                                                                            </a>*@
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        @*<a class="media-left" href="javascript:;">
+                                                                                <img src="~/Content/assets/img/user-1.jpg" alt="" class="media-object rounded-corner">
+                                                                            </a>*@
+                                                                    }
+                                                                    <div class="media-body">
+                                                                        @*<a href="@Url.Action("AssignmentSubmission", "Student", new {sCourseid= @list.COURSE_ID,sAssigmentId= @list.ASSIGNMENT_ID,sAssignmentTitle=@list.ASSIGNMENT_TITLE,sCoursecode=@list.COURSE_CODE })">*@
+                                                                        <h5 class="media-heading"><b>@list.DATE_FROM</b></h5>
+
+                                                                        <p>Course- @list.COURSE_CODE</p>
+                                                                        <p>Title - @list.ASSIGNMENT_TITLE</p>
+                                                                        <p>Staff - @list.STAFF_NAME</p>
+                                                                        @Html.Raw(@list.DESCRIPTION)
+                                                                        <span class="badge badge-primary">Submition Date: @list.SUBMISSION_DATE</span>
+                                                                        @*@{HtmlString html = new HtmlString(list.DESCRIPTION);}*@
+
+                                                                        @*</a>*@
+                                                                    </div>
+                                                                </li>
+                                                            }
+
+                                                        }
+                                                    </ul>
+
+
+        }
+                                                </div>
+                                            </marquee>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="panel">
+                                <div class="panel-heading bg-purple">
+                                    <div class="panel-heading-btn">
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                    </div>
+                                    <h3 class="panel-title">
+                                    <i class="fa fa-calendar-o"></i>
+                                    Notification
+                                    </h3>
+
+                                </div>
+                                <div class="panel-body noPadding">
+                                    <div class="row myMargin" id="notification">
+                                        <marquee direction="up" scrolldelay="150" onmouseover="stop();" onmouseout="start();">
+                                            <div class="height-sm" @*data-scrollbar="true"*@>
+                                                @if (Model.liNotification != null && Model.liNotification.Count > 0)
+                                                {
+                                                    <ul class="media-list media-list-with-divider media-messaging">
+                                                        @foreach (var item in Model.liNotification)
+                                                        {
+                                                            <li class="media media-sm">
+                                                                <a href="javascript:;" class="pull-left">
+                                                                    <img src="" alt="" class="media-object rounded-corner" />
+                                                                </a>
+                                                                <div class="media-body">
+                                                                    <h5 class="media-heading"><b>@item.NOTIFIED_DATE</b></h5>
+                                                                    <p>
+                                                                        @item.NOTIFICATION
+                                                                    </p>
+                                                                </div>
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                }
+                                            </div>
+                                        </marquee>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <div class="modal" id="Course-dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h4 class="modal-title">List Course Details </h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-horizontal row">
+                                <div class="col-md-12 table-responsive">
+                                    <table class="table table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <td>#</td>
+                                                <td>Sem</td>
+                                                <td>Course Code</td>
+                                                <td>Course Title</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.liCourseDetails!=null && Model.liCourseDetails.Count>0)
+                                            {
+                                                int nCount = 0;
+                                                foreach (var item in Model.liCourseDetails)
+                                                {
+                                                    <tr>
+                                                        <td>@{nCount++;} @nCount</td>
+                                                        <td>@item.SEMESTER_ID</td>
+                                                        <td>@item.COURSE_CODE</td>
+                                                        <td>@item.COURSE_TITLE</td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                    <br />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            -->
+    </div>
+</div>
+
+@section scripts{
+    <script src="~/Content/assets/plugins/morris/raphael.min.js"></script>
+    <script src="~/Content/assets/plugins/morris/morris.js"></script>
+    <script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap.min.js"></script>
+    <script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap-world-merc-en.js"></script>
+    <script src="~/Content/assets/plugins/fullcalendar/lib/moment.min.js"></script>
+    <script src="~/Content/assets/plugins/fullcalendar/fullcalendar.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="~/Content/assets/js/calendar.demo.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="~/Content/assets/js/dashboard.min.js"></script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <script src="http://www.ourmanna.com/verses/api/js/" type="text/javascript"></script>
+    <script>
+
+        $(document).ready(function ()
+        {
+
+            var events = [];
+            //   Dashboard.init();
+            handleDashboardDatepicker = function () {
+                "use strict";
+                $("#datepicker-inline").datepicker({
+                    todayHighlight: !0
+                }
+                )
+            }
+            var refreshTimerId;
+
+            function startTimer() {
+                refreshTimerId = setInterval(function () {
+                    if (document.getElementById("currenttime")) {
+                        document.getElementById("currenttime").innerHTML = new Date().toLocaleTimeString();
+                    }
+                }, 1000);
+            }
+
+            startTimer();
+            handleDashboardDatepicker();
+
+            //App.init();
+            //GetCalender DayOrder....
+            @*GetCalender = function ()
+            {
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("GetCalender", "Student")",
+                    success: function (data) {
+                        $.each(data, function (i, v) {
+                            events.push({
+                                id: v.DAY_ID,
+                                dayorderid: v.DAY_ORDER_ID,
+                                title: v.DAY_ORDER,
+                                start: v.SYEAR + "-" + v.SMONTH + v.SDAY,
+                                end: v.EYEAR + "-" + v.EMONTH + v.EDAY,
+                                color: v.COLOR,
+                                holiday: v.IS_HOLIDAY,
+                                allDay: v.DAY_ORDER
+                            });
+                        })
+                        handleCalendarDemo(events);
+                    }, error: function (error) {
+                        alert('Falied To Get Record ...!');
+                    }
+                });
+            }*@
+
+            // GetCalenderEvents ...
+            @*GetCalenderEvent = function ()
+            {
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("GetCalenderEvent", "Student")",
+                    success: function (data) {
+                        $.each(data, function (i, v) {
+                            if (v.EVENT_ID != '')
+                            {
+                                if (v.DAY_ORDER != '')
+                                {
+                                    events.push({
+                                        id: v.EVENT_ID,
+                                        title: v.DAY_ORDER,
+                                        start: v.SYEAR + "-" + v.SMONTH + v.SDAY,
+                                        end: v.EYEAR + "-" + v.EMONTH + v.EDAY,
+                                        color: v.COLOR,
+                                        description: v.EVENT_DESCRIPTION,
+                                        EventType: v.EVENT_TYPE,
+                                        type: "event",
+                                        allDay: true
+                                    });
+                                }
+                            } else
+                            {
+                                if (v.DAY_ORDER != '')
+                                {
+                                    events.push({
+                                        id: v.DAY_ID,
+                                        dayorderid: v.DAY_ORDER_ID,
+                                        title: v.DAY_ORDER,
+                                        start: v.SYEAR + "-" + v.SMONTH + v.SDAY,
+                                        end: v.EYEAR + "-" + v.EMONTH + v.EDAY,
+                                        color: v.COLOR,
+                                        description: v.EVENT_DESCRIPTION,
+                                        holiday: v.IS_HOLIDAY,
+                                        EventType: v.EVENT_TYPE,
+                                        type:"dayorder",
+                                        allDay: true
+                                    });
+
+                                }
+                                //alert('day_order');
+                            }
+
+                        })
+                        handleCalendarDemo(events);
+                    }, error: function (error) {
+                        alert('Falied To Get Record ...!');
+                    }
+                });
+            }
+            GetCalenderEvent();*@
+
+            Chart();
+        });
+
+        function Chart()
+        {
+            var part=[];
+            var partname=[];
+            var percentdata=[]
+            var JsonData='[';
+            var marks = @Html.Raw(Json.Encode(ViewBag.liSemstermark));
+            var semster=@Html.Raw(Json.Encode(ViewBag.lisem));
+            var parts=@Html.Raw(Json.Encode(ViewBag.lipart));
+            if(marks!=null && semster!=null && parts!=null)
+            {
+                for(var p = 0; p< parts.length; p++)
+                {
+                    part.push(parts[p].PART_NAME);
+                }
+                for(var p = 0; p< parts.length; p++)
+                {
+                    partname.push("PART-"+parts[p].PART_NAME);
+                }
+                for(var i=0;i<semster.length;i++)
+                {
+                    JsonData += '{"x":"SEM-'+ semster[i].SEMESTER_NAME + '",';
+                    for(var j = 0; j < parts.length; j++)
+                    {
+
+                        for(var k = 0; k < marks.length; k++)
+                        {
+                            if(marks[k].PART==parts[j].PART && marks[k].SEMESTER==semster[i].SEMESTER)
+                            {
+                                JsonData += '"'+parts[j].PART_NAME+'":"'+marks[k].TOTAL+'",';
+                                percentdata.push(marks[k].TOTAL);
+                            }
+                        }
+
+                    }
+                    JsonData = JsonData.slice(0, -1);
+                    JsonData +='},';
+                }
+
+                JsonData = JsonData.slice(0, -1);
+                JsonData += ']';
+
+                var obj = JSON.parse(JsonData);
+
+                var arrColors = ['#007aff', '#ef0117',  '#4caf50', '#a550dd','#673ab7','#ef0117'];
+                Morris.Line({
+                    element:'chartsdiv',
+                    data: obj,
+                    ymax: 100,
+                    xkey: 'x',
+                    // gridTextSize: 10,
+                    ykeys: part,
+                    parseTime: false,
+                    //hideHover: true,
+                    //lineWidth: '6px',
+                    //stacked: true,
+                    labels:partname,
+                    lineColors:['#007aff', '#ef0117', '#4caf50', '#a550dd','#673ab7','#673AB7'],
+                    pointFillColors: ['#00ff00'],
+                    hoverCallback: function(index, options, content,row)
+                    {
+
+
+                        if(percentdata.length!=0)
+                        {
+                            for(var i=0;i<percentdata.length;i++)
+                            {
+
+                                content=content.replace(percentdata[i],percentdata[i]+"%" );
+                            }
+                        }
+
+                        return content;
+
+                    }
+                });
+            }
+        }
+
+
+
+    </script>
+
+
+    @* Calender Script *@
+    <script>
+        // For flag updates
+        var IsFlag = 0;
+        var Title = null;
+        var StartDate = null;
+        var EndDate = null;
+        var JsonData = null;
+        var blue = "#007aff",
+            blueLight = "#409bff",
+            blueDark = "#005bbf",
+            aqua = "#5AC8FA",
+            aquaLight = "#83d6fb",
+            aquaDark = "#4396bb",
+            green = "#4CD964",
+            greenLight = "#79e38b",
+            greenDark = "#39a34b",
+            orange = "#FF9500",
+            orangeLight = "#ffb040",
+            orangeDark = "#bf7000",
+            dark = "#222222",
+            grey = "#bbbbbb",
+            purple = "#5856D6",
+            purpleLight = "#8280e0",
+            purpleDark = "#4240a0",
+            red = "#FF3B30";
+
+        handleCalendarDemo = function (events) {
+            $("#external-events .fc-event").each(function () {
+                $(this).data("event", {
+                    title: $.trim($(this).text()), stick: !0, color: $(this).attr("data-color") ? $(this).attr("data-color") : ""
+                }),
+                    $(this).draggable({
+                        zIndex: 999, revert: !0, revertDuration: 0,
+                    })
+            });
+            var e = new Date,
+                t = e.getFullYear(),
+                r = e.getMonth() + 1;
+            r = 10 > r ? "0" + r : r,
+                $("#calendar").fullCalendar({
+                    header: {
+                        left: "month,agendaWeek,agendaDay", center: "title", right: "prev,today,next "
+                    }
+                    , droppable: !0, drop: function (date) {
+                        //$(this).draggable
+                        $("#DragDate").val(convert(date));
+                        //alert(date);
+                    }, eventReceive: function (event) {
+                        var DragDate = $("#DragDate").val();
+                        var Json = null;
+                        Json = '{"EVENT_TITLE":"' + event.title + '","COLOR":"' + event.color + '","StartDate":"' + DragDate + '"}';
+                        // DragExternalEvent(Json)
+                    }
+                    , selectable: !0, selectHelper: !0, select: function (e, t) {
+
+
+                    }
+                    , editable: !0, eventLimit: !0, events, eventDrop: function (event) {
+
+
+                    }, eventClick: function (calEvent, jsEvent, view) {
+
+                        // this is for updating day order
+                        if (calEvent.color == "GRAY") {
+                            // for dayorder updating and inserting
+                            IsFlag = 1;
+
+                            $('#dayOrderDate').attr('value', calEvent.start.format('DD/MM/YYYY'));
+                            $('#dayOrderEndDate').attr('value', calEvent.end.format('DD/MM/YYYY'));
+                            $('#dayId').attr('value', calEvent.id);
+
+                            $('#cbxIsHoliday').removeAttr("checked");
+
+                            $('#ddlDayOrderList option[value=' + calEvent.dayorderid + ']').attr('selected', 'selected');
+                            $('.selectpicker').selectpicker('refresh');
+
+
+                            if (calEvent.holiday == "1") {
+                                $('#cbxIsHoliday').attr("checked", "checked");
+                            }
+
+                            if ($('#IsHoliday').hide())
+                                $('#IsHoliday').show();
+
+                            $('#Event-dialog').modal('show');
+
+                            if ($('#DayorderFields').hide())
+                                $('#DayorderFields').show();
+
+                            $('#EventFields').hide();
+
+                        }
+                    }, eventResizeStop: function (event, view) {
+                        alert(view.end);
+                    }, eventRender: function (event, element) {
+
+                        //if (event.rendering == 'background') {
+                        //    element.append(event.title);
+                        //}
+                    }
+                })
+
+        }
+
+
+    </script>
+}

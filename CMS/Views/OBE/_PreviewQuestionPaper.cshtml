@@ -1,0 +1,234 @@
+@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    Layout = null;
+    var college = ViewBag.CollegeDetails as CMS.ViewModel.Model.CollegeDetails;
+    int qCount = 0;
+    int nQNo = 0;
+}
+
+<style>
+    .qp-preview-wrapper {
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 13px;
+        color: #000;
+        background: #fff;
+        padding: 20px;
+    }
+    .qp-header {
+        text-align: center;
+        margin-bottom: 10px;
+        border-bottom: 2px solid #000;
+        padding-bottom: 10px;
+    }
+    .qp-header h4 { margin: 2px 0; font-size: 15px; font-weight: bold; }
+    .qp-header p  { margin: 2px 0; font-size: 12px; }
+    .qp-meta-table { width: 100%; margin-bottom: 10px; font-size: 12px; }
+    .qp-meta-table td { padding: 2px 6px; }
+    .qp-section-header {
+        background: #f0f0f0;
+        font-weight: bold;
+        border: 1px solid #ccc;
+        padding: 5px 8px;
+        margin: 8px 0 4px 0;
+        font-size: 13px;
+    }
+    .qp-question-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 8px;
+    }
+    .qp-question-table th {
+        background: #e8e8e8;
+        border: 1px solid #999;
+        padding: 5px 8px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .qp-question-table td {
+        border: 1px solid #999;
+        padding: 5px 8px;
+        vertical-align: top;
+        font-size: 12px;
+    }
+    .qp-question-table td.qno   { text-align: center; width: 6%; }
+    .qp-question-table td.qmark { text-align: center; width: 6%; }
+    .qp-question-table td.qunit { text-align: center; width: 8%; }
+    .qp-question-table td.qklvl { text-align: center; width: 8%; }
+    .qp-question-table td.qtext { width: 72%; }
+    .qp-no-question { color: #888; font-style: italic; }
+    @@media (max-width: 768px) {
+        .qp-preview-wrapper {
+            padding: 10px !important;
+        }
+        
+        .qp-header h4 { font-size: 14px; }
+        .qp-header p { font-size: 11px; }
+        
+        .qp-question-table thead {
+            display: none;
+        }
+        
+        .qp-question-table, .qp-question-table tbody, .qp-question-table tr, .qp-question-table td {
+            display: block;
+            width: 100%;
+        }
+        
+        .qp-question-table tr {
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .qp-question-table td {
+            border: none;
+            padding: 4px 0;
+            text-align: left !important;
+            width: 100% !important;
+        }
+        
+        .qp-question-table td:before {
+            content: attr(data-label);
+            font-weight: bold;
+            display: block;
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .qp-question-table td.qtext:before {
+            content: "Question Content:";
+        }
+    }
+
+    @@media print {
+        .no-print { display: none !important; }
+        .qp-preview-wrapper { padding: 5px; }
+    }
+</style>
+
+<div class="qp-preview-wrapper" id="qpPrintArea">
+
+    @* College Header *@
+    <div class="qp-header">
+        @if (college != null)
+        {
+            <h4>@college.COLLEGE_NAME</h4>
+            <p>@college.COLLEGE_ADDRESS</p>
+            <p>@college.PLACE @(string.IsNullOrEmpty(college.DISTRICT) ? "" : "- " + college.DISTRICT)</p>
+        }
+        <p style="font-weight:bold; font-size:14px; margin-top:6px;">QUESTION PAPER</p>
+    </div>
+
+    @if (Model.LiOBEQuestionPaperPattern != null && Model.LiOBEQuestionPaperPattern.Count > 0)
+    {
+        var firstRow = Model.LiOBEQuestionPaperPattern.FirstOrDefault();
+        if (firstRow != null)
+        {
+            <table class="qp-meta-table">
+                <tr>
+                    <td><b>Exam</b></td>
+                    <td>: @firstRow.EXAM_SETTING_ID</td>
+                    <td><b>Max. Marks</b></td>
+                    <td>: @firstRow.MARK_FOR_EACH_SECTION</td>
+                </tr>
+            </table>
+        }
+
+        var liQuestions = Model.LiOBEQuestions ?? new System.Collections.Generic.List<CMS.ViewModel.Model.OBE_QUESTIONS>();
+        var groupSection = Model.LiOBEQuestionPaperPattern.GroupBy(x => x.SECTION_ID).ToList();
+
+        foreach (var item in groupSection)
+        {
+            var sectionInfo = item.FirstOrDefault();
+            if (sectionInfo == null) { continue; }
+
+            string sectionName    = sectionInfo.SECTION_NAME ?? "";
+            string sectionDesc    = sectionInfo.SECTION_DECRIPTION ?? "";
+            string sectionMark    = sectionInfo.MARK_FOR_EACH_SECTION ?? "";
+            string eachQMark      = sectionInfo.MARK_FOR_EACH_QUESTION ?? "";
+            string eitherOrFlag   = sectionInfo.EITHER_OR ?? "0";
+            int    totalQuestion  = 0;
+            int.TryParse(sectionInfo.TOTAL_QUESTION, out totalQuestion);
+
+            <div class="qp-section-header">
+                @sectionName &nbsp;|&nbsp; @sectionDesc &nbsp;|&nbsp; Marks: @sectionMark
+            </div>
+
+            <table class="qp-question-table">
+                <thead>
+                    <tr>
+                        <th class="qno">Q.No</th>
+                        <th class="qmark">Mark</th>
+                        <th class="qunit">Unit</th>
+                        <th class="qklvl">K-Level</th>
+                        <th class="qtext">Question</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for (int i = 0; i < totalQuestion; i++)
+                {
+                    qCount++;
+                    if (eitherOrFlag == "1")
+                    {
+                        for (int j = 0; j < 2; j++)
+                        {
+                            nQNo++;
+                            string eitherLabel = j == 0 ? qCount + " .A" : qCount + " .B";
+                            var savedQ = liQuestions.FirstOrDefault(q => q.FORMULA_EQUATION == eitherLabel);
+                            string unitId  = savedQ != null ? savedQ.OBE_UNIT_ID  : "-";
+                            string levelId = savedQ != null ? savedQ.QUESTION_LEVEL_ID : "-";
+                            <tr>
+                                <td class="qno" data-label="Q.No">@eitherLabel</td>
+                                <td class="qmark" data-label="Mark">@eachQMark</td>
+                                <td class="qunit" data-label="Unit">@unitId</td>
+                                <td class="qklvl" data-label="K-Level">@levelId</td>
+                                <td class="qtext">
+                                    @if (savedQ != null && !string.IsNullOrEmpty(savedQ.QUESTION))
+                                    {
+                                        @Html.Raw(savedQ.QUESTION)
+                                    }
+                                    else
+                                    {
+                                        <span class="qp-no-question">No question entered yet.</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        nQNo++;
+                        string qLabel = qCount.ToString();
+                        var savedQOuter = liQuestions.FirstOrDefault(q => q.FORMULA_EQUATION == qLabel);
+                        string unitIdOuter  = savedQOuter != null ? savedQOuter.OBE_UNIT_ID  : "-";
+                        string levelIdOuter = savedQOuter != null ? savedQOuter.QUESTION_LEVEL_ID : "-";
+                        <tr>
+                            <td class="qno" data-label="Q.No">@qLabel</td>
+                            <td class="qmark" data-label="Mark">@eachQMark</td>
+                            <td class="qunit" data-label="Unit">@unitIdOuter</td>
+                            <td class="qklvl" data-label="K-Level">@levelIdOuter</td>
+                            <td class="qtext">
+                                @if (savedQOuter != null && !string.IsNullOrEmpty(savedQOuter.QUESTION))
+                                {
+                                    @Html.Raw(savedQOuter.QUESTION)
+                                }
+                                else
+                                {
+                                    <span class="qp-no-question">No question entered yet.</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        }
+    }
+    else
+    {
+        <div class="alert alert-warning">No question paper pattern found.</div>
+    }
+
+</div>

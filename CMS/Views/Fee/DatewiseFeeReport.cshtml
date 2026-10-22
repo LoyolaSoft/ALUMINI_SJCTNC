@@ -1,0 +1,159 @@
+﻿@model CMS.ViewModel.ViewModel.FeeReportViewModel
+
+@{
+    ViewBag.Title = "DatewiseFeeReport";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />    
+<!-- ================== BEGIN PAGE LEVEL STYLE ================== -->
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<!-- ================== END PAGE LEVEL STYLE ================== -->
+
+
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">DateWise Fee Report</li>
+    </ol>
+    <h2 class="page-header"> DateWise Fee Report</h2>
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                @*<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>*@
+            </div>
+            <h4 class="panel-title">DateWise Fee Report</h4>
+        </div>
+        <div class="panel-body">
+            <div class="form-horizontal">
+
+                <div class="form-group col-md-4">
+                    <label class="control-label col-md-2">From</label>
+                    <div class="col-md-10">
+                        <div class="input-group date" id="datetimepicker1">
+                            <input type="text" id="txtFromDate" class="form-control" placeholder="Select Date" />
+                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <label class="control-label col-md-2">To</label>
+                    <div class="col-md-10">
+                        <div class="input-group date" id="datetimepicker1">
+                            <input type="text" id="txtToDate" class="form-control" placeholder="Select Date" />
+                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group col-md-4">
+                    @Html.LabelFor(model => model.liFrequency, "Frequency", htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.DropDownListFor(model => model.liFrequency, (Model.liFrequency != null) ? Model.liFrequency : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control  input-sm", @data_live_search = "true" })
+                        @Html.ValidationMessageFor(model => model.liFrequency, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group col-md-1">
+                    <a class="btn btn-primary" id="btnGet"> Get </a>
+                </div>
+
+                <div class="col-md-12" id="dvReport"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+   <!---->
+    <script src="~/Content/assets/plugins/flot/jquery.flot.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <!---->
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+   
+
+    <script>
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        $('.selectpicker').selectpicker('refresh');
+        handleDatepicker = function ()
+        {
+            "use strict";
+            $("#txtFromDate,#txtToDate").datepicker({
+                todayHighlight: true,
+                autoclose: true,
+                endDate: new Date(),
+                format: "dd/mm/yyyy",
+                orientation: "right bottom"
+            });
+        }
+        handleDatepicker();
+
+        $('#btnGet').on('click', function ()
+        {
+            $.ajax({
+                url: '@Url.Action("BindDateWiseFeeReport", "Fee")',
+                method: 'POST',
+                datatype: 'json',
+                data: { FromDate: $('#txtFromDate').val(), ToDate: $('#txtToDate').val(), sFrequency: $('#liFrequency').val() },
+                success: function (data)
+                {
+                    $('#dvReport').empty();
+                    if (data.Message != null && data.Message != '')
+                    {
+                        alert(data.Message);
+                    } else {
+                        $('#dvReport').append(data);
+                        $('.table').DataTable({
+                            dom: "lBfrtip", buttons: [{
+                                extend: "copy", className: "btn-sm"
+                            }
+                            , {
+                                extend: "excel", className: "btn-sm"
+                            }
+                            , {
+                                extend: "print", className: "btn-sm"
+                            }
+                            ], responsive: !0, "paging": false,
+                        });
+                    }
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+    </script>
+
+
+
+

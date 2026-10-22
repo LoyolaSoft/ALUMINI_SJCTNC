@@ -1,0 +1,129 @@
+﻿@model CMS.ViewModel.ViewModel.DashboardViewModel
+@{
+    string ChartType = string.Empty;
+    Layout = null;
+}
+
+<div class="col-md-6">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel ">
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h3 class="panel-title"><i class="fa fa-inbox"></i>Total Amount Collected</h3>
+                </div>
+                <div class="panel-body noPadding">
+                    <div class="col-md-12 table-responsive height-lg">
+                        <div class="col-md-12">
+                            <div class="col-md-4">
+
+                            </div>
+
+                            <div class="col-md-4 text-center" style="width:350px;">
+                                <div class="d-flex flex-wrap">
+                                    @*<button type="button" class="btn btn-success me-1 mb-1" onclick="changeBar('line')">Line</button>
+                                        <button type="button" class="btn btn-danger me-1 mb-1" onclick="changeBar('bar')">Bar</button>*@
+
+                                </div>
+
+                            </div>
+                            <div class="col-md-4">
+
+                            </div>
+                        </div>
+                        <div class="" id="chartsdiv">
+                            <canvas id="TotalFrequncyCollectionChart"></canvas>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+
+</script>
+
+<script>
+
+    var arrColors = ['#D32F2F', '#AD1457', '#6A1B9A', '#512DA8', '#303F9F', '#1976D2', '#0288D1', '#0097A7', '#00796B', '#388E3C', '#AFB42B', '#FFA000', '#616161','#455A64'];
+    var ChartType = 'line';
+
+    function getMultipleRandom(arr, num) {
+        const shuffled = [...arr].sort(() => 0.5 - Math.random());
+
+        return shuffled.slice(0, num);
+    }
+
+    function changeBar(e) {
+        var randomColor;
+        config.type = e;
+        randomcolor = getMultipleRandom(arrColors, 5)
+        config.data.datasets[0].backgroundColor = randomColor;
+        config.data.datasets[0].borderColor = randomColor;
+        AmountChart.update();
+    }
+
+    var ViewFrequecy =@Html.Raw(Json.Encode(ViewBag.Frequecy));
+    var ViewTransaction = @Html.Raw(Json.Encode(ViewBag.Transaction));
+
+    var FrequecyArray = [];
+    var TransactionArray = [];
+    var FrequecyNameArray = [];
+    var ChartValue = []
+    var JsonData = '[';
+
+
+
+    if (ViewFrequecy != null && ViewTransaction != null) {
+        for (var p = 0; p < ViewFrequecy.length; p++) {
+            FrequecyArray.push(ViewTransaction[p].FREQUENCY);
+        }
+        for (var p = 0; p < ViewFrequecy.length; p++) {
+            FrequecyNameArray.push(ViewFrequecy[p].FREQUENCY_NAME);
+        }
+        var backgroundcolor = '';
+
+        JsonData += '{"label":"Frequency",';
+        var random = Math.floor(Math.random() * arrColors.length);
+        JsonData += '"backgroundColor":';
+        JsonData += '"' + arrColors[random] + '"'
+        JsonData += ',"borderColor":"' + arrColors[random] + '", "data":';
+        for (var i = 0; i < ViewFrequecy.length; i++) {
+            ChartValue.push(ViewTransaction[i].COLLECTED);
+        }
+        JsonData += '[' + ChartValue + '],'
+        JsonData = JsonData.slice(0, -1);
+        JsonData += '},';
+
+        JsonData = JsonData.slice(0, -1);
+        JsonData += ']';
+        var obj = JSON.parse(JsonData);
+
+    }
+    var data = {
+        labels: FrequecyNameArray,
+        datasets: obj
+    };
+    var config = {
+        type: ChartType,
+        data: data,
+        options: {}
+    };
+    var AmountChart = new Chart(
+        document.getElementById('TotalFrequncyCollectionChart'),
+            config
+        );
+
+
+</script>

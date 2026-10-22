@@ -1,0 +1,211 @@
+@model CMS.ViewModel.ViewModel.DashboardViewModel
+@{
+    Layout = null;
+    int count = 0;
+}
+
+<style>
+    .premium-table-container {
+        padding: 10px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .premium-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .premium-table th {
+        background: #f8fafc;
+        color: #64748b;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 15px 20px;
+        border-bottom: 2px solid #f1f5f9;
+        text-align: left;
+    }
+
+    .premium-table td {
+        padding: 15px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #1e293b;
+        vertical-align: middle;
+    }
+
+    .premium-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .premium-table tr:hover td {
+        background: #fcfcfd;
+    }
+
+    .status-badge {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .status-active { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+    .status-inactive { background: #94a3b8; }
+
+    .role-pills {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .role-pill {
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-right: 5px;
+        text-decoration: none !important;
+    }
+
+    .btn-view { background: #eff6ff; color: #3b82f6; }
+    .btn-view:hover { background: #3b82f6; color: #fff; }
+
+    .btn-edit { background: #f0fdf4; color: #22c55e; }
+    .btn-edit:hover { background: #22c55e; color: #fff; }
+
+    .btn-delete { background: #fef2f2; color: #ef4444; }
+    .btn-delete:hover { background: #ef4444; color: #fff; }
+
+    .table-title {
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .table-date {
+        font-family: 'Monaco', 'Consolas', monospace;
+        color: #64748b;
+    }
+</style>
+
+<div class="premium-table-container">
+    <table class="premium-table" id="noticeTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Target Roles</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liNoticeBoard != null && Model.liNoticeBoard.Count > 0)
+            {
+                foreach (var item in Model.liNoticeBoard)
+                {
+                    count++;
+                    <tr>
+                        <td><span style="color: #94a3b8; font-weight: 700;">@count</span></td>
+                        <td>
+                            <div style="display: flex; align-items: center;">
+                                <span class="status-badge @(item.IS_ACTIVE == "1" ? "status-active" : "status-inactive")"></span>
+                                <span class="table-title">@item.NOTICEBOARD</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="role-pills">
+                                @if (!string.IsNullOrEmpty(item.ROLE_NAME)) { <span class="role-pill">@item.ROLE_NAME</span> }
+                                @if (!string.IsNullOrEmpty(item.CLASS_YEAR_NAME)) { <span class="role-pill">@item.CLASS_YEAR_NAME</span> }
+                            </div>
+                        </td>
+                        <td><span class="table-date">@item.DUE_DATE</span></td>
+                        <td>
+                            <div style="font-size: 11px; color: #94a3b8;">
+                                <i class="fa fa-eye"></i> @item.VIEW_COUNT | <i class="fa fa-comments"></i> @item.RESPONSE_COUNT
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display: flex;">
+                                <div id="desc-data-@item.NOTICEBOARD_ID" style="display:none;">@Html.Raw(item.DESCRIPTION)</div>
+                                <button type="button" class="action-btn btn-view" title="View Full Details" onclick="showDetailsModal('@item.NOTICEBOARD_ID')">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                                <a href="@Url.Action("NoticeBoardReportForAdmin", "DashBoard", new { sNoticeBoardId = item.NOTICEBOARD_ID })" class="action-btn" style="background: #e0f2fe; color: #0284c7;" title="View Responses">
+                                    <i class="fa fa-comments-o"></i>
+                                </a>
+                                <a href="#InsertModal-dialog" data-toggle="modal" class="action-btn btn-edit" title="Edit" onclick="FetchMenuDetails('@item.NOTICEBOARD_ID')">
+                                    <i class="fa fa-pencil"></i>
+                                </a>
+                                <button type="button" class="action-btn btn-delete" title="Delete" onclick="GetConfirm('@item.NOTICEBOARD_ID')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">
+                        <i class="fa fa-folder-open-o" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                        No notices found.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="ResponseModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Notice Responses</h4>
+            </div>
+            <div class="modal-body" id="ResponseModalBody">
+                <div style="text-align:center; padding: 20px;"><i class="fa fa-spinner fa-spin"></i> Loading...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function viewResponses(noticeId) {
+        $('#ResponseModal').modal('show');
+        $('#ResponseModalBody').html('<div style="text-align:center; padding: 20px;"><i class="fa fa-spinner fa-spin"></i> Loading...</div>');
+        
+        $.ajax({
+            url: '/DashBoard/GetNoticeBoardResponseLog',
+            type: 'GET',
+            data: { sNoticeBoardId: noticeId },
+            success: function (data) {
+                $('#ResponseModalBody').html(data);
+            },
+            error: function () {
+                $('#ResponseModalBody').html('<div class="text-danger text-center">Error loading responses.</div>');
+            }
+        });
+    }
+</script>

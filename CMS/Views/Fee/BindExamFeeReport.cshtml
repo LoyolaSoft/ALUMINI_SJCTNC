@@ -1,0 +1,223 @@
+@model CMS.ViewModel.ViewModel.FeeReportViewModel
+@{
+    Layout = null;
+    string selectedTab = ViewBag.SelectedTab ?? "student_paid";
+    string tabTitle = "Student Paid Report Date Wise";
+    if (selectedTab == "student_balance") { tabTitle = "Student Balance / Unpaid Report"; }
+    else if (selectedTab == "student_freq") { tabTitle = "Student Frequency / Overall Status Report"; }
+
+    decimal totalCredit = 0;
+    decimal totalDebit = 0;
+    decimal totalBalance = 0;
+}
+
+<div class="row">
+    <div class="col-md-12 text-center print-header" style="margin-bottom: 20px; display: none;">
+        <h3 style="margin: 0; font-weight: bold;">ST. JOSEPH'S COLLEGE (AUTONOMOUS)</h3>
+        <h4 style="margin: 5px 0;">CUDDALORE - 607 001</h4>
+        <h5 style="margin: 5px 0; text-decoration: underline;">Exam Fee Report (@tabTitle.ToUpper())</h5>
+    </div>
+</div>
+
+<table id="tblExamFeeReport" class="table table-striped table-bordered table-hover dt-responsive" width="100%">
+    <thead>
+        @if (selectedTab == "student_paid")
+        {
+            <tr>
+                <th style="width: 40px;">S.No</th>
+                <th>Roll No</th>
+                <th>Register No</th>
+                <th>Name</th>
+                <th>Class</th>
+                <th>Session/Freq</th>
+                <th>Exam Head</th>
+                <th class="text-right">Paid Amount (&#8377;)</th>
+                <th>Payment Date</th>
+                <th>Receipt No</th>
+                <th>Payment Mode</th>
+            </tr>
+        }
+        else if (selectedTab == "student_balance")
+        {
+            <tr>
+                <th style="width: 40px;">S.No</th>
+                <th>Roll No</th>
+                <th>Register No</th>
+                <th>Name</th>
+                <th>Class</th>
+                <th>Session/Freq</th>
+                <th>Exam Head</th>
+                <th class="text-right">Allocated (&#8377;)</th>
+                <th class="text-right">Paid (&#8377;)</th>
+                <th class="text-right">Balance Due (&#8377;)</th>
+            </tr>
+        }
+        else if (selectedTab == "student_freq")
+        {
+            <tr>
+                <th style="width: 40px;">S.No</th>
+                <th>Roll No</th>
+                <th>Register No</th>
+                <th>Name</th>
+                <th>Class</th>
+                <th>Session/Freq</th>
+                <th class="text-right">Allocated (&#8377;)</th>
+                <th class="text-right">Paid (&#8377;)</th>
+                <th class="text-right">Balance Due (&#8377;)</th>
+                <th class="text-center">Status</th>
+            </tr>
+        }
+    </thead>
+    <tbody>
+        @if (Model.liExamFeeReport != null && Model.liExamFeeReport.Count > 0)
+        {
+            int sno = 1;
+            foreach (var item in Model.liExamFeeReport)
+            {
+                decimal itemCredit = 0;
+                decimal.TryParse(item.CREDIT, out itemCredit);
+                totalCredit += itemCredit;
+
+                decimal itemDebit = 0;
+                decimal.TryParse(item.DEBIT, out itemDebit);
+                totalDebit += itemDebit;
+
+                decimal itemBalance = 0;
+                decimal.TryParse(item.BALANCE, out itemBalance);
+                totalBalance += itemBalance;
+
+                var headLabel = !string.IsNullOrEmpty(item.HEAD_NAME) ? item.HEAD_NAME : item.HEAD_CODE;
+
+                if (selectedTab == "student_paid")
+                {
+                    <tr>
+                        <td>@sno</td>
+                        <td>@item.ROLL_NO</td>
+                        <td>@(string.IsNullOrEmpty(item.REGISTER_NO) ? "N/A" : item.REGISTER_NO)</td>
+                        <td>@item.FIRST_NAME</td>
+                        <td>@item.CLASS_NAME</td>
+                        <td>@item.FREQUENCY_NAME</td>
+                        <td>@headLabel</td>
+                        <td class="text-right font-bold text-success">&#8377; @string.Format("{0:N2}", itemDebit)</td>
+                        <td>@item.PAYMENT_DATE</td>
+                        <td>@item.RECEIPT_NO</td>
+                        <td>@item.PAYMENT_MODE</td>
+                    </tr>
+                }
+                else if (selectedTab == "student_balance")
+                {
+                    <tr>
+                        <td>@sno</td>
+                        <td>@item.ROLL_NO</td>
+                        <td>@(string.IsNullOrEmpty(item.REGISTER_NO) ? "N/A" : item.REGISTER_NO)</td>
+                        <td>@item.FIRST_NAME</td>
+                        <td>@item.CLASS_NAME</td>
+                        <td>@item.FREQUENCY_NAME</td>
+                        <td>@headLabel</td>
+                        <td class="text-right">&#8377; @string.Format("{0:N2}", itemCredit)</td>
+                        <td class="text-right">&#8377; @string.Format("{0:N2}", itemDebit)</td>
+                        <td class="text-right text-danger font-bold">&#8377; @string.Format("{0:N2}", itemBalance)</td>
+                    </tr>
+                }
+                else if (selectedTab == "student_freq")
+                {
+                    string statusLabel = "";
+                    string badgeClass = "";
+                    if (itemBalance <= 0 && itemDebit > 0)
+                    {
+                        statusLabel = "Fully Paid";
+                        badgeClass = "label label-success";
+                    }
+                    else if (itemDebit > 0 && itemBalance > 0)
+                    {
+                        statusLabel = "Partially Paid";
+                        badgeClass = "label label-warning";
+                    }
+                    else
+                    {
+                        statusLabel = "Unpaid";
+                        badgeClass = "label label-danger";
+                    }
+
+                    <tr>
+                        <td>@sno</td>
+                        <td>@item.ROLL_NO</td>
+                        <td>@(string.IsNullOrEmpty(item.REGISTER_NO) ? "N/A" : item.REGISTER_NO)</td>
+                        <td>@item.FIRST_NAME</td>
+                        <td>@item.CLASS_NAME</td>
+                        <td>@item.FREQUENCY_NAME</td>
+                        <td class="text-right">&#8377; @string.Format("{0:N2}", itemCredit)</td>
+                        <td class="text-right">&#8377; @string.Format("{0:N2}", itemDebit)</td>
+                        <td class="text-right font-bold" style="color:@(itemBalance <= 0 ? "green" : "red")">&#8377; @string.Format("{0:N2}", itemBalance)</td>
+                        <td class="text-center"><span class="@badgeClass" style="font-size: 11px; padding: 4px 8px;">@statusLabel</span></td>
+                    </tr>
+                }
+                sno++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="15" class="text-center text-muted" style="padding: 20px;">No records found matching the specified criteria.</td>
+            </tr>
+        }
+    </tbody>
+    @if (Model.liExamFeeReport != null && Model.liExamFeeReport.Count > 0)
+    {
+        <tfoot>
+            <tr style="background-color: #f8fafc; font-weight: bold;">
+                @if (selectedTab == "student_paid")
+                {
+                    <td colspan="7" class="text-right"><b>Total Paid:</b></td>
+                    <td class="text-right text-success font-bold">&#8377; @string.Format("{0:N2}", totalDebit)</td>
+                    <td colspan="3"></td>
+                }
+                else if (selectedTab == "student_balance")
+                {
+                    <td colspan="7" class="text-right"><b>Totals:</b></td>
+                    <td class="text-right">&#8377; @string.Format("{0:N2}", totalCredit)</td>
+                    <td class="text-right">&#8377; @string.Format("{0:N2}", totalDebit)</td>
+                    <td class="text-right text-danger font-bold">&#8377; @string.Format("{0:N2}", totalBalance)</td>
+                }
+                else if (selectedTab == "student_freq")
+                {
+                    <td colspan="6" class="text-right"><b>Totals:</b></td>
+                    <td class="text-right">&#8377; @string.Format("{0:N2}", totalCredit)</td>
+                    <td class="text-right">&#8377; @string.Format("{0:N2}", totalDebit)</td>
+                    <td class="text-right text-danger font-bold">&#8377; @string.Format("{0:N2}", totalBalance)</td>
+                    <td></td>
+                }
+            </tr>
+        </tfoot>
+    }
+</table>
+
+<style>
+    .font-bold {
+        font-weight: 700 !important;
+    }
+    @@media print {
+        .print-header {
+            display: block !important;
+        }
+        body * {
+            visibility: hidden;
+        }
+        #tblExamFeeReport, #tblExamFeeReport * {
+            visibility: visible;
+        }
+        #tblExamFeeReport {
+            position: absolute;
+            left: 0;
+            top: 150px;
+            width: 100%;
+        }
+        .print-header {
+            visibility: visible;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+    }
+</style>

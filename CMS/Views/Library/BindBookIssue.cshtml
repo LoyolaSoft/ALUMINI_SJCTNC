@@ -1,0 +1,55 @@
+﻿
+@model CMS.ViewModel.ViewModel.LibraryViewModel
+
+@{
+    ViewBag.Title = "BindBookIssue";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+   
+}
+
+
+<div class="form-group">
+    <label class="col-md-1">Book  ScanId/Rfid </label>
+    <div class="col-md-4">
+        <input type="text" placeholder="RFID/ACCESS NO" class="form-control input-sm" id="txtBookIssueScanId">
+    </div>
+    <div class="col-md-12">
+        <div id="Issue"></div>
+    </div>
+</div>
+
+
+
+
+<script>
+    $('#txtBookIssueScanId').keypress(function (event) {
+        var x = event.which || event.keyCode
+        if (x == 13) {
+            var text = $('#txtBookIssueScanId').val();
+            $.ajax({
+                url: '@Url.Action("FetchBookDetailsForIssueByRfidorAccessNo", "Library")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sScanId: text, sUserId: $('#hdUserId').val() },
+                success: function (data) {
+                    $('#Issue').empty();
+                    if (data.Message != null && data.Message != '') {
+                        swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+                    } else {
+                        $('#Issue').append(data);
+                        $('#tblAllBooks').DataTable({ "bPaginate": false, "ordering": false });
+                    }
+                }, error: function (error) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+    });
+</script>
+
+
+
+
+
+

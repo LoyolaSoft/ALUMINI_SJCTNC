@@ -1,0 +1,145 @@
+﻿@model CMS.ViewModel.ViewModel.LibraryViewModel
+
+@{ Layout = null; int count = 0; }
+
+<div class="quiz-container">
+    <h4>Listening Quiz</h4>
+    @if (Model.liQuizQuestion != null && Model.liQuizQuestion.Count > 0)
+    {
+        foreach (var item in Model.liQuizQuestion)
+        {
+            count++;
+            <div class="quiz-question mb-3" data-id="@item.QUESTION_ID">
+                <p class="question-text"><strong>@(count). @item.QUESTION_TEXT</strong></p>
+                <div class="options-list">
+                    @{
+                        string[] options = { item.OPTION_A, item.OPTION_B, item.OPTION_C, item.OPTION_D };
+                        string[] labels = { "A", "B", "C", "D" };
+                    }
+
+                    @for (int i = 0; i < options.Length; i++)
+                    {
+                        var optionValue = labels[i];
+                        var optionText = options[i];
+
+                        bool isSelected = (item.SELECTED_ANSWER == optionValue);
+                        bool isCorrect = (item.CORRECT_ANSWER == optionValue);
+
+                        string cssClass = "";
+                        string icon = "";
+
+                        if (isSelected && isCorrect)
+                        {
+                            cssClass = "selected correct";
+                            icon = "&#10003;"; // ✓
+                        }
+                        else if (isSelected && !isCorrect)
+                        {
+                            cssClass = "selected wrong";
+                            icon = "&#10007;"; // ✗
+                        }
+                        else if (!isSelected && isCorrect && item.RESULT == "F")
+                        {
+                            cssClass = "correct";
+                            icon = "&#10003;"; // ✓ correct answer if user was wrong
+                        }
+
+                        <div class="option-item @cssClass">
+                            <span class="option-label">@optionValue.</span>
+                            <span class="option-text">@optionText</span>
+                            @if (!string.IsNullOrEmpty(icon))
+                            {
+                                <span class="icon">@Html.Raw(icon)</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+            <hr />
+        }
+    }
+    else
+    {
+        <div class="alert alert-info">No questions available for this quiz.</div>
+    }
+</div>
+
+<style>
+    .quiz-container {
+        max-width: 700px;
+        margin: auto;
+        padding: 10px;
+    }
+
+    .quiz-question {
+        margin-bottom: 15px;
+    }
+
+    .question-text {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    .options-list {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .option-item {
+        display: flex;
+        align-items: center;
+        font-size: 15px;
+        flex-wrap: wrap;
+    }
+
+    .option-label {
+        font-weight: bold;
+        margin-right: 5px;
+    }
+
+    .option-text {
+        flex: 1;
+        word-break: break-word;
+    }
+
+    /* Highlight styles */
+    .option-item.selected.correct .option-text {
+        font-weight: bold;
+        color: green;
+    }
+
+    .option-item.selected.wrong .option-text {
+        font-weight: bold;
+        color: red;
+    }
+
+    .option-item.correct .option-text {
+        font-weight: bold;
+        color: green;
+    }
+
+    .icon {
+        font-weight: bold;
+        margin-left: 8px;
+    }
+
+    .option-item.selected.correct .icon { color: green; }
+    .option-item.selected.wrong .icon { color: red; }
+    .option-item.correct .icon { color: green; }
+
+    /* Mobile view */
+    @@media (max-width: 576px) {
+        .quiz-container {
+            padding: 5px;
+        }
+
+        .question-text {
+            font-size: 14px;
+        }
+
+        .option-item {
+            font-size: 14px;
+        }
+    }
+</style>

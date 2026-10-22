@@ -1,0 +1,254 @@
+﻿
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@{
+    ViewBag.Title = "AddandUpdateFeedBackQuestionGroup";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/intro-js/introjs.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<!-- begin #content -->
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;" onclick="loadContent('/Feedback/ListFeedbackQuestionGroup?sFeedbackId='+@Model.sFeedBackId+'')">ListFeedbackQuestionGroup</a></li>
+        <li class="active">AddandUpdateFeedBackQuestionGroup</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Add or Update FeedBack QuestionGroup<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Add or Update FeedBack QuestionGroup</h4>
+        </div>
+        <div class="panel-body">
+            
+            @*<div class="col-md-6 form-group">
+                @Html.Label("Feed back Setting", htmlAttributes: new { @class = "col-md-4 control-label " })
+                <div class="col-md-8">
+                    @Html.DropDownListFor(m => m.FeedBackSettingList, (Model.FeedBackSettingList != null) ? Model.FeedBackSettingList : Enumerable.Empty<SelectListItem>(), "------Select-------", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                    @Html.ValidationMessageFor(m => m.FeedBackSettingList, "", new { @class = "text-danger" })
+                </div>
+            </div>*@
+
+            @*<div class="col-md-6 form-group">
+                @Html.Label("Feed back Question Group", htmlAttributes: new { @class = "col-md-4 control-label " })
+                <div class="col-md-8">
+                    @Html.DropDownListFor(m => m.sQuestionGroupList, (Model.sQuestionGroupList != null) ? Model.sQuestionGroupList : Enumerable.Empty<SelectListItem>(), null, new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_parsley_required = "true", @data_live_search = "true", @multiple = "multiple" })
+                    @Html.ValidationMessageFor(m => m.sQuestionGroupList, "", new { @class = "text-danger" })
+                </div>
+            </div>*@
+
+
+
+            <div class="form-group col-md-12">
+                <a class="btn btn-success pull-right form-group m-b-5" href="javascript:;"  id="QuestionAdd"><i class="fa fa-plus" title="Add"> Add</i></a>
+            </div>
+            
+
+            <div id="dvtextboxes" class="hidden">
+                <!--Begin Question-->
+
+                <div class="row " id="Question">
+
+
+
+                </div>
+                <div class="col-md-1 form-group pull-right">
+                    <a class="btn btn-primary hidden" id="btnSubmit">Submit</a>
+                </div>
+                <div class="col-md-1 form-group pull-right">
+                    <a class="btn btn-danger hidden" id="btnCancel">Cancel</a>
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+</div>
+<input type="hidden" id="feedbackQuestionGroupId" value="@Model.sFeedBackQuestionGroup" />
+<input type="hidden" id="FeedBackId" value="@Model.sFeedBackId" />
+<!-- end #content -->
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<script>
+
+    var count=0;
+        ContentLoad = function () {
+            //Ready Function()
+           
+            var sFeedBackId=@Html.Raw(Json.Encode(Model.sFeedBackId));
+            if(sFeedBackId!=null && sFeedBackId!="")
+            {
+                $('#FeedBackSettingList option[value="'+sFeedBackId+'"]').attr('selected','selected');
+              
+                $('#FeedBackSettingList').prop('disabled',true);
+                $('.selectpicker').selectpicker('Refresh');
+            }
+
+
+            var sFeedBackQuestionGroup=@Html.Raw(Json.Encode(Model.sFeedBackQuestionGroup));
+            if(sFeedBackQuestionGroup!=null && sFeedBackQuestionGroup!="")
+            {
+                $('#sQuestionGroupList option[value="'+sFeedBackQuestionGroup+'"]').attr('selected','selected');
+                $('.selectpicker').selectpicker('Refresh');
+                $('#sQuestionGroupList').prop('disabled',true);
+
+               
+
+                var liItem=@Html.Raw(Json.Encode(Model.liFbQuestionGroup));
+                if(liItem!=null && liItem.length>0)
+                {
+                    GetQuestions(liItem[0].GROUP_TITLE);
+                }
+            }
+        }
+
+        $('.selectpicker').selectpicker({
+                size: 6
+        });
+        $('.selectpicker').selectpicker('Refresh');
+
+
+
+
+        $('#QuestionAdd').on("click",function(){
+          
+           
+                GetQuestions("");
+          
+            
+        });
+
+
+            function GetQuestions(Question)
+            {
+                count=parseInt(count)+1;
+                var Questions="";
+                var QuestionContent=null;
+                if(Question!="" && Question!=null)
+                {
+                    QuestionContent=Question;
+
+                }
+              //  $('#Question').html("");
+                $('#dvtextboxes').removeClass("hidden");
+
+                Questions += '<div class="form-group col-md-12">';
+                            Questions += '<label class = "control-label col-md-1">'+count+'.)</label>';
+                            Questions += '<div class="col-md-10">';
+
+                            if(QuestionContent!="" && QuestionContent!=null)
+                            {
+                                Questions += '<input type="text" id="Question'+count+'" class="form-control" placeholder="Enter question group" maxlength="145" value="'+QuestionContent+'">';
+                            }
+                            else{
+                                Questions += '<input type="text" id="Question'+count+'" class="form-control" placeholder="Enter question group" maxlength="145">';
+                            }
+
+                            Questions += '</div>';
+                            Questions += '</div>';
+                    $('#Question').append(Questions);
+                    $('#btnSubmit').removeClass("hidden");
+                    $('#btnCancel').removeClass("hidden");
+                }
+
+
+        $('#btnSubmit').on("click", function () {
+
+
+                var EndValue = count;
+                var JsonData='{"liFB_QuestionGroup":[';
+                var nCount = 0;
+
+                var QuestionGroupId= $('#feedbackQuestionGroupId').val();
+                var FeedBackId = $("#FeedBackId").val();
+                for(var i=0; i <EndValue;i++)
+                {
+                    i++;
+                    if ($("#Question" + i).val())
+                {
+                        JsonData += '{"QUESTION_GROUP_ID":"' + QuestionGroupId + '","GROUP_TITLE":"'+$("#Question" + i).val()+'","FEEDBACK_ID":"' + FeedBackId + '"},';
+                    nCount++;
+                }
+                else
+                {
+                    swal({ title: "Info !", text: "question group  must be filled!", showConfirmButton: false, timer: 5000, type: 'info', animation: true });
+                    return false;
+                    break;
+                }
+
+            }
+
+
+            if (nCount != 0) {
+                JsonData = JsonData.slice(0, -1);
+                JsonData += ']}';
+            } else {
+                swal({ title: "Error !", text: "Something is went wrong . please check your Input  !", showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+                return false;
+            }
+
+            $.ajax({
+                url:"@Url.Action("SaveFeedBackQuestionGroup", "FeedBack")",
+                method: "POST",
+            datatype: "json",
+            data: { sJsonData: JsonData},
+            success: function (data)
+            {
+                if(data.Message!=null && data.Message!="" )
+                {
+                    if(data.ErrorCode=="200")
+                    {
+                        swal({ title: "Success !", text:data.Message, showConfirmButton: false, timer: 5000, type: 'success', animation: true });
+                        loadContent('/FeedBack/ListFeedbackQuestionGroup?sFeedBackId=' + $('#FeedBackId').val()+'');
+                    }
+                    if(data.ErrorCode=="417")
+                    {
+                        swal({ title: "Error !", text:data.Message, showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+                    }
+                    if(data.ErrorCode=="503")
+                    {
+                        swal({ title: "Info !", text:data.Message, showConfirmButton: false, timer: 5000, type: 'info', animation: true });
+                    }
+                  
+                }
+                else
+                {
+                    swal({ title: "Error !", text:"Something went wrong", showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+                }
+
+                }, error: function (error)
+                {
+                    swal({ title: "Error !", text:data.Message, showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+                }
+            });
+
+
+
+        });
+
+
+    $('#btnCancel').click(function(){
+
+        loadContent('/FeedBack/ListFeedbackQuestionGroup?sFeedBackId=' + $('#FeedBackId').val()+'');
+
+    });
+</script>
+@*<script src="~/Content/assets/plugins/intro-js/intro.js"></script>*@
+
+
+
+

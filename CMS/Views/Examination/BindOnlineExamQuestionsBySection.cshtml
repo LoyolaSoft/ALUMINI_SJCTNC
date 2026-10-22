@@ -1,0 +1,290 @@
+﻿
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = null;
+    //int nCount = 0;
+}
+<link rel="stylesheet" href="~/Content/assets/plugins/jquery/jquery-1.9.1.min.js" />
+<link rel="stylesheet" href="~/Content/assets/plugins/bootstrap/css/bootstrap.min.css" />
+
+<style>
+    body {
+        overflow: scroll;
+    }
+
+    .table-bordered {
+        padding: 10px !important;
+    }
+</style>
+<br />
+<div id="content" class="content">
+    <div id="FullScreen_Content_Expand">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <div class="panel-heading-btn">
+
+                        </div>
+                        <h4 class="panel-title">Online Exam</h4>
+                        <center><span id="tittlediv"> Time : &nbsp;&nbsp;&nbsp;<b id="lblQuizTimeRunner" class="blink"> </b></span></center>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row" id="dvOnlineQuizQuestionsEntry">
+                            @{
+                                <input type="hidden" id="userid" value="@Model.sUserId">
+                                <input type="hidden" id="acyear" value="@Model.sAcyear">
+
+                                if (Model.Liexamquesions != null && Model.Liexamquesions.Count > 0 && Model.Liexamquesions != null && Model.Liexamquesions.Count > 0)
+                                {
+                                    <input type="hidden" id="timespend" value="@Model.Liexamquesions.FirstOrDefault().MINUTES_SECONDS">
+                                    <input type="hidden" id="totaltime" value="@Model.Liexamquesions.FirstOrDefault().TOTAL_HOURS">
+
+                                    <div class="col-md-12 form-inline">
+
+                                        <div class="form-group col-md-6 col-lg-5 col-xs-12">
+                                            <div><b> Course Code</b> @Model.Liexamquesions.FirstOrDefault().COURSE_CODE</div>
+                                            <div><b> Course Title</b> @Model.Liexamquesions.FirstOrDefault().COURSE_TITLE</div>
+                                            <div><b> Class </b> @Model.Liexamquesions.FirstOrDefault().CLASS_NAME</div>
+                                            <div><b> Invigilator </b> @Model.Liexamquesions.FirstOrDefault().INVIGILATOR</div>
+                                            <div><b> Invigilator No </b> @Model.Liexamquesions.FirstOrDefault().MOBILE_NO</div>
+                                        </div>
+                                        <div class="form-group col-md-6 col-lg-7 col-xs-12" id="objectdetectiondiv">
+                                            <video id="webcam" class="col-lg-4 col-xs-12 col-md-6" autoplay></video>
+                                            <p id="objectDetection" class="text-danger" style="height:60px !important"></p>
+                                        </div>
+
+                                    </div>
+                                    <br /><br />
+
+                                    <input class="hidden" id="studentid" value="@Model.Liexamquesions.FirstOrDefault().STUDENT_ID" />
+                                    <input class="hidden" id="courseid" value="@Model.Liexamquesions.FirstOrDefault().COURSE_ID" />
+                                    <input class="hidden" id="examsettingid" value="@Model.Liexamquesions.FirstOrDefault().EXAM_SETTING_ID" />
+                                    <input class="hidden" id="setid" value="@Model.Liexamquesions.FirstOrDefault().SET_ID" />
+                                    <input class="hidden" id="examinvigilationid" value="@Model.Liexamquesions.FirstOrDefault().EXAM_INVIGILATION_ID" />
+                                    <input class="hidden" id="invigilatorid" value="@Model.Liexamquesions.FirstOrDefault().STAFF_ID" />
+
+
+                                }
+                            }
+
+                            <br />
+
+                            <!-- Hidden Filed -->
+                            <input type="text" value="@Model.sTime" id="hdQuizTime" class="hidden" />
+                            <!-- Hidden Filed -->
+
+                            @if (!string.IsNullOrEmpty(Model.sErrorMessage))
+                            {
+                                <div><center> @Model.sErrorMessage</center></div>
+                               
+                            }
+                            else
+                            {
+                                <div class="col-lg-12 col-md-12 col-xs-12 table-bordered" id="maindiv">
+                                    <div class="col-md-12">
+                                        @if (@Model.liexamsection != null && @Model.liexamsection.Count > 0)
+                                        {
+                                            foreach (var item in Model.liexamsection)
+                                            {
+                                                <div class="col-md-3">
+                                                    <div class="radio radio-css radio-inline">
+                                                        <input type="radio" class="radio-inline" id="section_@item.SECTION_ID" radio-id="RadioOption" value="@item.SECTION_ID" name="section" />
+                                                        <label for="section_@item.SECTION_ID" class="control-label">@item.SECTION_NAME</label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                        @*<div class="col-md-3">
+                                                <div class="radio radio-css radio-inline">
+                                                    <input type="radio" class="radio-inline" id="section_b" radio-id="RadioOption" value="2" name="section" />
+                                                    <label for="section_b" class="control-label">Section B</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="radio radio-css radio-inline">
+                                                    <input type="radio" class="radio-inline" id="section_c" radio-id="RadioOption" value="3" name="section" />
+                                                    <label for="section_c" class="control-label">Section C</label>
+                                                </div>
+                                            </div>*@
+                                    </div>
+                                    <br><br>
+                                    <div class="col-md-12" style="height:2px !important;background-color: #337ab7 !important"></div>
+                                    <br><br>
+                                    <div class="col-md-12" id="dvOnlineQuiz">
+
+                                    </div>
+                                </div>
+                            }
+
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<input type="hidden" value="@Model.sErrorMessage" id="errormsg">
+<button id="quizentry" class="hidden"></button>
+
+<script type="text/javascript" src="~/Content/assets/plugins/jquery/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="~/Content/assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+<script>
+    if($('#errormsg').val()!=null && $('#errormsg').val()!="")
+    {
+        $('#tittlediv').addClass('hidden');
+    }
+
+    $('input[name=section]').on('change', function () {
+
+        var courseid = $('#courseid').val();
+        var examsettingid = $('#examsettingid').val();
+        var setid = $('#setid').val();
+        var studentid = $('#userid').val();
+        var acyear = $('#acyear').val();
+        var sectionid = $(this).val();
+        $.ajax({
+            url: '@Url.Action("BindQuestionsBySectionandsetId", "Examination")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sCourseId: courseid, sExamsettingid: examsettingid, sSetid: setid, sSectionId: sectionid, sAcademicYear: acyear, sUserId: studentid },
+            success: function (data) {
+                $('#dvOnlineQuiz').empty();
+                $('#dvOnlineQuiz').append(data);
+            },
+            error: function (error) {
+                console.log('Internal Server Error !');
+            }
+        });
+
+
+    });
+
+</script>
+<script>
+
+    function blink_text() {
+        $('.blink').fadeOut(500);
+        $('.blink').fadeIn(500);
+    }
+
+    $(function () {
+        $(document).keydown(function (e) {
+            return (e.which || e.keyCode) != 116;
+        });
+    });
+
+</script>
+
+<script>
+
+    var timer2 = null;
+    if ($('#timespend').val()) 
+    {
+        timer2 = $('#timespend').val();
+    }
+    else if ($('#timespend').val()) {
+        $('#lblQuizTimeRunner').html("0" + ':' + "00");
+    }
+    else {
+        timer2 = "" + $('#totaltime').val() + ":01";
+    }
+   
+    var interval = setInterval(function () {
+        var timer = timer2.split(':');
+        //by parsing integer, I avoid all extra string processing
+        var minutes = parseInt(timer[0], 10);
+        var seconds = parseInt(timer[1], 10);
+        --seconds;
+        minutes = (seconds < 0) ? --minutes : minutes;
+        if (minutes < 0) clearInterval(interval);
+        seconds = (seconds < 0) ? 59 : seconds;
+        seconds = (seconds < 10) ? '0' + seconds : seconds;
+        $('#lblQuizTimeRunner').html(minutes + ':' + seconds);
+        timer2 = minutes + ':' + seconds;
+        if (minutes == 0 && seconds == 00) {
+            clearInterval(interval);
+            Timeups();
+        }
+
+    }, 1000);
+
+    function Timeups() {
+        var courseid = $('#courseid').val();
+        var examsettingid = $('#examsettingid').val();
+        var setid = $('#setid').val();
+        var studentid = $('#userid').val();
+        var acyear = $('#acyear').val();
+        $.ajax({
+            url: '@Url.Action("SaveTimeUp", "Examination")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sCourseId: courseid, sExamsettingid: examsettingid, sUserId: studentid, sAcademicYear: acyear, sTimeSpend: $('#lblQuizTimeRunner').text() },
+            success: function (data) {
+                $('#dvOnlineQuiz').empty();
+                $('#dvOnlineQuiz').append('<pre>Time’s up...!</pre>');
+            },
+            error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+
+    var camera=$('#camera').val();
+    if(camera=="1")
+    {
+        var videoTest = document.querySelector("#webcam");
+        async function faceCam(){
+            if(isMobile()){
+                if(window.stream) {
+                    window.stream.getTracks().forEach(track => {
+                        track.stop();
+                    });
+                }
+            }
+            // Basic settings for the video to get from Webcam
+            const constraints =
+                {
+                    audio: false,
+                    video: {
+                        width: 600 ,
+                        height: 400,
+                        facingMode: 'user'
+                    }
+                };
+
+            // This condition will ask permission to user for Webcam access
+            if (navigator.mediaDevices.getUserMedia)
+            {
+                navigator.mediaDevices.getUserMedia(constraints)
+                    .then(await function (stream) {
+                        window.stream = stream;
+                        videoTest.srcObject = stream;
+                        //  currentStream = stream;
+                        //videoTest.play();
+
+                    })
+                .catch(function (err0r) {
+                    console.log("Something went wrong!");
+                });
+
+            }}
+
+        videoTest.onloadeddata = function() {
+            callDetection(document.getElementById('webcam'), document.getElementById('objectDetection'));
+        };
+        $(document).ready(() => {
+            faceCam();
+
+        });
+    }
+    else
+    {
+        $('#objectDetection').addClass('hidden');
+    }
+
+</script>

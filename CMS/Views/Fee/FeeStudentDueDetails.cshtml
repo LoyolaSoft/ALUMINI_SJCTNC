@@ -1,0 +1,969 @@
+@model CMS.ViewModel.ViewModel.FeeStructureViewModel
+@{
+    ViewBag.Title = "FeeStudentDueDetails";
+    Layout = null;
+    string currentDate = DateTime.Now.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) + ".txt";
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<style>
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #StudentList {
+        width: 100% !important;
+        white-space: nowrap !important;
+    }
+
+    #StudentList thead th {
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+    }
+
+    #StudentList tbody td {
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+        font-size: 13.5px !important;
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        margin: 0;
+    }
+
+    .filter-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .kpi-summary-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .kpi-card-wrapper {
+        flex: 1 1 180px;
+        min-width: 170px;
+    }
+
+    .kpi-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 12px 14px;
+        margin-bottom: 0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 100%;
+    }
+
+    .kpi-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .kpi-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .kpi-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-top: 2px;
+    }
+
+    .action-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+
+    .font-bold {
+        font-weight: 700 !important;
+    }
+
+    .loading-overlay {
+        text-align: center;
+        padding: 40px;
+        color: #3b82f6;
+        font-size: 16px;
+        font-weight: 600;
+    }
+</style>
+
+<div id="content" class="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Fee Due List</li>
+    </ol>
+    <h1 class="page-header">Fee Due List</h1>
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" onclick="loadGird()"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title"><i class="fa fa-list-alt"></i> Fee Due Management Panel</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <!-- Top Actions Toolbar -->
+                <div class="action-toolbar">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <a href="#HeadWiseFeeDueFileUPload" class="btn btn-sm btn-primary" data-toggle="modal" title="Upload Excel">
+                            <i class="fa fa-file-excel-o"></i> Head Wise Fee Due Upload
+                        </a>
+                        <a href="~/Content/ExcelTemplate/HeadWiseFee_due_Template.xlsx" class="btn btn-sm btn-warning" title="Download Template">
+                            <i class="fa fa-download"></i> Excel Template
+                        </a>
+                        <a href="~/FeeDueFileLog/@currentDate" class="btn btn-sm btn-default" target="_blank" title="View Error Log">
+                            <i class="fa fa-file-text-o text-danger"></i> Error Log
+                        </a>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <a class="btn btn-sm btn-success" href="#Rules-dialog" data-toggle="modal" id="Add">
+                            <i class="fa fa-plus"></i> Add Single Due
+                        </a>
+                        <button type="button" class="btn btn-sm btn-info btnPrint" onclick="printDiv('dvStudentBind')">
+                            <i class="fa fa-print"></i> Print
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success btnExport" onclick="Export()">
+                            <i class="fa fa-file-excel-o"></i> Export
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter Controls Card -->
+                <div class="filter-card">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div class="row">
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-4">Academic Year</label>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.AcademicyearList, (Model.AcademicyearList != null) ? Model.AcademicyearList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-4">Shift</label>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.ShiftList, (Model.ShiftList != null) ? Model.ShiftList : Enumerable.Empty<SelectListItem>(), null, new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @data_actions_box = "true", multiple = "multiple" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-4">Programme Level</label>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.programmeLevel, (Model.programmeLevel != null) ? Model.programmeLevel : Enumerable.Empty<SelectListItem>(), null, new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @data_actions_box = "true", multiple = "multiple" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-4">Programme</label>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.ProgramName, (Model.ProgramName != null) ? Model.ProgramName : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @data_actions_box = "true", multiple = "multiple" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-4">Class Year</label>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.ClassYearList, (Model.ClassYearList != null) ? Model.ClassYearList : Enumerable.Empty<SelectListItem>(), null, new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", data_actions_box = "true", multiple = "multiple" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-4">Class Name <span class="text-danger">*</span></label>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.ClassName, (Model.ClassName != null) ? Model.ClassName : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @data_actions_box = "true", multiple = "multiple" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top: 10px;">
+                        <div class="col-md-12 text-right">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="loadGird()" id="btnGetDueList" style="font-weight: 600;">
+                                <i class="fa fa-search"></i> Get Due List
+                            </button>
+                            <button type="button" class="btn btn-sm btn-default" onclick="resetDueFilters()">
+                                <i class="fa fa-refresh"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Summary Metric Cards (Visible after loading) -->
+                <div class="kpi-summary-container" id="kpiSummaryRow" style="display: none;">
+                    <div class="kpi-card-wrapper">
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;"><i class="fa fa-users"></i></div>
+                            <div>
+                                <div class="kpi-title">Total Students</div>
+                                <div class="kpi-value" id="kpiTotalStudents">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-card-wrapper">
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: #fef3c7; color: #d97706;"><i class="fa fa-calendar-check-o"></i></div>
+                            <div>
+                                <div class="kpi-title">Term Fee Due (&#8377;)</div>
+                                <div class="kpi-value" id="kpiTermDue">0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-card-wrapper">
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: #ede9fe; color: #7c3aed;"><i class="fa fa-bus"></i></div>
+                            <div>
+                                <div class="kpi-title">Bus Due (&#8377;)</div>
+                                <div class="kpi-value" id="kpiBusDue">0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-card-wrapper">
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: #fce7f3; color: #be185d;"><i class="fa fa-building-o"></i></div>
+                            <div>
+                                <div class="kpi-title">Hostel Due (&#8377;)</div>
+                                <div class="kpi-value" id="kpiHostelDue">0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-card-wrapper">
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: #fef9c3; color: #a16207;"><i class="fa fa-pencil-square-o"></i></div>
+                            <div>
+                                <div class="kpi-title">Exam Due (&#8377;)</div>
+                                <div class="kpi-value" id="kpiExamDue">0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-card-wrapper">
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: #fee2e2; color: #dc2626;"><i class="fa fa-money"></i></div>
+                            <div>
+                                <div class="kpi-title">Total Balance Due (&#8377;)</div>
+                                <div class="kpi-value text-danger" id="kpiTotalDue">0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State Indicator -->
+                <div id="dueLoadingSpinner" style="display: none;" class="loading-overlay">
+                    <i class="fa fa-spinner fa-spin fa-2x"></i>
+                    <div style="margin-top: 10px;">Fetching student fee due details... Please wait.</div>
+                </div>
+
+                <!-- Table Content Placeholder -->
+                <div class="col-md-12 table-responsive" style="padding: 0;">
+                    <div id="dvStudentBind">
+                        <div class="alert alert-info text-center" style="background: #f8fafc; border: 1px dashed #cbd5e1; color: #64748b; padding: 25px;">
+                            <i class="fa fa-filter fa-2x text-primary" style="display: block; margin-bottom: 8px;"></i>
+                            Select filters above and click <b>Get Due List</b> to view students' fee due details.
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- EDIT FEE DUE MODAL -->
+<div class="modal" id="EditFeeDueDetails" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-edit text-primary"></i> Edit Fee Due Details</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="IQACProject">
+                <div class="form-horizontal">
+                    <input id="txtSTU_DUE_ID" hidden />
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Roll No</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtROLL_NO" class="form-control input-sm font-bold" disabled>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Student Name</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtFIRST_NAME" class="form-control input-sm" disabled>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Term 1 Fee (&#8377;)</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtTERMFEE1" oninput="numberOnly(this.id);" class="form-control input-sm" placeholder="Term 1 Allocated Fee">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Term 1 Fee Paid (&#8377;)</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtTERMFEE1PAID" oninput="numberOnly(this.id);" class="form-control input-sm" placeholder="Term 1 Paid Fee">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Term 2 Fee (&#8377;)</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtTERMFEE2" oninput="numberOnly(this.id);" class="form-control input-sm" placeholder="Term 2 Allocated Fee">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Term 2 Fee Paid (&#8377;)</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtTERMFEE2PAID" oninput="numberOnly(this.id);" class="form-control input-sm" placeholder="Term 2 Paid Fee">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Exam Fee 1 (&#8377;)</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtEXAMFEE" oninput="numberOnly(this.id);" class="form-control input-sm" placeholder="Exam Fee 1">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Exam Fee 1 Paid (&#8377;)</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtEXAMFEEPAID" oninput="numberOnly(this.id);" class="form-control input-sm" placeholder="Exam Fee 1 Paid">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Exam Fee 2 (&#8377;)</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtEXAMFEE2" oninput="numberOnly(this.id);" class="form-control input-sm" placeholder="Exam Fee 2">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Exam Fee 2 Paid (&#8377;)</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtEXAMFEEPAID2" oninput="numberOnly(this.id);" class="form-control input-sm" placeholder="Exam Fee 2 Paid">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12 hidden">
+                        <label class="col-md-4 control-label">Bus Fee</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtBUSFEE" oninput="numberOnly(this.id);" class="form-control input-sm">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12 hidden">
+                        <label class="col-md-4 control-label">Bus Fee Paid</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtBUSFEEPAID" oninput="numberOnly(this.id);" class="form-control input-sm">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12 hidden">
+                        <label class="col-md-4 control-label">Hostel Fee</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtHOSTELFEE" oninput="numberOnly(this.id);" class="form-control input-sm">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12 hidden">
+                        <label class="col-md-4 control-label">Hostel Fee Paid</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtHOSTELFEEPAID" oninput="numberOnly(this.id);" class="form-control input-sm">
+                        </div>
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnSubmit" onclick="UpdateData()" class="btn btn-sm btn-primary"><i class="fa fa-save"></i> Save Changes</button>
+                <button type="button" id="btnCancel" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HEAD WISE DUE UPLOAD MODAL -->
+<div class="modal" id="HeadWiseFeeDueFileUPload" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-file-excel-o text-primary"></i> Head Wise Fee Due Amount Update</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group col-md-12">
+                    <label class="control-label col-md-4">Head <span class="text-danger">*</span></label>
+                    <div class="col-md-8">
+                        <select class="form-control input-sm" id="HeadList">
+                            <option value="0">--- Select ---</option>
+                            <option value="1">Term 1</option>
+                            <option value="2">Term 2</option>
+                            <option value="3">Exam Fee 1</option>
+                            <option value="6">Exam Fee 2</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group col-md-12">
+                    <label class="control-label col-md-4">Status <span class="text-danger">*</span></label>
+                    <div class="col-md-8">
+                        <select class="form-control input-sm" id="PaymentStatus">
+                            <option value="0">--- Select ---</option>
+                            <option value="1">Paid Amount</option>
+                            <option value="2">Pay Amount</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group col-md-12">
+                    <label class="control-label col-md-4">Upload Excel <span class="text-danger">*</span></label>
+                    <div class="col-md-8">
+                        <input type="file" class="form-control input-sm" id="HeadExcelUpload" accept=".xlsx, .xls, .csv" required />
+                    </div>
+                </div>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-success" onclick="SaveHeadWiseFeeFile()"><i class="fa fa-upload"></i> Submit File</button>
+                <button type="button" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SINGLE DUE ADD MODAL -->
+<div class="modal" id="Rules-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-plus-circle text-primary"></i> Add Single Student Fee Due</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="AddpBody">
+                <div class="form-horizontal">
+                    <input id="ADDSTUDENT_AC_ID" hidden />
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Roll No <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input class="form-control input-sm" type="text" id="RollNo" required placeholder="Enter Student Roll No" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Fee Term <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select class="form-control input-sm" id="Term" required>
+                                <option value="0">--- Select ---</option>
+                                <option value="1">Term 1</option>
+                                <option value="2">Term 2</option>
+                                <option value="3">Exam Fee 1</option>
+                                <option value="4">Exam Fee 2</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Semester Type <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select class="form-control input-sm" id="Semestertype" required>
+                                <option value="0">--- Select ---</option>
+                                <option value="1">ODD</option>
+                                <option value="2">EVEN</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Allocated Fee (&#8377;) <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input class="form-control input-sm font-bold" type="number" id="ToPay" required placeholder="Amount to pay" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-md-4 control-label">Paid Amount (&#8377;)</label>
+                        <div class="col-md-8">
+                            <input class="form-control input-sm" type="number" id="Paid" value="0" placeholder="Amount already paid" />
+                        </div>
+                    </div>
+                    <div style="clear:both;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="AddbtnSubmit" class="btn btn-sm btn-primary"><i class="fa fa-save"></i> Save Due</button>
+                <button type="button" id="AddbtnCancel" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+    var table;
+
+    function ContentLoad() {
+        $('.selectpicker').selectpicker({ size: 6 });
+
+        $(document).on("wheel", "input[type=number]", function (e) {
+            $(this).blur();
+        });
+
+        // Cascading filter listeners
+        $("#ShiftList, #programmeLevel").on("change", function () {
+            fetchProgramme();
+            FetchClass();
+        });
+
+        $("#ProgramName, #ClassYearList").on("change", function () {
+            FetchClass();
+        });
+
+        $("#ClassName").on("change", function () {
+            loadGird();
+        });
+
+        // Default: automatically bind all student due details when the page/menu is loaded
+        loadGird();
+    }
+
+    function resetDueFilters() {
+        $('#ShiftList').val([]).selectpicker('refresh');
+        $('#programmeLevel').val([]).selectpicker('refresh');
+        $('#ProgramName').val([]).selectpicker('refresh');
+        $('#ClassYearList').val([]).selectpicker('refresh');
+        $('#ClassName').val([]).selectpicker('refresh');
+        loadGird();
+    }
+
+    function fetchProgramme() {
+        var sShift = String($("#ShiftList").val());
+        var pLevel = String($("#programmeLevel").val());
+        if ($("#ShiftList").val() && $("#programmeLevel").val()) {
+            $.ajax({
+                url: "@Url.Action("GetProgramByShiftclasslevel", "Fee")",
+                method: "POST",
+                datatype: "json",
+                data: { sShiftId: sShift, programmeLevel: pLevel },
+                success: function (data) {
+                    $("#ProgramName").empty().append(data).selectpicker('refresh');
+                }
+            });
+        }
+    }
+
+    function FetchClass() {
+        var ProgramName = String($("#ProgramName").val());
+        var classyear = String($("#ClassYearList").val());
+        var sShift = String($("#ShiftList").val());
+        if ($("#ClassYearList").val() && $("#ShiftList").val() && $("#ProgramName").val()) {
+            $.ajax({
+                url: "@Url.Action("BindDDLClassListbyClassYear", "Fee")",
+                method: "POST",
+                datatype: "json",
+                data: { sProgramId: ProgramName, sShiftId: sShift, classyear: classyear },
+                success: function (data) {
+                    $("#ClassName").empty().append(data).selectpicker('refresh');
+                }
+            });
+        }
+    }
+
+    function loadGird() {
+        var classVal = $('#ClassName').val();
+        var ClassId = classVal ? (Array.isArray(classVal) ? classVal.join(',') : String(classVal)) : "";
+        if (ClassId.includes("--select--") || ClassId === "0") {
+            ClassId = "";
+        }
+        var vAcademicyear = $('#AcademicyearList option:selected').text();
+        if (vAcademicyear.includes("--select--")) {
+            vAcademicyear = "";
+        }
+
+        $('#dueLoadingSpinner').show();
+        $('#dvStudentBind').hide();
+        $('#kpiSummaryRow').hide();
+
+        $.ajax({
+            url: '@Url.Action("BindClassWiseStudentDueDetails", "Fee")',
+            type: 'GET',
+            data: { sClassId: ClassId, Academicyear: vAcademicyear },
+            success: function (option) {
+                $('#dueLoadingSpinner').hide();
+                var dvFeeStructureBind = $('#dvStudentBind');
+                dvFeeStructureBind.html(option).show();
+
+                if ($.fn.DataTable.isDataTable("#StudentList")) {
+                    $("#StudentList").DataTable().destroy();
+                }
+
+                table = $("#StudentList").DataTable({
+                    responsive: false,
+                    autoWidth: false,
+                    pageLength: 25,
+                    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                    order: [[1, "asc"]],
+                    columnDefs: [
+                        {
+                            searchable: false,
+                            orderable: false,
+                            targets: 0
+                        }
+                    ],
+                    drawCallback: function (settings) {
+                        var api = this.api();
+                        var startIndex = api.page.info().start;
+                        api.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                            cell.innerHTML = startIndex + i + 1;
+                        });
+                    }
+                });
+
+                table.on('search.dt', function () {
+                    calculateKpis();
+                });
+
+                calculateKpis();
+            },
+            error: function (xhr, textStatus, error) {
+                $('#dueLoadingSpinner').hide();
+                $('#dvStudentBind').show();
+                swal("Error", "Failed to fetch student due details. Please try again.", "error");
+            }
+        });
+    }
+
+    function calculateKpis() {
+        if (!table) return;
+
+        var totalStudents = 0;
+        var totalTermDue = 0;
+        var totalExamDue = 0;
+        var totalBusDue = 0;
+        var totalHostelDue = 0;
+        var totalBalanceDue = 0;
+
+        function formatIndian(amount) {
+            if (isNaN(amount) || amount === null || amount === undefined) return "0.00";
+            try {
+                return Number(amount).toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            } catch (e) {
+                var parts = Number(amount).toFixed(2).split(".");
+                var intPart = parts[0];
+                var decPart = parts[1];
+                var lastThree = intPart.substring(intPart.length - 3);
+                var otherNumbers = intPart.substring(0, intPart.length - 3);
+                if (otherNumbers !== '') {
+                    lastThree = ',' + lastThree;
+                }
+                return otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + "." + decPart;
+            }
+        }
+
+        function extractAmount(cellHtml) {
+            if (!cellHtml) return 0;
+            var text = String(cellHtml).replace(/<[^>]*>/g, "").trim();
+            if (text === "" || text === "-" || text.toLowerCase().indexOf("paid") !== -1) return 0;
+            var num = parseFloat(text.replace(/[^0-9.]+/g, ""));
+            return isNaN(num) ? 0 : num;
+        }
+
+        var allRows = table.rows({ search: 'applied' }).data();
+        for (var i = 0; i < allRows.length; i++) {
+            var row = allRows[i];
+            if (row && row.length > 23) {
+                totalStudents++;
+
+                var t1Due = extractAmount(row[6]);
+                var t2Due = extractAmount(row[9]);
+                totalTermDue += (t1Due + t2Due);
+
+                var e1Due = extractAmount(row[12]);
+                var e2Due = extractAmount(row[15]);
+                totalExamDue += (e1Due + e2Due);
+
+                var bDue = extractAmount(row[18]);
+                totalBusDue += bDue;
+
+                var hDue = extractAmount(row[21]);
+                totalHostelDue += hDue;
+
+                var totDue = extractAmount(row[23]);
+                totalBalanceDue += totDue;
+            }
+        }
+
+        if (totalStudents > 0) {
+            $('#kpiTotalStudents').text(totalStudents.toLocaleString('en-IN'));
+            $('#kpiTermDue').text(formatIndian(totalTermDue));
+            $('#kpiExamDue').text(formatIndian(totalExamDue));
+            $('#kpiBusDue').text(formatIndian(totalBusDue));
+            $('#kpiHostelDue').text(formatIndian(totalHostelDue));
+            $('#kpiTotalDue').text(formatIndian(totalBalanceDue));
+            $('#kpiSummaryRow').slideDown();
+        } else {
+            $('#kpiSummaryRow').hide();
+        }
+    }
+
+    function FetchFeeDueDetailsByID(sFeeDueId) {
+        if (sFeeDueId) {
+            $.ajax({
+                url: '@Url.Action("FetchFeeDueDetailsById", "Fee")',
+                type: "POST",
+                datatype: 'json',
+                data: { sDueID: sFeeDueId },
+                success: function (data) {
+                    if (data && data.oResult && data.oResult[0]) {
+                        var res = data.oResult[0];
+                        $('#txtROLL_NO').val(res.ROLL_NO);
+                        $('#txtFIRST_NAME').val(res.FIRST_NAME);
+                        $('#txtHOSTELFEE').val(res.HOSTELFEE || "0");
+                        $('#txtHOSTELFEEPAID').val(res.HOSTELFEEPAID || "0");
+                        $('#txtBUSFEE').val(res.BUSFEE || "0");
+                        $('#txtBUSFEEPAID').val(res.BUSFEEPAID || "0");
+                        $('#txtEXAMFEE').val(res.EXAMFEE1 || "0");
+                        $('#txtEXAMFEEPAID').val(res.EXAMFEE1PAID || "0");
+                        $('#txtEXAMFEE2').val(res.EXAMFEE2 || "0");
+                        $('#txtEXAMFEEPAID2').val(res.EXAMFEE2PAID || "0");
+                        $('#txtTERMFEE1').val(res.TERMFEE1 || "0");
+                        $('#txtTERMFEE1PAID').val(res.TERMFEE1PAID || "0");
+                        $('#txtTERMFEE2').val(res.TERMFEE2 || "0");
+                        $('#txtTERMFEE2PAID').val(res.TERMFEE2PAID || "0");
+                        $('#txtSTU_DUE_ID').val(res.STU_DUE_ID);
+                    }
+                },
+                error: function () {
+                    swal("Error", "Failed to fetch student due record.", "error");
+                }
+            });
+        }
+    }
+
+    function UpdateData() {
+        var formData = new FormData();
+        var sJsonData = JSON.stringify({
+            STU_DUE_ID: $('#txtSTU_DUE_ID').val(),
+            ROLL_NO: $('#txtROLL_NO').val(),
+            TERMFEE1: $('#txtTERMFEE1').val(),
+            TERMFEE1PAID: $('#txtTERMFEE1PAID').val(),
+            TERMFEE2: $('#txtTERMFEE2').val(),
+            TERMFEE2PAID: $('#txtTERMFEE2PAID').val(),
+            EXAMFEE1: $('#txtEXAMFEE').val(),
+            EXAMFEE1PAID: $('#txtEXAMFEEPAID').val(),
+            EXAMFEE2: $('#txtEXAMFEE2').val(),
+            EXAMFEE2PAID: $('#txtEXAMFEEPAID2').val(),
+            BUSFEE: $('#txtBUSFEE').val(),
+            BUSFEEPAID: $('#txtBUSFEEPAID').val(),
+            HOSTELFEE: $('#txtHOSTELFEE').val(),
+            HOSTELFEEPAID: $('#txtHOSTELFEEPAID').val()
+        });
+
+        formData.append('jsonData', sJsonData);
+        formData.append('Academicyear', $('#AcademicyearList option:selected').text());
+
+        $.ajax({
+            url: '@Url.Action("SaveOrUpdateFeeStudentDueDetails", "Fee")',
+            method: 'POST',
+            contentType: false,
+            processData: false,
+            data: formData,
+            success: function (data) {
+                if (data && data.ErrorCode == "200") {
+                    $('#EditFeeDueDetails').modal('hide');
+                    swal("Success", data.Message, "success");
+                    loadGird();
+                } else {
+                    swal("Error", (data ? data.Message : "Failed to update"), "error");
+                }
+            },
+            error: function () {
+                swal("Error", "Internal server error occurred.", "error");
+            }
+        });
+    }
+
+    function DeletedDueList(fID, StudentID) {
+        swal({
+            title: "Are you sure?",
+            text: "Do you want to delete this fee due entry?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, delete it!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                url: "/Fee/DeleteFeeDueDetails",
+                type: "POST",
+                data: { fID: fID, sStudentID: StudentID },
+                success: function (data) {
+                    if (data && data.ErrorCode == "200") {
+                        swal("Deleted!", data.Message, "success");
+                        loadGird();
+                    } else {
+                        swal("Error", (data ? data.Message : "Failed to delete"), "error");
+                    }
+                },
+                error: function () {
+                    swal("Error", "Failed to delete fee due entry.", "error");
+                }
+            });
+        });
+    }
+
+    function SaveHeadWiseFeeFile() {
+        var headID = $('#HeadList').val();
+        var PaymentID = $('#PaymentStatus').val();
+        var files = $('#HeadExcelUpload').get(0).files;
+
+        if (headID == '0' || PaymentID == '0') {
+            swal("Incomplete", "Please select Head and Payment Status.", "warning");
+            return;
+        }
+
+        if (!files || files.length === 0) {
+            swal("No File", "Please select an Excel file to upload.", "warning");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append(files[0].name, files[0]);
+        formData.append("HeadList", headID);
+        formData.append("Status", PaymentID);
+
+        $.ajax({
+            url: '@Url.Action("SaveHeadWiseFeeNoDueFileUpload", "Fee")',
+            method: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                $('#HeadWiseFeeDueFileUPload').modal('hide');
+                swal("Uploaded", data.Message, "success");
+                loadGird();
+            },
+            error: function () {
+                swal("Error", "Failed to upload Head Wise fee file.", "error");
+            }
+        });
+    }
+
+    $('#AddbtnSubmit').on('click', function () {
+        var rollNo = $("#RollNo").val();
+        var term = $('#Term').val();
+        var semType = $('#Semestertype').val();
+        var toPay = $('#ToPay').val();
+        var paid = $('#Paid').val() || "0";
+
+        if (!rollNo || term == "0" || semType == "0" || !toPay) {
+            swal("Incomplete", "Please fill in all required fields.", "warning");
+            return;
+        }
+
+        var sJsonData = JSON.stringify({
+            ROLL_NO: rollNo,
+            TERM: term,
+            CREDIT: toPay,
+            DEBIT: paid,
+            SEMESTER_TYPE: semType
+        });
+
+        $.ajax({
+            url: '@Url.Action("AddTermAndExamFee", "Fee")',
+            method: 'POST',
+            data: { FeeStudent: sJsonData },
+            success: function (data) {
+                if (data && data.ErrorCode == "200") {
+                    $('#Rules-dialog').modal('hide');
+                    swal("Success", data.Message, "success");
+                    loadGird();
+                } else {
+                    swal("Error", (data ? data.Message : "Failed to add single due"), "error");
+                }
+            },
+            error: function () {
+                swal("Error", "Internal server error occurred.", "error");
+            }
+        });
+    });
+
+    $("#Add").on('click', function () {
+        $('#RollNo').val('');
+        $('#Term').val('0');
+        $('#ToPay').val('');
+        $('#Paid').val('0');
+        $('#Semestertype').val('0');
+    });
+
+    function printDiv(divName) {
+        if (!$.fn.DataTable.isDataTable('#StudentList')) {
+            swal("No Data", "Please load the due list before printing.", "warning");
+            return;
+        }
+        var tableDt = $('#StudentList').DataTable();
+        tableDt.destroy();
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        loadGird();
+    }
+
+    function Export() {
+        if (!$.fn.DataTable.isDataTable('#StudentList')) {
+            swal("No Data", "Please load the due list before exporting.", "warning");
+            return;
+        }
+        var tableDt = $('#StudentList').DataTable();
+        tableDt.destroy();
+        var sAcademicYear = $('#AcademicyearList option:selected').text();
+        var title = sAcademicYear + "_Fee_DueList";
+        var file = new Blob([$('#dvStudentBind').html()], { type: "application/vnd.ms-excel" });
+        var url = URL.createObjectURL(file);
+        var a = $("<a />", {
+            href: url,
+            download: title + ".xls"
+        }).appendTo("body").get(0).click();
+        loadGird();
+    }
+
+    function numberOnly(id) {
+        var element = document.getElementById(id);
+        if (element) {
+            element.value = element.value.replace(/[^0-9.]/gi, "");
+        }
+    }
+</script>

@@ -1,0 +1,697 @@
+@model CMS.ViewModel.ViewModel.StaffViewModel
+@{
+    Layout = null;
+}
+<style>
+    .dataTables_info {
+        display: none !important;
+    }
+
+    .label.label-success {
+        margin: 10px;
+    }
+
+    .table-bordered {
+        border-collapse: collapse;
+        width: 100% !important;
+    }
+
+        .table-bordered > tbody > tr > td,
+        .table-bordered > tbody > tr > th,
+        .table-bordered > tfoot > tr > td,
+        .table-bordered > tfoot > tr > th,
+        .table-bordered > thead > tr > td,
+        .table-bordered > thead > tr > th {
+            border: 1px solid black !important;
+            padding: 5px;
+        }
+
+    .content-block {
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+    }
+
+    .badge.badge-success, .label.label-success {
+        background: #4CD964;
+    }
+
+    .pull-right {
+        float: right !important;
+    }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+
+<div class="row text-center" style="height:60px;padding-top:-5px;">
+    @if (Model.liCollegeDetails != null && Model.liCollegeDetails.Any())
+    {
+        var college = Model.liCollegeDetails.FirstOrDefault();
+        <h4 style="font-family: 'Verdana', Times, serif;"><b>@(college.COLLEGE_NAME), @(college.DISTRICT)</b></h4>
+    }
+    <h5 style="font-family: 'Verdana', Times, serif;"><b>Convocation Report</b></h5>
+    @if (Model.liStudentList != null && Model.liStudentList.Any())
+    {
+        <h6 style="font-family: 'Verdana', Times, serif;"><b>@Model.liStudentList.FirstOrDefault().SETTING_NAME</b></h6>
+    }
+    <div>
+        <br />
+        <br />
+        <br />
+    </div>
+</div>
+@if (Model.UDF1 == "1")
+{
+    int ncount = 0;
+
+    var groupedByStatus = Model.liStudentList.OrderBy(s => { long r; return long.TryParse(s.ORDER, out r) ? r : long.MaxValue; }).GroupBy(s => s.STATUS ?? "Not Filled").ToList();
+    if (Model.UDF2 == "1")
+    {
+        if (groupedByStatus != null && groupedByStatus.Count > 0)
+        {
+            <h3 class="text-center">STUDENT STATUS</h3>
+            <div style="display: grid;">
+                <table class="table-hover table-bordered" id="tblstudent">
+                    <thead>
+                        <tr>
+                            <th style="padding: 4px; font-size: 14px;">#</th>
+                            <th style="padding: 4px; font-size: 14px;">Status</th>
+                            <th style="padding: 4px; font-size: 14px;">Count</th>
+                            <th style="padding: 4px; font-size: 14px;">Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int total = groupedByStatus.Sum(g => g.Count());
+                        }
+                        @foreach (var group in groupedByStatus)
+                        {
+                            var count = group.Count();
+                            var percentage = (double)count / total * 100;
+                            <tr>
+                                <td style="padding: 4px; font-size: 14px;">@{ncount++;}@ncount</td>
+                                <td style="padding: 4px; font-size: 14px;">@group.Key</td>
+
+                                @if (group.Count() == 1)
+                                {
+                                    <td style="padding: 4px; font-size: 14px;">@group.Count() Student </td>
+                                }
+                                else
+                                {
+                                    <td style="padding: 4px; font-size: 14px;">@group.Count() Students </td>
+                                }
+                                <td style="padding: 4px; font-size: 14px;">@String.Format("{0:0.00}%", percentage)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <label class="label label-success pull-right" style="font-size: 14PX; margin-top: 5PX;">Total: @total Students</label>
+        }
+    }
+    else if (Model.UDF2 == "2" || Model.UDF2 == "3" || Model.UDF2 == "4" || Model.UDF2 == "5" || Model.UDF2 == "6" || Model.UDF2 == "7" || Model.UDF2 == "8" || Model.UDF2 == "9" || Model.UDF2 == "10")
+    {
+        if (groupedByStatus != null && groupedByStatus.Count > 0)
+        {
+            var statusCounts = Model.liStudentList.GroupBy(s => s.STATUS ?? "Not Filled").ToDictionary(g => g.Key, g => g.Count());
+
+            var statusCountsJson = Json.Encode(statusCounts);
+            <div class="col-md-9">
+                <h3 class="text-center">STUDENT STATUS</h3>
+                <div class="col-md-8" id="chartsdiv">
+                    <canvas id="myChart" class="sendforprint"></canvas>
+                </div>
+            </div>
+
+            <script>
+                function ContentLoad() {
+                    myChart.update();
+                }
+            var statusCounts = @Html.Raw(statusCountsJson);
+            var Labels = [];
+            var Counts = [];
+            for (var key in statusCounts) {
+                Labels.push(key);
+                Counts.push(statusCounts[key]);
+            }
+            var data = {
+                labels: Labels,
+                datasets: [{
+                    label: "Student Count by Status",
+                    data: Counts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+                             var chartType = "";
+                     switch ("@Model.UDF2") {
+                         case "2":
+                             chartType = "bar";
+                             break;
+                         case "3":
+                             chartType = "pie";
+                             break;
+                         case "4":
+                             chartType = "line";
+                             break;
+                         case "5":
+                             chartType = "scatter";
+                             break;
+                         case "6":
+                             chartType = "doughnut";
+                             break;
+                         case "7":
+                             chartType = "bubble";
+                             break;
+                         case "8":
+                             chartType = "radar";
+                             break;
+                         case "9":
+                             chartType = "polarArea";
+                             break;
+                         case "10":
+                             chartType = "bar";
+                             break;
+                         default:
+                             chartType = "bar";
+                             break;
+                }
+                console.log(chartType);
+            var config = {
+                type: chartType,
+                data: data,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            };
+            var myChart = new Chart(
+                document.getElementById('myChart'),
+                config
+            );
+
+            </script>
+        }
+    }
+}
+else if (Model.UDF1 == "2")
+{
+    int ncount = 0;
+    int chartIndex = 0;
+    var groupedByApplicationType = Model.liStudentList.OrderBy(s => { long r; return long.TryParse(s.ORDER, out r) ? r : long.MaxValue; }).GroupBy(s => s.APPLICATION_TYPE).ToList();
+
+    if (Model.UDF2 == "1")
+    {
+        if (groupedByApplicationType != null && groupedByApplicationType.Count > 0)
+        {
+            foreach (var applicationGroup in groupedByApplicationType)
+            {
+                <div class="content-block">
+                    <h3 class="text-center">@applicationGroup.Key.ToUpper()</h3>
+
+                    @{var groupedByStatus = applicationGroup.GroupBy(s => s.STATUS ?? "Not Filled").ToList();}
+
+                    <table class="table table-hover table-bordered" id="tblstudent">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Status</th>
+                                <th>Count</th>
+                                <th style="padding: 4px; font-size: 14px;">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int total = groupedByStatus.Sum(g => g.Count());
+                            }
+                            @foreach (var statusGroup in groupedByStatus)
+                            {
+                                var count = statusGroup.Count();
+                                var percentage2 = (double)count / total * 100;
+                                total += statusGroup.Count();
+                                <tr>
+                                    <td>@(++ncount)</td>
+                                    <td>@statusGroup.Key</td>
+                                    <td>@statusGroup.Count() @((statusGroup.Count() == 1) ? "Student" : "Students")</td>
+                                    <td style="padding: 4px; font-size: 14px;">@String.Format("{0:0.00}%", percentage2)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <label class="label label-success pull-right" style="font-size: 14px; margin-top: 5PX;">
+                        Total: @total Students
+                    </label>
+                </div>
+            }
+        }
+    }
+    else if (Model.UDF2 == "2" || Model.UDF2 == "3" || Model.UDF2 == "4" || Model.UDF2 == "5" || Model.UDF2 == "6" || Model.UDF2 == "7" || Model.UDF2 == "8" || Model.UDF2 == "9" || Model.UDF2 == "10")
+
+    {
+        if (groupedByApplicationType != null && groupedByApplicationType.Count > 0)
+        {
+            foreach (var applicationGroup in groupedByApplicationType)
+            {
+                var statusCounts = applicationGroup.GroupBy(s => s.STATUS ?? "Not Filled").ToDictionary(g => g.Key, g => g.Count());
+
+                var statusCountsJson = Json.Encode(statusCounts);
+                // var chartId = $"myChart_{chartIndex}";
+                var chartId = string.Format("myChart_{0}", chartIndex);
+                <div class="col-md-9">
+                    <h3 class="text-center">@applicationGroup.Key.ToUpper()</h3>
+                    <div class="col-md-8" id="chartsdiv">
+                        <canvas id="@chartId" class="sendforprint"></canvas>
+                    </div>
+                </div>
+
+                <script>
+                    var statusCounts = @Html.Raw(statusCountsJson);
+                    var Labels = [];
+                    var Counts = [];
+                    for (var key in statusCounts) {
+                        Labels.push(key);
+                        Counts.push(statusCounts[key]);
+                    }
+                    var data = {
+                        labels: Labels,
+                        datasets: [{
+                            label: "Student Count by Status",
+                            data: Counts,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    };
+                     var chartType = "";
+                     switch ("@Model.UDF2"){
+                         case "2":
+                             chartType = "bar";
+                             break;
+                         case "3":
+                             chartType = "pie";
+                             break;
+                         case "4":
+                             chartType = "line";
+                             break;
+                         case "5":
+                             chartType = "scatter";
+                             break;
+                         case "6":
+                             chartType = "doughnut";
+                             break;
+                         case "7":
+                             chartType = "bubble";
+                             break;
+                         case "8":
+                             chartType = "radar";
+                             break;
+                         case "9":
+                             chartType = "polarArea";
+                             break;
+                         case "10":
+                             chartType = "bar";
+                             break;
+                         default:
+                             chartType = "bar";
+                             break;
+                     }
+                        var config = {
+                        type: chartType,
+                        data: data,
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    };
+                    var myChart = new Chart(
+                        document.getElementById('@chartId'),
+                        config
+                    );
+                </script>
+
+                chartIndex++;
+            }
+        }
+    }
+}
+else if (Model.UDF1 == "3")
+{
+    int ncount = 0;
+    int chartIndex = 0;
+    var groupedByProgrammeType = Model.liStudentList.OrderBy(s => { long r; return long.TryParse(s.ORDER, out r) ? r : long.MaxValue; }).GroupBy(s => s.PROGRAMME_DESCRIPTION).ToList();
+    if (Model.UDF2 == "1")
+    {
+        if (groupedByProgrammeType != null && groupedByProgrammeType.Count > 0)
+        {
+            foreach (var programmeGroup in groupedByProgrammeType)
+            {
+                <div class="content-block">
+                    <h3 class="text-center">@programmeGroup.Key.ToUpper()</h3>
+
+                    @{var groupedByprogramme = programmeGroup.GroupBy(s => s.STATUS).ToList();}
+
+                    <table class="table table-hover table-bordered" id="tblstudent">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Status</th>
+                                <th>Count</th>
+                                <th style="padding: 4px; font-size: 14px;">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int total = groupedByprogramme.Sum(g => g.Count());
+                            }
+
+                            @foreach (var statusGroup in groupedByprogramme)
+                            {
+                                var count = statusGroup.Count();
+                                var percentage2 = (double)count / total * 100;
+                                total += statusGroup.Count();
+                                <tr>
+                                    <td>@(++ncount)</td>
+                                    <td>@statusGroup.Key</td>
+                                    <td>@statusGroup.Count() @((statusGroup.Count() == 1) ? "Student" : "Students")</td>
+                                    <td style="padding: 4px; font-size: 14px;">@String.Format("{0:0.00}%", percentage2)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <label class="label label-success pull-right" style="font-size: 14px; margin-top: 5PX;">
+                        Total: @total Students
+                    </label>
+                </div>
+                <br />
+            }
+        }
+    }
+    else if (Model.UDF2 == "2" || Model.UDF2 == "3" || Model.UDF2 == "4" || Model.UDF2 == "5" || Model.UDF2 == "6" || Model.UDF2 == "7" || Model.UDF2 == "8" || Model.UDF2 == "9" || Model.UDF2 == "10")
+    {
+        if (groupedByProgrammeType != null && groupedByProgrammeType.Count > 0)
+        {
+            int counter = 0;
+
+            foreach (var ProgrammeType in groupedByProgrammeType)
+            {
+                var statusCounts = ProgrammeType.GroupBy(s => s.STATUS ?? "Not Filled").ToDictionary(g => g.Key, g => g.Count());
+
+                var statusCountsJson = Json.Encode(statusCounts);
+                // var chartId = $"myChart_{chartIndex}";
+                var chartId = string.Format("myChart_{0}", chartIndex);
+                <div class="col-md-9">
+                    <h3 class="text-center">@ProgrammeType.Key.ToUpper()</h3>
+                    <div class="col-md-8" id="chartsdiv">
+                        <canvas id="@chartId" class="sendforprint"></canvas>
+                    </div>
+                </div>
+                <br />
+                <script>
+                var statusCounts = @Html.Raw(statusCountsJson);
+                var Labels = [];
+                var Counts = [];
+                for (var key in statusCounts) {
+                    Labels.push(key);
+                    Counts.push(statusCounts[key]);
+                }
+                var data = {
+                    labels: Labels,
+                    datasets: [{
+                        label: "Student Count by Status",
+                        data: Counts,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 159, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                };
+                var chartType = "";
+                switch ("@Model.UDF2") {
+                    case "2":
+                        chartType = "bar";
+                        break;
+                    case "3":
+                        chartType = "pie";
+                        break;
+                    case "4":
+                        chartType = "line";
+                        break;
+                    case "5":
+                        chartType = "scatter";
+                        break;
+                    case "6":
+                        chartType = "doughnut";
+                        break;
+                    case "7":
+                        chartType = "bubble";
+                        break;
+                    case "8":
+                        chartType = "radar";
+                        break;
+                    case "9":
+                        chartType = "polarArea";
+                        break;
+                    case "10":
+                        chartType = "bar";
+                        break;
+                    default:
+                        chartType = "bar";
+                        break;
+                }
+                var config = {
+                    type: chartType,
+                    data: data,
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                };
+                var myChart = new Chart(
+                    document.getElementById('@chartId'),
+                    config
+                );
+                </script>
+
+                chartIndex++;
+                counter++;
+                if (counter == 2)
+                {
+                    <div style="page-break-after: always;"></div>
+                    counter = 0;
+                }
+            }
+        }
+    }
+}
+else if (Model.UDF1 == "4")
+{
+    int ncount = 0;
+    int chartIndex = 0;
+    var groupedBybatch = Model.liStudentList.OrderBy(s => { long r; return long.TryParse(s.ORDER, out r) ? r : long.MaxValue; }).GroupBy(s => s.BATCH).ToList();
+
+    if (Model.UDF2 == "1")
+    {
+        if (groupedBybatch != null && groupedBybatch.Count > 0)
+        {
+            foreach (var batchGroup in groupedBybatch)
+            {
+                <div class="content-block">
+                    <h3 class="text-center">@batchGroup.Key.ToUpper()</h3>
+
+                    @{var groupedBybatches = batchGroup.GroupBy(s => s.STATUS).ToList();}
+
+                    <table class="table table-hover table-bordered" id="tblstudent">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Status</th>
+                                <th>Count</th>
+                                <th style="padding: 4px; font-size: 14px;">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int total = groupedBybatches.Sum(g => g.Count());
+                            }
+
+                            @foreach (var statusGroup in groupedBybatches)
+                            {
+                                var count = statusGroup.Count();
+                                var percentage2 = (double)count / total * 100;
+                                total += statusGroup.Count();
+                                <tr>
+                                    <td>@(++ncount)</td>
+                                    <td>@statusGroup.Key</td>
+                                    <td>@statusGroup.Count() @((statusGroup.Count() == 1) ? "Student" : "Students")</td>
+                                    <td style="padding: 4px; font-size: 14px;">@String.Format("{0:0.00}%", percentage2)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <label class="label label-success pull-right" style="font-size: 14px; margin-top: 5PX;">
+                        Total: @total Students
+                    </label>
+                </div>
+                <br />
+            }
+        }
+    }
+    else if (Model.UDF2 == "2" || Model.UDF2 == "3" || Model.UDF2 == "4" || Model.UDF2 == "5" || Model.UDF2 == "6" || Model.UDF2 == "7" || Model.UDF2 == "8" || Model.UDF2 == "9" || Model.UDF2 == "10")
+
+    {
+        if (groupedBybatch != null && groupedBybatch.Count > 0)
+        {
+            foreach (var batchGroup in groupedBybatch)
+            {
+                var statusCounts = batchGroup.GroupBy(s => s.STATUS ?? "Not Filled").ToDictionary(g => g.Key, g => g.Count());
+
+                var statusCountsJson = Json.Encode(statusCounts);
+                // var chartId = $"myChart_{chartIndex}";
+                var chartId = string.Format("myChart_{0}", chartIndex);
+
+                <div class="col-md-9">
+                    <h3 class="text-center">@batchGroup.Key.ToUpper()</h3>
+                    <div class="col-md-8" id="chartsdiv">
+                        <canvas id="@chartId" class="sendforprint"></canvas>
+                    </div>
+                </div>
+
+                <script>
+                    var statusCounts = @Html.Raw(statusCountsJson);
+                    var Labels = [];
+                    var Counts = [];
+                    for (var key in statusCounts) {
+                        Labels.push(key);
+                        Counts.push(statusCounts[key]);
+                    }
+                    var data = {
+                        labels: Labels,
+                        datasets: [{
+                            label: "Student Count by Status",
+                            data: Counts,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    };
+                     var chartType = "";
+                     switch ("@Model.UDF2") {
+                         case "2":
+                             chartType = "bar";
+                             break;
+                         case "3":
+                             chartType = "pie";
+                             break;
+                         case "4":
+                             chartType = "line";
+                             break;
+                         case "5":
+                             chartType = "scatter";
+                             break;
+                         case "6":
+                             chartType = "doughnut";
+                             break;
+                         case "7":
+                             chartType = "bubble";
+                             break;
+                         case "8":
+                             chartType = "radar";
+                             break;
+                         case "9":
+                             chartType = "polarArea";
+                             break;
+                         case "10":
+                             chartType = "bar";
+                             break;
+                         default:
+                             chartType = "bar";
+                             break;
+                     }
+                        var config = {
+                        type: chartType,
+                        data: data,
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    };
+                    var myChart = new Chart(
+                        document.getElementById('@chartId'),
+                        config
+                    );
+                </script>
+
+                chartIndex++;
+            }
+        }
+    }
+}

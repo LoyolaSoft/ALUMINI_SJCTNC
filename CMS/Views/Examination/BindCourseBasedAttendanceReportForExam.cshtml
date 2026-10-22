@@ -1,0 +1,74 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    Layout = null;
+}
+
+@if (Model.LiExamSeatingAllotment != null && Model.LiExamSeatingAllotment.Count() > 0)
+{
+    var CourseGroup = Model.LiExamSeatingAllotment.GroupBy(o => o.COURSE_ID).ToList();
+
+    foreach (var courseItems in CourseGroup)
+    {
+        var CourseAttendance = Model.LiExamSeatingAllotment.Where(o => o.COURSE_ID == courseItems.FirstOrDefault().COURSE_ID).ToList();
+        var CourseRoom = CourseAttendance.GroupBy(o => o.ROOM_ID).ToList();
+        foreach (var item in CourseRoom)
+        {
+            var RoomCourseStudents = Model.LiExamSeatingAllotment.Where(o => o.COURSE_ID == courseItems.FirstOrDefault().COURSE_ID && o.ROOM_ID == item.FirstOrDefault().ROOM_ID).ToList();
+            <div class="form-group table-responsive" id="dvCourseWiseReport" style="page-break-after:always !important;page-break-inside:avoid !important;">
+                <div class="col-md-12">
+                    <table align="center" width="100%">
+                        <tr>
+                            <td style="width:50%"><b>Block</b> : &nbsp;@item.FirstOrDefault().BLOCK_NAME</td>
+                            <td style="width:40%" align="left"><b>Room</b> : &nbsp;@item.FirstOrDefault().ROOM_NO</td>
+                        </tr>
+                        <tr>
+                            <td style="width:50%"><b>Course </b> : &nbsp;@item.FirstOrDefault().COURSE_CODE</td>
+                            <td style="width:40%" align="left"><b>Title</b> : &nbsp;@item.FirstOrDefault().COURSE_TITLE</td>
+                        </tr>
+                    </table>
+                </div>
+                <table align="left" style="width:100%; border:1px solid; table-layout:fixed;">
+                    <thead>
+                        <tr>
+                            <th width="5% !important" style="border:1px solid; padding:8px;">#</th>
+                            <th width="12% !important" style="border:1px solid; padding:8px;">RegisterNo</th>
+                            <th width="23% !important" style="border:1px solid; padding:8px;">class</th>
+                            <th width="13% !important" style="border:1px solid; padding:8px;">SeatCode</th>
+                            <th width="15% !important" style="border:1px solid; padding:8px;">CourseCode</th>
+                            <th width="27% !important" style="border:1px solid; padding:8px;">Signature</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{int count = 0; string ClassName = string.Empty;}
+                        @foreach (var items in RoomCourseStudents)
+                        {
+                            var CoruseInfo = Model.LiExamSeatingAllotment.Where(s => s.COURSE_ID == courseItems.FirstOrDefault().COURSE_ID && s.STUDENT_ID == items.STUDENT_ID).ToList();
+                            <tr>
+                                <td width="5% !important" style="border:1px solid; padding:8px;"> @{count++;}@count</td>
+                                <td width="12% !important" style="border:1px solid; padding:8px;"> @items.REGISTER_NO</td>
+                                <td width="23% !important" style="border:1px solid; padding:8px;">
+                                    @{if (!string.IsNullOrEmpty(CoruseInfo.FirstOrDefault().CLASS_NAME))
+                                        {
+                                            ClassName = "";
+
+                                        }
+                                        else
+                                        {
+                                            ClassName = CoruseInfo.FirstOrDefault().CLASS_NAME;
+                                        }
+                                    } @ClassName
+                                    </td>
+                                    <td width="13% !important" style="border:1px solid; padding:8px;"> @items.SEAT_CODE</td>
+                                    <td width="15% !important" style="border:1px solid; padding:8px;"> @items.COURSE_CODE</td>
+                                    <td width="27% !important" style="border:1px solid; padding:8px;"></td>
+                                </tr>
+                                    }
+
+                                </tbody>
+                            </table>
+                        </div>
+                                        }
+                        }
+                        }
+

@@ -1,0 +1,322 @@
+@model CMS.ViewModel.ViewModel.OBEViewModel
+@using System.Linq;
+@{
+    Layout = null;
+    int Count = 0;
+    int nQusNo = 0;
+    string sUnitSelected = string.Empty;
+    string sQusSelected = string.Empty;
+    string sStrId = string.Empty;
+
+    // Manual grouping by SECTION_ID — avoids LINQ GroupBy entirely
+    var groupSection = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<CMS.ViewModel.Model.OBE_QUESTIONPAPER_PATTERN>>();
+    if (Model.LiOBEQuestionPaperPattern != null)
+    {
+        foreach (var p in Model.LiOBEQuestionPaperPattern)
+        {
+            var key = p.SECTION_ID ?? "";
+            if (!groupSection.ContainsKey(key))
+            {
+                groupSection[key] = new System.Collections.Generic.List<CMS.ViewModel.Model.OBE_QUESTIONPAPER_PATTERN>();
+            }
+            groupSection[key].Add(p);
+        }
+    }
+}
+
+<style>
+    /* Table Styling */
+    .tblQusEntryStructure {
+        border-collapse: separate;
+        border-spacing: 0 10px;
+        background: transparent;
+        border: none;
+    }
+
+    .tblQusEntryStructure thead th {
+        background: #f1f4f9;
+        color: #2a5298;
+        border: none;
+        padding: 15px 10px;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 1px;
+    }
+
+    .tblQusEntryStructure tbody tr {
+        background: #fff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        border-radius: 10px;
+        transition: all 0.3s;
+    }
+
+    .tblQusEntryStructure tbody tr:hover {
+        box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .tblQusEntryStructure td {
+        border: none !important;
+        vertical-align: middle !important;
+        padding: 15px 10px !important;
+    }
+
+    .section-header-row {
+        background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%);
+        color: #fff;
+        padding: 15px 25px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 1.2em;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .section-info {
+        display: flex;
+        gap: 20px;
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+
+    /* Mobile Responsive Card Layout */
+    @@media (max-width: 991px) {
+        .tblQusEntryStructure thead {
+            display: none;
+        }
+
+        .tblQusEntryStructure,
+        .tblQusEntryStructure tbody,
+        .tblQusEntryStructure tr,
+        .tblQusEntryStructure td {
+            display: block;
+            width: 100%;
+        }
+
+        .tblQusEntryStructure tr {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #eee;
+            position: relative;
+        }
+
+        .tblQusEntryStructure td {
+            padding: 8px 0 !important;
+            border-bottom: 1px solid #f9f9f9 !important;
+        }
+
+        .tblQusEntryStructure td:last-child {
+            border-bottom: none !important;
+        }
+
+        .tblQusEntryStructure td::before {
+            content: attr(data-label);
+            display: block;
+            font-weight: 700;
+            color: #2a5298;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        #QusNo {
+            font-size: 1.5em;
+            color: #2a5298;
+            border-bottom: 2px solid #2a5298 !important;
+            margin-bottom: 15px !important;
+        }
+
+        .section-header-row {
+            flex-direction: column;
+            text-align: center;
+            gap: 10px;
+        }
+    }
+</style>
+
+@if (Model.LiOBEQuestionPaperPattern != null && Model.LiOBEQuestionPaperPattern.Count > 0 && groupSection.Count > 0)
+{
+    foreach (var kvp in groupSection)
+    {
+        var sectionFirst = kvp.Value[0];
+
+        <div class="section-header-row">
+            <h4 class="section-title">@sectionFirst.SECTION_NAME</h4>
+            <div class="section-info">
+                <span><i class="fa fa-info-circle"></i> @sectionFirst.SECTION_DECRIPTION</span>
+                <span class="badge badge-warning" style="background: #f5b041; color: #000; font-weight: bold; font-size: 14px; padding: 5px 15px;">TOTAL MARK: @sectionFirst.MARK_FOR_EACH_SECTION</span>
+            </div>
+        </div>
+
+        <table class="table tblQusEntryStructure">
+            <thead>
+                <tr>
+                    <th style="width: 8%;">Qus.No.</th>
+                    <th style="width: 8%;">Mark</th>
+                    <th style="width: 12%;">Unit</th>
+                    <th style="width: 12%;">K Level</th>
+                    <th style="width: 54%;">Question Entry</th>
+                    <th style="width: 6%; text-align: center;">Action</th>
+                </tr>
+            </thead>
+
+            @for (int i = 0; i < Convert.ToInt32(sectionFirst.TOTAL_QUESTION); i++)
+            {
+                Count++;
+
+                <tbody>
+                    @if (sectionFirst.EITHER_OR == "1")
+                    {
+                        for (int j = 0; j < 2; j++)
+                        {
+                            nQusNo++;
+                            var qNoStr = (j == 0) ? Count + " .A" : Count + " .B";
+                            var savedQus = Model.LiOBEQuestions != null ? Model.LiOBEQuestions.Find(q => q.FORMULA_EQUATION == qNoStr) : null;
+
+                            <tr cms-patternSection="@sectionFirst.OBE_QUESTIONPAPERPATTERNSECTION_ID" cms-pattern="@sectionFirst.OBE_QUESTIONPAPERPATTERN_ID">
+                                <td id="QusNo" data-label="Question Number">@qNoStr</td>
+                                <td id="QusMark" data-label="Mark">@sectionFirst.MARK_FOR_EACH_QUESTION</td>
+                                <td data-label="Unit">
+                                    <select class="form-control selectpicker liObeUnit" data-live-search="true" @(savedQus != null && savedQus.SUBMISSION_STATUS == "FINAL_SUBMITTED" ? "disabled" : "")>
+                                        <option value="0">--Select--</option>
+                                        @if (Model.LiOBEUnit != null && Model.LiOBEUnit.Count > 0)
+                                        {
+                                            foreach (var obeunit in Model.LiOBEUnit)
+                                            {
+                                                <option value="@obeunit.OBE_UNIT_ID" @(savedQus != null && savedQus.OBE_UNIT_ID == obeunit.OBE_UNIT_ID ? "selected" : "")>@obeunit.OBE_UNIT</option>
+                                            }
+                                        }
+                                    </select>
+                                </td>
+                                <td data-label="Knowledge Level">
+                                    <select class="form-control selectpicker liObeQus" data-live-search="true" @(savedQus != null && savedQus.SUBMISSION_STATUS == "FINAL_SUBMITTED" ? "disabled" : "")>
+                                        <option value="0">--Select--</option>
+                                        @if (Model.LiQuesionLevel != null && Model.LiQuesionLevel.Count > 0)
+                                        {
+                                            foreach (var obeQLevel in Model.LiQuesionLevel)
+                                            {
+                                                <option value="@obeQLevel.OBE_RBT_LEVEL_ID" @(savedQus != null && savedQus.QUESTION_LEVEL_ID == obeQLevel.OBE_RBT_LEVEL_ID ? "selected" : "")>@obeQLevel.QUESTION_LEVEL (@obeQLevel.OBE_RBT_LEVEL)</option>
+                                            }
+                                        }
+                                    </select>
+                                </td>
+                                <td data-label="Enter Question Content">
+                                    <textarea id="editor_@nQusNo" class="editor-textarea form-control" rows="3" @(savedQus != null && savedQus.SUBMISSION_STATUS == "FINAL_SUBMITTED" ? "disabled" : "")>@(savedQus != null ? Html.Raw(savedQus.QUESTION) : Html.Raw(""))</textarea>
+                                    <input type="hidden" class="hdnQuestionId" value="@(savedQus != null ? savedQus.QUESTION_ID : "0")" />
+                                </td>
+                                <td style="text-align: center; vertical-align: middle;" data-label="Status">
+                                    <button class="btn btn-success btn-draft" onclick="SaveQuestionData(this, false)" title="Save Draft" style="@(savedQus != null && savedQus.SUBMISSION_STATUS == "FINAL_SUBMITTED" ? "display:none;" : "")"><i class="fa fa-save"></i> Save Draft</button>
+                                    <span class="label label-success locked-label" style="@(savedQus != null && savedQus.SUBMISSION_STATUS == "FINAL_SUBMITTED" ? "" : "display:none;") text-align:center; padding: 10px; display: inline-block; width: 100%;"><i class="fa fa-lock"></i> Final Submitted</span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        nQusNo++;
+                        var qNoStrOuter = Count.ToString();
+                        var savedQusOuter = Model.LiOBEQuestions != null ? Model.LiOBEQuestions.Find(q => q.FORMULA_EQUATION == qNoStrOuter) : null;
+                        <tr cms-patternSection="@sectionFirst.OBE_QUESTIONPAPERPATTERNSECTION_ID" cms-pattern="@sectionFirst.OBE_QUESTIONPAPERPATTERN_ID">
+                            <td id="QusNo" data-label="Question Number">@qNoStrOuter</td>
+                            <td id="QusMark" data-label="Mark">@sectionFirst.MARK_FOR_EACH_QUESTION</td>
+                            <td data-label="Unit">
+                                <select class="form-control selectpicker liObeUnit" data-live-search="true" @(savedQusOuter != null && savedQusOuter.SUBMISSION_STATUS == "FINAL_SUBMITTED" ? "disabled" : "")>
+                                    <option value="0">--Select--</option>
+                                    @if (Model.LiOBEUnit != null && Model.LiOBEUnit.Count > 0)
+                                    {
+                                        foreach (var obeunit in Model.LiOBEUnit)
+                                        {
+                                            <option value="@obeunit.OBE_UNIT_ID" @(savedQusOuter != null && savedQusOuter.OBE_UNIT_ID == obeunit.OBE_UNIT_ID ? "selected" : "")>@obeunit.OBE_UNIT</option>
+                                        }
+                                    }
+                                </select>
+                            </td>
+                            <td data-label="Knowledge Level">
+                                <select class="form-control selectpicker liObeQus" data-live-search="true" @(savedQusOuter != null && savedQusOuter.SUBMISSION_STATUS == "FINAL_SUBMITTED" ? "disabled" : "")>
+                                    <option value="0">--Select--</option>
+                                    @if (Model.LiQuesionLevel != null && Model.LiQuesionLevel.Count > 0)
+                                    {
+                                        foreach (var obeQLevel in Model.LiQuesionLevel)
+                                        {
+                                            <option value="@obeQLevel.OBE_RBT_LEVEL_ID" @(savedQusOuter != null && savedQusOuter.QUESTION_LEVEL_ID == obeQLevel.OBE_RBT_LEVEL_ID ? "selected" : "")>@obeQLevel.QUESTION_LEVEL (@obeQLevel.OBE_RBT_LEVEL)</option>
+                                        }
+                                    }
+                                </select>
+                            </td>
+                            <td data-label="Enter Question Content">
+                                <textarea id="editor_@nQusNo" class="editor-textarea form-control" rows="3" @(savedQusOuter != null && savedQusOuter.SUBMISSION_STATUS == "FINAL_SUBMITTED" ? "disabled" : "")>@(savedQusOuter != null ? Html.Raw(savedQusOuter.QUESTION) : Html.Raw(""))</textarea>
+                                <input type="hidden" class="hdnQuestionId" value="@(savedQusOuter != null ? savedQusOuter.QUESTION_ID : "0")" />
+                            </td>
+                            <td style="text-align: center; vertical-align: middle;" data-label="Status">
+                                <button class="btn btn-success btn-draft" onclick="SaveQuestionData(this, false)" title="Save Draft" style="@(savedQusOuter != null && savedQusOuter.SUBMISSION_STATUS == "FINAL_SUBMITTED" ? "display:none;" : "")"><i class="fa fa-save"></i> Save Draft</button>
+                                <span class="label label-success locked-label" style="@(savedQusOuter != null && savedQusOuter.SUBMISSION_STATUS == "FINAL_SUBMITTED" ? "" : "display:none;") text-align:center; padding: 10px; display: inline-block; width: 100%;"><i class="fa fa-lock"></i> Final Submitted</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            }
+        </table>
+    }
+
+    <div class="row" style="margin-top: 30px; margin-bottom: 30px;">
+        <div class="col-md-12 text-center divFinalSubmitContainer">
+            <button class="btn btn-primary btn-lg btn-workflow" onclick="FinalSubmitAllQuestions()" style="padding: 15px 40px; font-size: 18px;"><i class="fa fa-check-circle"></i> Final Submit All Questions</button>
+        </div>
+    </div>
+}
+
+
+
+
+
+
+<script>
+    var currentActiveEditor = null;
+
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker('refresh');
+
+        // Initialize CKEditor for all textareas
+        $('.tblQusEntryStructure').find('.editor-textarea').each(function () {
+            var el_id = $(this).attr('id');
+            if (CKEDITOR.instances[el_id]) {
+                CKEDITOR.instances[el_id].destroy(true);
+            }
+            var editor = CKEDITOR.replace(el_id, {
+                extraPlugins: 'mathjax',
+                mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
+                height: 100,
+                removeButtons: 'Paste,Copy,Cut,PasteText,PasteFromWord,About',
+                removePlugins: 'elementspath',
+                resize_enabled: false,
+                versionCheck: false
+            });
+            
+            editor.on('focus', function() {
+                currentActiveEditor = this;
+            });
+
+            // Disable Pasting securely with High Priority
+            editor.on('paste', function(evt) {
+                evt.cancel();
+                evt.stop();
+            }, null, null, 1);
+            
+            // Block drop dragging a text securely
+            editor.on('drop', function(evt) {
+                evt.cancel();
+                evt.stop();
+            }, null, null, 1);
+        });
+    });
+
+
+</script>

@@ -1,0 +1,105 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = null;
+}
+
+@{
+    if (Model.LiExamSeatingAllotment != null && Model.LiExamSeatingAllotment.Count() > 0)
+    {
+        var Rooms = Model.LiExamSeatingAllotment.GroupBy(s => s.ROOM_ID).ToList();
+        foreach (var Roomitem in Rooms)
+        {
+            var LiExamSeatings = Model.LiExamSeatingAllotment.Where(o => o.ROOM_ID == Roomitem.FirstOrDefault().ROOM_ID).ToList();
+            if (LiExamSeatings != null && LiExamSeatings.Count() > 0)
+            {
+                var test = LiExamSeatings.GroupBy(s => s.STUDENT_ID).ToList();
+                if (test != null && test.Count > 1)
+                {
+                    <div id="dvCourseWiseReport" style="page-break-after:always !important;page-break-inside:avoid !important;">
+                        <div class="col-md-12">
+                            <table style="width:100%;">
+                                <tr>
+                                    @{ 
+                                        
+                                    }
+                                    <td style="width:50%"><b>Date</b> : &nbsp; @LiExamSeatings.FirstOrDefault().EXAM_DATE</td>
+                                    <td style="width:20%" align="left"><b>Block</b> : &nbsp;@LiExamSeatings.FirstOrDefault().BLOCK_NAME</td>
+                                </tr>
+                                <tr>
+                                    <td style="width:50%"><b>Session</b> : &nbsp;@LiExamSeatings.FirstOrDefault().EXAM_SESSION</td>
+                                    <td style="width:20%" align="left"><b>Room</b> : &nbsp;@LiExamSeatings.FirstOrDefault().ROOM_NO</td>
+                                </tr>
+                                <tr>
+                                    @{ var title = LiExamSeatings.GroupBy(s => s.COURSE_TITLE).Select(s => new CMS.ViewModel.Model.EXAM_SEATING_ALLOTEMENT { COURSE_TITLE = s.FirstOrDefault().COURSE_TITLE, COURSE_CODE = s.FirstOrDefault().COURSE_CODE }).ToList();
+                                        string OddCourseId = string.Join(",", title.Select(t => t.COURSE_TITLE));
+                                    }
+                                    <td style="width:50%"><b>Courses</b> : &nbsp;@OddCourseId</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <table class="table table-bordered text-center" border="1">
+                            <tbody>
+                                <tr>
+                                    <th><b>Room-@LiExamSeatings.FirstOrDefault().ROOM_NO</b></th>
+                                    @for (int i = 1; i <= Convert.ToInt16(LiExamSeatings.FirstOrDefault().COLUMN); i++)
+                                    {
+                                        <td>
+                                            <b>@i</b>
+                                        </td>
+                                        if (!string.IsNullOrEmpty(LiExamSeatings.FirstOrDefault().SPACE_COLUMN))
+                                        {
+                                            if (i % Convert.ToInt16(LiExamSeatings.FirstOrDefault().SPACE_COLUMN) == 0 && i < Convert.ToInt16(LiExamSeatings.FirstOrDefault().COLUMN))
+                                            {
+                                                <td></td>
+                                            }
+                                        }
+                                    }
+
+                                </tr>
+                            </tbody>
+                            <tbody>
+                                @for (int i = 1; i <= Convert.ToInt16(LiExamSeatings.FirstOrDefault().ROW); i++)
+                                {
+                                    var RoomAllotment = LiExamSeatings.Where(s => s.ROW_NO == i.ToString()).ToList();
+                                    <tr>
+                                        <td><b>@i</b></td>
+                                        @foreach (var citem in RoomAllotment)
+                                        {
+
+                                            if (!string.IsNullOrEmpty(citem.REGISTER_NO))
+                                            {
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" value="" id="@citem.STUDENT_ID">
+                                                        <label class="form-check-label" for="@citem.STUDENT_ID"> @citem.REGISTER_NO</label>
+                                                    </div>                                                   
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" value="" id="@citem.STUDENT_ID">
+                                                        <label class="form-check-label" for="@citem.STUDENT_ID"> @citem.ROLL_NO</label>
+                                                    </div>
+                                                </td>
+                                            }
+
+                                            if (!string.IsNullOrEmpty(LiExamSeatings.FirstOrDefault().SPACE_COLUMN))
+                                            {
+                                                if (Convert.ToInt16(citem.COLUMN_NO) % Convert.ToInt16(LiExamSeatings.FirstOrDefault().SPACE_COLUMN) == 0 && Convert.ToInt16(citem.COLUMN_NO) < Convert.ToInt16(LiExamSeatings.FirstOrDefault().COLUMN))
+                                                {
+                                                    <td></td>
+                                                }
+                                            }
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                                                    }
+                                                }
+                                            }
+                                        }
+}

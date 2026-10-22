@@ -1,0 +1,243 @@
+﻿
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "BindFbFacultyPerformanceIndexByFeedback";
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+@if (Model.liFbFacultyPerformanceIndex != null && Model.liFbFacultyPerformanceIndex.Count > 0)
+{
+    <div class="form-group col-md-12 table-responsive">
+        <table class="table table-hover table-bordered" id="tblLiFbFacultyPerformanceIndex">
+            <thead>
+                <tr>
+                    <th>SL.NO</th>
+                    <th>ITEM</th>
+                    <th>MARK</th>
+                    <th>NUMBER</th>
+                    @*<th>MAX_MARK</th>*@
+                    <th>SCORE</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @if (Model.liFbFacultyPerformanceIndex != null && Model.liFbFacultyPerformanceIndex.Count > 0)
+                {
+                    var count = 0;
+                    foreach (var item in Model.liFbFacultyPerformanceIndex)
+                    {
+                        count = count + 1;
+                        <tr cms-fbfpid="@item.FBFACULTY_PERFORMANCE_INDEX_ID" class="tblperformance">
+                            <td>@count</td>
+
+                            <td>@item.ITEM</td>
+                            <td>
+                                <div class="col-md-12">
+                                    <input type="number" class="form-control" placeholder="Mark" name="FFIMark"  data-parsley-required="true" id="txtFFIMark_@item.FBFACULTY_PERFORMANCE_INDEX_ID" disabled value="@item.MARK" style="width:auto;">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="col-md-12">
+                                    <input type="number" class="form-control" placeholder="Number" name="FFINumber" cms-max-mark="@item.MAX_MARK"  cms-mark="@item.MARK"    cms-item="txtFFIMark_@item.FBFACULTY_PERFORMANCE_INDEX_ID" cms-score="txtFFIScore_@item.FBFACULTY_PERFORMANCE_INDEX_ID" data-parsley-required="true" id="txtFFINumber_@item.FBFACULTY_PERFORMANCE_INDEX_ID" style="width:auto;">
+                                </div>
+                            </td>
+                            @*<td>@item.MAX_MARK</td>*@
+                            <td>
+                                <div class="col-md-12">
+                                    <input type="number" class="form-control" placeholder="Score" name="FFIScore" data-parsley-required="true" id="txtFFIScore_@item.FBFACULTY_PERFORMANCE_INDEX_ID" disabled style="width:auto;">
+                                </div>
+                            </td>
+                        </tr>
+                    }
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+    <div class="form-group col-lg-12 row">
+        <div class="form-group pull-right">
+            <div class="form-group col-md-5">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary">Submit</a>
+            </div>
+            <div class="col-md-5">
+                <a href="javascript:;" class="btn btn-sm btn-danger" id="btnCancel">Cancel</a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    
+}
+
+
+
+
+
+
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+           
+        }
+
+        var message=@Html.Raw(Json.Encode(Model.sErrorMessage));
+        if(message!=null && message!="")
+        {
+            alertMessage(message);
+        }
+        function alertMessage(Message)
+        {
+            swal({ title: "error !", text:Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+            //swal({
+
+            //    title: "Feedback!",
+            //    text: Message,
+            //    showConfirmButton: false,
+            //    icon: "success",
+            //    timer: 1500,
+            //    animation: true ,
+            //});
+        }
+
+
+    $('#btnSubmit').click(function(){
+
+        var sCount=0;
+        var FBFacultyPerformanceindexId;
+        var Mark;
+        var Number;
+        var Score;
+        var jsonData='{"liFBFacultyPerformance":[';
+
+        var rowcount=$('#tblLiFbFacultyPerformanceIndex tbody tr.tblperformance').length;
+
+
+        $('#tblLiFbFacultyPerformanceIndex tbody tr').each(function(){
+
+           
+            if($(this).find('input[name="FFINumber"]').val() && $(this).find('input[name="FFIScore"]').val() )
+            {
+               
+                sCount=parseInt(sCount)+1;
+                FBFacultyPerformanceindexId=$(this).attr('cms-fbfpid');
+                Mark=$(this).find('input[name="FFIMark"]').val();
+                Number=$(this).find('input[name="FFINumber"]').val();
+                Score=$(this).find('input[name="FFIScore"]').val();
+                jsonData+='{"FBFACULTY_PERFORMANCE_INDEX_ID":"'+FBFacultyPerformanceindexId+'","MARK":"'+Mark+'","NUMBER":"'+Number+'","SCORE":"'+Score+'","FEEDBACK_ID":"'+$('#FeedBackSettingList').val()+'"},';
+             
+            }
+            else
+            {
+                swal({ title: "Info !", text: "Please fill all the fields!", showConfirmButton: false, timer: 1800, type: 'info', animation: true });
+            }
+        });
+       
+        if(sCount==rowcount)
+        {
+            jsonData = jsonData.slice(0, -1);
+            jsonData += ']}';
+
+            $.ajax({
+                url: "/Feedback/SaveFeedbackFacultyPerformanceIndex",
+                type: "post",
+                data: { sJsonData: jsonData },
+                success: function (data) {
+                    if (data.Message != null && data.Message != "" && data.ErrorCode != "" && data.ErrorCode!=null)
+                    {
+
+                        if (data.ErrorCode=="201")
+                        {
+                            swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                        if (data.ErrorCode == "200") {
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                           // loadContent('/Feedback/FacultyPerformanceIndexEvaluation');
+                        }
+                        if (data.ErrorCode == "417") {
+                            swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                        }
+                    }
+                    else {
+                        swal({ title: "Info", text: "Something went wrong so please try again!", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                    }
+                },
+                error: function (ex) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+
+            });
+        }
+        else{
+            //swal({ title: "Info !", text: "Something went wrong!", showConfirmButton: false, timer: 1800, type: 'info', animation: true });
+        }
+    });
+
+
+    //validate maximum mark
+    $('#tblLiFbFacultyPerformanceIndex').find("input[name='FFINumber']").keyup(function(e)
+    {
+        //var MaxValue=$(this).attr("cms-max-mark");
+        var Actualmark=0;
+        Actualmark=$(this).attr("cms-mark");
+        var keycode = (e.keyCode ? e.keyCode : e.which);
+       // alert(this.value);
+        if(this.value *  parseInt(Actualmark) > 0)
+        {
+           
+           // swal({ title: "Info !", text: "Sorry the maximum mark is "+ MaxValue +"!", showConfirmButton: false, timer: 1800, type: 'info', animation: true });
+           // $(this).val('');
+            //$('#'+$(this).attr("cms-item")+'').val(MaxValue);
+            $('#'+$(this).attr("cms-score")+'').val(this.value *  parseInt(Actualmark));
+        }
+        else
+        {
+            
+           // var mark=this.value * parseInt(Actualmark);
+
+            //$('#'+$(this).attr("cms-item")+'').val(mark);
+            $('#'+$(this).attr("cms-score")+'').val('0');
+        }
+
+
+
+
+
+    });
+
+  
+
+
+
+
+
+
+       // var tbl = $('#tblLiFbFacultyPerformanceIndex').DataTable();
+
+</script>
+
+
+
+
+
+
+
+
+

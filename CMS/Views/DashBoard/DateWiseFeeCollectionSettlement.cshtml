@@ -1,0 +1,164 @@
+﻿@model CMS.ViewModel.ViewModel.DashboardViewModel
+@{
+    string ChartType = string.Empty;
+    Layout = null;
+}
+
+<div class="col-md-12">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel ">
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h3 class="panel-title"><i class="fa fa-inbox"></i>Date Wise Fee Report</h3>
+                </div>
+                <div class="panel-body noPadding">
+                    <div class="col-md-12 table-responsive">
+                        <div class="col-md-12">
+                            <div class="col-md-4">
+
+                            </div>
+
+                            <div class="col-md-4 text-center" style="width:350px;">
+                                <div class="d-flex flex-wrap">
+                                    @*<button type="button" class="btn btn-success me-1 mb-1" onclick="changeLayout('line')">Line</button>
+                                        <button type="button" class="btn btn-danger me-1 mb-1" onclick="changeLayout('bar')">Bar</button>*@
+                                    @*<button type="button" class="btn btn-primary me-1 mb-1" onclick="changeToBar('pie')">Pie</button>
+                                        <button type="button" class="btn btn-info me-1 mb-1" onclick="changeToBar('doughnut')">Doughnut</button>*@
+                                </div>
+
+                            </div>
+                            <div class="col-md-4">
+
+                            </div>
+                        </div>
+                        <div class="" id="chartsdiv">
+                            <canvas id="DateWiseFeeChart"></canvas>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+
+</script>
+
+<script>
+
+    var Frequecys =@Html.Raw(Json.Encode(ViewBag.Frequecy));
+    var ChartType = 'bar';
+
+    function changeLayout(e) {
+        var randomColor;
+        config.type = e;
+        if (e == 'pie') {
+            for (var i = 0; i < Frequecys.length; i++) {
+                randomColor = getMultipleRandom(arrColors, Frequecys.length)
+                config.data.datasets[i].backgroundColor = randomColor;
+                config.data.datasets[i].borderColor = randomColor;
+            }
+        }
+        else if (e == 'doughnut') {
+            for (var i = 0; i < Frequecys.length; i++) {
+                randomColor = getMultipleRandom(arrColors, Frequecys.length)
+                config.data.datasets[i].backgroundColor = randomColor;
+                config.data.datasets[i].borderColor = randomColor;
+            }
+        }
+        else {
+            randomColor = getMultipleRandom(arrColors, 1)
+            config.data.datasets[0].backgroundColor = randomColor;
+            config.data.datasets[0].borderColor = randomColor;
+        }
+        DatewiseChart.update();
+    }
+    function getMultipleRandom(arr, num) {
+        const shuffled = [...arr].sort(() => 0.5 - Math.random());
+
+        return shuffled.slice(0, num);
+    }
+    var SettleDateArray = [];
+    var SettleDateStringArray = [];
+    var FrequecyArray = [];
+    var percentdata = []
+    var JsonData = '[';
+    var Amounts = @Html.Raw(Json.Encode(ViewBag.liFeeTransaction));
+    //Frequecys
+    var SettleDates =@Html.Raw(Json.Encode(ViewBag.SettleDate));
+
+    var arrColors = ['#D32F2F', '#AD1457', '#6A1B9A', '#512DA8', '#303F9F', '#1976D2', '#0288D1', '#0097A7', '#00796B', '#388E3C', '#AFB42B', '#FFA000', '#616161','#455A64'];
+    if (Frequecys != null && SettleDates != null && Amounts != null) {
+        for (var p = 0; p < SettleDates.length; p++) {
+            SettleDateArray.push(SettleDates[p].SETTLEMENT_DATE);
+        }
+        for (var p = 0; p < SettleDates.length; p++) {
+            SettleDateStringArray.push("Date-" + SettleDates[p].SETTLEMENT_DATE);
+        }
+        for (var p = 0; p < Frequecys.length; p++) {
+            FrequecyArray.push("Name-" + Frequecys[p].FREQUENCY);
+        }
+
+        for (var i = 0; i < Frequecys.length; i++) {
+            JsonData += '{"label":"Semester-' + Frequecys[i].FREQUENCY_NAME + '",';
+            var backgroundcolor = '';
+            percentdata = [];
+
+
+            var random = Math.floor(Math.random() * arrColors.length);
+            JsonData += '"backgroundColor":';
+            console.log(ChartType);
+            if(ChartType== 'pie') {
+                console.log('if inside ');
+                JsonData += '[' + getMultipleRandom(arrColors,4)+']'
+            }
+            else {
+                JsonData += '"' + arrColors[random] + '"'
+            }
+            JsonData += ',"borderColor":"' + arrColors[random] + '", "data":';
+            for (var j = 0; j < SettleDates.length; j++) {
+
+                for (var k = 0; k < Amounts.length; k++) {
+                    if (Amounts[k].SETTLEMENT_DATE == SettleDates[j].SETTLEMENT_DATE && Amounts[k].FREQUENCY == Frequecys[i].FREQUENCY) {
+                        percentdata.push(Amounts[k].COLLECTED);
+                    }
+                }
+            }
+            JsonData += '[' + percentdata + '],'
+            JsonData = JsonData.slice(0, -1);
+            JsonData += '},';
+        }
+
+        JsonData = JsonData.slice(0, -1);
+        JsonData += ']';
+        //alert(JsonData);
+        var obj = JSON.parse(JsonData);
+        //console.log(obj);
+    }
+    var data = {
+        labels: SettleDateStringArray,
+        datasets: obj
+    };
+    var config = {
+        type: ChartType,
+        data: data,
+        options: {}
+    };
+    var DatewiseChart = new Chart(
+        document.getElementById('DateWiseFeeChart'),
+            config
+        );
+
+
+</script>

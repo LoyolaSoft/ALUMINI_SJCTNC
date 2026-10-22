@@ -1,0 +1,409 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{Layout = null; }
+
+
+@using CMS.Utility
+@{
+    int count = 0;
+    double max = 0;
+    double sec = 0;
+    double gpa = 0;
+    double dmulti = 0;
+    double credit = 0;
+    string str = string.Empty;
+    bool student = true;
+
+}
+<div class="col-md-12">
+    @if (Model.LiSemesterMarks.FirstOrDefault().APPLICATION_TYPE_ID == "1")
+    {
+        <table border="1" class="table-responsive table-bordered">
+            <thead>
+                <tr>
+                    <th>CENT_CODE</th>
+                    <th>BATCH</th>
+                    <th>DEGREE</th>
+                    <th>SUBJECT</th>
+                    <th>F_PT</th>
+                    <th>DAY_EVEN</th>
+                    <th>REG_NUMBER</th>
+                    <th>NAME</th>
+                    <th>SEX</th>
+                    <th>CASTE</th>
+                    <th>HANDICAP</th>
+                    <th>LANGUAGE</th>
+                    <th>P_1_MARK</th>
+                    <th>P_1_TOTAL</th>
+                    <th>P_1_GRADPT</th>
+                    <th>P_1_GRADE</th>
+                    <th>P_1_CLASS</th>
+                    <th>P_2_MARK</th>
+                    <th>P_2_TOTAL</th>
+                    <th>P_2_GRADPT</th>
+                    <th>P_2_GRADE</th>
+                    <th>P_2_CLASS</th>
+                    <th>P_3_MARK</th>
+                    <th>P_3_TOTAL</th>
+                    <th>P_3_GRADPT</th>
+                    <th>P_3_GRADE</th>
+                    <th>P_3_CLASS</th>
+                    <th>MONTH_YEAR</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model.LiSemesterMarks != null && Model.LiSemesterMarks.Count > 0)
+                {
+                    var Programme = Model.LiSemesterMarks.GroupBy(s => s.PROGRAMME_GROUP_ID).ToList();
+                    foreach (var proitem in Programme)
+                    {
+                        var StudentList = Model.LiSemesterMarks.Where(s => s.PROGRAMME_GROUP_ID == proitem.FirstOrDefault().PROGRAMME_GROUP_ID).GroupBy(s => s.STUDENT_ID).ToList();
+                        if (StudentList.Count > 0 && StudentList != null)
+                        {
+                            var part = Model.LiSemesterMarks.GroupBy(o => o.PART).ToList();
+                            var grouppart = part.OrderBy(o => o.FirstOrDefault().PART).ToList();
+
+                            foreach (var groupitem in StudentList)
+                            {
+                                var stu_course = Model.LiSemesterMarks.Where(S => S.STUDENT_ID == groupitem.FirstOrDefault().STUDENT_ID).ToList();
+                                if (stu_course != null && stu_course.Count > 0)
+                                {
+                                    var result = stu_course.GroupBy(s => s.COURSE_CODE).ToList();
+                                    for (int j = 0; j < result.Count(); j++)
+                                    {
+                                        var code = result[j].Key.ToString();
+                                        var objGp = Model.LiSemesterMarks.Where(o => o.COURSE_CODE == code && o.STUDENT_ID == groupitem.FirstOrDefault().STUDENT_ID).ToList();
+                                        if (objGp.FindAll(o => o.RESULT == "P").Count() == 0)
+                                        {
+                                            student = false;
+                                        }
+                                    }
+                                    if (result.Count > 0 && result != null)
+                                    {
+                                        result.Clear();
+                                    }
+                                }
+                                if (student)
+                                {
+                                    count++;
+                <tr>
+                    <td style="padding:2px">27</td>
+                    <td style="padding:2px">2016</td>
+                    <td style="padding:2px">@groupitem.FirstOrDefault().DEGREE</td>
+                    <td style="padding:2px">@groupitem.FirstOrDefault().DEPARTMENT</td>
+                    <td style="padding:2px"></td>
+                    <td style="padding:2px">@groupitem.FirstOrDefault().DAY_EVEN</td>
+                    <td style="padding:2px">@groupitem.FirstOrDefault().REGISTER_NO</td>
+                    <td style="padding:2px">@groupitem.FirstOrDefault().NAME</td>
+                    <td style="padding:2px"></td>
+                    <td style="padding:2px"></td>
+                    <td style="padding:2px"></td>
+                    @{
+                                            var stu_courses = Model.LiSemesterMarks.Where(S => S.STUDENT_ID == groupitem.FirstOrDefault().STUDENT_ID).ToList();
+                                            if (stu_courses != null)
+                                            {
+                                                var French = stu_courses.FindAll(s => s.COURSE_ID == "71" || s.COURSE_ID == "1135" || s.COURSE_ID == "77" || s.COURSE_ID == "74" || s.COURSE_ID == "1136");
+                                                if (French != null && French.Count > 0)
+                                                {
+                                        <td style="padding:2px">F</td>
+                                                }
+                                                var Hindi = stu_courses.FindAll(s => s.COURSE_ID == "75" || s.COURSE_ID == "1345" || s.COURSE_ID == "69" || s.COURSE_ID == "1351" || s.COURSE_ID == "1352" || s.COURSE_ID == "72" || s.COURSE_ID == "1353" || s.COURSE_ID == "1354" || s.COURSE_ID == "78");
+                                                if (Hindi != null && Hindi.Count > 0)
+                                                {
+                                        <td style="padding:2px">H</td>
+                                                }
+                                                var Tamil = stu_courses.FindAll(s => s.COURSE_ID == "79" || s.COURSE_ID == "70" || s.COURSE_ID == "73" || s.COURSE_ID == "76");
+                                                if (Tamil != null && Tamil.Count > 0)
+                                                {
+                                        <td style="padding:2px">T</td>
+                                                }
+                                            }
+                    }
+
+                    @foreach (var selectitem in grouppart)
+                                        {
+                                            var lipart = Model.LiSemesterMarks.Where(O => O.STUDENT_ID == groupitem.FirstOrDefault().STUDENT_ID && O.PART == selectitem.FirstOrDefault().PART && O.RESULT == "P").ToList();
+                                            if (Convert.ToInt32(selectitem.FirstOrDefault().PART) <= 3 && Convert.ToInt32(selectitem.FirstOrDefault().PART) != 0)
+                                            {
+                                                foreach (var parts in lipart)
+                                                {
+                                                    max += Convert.ToDouble(parts.MAXIMUM);
+                                                    sec += Convert.ToDouble(parts.TOTAL);
+                                                    dmulti += (Convert.ToDouble(parts.CREDIT) * Convert.ToInt32(parts.GRADE_POINT));
+                                                    credit += Convert.ToDouble(parts.CREDIT);
+                                                }
+                                                gpa = dmulti / credit;
+                                        <td style="padding:2px">@max</td>
+                                        <td style="padding:2px">@sec</td>
+
+                                                str = Convert.ToString(gpa);
+                                                if (!double.IsNaN(gpa))
+                                                {
+
+                                        <td style="padding:2px">@String.Format("{0:0.00}", gpa)</td>
+
+
+                                                }
+                                                else
+                                                {
+                                                    gpa = 0;
+                                        <td style="padding:2px">@gpa</td>
+                                                }
+
+
+                                        @*if (gpa >= 6.00)
+                                            {
+                                                    <td style="padding:2px">First Class </td>
+                                                    }
+                                                     else
+                                                    {
+                                                        if (gpa >= 5.00)
+                                                        {
+                                                                <td style="padding:2px">Second Class</td>
+                                                            }
+                                                        else
+                                                        {
+                                                            if (gpa >= 4.00)
+                                                            {
+                                                                    <td style="padding:2px">Thrid Class</td>
+                                                          }
+                                                          if(gpa==0)
+                                                          {
+                                                              <td style="padding:2px">No</td>
+                                                          }
+
+                                                      }
+                                                  }*@
+                                        if (gpa >= 9.00)
+                                        {
+                                        <td style="padding:2px">O</td>
+                                        <td style="padding:2px">Outstanding</td>
+                                        }
+                                        else
+                                        {
+                                            if (gpa >= 8.00)
+                                            {
+                                        <td style="padding:2px">A+</td>
+                                        <td style="padding:2px">Excellent</td>
+                                            }
+                                            else
+                                            {
+                                                if (gpa >= 7.00)
+                                                {
+                                        <td style="padding:2px">A</td>
+                                        <td style="padding:2px">Very Good</td>
+                                                }
+                                                else
+                                                {
+                                                    if (gpa >= 6.00)
+                                                    {
+                                        <td style="padding:2px">Good</td>
+                                        <td style="padding:2px">B+</td>
+                                                    }
+                                                    else
+                                                    {
+                                                        if (gpa >= 5.00)
+                                                        {
+                                        <td style="padding:2px">B</td>
+                                        <td style="padding:2px">Above Average</td>
+                                                        }
+                                                        else
+                                                        {
+                                                            if (gpa < 5.00)
+                                                            {
+                                        <td style="padding:2px">R.A</td>
+                                        <td style="padding:2px">R.A</td>
+                                                                    }
+
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                max = 0;
+                                                sec = 0;
+                                                gpa = 0;
+                                                dmulti = 0;
+                                                credit = 0;
+                                            }
+                                        }
+                    <td style="padding:2px">@ViewBag.passmonth</td>
+                </tr>
+                                                            }
+                                                            student = true;
+                                                        }
+                                                    }
+                                                }
+
+
+
+                                            }
+
+            </tbody>
+        </table>
+                        }
+                        
+                        else
+                        {
+                            <table class="" border="1">
+                                <thead>
+                                    <tr>
+                                        <th>CENT_CODE</th>
+                                        <th>BATCH</th>
+                                        <th>DEGREE</th>
+                                        <th>SUBJECT</th>
+                                        <th>F_PT</th>
+                                        <th>DAY_EVEN</th>
+                                        <th>REG_NUMBER</th>
+                                        <th>NAME</th>
+                                        <th>SEX</th>
+                                        <th>CASTE</th>
+                                        <th>HANDICAP</th>
+                                        <th>P_3_MARK</th>
+                                        <th>P_3_TOTAL</th>
+                                        <th>P_3_GRADPT</th>
+                                        <th>P_3_GRADE</th>
+                                        <th>P_3_CLASS</th>
+                                        <th>MONTH_YEAR</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.LiSemesterMarks != null && Model.LiSemesterMarks.Count > 0)
+                            {
+                                var Programme = Model.LiSemesterMarks.GroupBy(s => s.PROGRAMME_GROUP_ID).ToList();
+                                foreach (var proitem in Programme)
+                                {
+                                    var StudentList = Model.LiSemesterMarks.Where(s => s.PROGRAMME_GROUP_ID == proitem.FirstOrDefault().PROGRAMME_GROUP_ID).GroupBy(s => s.STUDENT_ID).ToList();
+                                    if (StudentList.Count > 0 && StudentList != null)
+                                    {
+                                        foreach (var groupitem in StudentList)
+                                        {
+                                            var stu_course = Model.LiSemesterMarks.Where(S => S.STUDENT_ID == groupitem.FirstOrDefault().STUDENT_ID).ToList();
+                                            if (stu_course != null && stu_course.Count > 0)
+                                            {
+                                                var result = stu_course.GroupBy(s => s.COURSE_CODE).ToList();
+                                                for (int j = 0; j < result.Count(); j++)
+                                                {
+                                                    var code = result[j].Key.ToString();
+                                                    var objGp = Model.LiSemesterMarks.Where(o => o.COURSE_CODE == code && o.STUDENT_ID == groupitem.FirstOrDefault().STUDENT_ID).ToList();
+                                                    if (objGp.FindAll(o => o.RESULT == "P").Count() == 0)
+                                                    {
+                                                        student = false;
+                                                    }
+                                                }
+                                                if (result.Count > 0 && result != null)
+                                                {
+                                                    result.Clear();
+                                                }
+                                            }
+
+                                            if (student)
+                                            {
+                                                //var studentmark = Model.LiSemesterMarks.Where(o => o.STUDENT_ID == groupitem.FirstOrDefault().STUDENT_ID).ToList();
+                                                count++;
+                                                var studentmark = Model.LiSemesterMarks.Where(s => s.PROGRAMME_GROUP_ID == proitem.FirstOrDefault().PROGRAMME_GROUP_ID && s.STUDENT_ID == groupitem.FirstOrDefault().STUDENT_ID).ToList();
+                                                        <tr>
+                                                            <td style="padding:2px">27</td>
+                                                            <td style="padding:2px">2016</td>
+                                                            <td style="padding:2px">@groupitem.FirstOrDefault().DEGREE</td>
+                                                            <td style="padding:2px">@groupitem.FirstOrDefault().DEPARTMENT</td>
+                                                            <td style="padding:2px"></td>
+                                                            <td style="padding:2px">@groupitem.FirstOrDefault().DAY_EVEN</td>
+                                                            <td style="padding:2px">@groupitem.FirstOrDefault().REGISTER_NO</td>
+                                                            <td style="padding:2px">@groupitem.FirstOrDefault().NAME</td>
+                                                            <td style="padding:2px"></td>
+                                                            <td style="padding:2px"></td>
+                                                            <td style="padding:2px"></td>
+                                                            @foreach (var stumarks in studentmark)
+                                                                                {
+                                                    if (stumarks.RESULT.ToUpper().Contains("A") || stumarks.RESULT.ToUpper().Contains("F") || stumarks.UGC_COURSE_TYPE == "49")
+                                                    {
+
+                                                    }
+                                                    else
+                                                    {
+                                                        max += Convert.ToDouble(stumarks.MAXIMUM);
+                                                        sec += Convert.ToDouble(stumarks.TOTAL);
+                                                        dmulti += (Convert.ToDouble(stumarks.CREDIT) * Convert.ToInt32(stumarks.GRADE_POINT));
+                                                        credit += Convert.ToDouble(stumarks.CREDIT);
+                                                    }
+
+                                                }
+                                                            @{gpa = dmulti / credit;}
+                                                            <td style="padding:2px">@max</td>
+                                                            <td style="padding:2px">@sec</td>
+                                                            <td style="padding:2px">@String.Format("{0:0.00}", gpa)</td>
+
+                                                            @if (gpa >= 9.00)
+                                                                                {
+                                                                                <td style="padding:2px">O</td>
+                                                                                <td style="padding:2px">Outstanding</td>
+
+                                                                                }
+                                                                                else
+                                                                                {
+                                                    if (gpa >= 8.00)
+                                                    {
+                                                                                <td style="padding:2px">A+</td>
+                                                                                <td style="padding:2px">Excellent</td>
+                                                                                    }
+                                                    else
+                                                    {
+                                                        if (gpa >= 7.00)
+                                                        {
+                                                                                <td style="padding:2px">A</td>
+                                                                                <td style="padding:2px">Very Good</td>
+                                                                                        }
+                                                        else
+                                                        {
+                                                            if (gpa >= 6.00)
+                                                            {
+                                                                                <td style="padding:2px">B+</td>
+                                                                                <td style="padding:2px">Good</td>
+                                                                                            }
+                                                            else
+                                                            {
+                                                                if (gpa >= 5.00)
+                                                                {
+                                                                                <td style="padding:2px">B</td>
+                                                                                <td style="padding:2px">Above Average</td>
+                                                                                                }
+                                                                else
+                                                                {
+                                                                    if (gpa < 5.00)
+                                                                    {
+                                                                                <td style="padding:2px">R.A</td>
+                                                                                <td style="padding:2px">R.A</td>
+                                                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                            <td style="padding:2px">@ViewBag.passmonth</td>
+                                                        </tr>
+                                                                                                        max = 0;
+                                                sec = 0;
+                                                gpa = 0;
+                                                dmulti = 0;
+                                                credit = 0;
+                                            }
+                                            student = true;
+                                        }
+
+                                    }
+                                }
+
+
+
+                            }
+                                </tbody>
+                            </table>
+                                                                }
+</div>
+
+
+
+

@@ -1,0 +1,1039 @@
+
+@model CMS.ViewModel.Model.STF_PROFILE
+
+<style>
+    .drag-drop-zone {
+        border: 2px dashed #007bff;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        transition: background-color 0.3s, border-color 0.3s;
+        position: relative;
+        overflow: hidden;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .drag-drop-zone.dragover {
+        background-color: #e9ecef;
+        border-color: #0056b3;
+    }
+    .drag-drop-zone img#img {
+        max-width: 100%;
+        max-height: 185px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+
+    #croppie-viewport-container {
+        width: 100%;
+        margin: 0 auto;
+        overflow: hidden;
+    }
+
+    .croppie-container {
+        padding: 0 !important;
+    }
+
+    @@media (max-width: 767px) {
+        .modal-dialog {
+            margin: 10px;
+        }
+        
+        #croppie-viewport {
+            height: 300px;
+        }
+    }
+    .drag-drop-zone .upload-icon {
+        font-size: 34px;
+        color: #007bff;
+        margin-bottom: 8px;
+    }
+    .drag-drop-zone p {
+        margin: 0;
+        color: #6c757d;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    .drag-drop-zone input[type=file] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+</style>
+<style>
+    .review-card {
+        background-color: #f9f9f9;
+        border-left: 4px solid #007bff;
+        border-right: 4px solid #007bff;
+        border-radius: 10px;
+    }
+
+    .modal-body input {
+        width: 100%;
+        max-width: 200px;
+        padding: 6px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .custom-switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 24px;
+    }
+
+        .custom-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 24px;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+    input:checked + .slider {
+        background-color: #28a745;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+    .checkbox-on {
+        background-color: #d4edda;
+        border: 1px solid #28a745;
+        padding: 4px;
+        border-radius: 5px;
+    }
+
+    .checkbox-off {
+        background-color: #f8d7da;
+        border: 1px solid #dc3545;
+        padding: 4px;
+        border-radius: 5px;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 576px) {
+        .review-card {
+            font-size: 14px;
+        }
+
+        .custom-switch {
+            width: 40px;
+            height: 20px;
+        }
+
+        .slider:before {
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+    }
+
+    /* Roles multi-select compact style */
+    #rolesMultiSelect + .bootstrap-select .dropdown-menu {
+        max-height: 260px !important;
+        overflow-y: auto;
+    }
+</style>
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @autocomplete = "off" }))
+{
+    @Html.AntiForgeryToken()
+    <h4>Staff Details</h4>
+    <hr />
+    <div class="form-horizontal">
+        <div class="row">
+            <div class="col-md-6 col-sm-12 col-xs-12">
+                <input id="PROFILE_ID" hidden />
+                <input id="STAFF_ID" hidden />
+                <input id="PHOTO" hidden />
+                <input id="FILE_PATH" hidden />
+                <div class="form-group">
+                    @Html.LabelFor(model => model.STAFF_NAME, "Staff Name", htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.STAFF_NAME, new { htmlAttributes = new { @class = "form-control input-sm", autocomplete = "new-password", placeholder = "Enter First Name", @disabled = "disabled" } })
+                        @Html.ValidationMessageFor(model => model.STAFF_NAME, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.STAFF_CODE, "Staff Code", htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.STAFF_CODE, new { htmlAttributes = new { @class = "form-control input-sm", autocomplete = "new-password", placeholder = "staff Name", @disabled = "disabled" } })
+                        @Html.ValidationMessageFor(model => model.STAFF_CODE, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.DATE_OF_JOIN, "Date of Joining", htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.DATE_OF_JOIN, new { htmlAttributes = new { @class = "form-control input-sm", autocomplete = "new-password", placeholder = "Date of Joining", id="DATE_OF_JOIN", @disabled = "disabled" } })
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-4">Experience</label>
+                    <div class="col-md-8" style="padding-top: 5px;">
+                        <span id="YEARS_OF_EXPERIENCE_BADGE" class="badge badge-success hidden" style="font-size: 14px; padding: 8px 12px; border-radius: 4px;"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-4">Roles &amp; Responsibilities</label>
+                    <div class="col-md-8">
+                        <input type="hidden" id="ROLES_RESPONSE" />
+                        <select id="rolesMultiSelect" class="selectpicker form-control input-sm" multiple
+                                data-live-search="true"
+                                data-actions-box="true"
+                                data-selected-text-format="count > 2"
+                                data-count-selected-text="{0} roles selected"
+                                title="-- Select Roles --"
+                                onchange="$('#ROLES_RESPONSE').val($(this).val() ? $(this).val().join(',') : '');"
+                                style="width:100%;">
+                            @if (Model.liRolesResponse != null && Model.liRolesResponse.Count > 0)
+                            {
+                                foreach (var role in Model.liRolesResponse)
+                                {
+                                    <option value="@role.STF_ROLE_RES_ID">@role.ROLES__RESPONSIBILITIES</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.QUALIFICATION, "Qualification", htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.QUALIFICATION, new { htmlAttributes = new { @class = "form-control input-sm", autocomplete = "new-password", placeholder = "Enter First Name" } })
+                        @Html.ValidationMessageFor(model => model.QUALIFICATION, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.sDesignation, "Designation", htmlAttributes: new { @class = "control-label col-md-4 complusary" })
+                    <div class="col-md-8">
+                        @Html.DropDownListFor(model => model.sDesignation, (Model.sDesignation != null) ? Model.sDesignation : Enumerable.Empty<SelectListItem>
+                            (), "-- Select --", new { @class = "selectpicker form-control input-sm ", id = "DESIGNATION", @data_live_search = "true", @data_parsley_required = "true" })
+                            @Html.ValidationMessageFor(model => model.sDesignation, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.sDepartmentList, "Department", htmlAttributes: new { @class = "control-label col-md-4 complusary" })
+                    <div class="col-md-8">
+                        @Html.DropDownListFor(model => model.sDepartmentList, (Model.sDepartmentList != null) ? Model.sDepartmentList : Enumerable.Empty<SelectListItem>
+                            (), "-- Select --", new { @class = "selectpicker form-control input-sm ", @data_live_search = "true", @data_parsley_required = "true", @id = "DEPARTMENT" })
+
+                            @Html.ValidationMessageFor(model => model.sDepartmentList, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group hidden">
+                    @Html.LabelFor(model => model.ADDRESS, htmlAttributes: new { @class = "control-label col-md-4 " })
+                    <div class="col-md-8">
+                        @Html.TextAreaFor(model => model.ADDRESS, 3, 20, new { maxlength = 550, @class = "form-control input-sm ", autocomplete = "new-password", placeholder = "Address", @data_parsley_length = "[3,550]" })
+
+                        @Html.ValidationMessageFor(model => model.ADDRESS, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+
+
+                @*<div class="form-group">
+                    <label class="control-label col-md-4">Show Contact on Website</label>
+                    <div class="col-md-5">
+                        <label class="custom-switch ">
+                            <input type="checkbox" class="book_mark_toggle" data-on="Yes" data-off="No">
+                            <span class="slider"></span>
+                            <span> show toggle </span>
+                        </label>
+
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-4">Show Email on Website</label>
+                    <div class="col-md-8">
+                        <label class="custom-switch ">
+                            <input type="checkbox" class="book_mark_toggle" data-on="Yes" data-off="No">
+                            <span class="slider"></span>
+                            <span>  show toggle </span>
+                        </label>
+                    </div>
+                </div>*@
+
+                <div class="form-group">
+                    <label class="control-label col-md-4 col-sm-12 col-xs-12">Profile Photo</label>
+                    <div class="col-md-8 col-sm-12 col-xs-12">
+                        <div class="drag-drop-zone" id="dragDropZone">
+                            <i class="fa fa-cloud-upload upload-icon"></i>
+                            <p id="uploadText" style="pointer-events:none;">Drag & Drop your photo here or <br />click to update or add photo</p>
+                            <img src="" id="img" style="display:none; max-width: 100%; max-height: 185px; pointer-events: none;" />
+                            <input type="file" name="image" id="inputimg" onchange="encodeImagetoBase64(this);checkPhoto(this)" accept=".jpg,.png,.jpeg">
+                        </div>
+                        <div id="photoActions" class="mt-2 text-center" style="display:none;">
+                            <button type="button" class="btn btn-sm btn-info" id="btnUpdatePhoto" onclick="document.getElementById('inputimg').click()"><i class="fa fa-edit"></i> Change Photo</button>
+                            <button type="button" class="btn btn-sm btn-danger" id="btnRemovePhoto" onclick="removeMyPhoto()"><i class="fa fa-trash"></i> Remove Photo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-12 col-xs-12">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.CONTACT_NO, "Contact No", htmlAttributes: new { @class = "control-label col-md-4 col-xs-12 text-md-right p-r-0" })
+                    <div class="col-md-6 col-xs-8">
+                        @Html.EditorFor(model => model.CONTACT_NO, new { htmlAttributes = new { @class = "form-control input-sm", autocomplete = "new-password", placeholder = "Enter Mobile Number", id = "CONTACT_NO", @data_parsley_type = "digits", @data_parsley_length = "[10,10]", @data_parsley_trigger = "keyup" } })
+                        @Html.ValidationMessageFor(model => model.CONTACT_NO, "", new { @class = "text-danger" })
+                    </div>
+                    @*<label class="custom-switch ">
+                        <input type="checkbox" class="book_mark_toggle" data-on="Yes" data-off="No" id="IS_CONTACT_NO_SHOW">
+                        <span class="slider"></span>
+                        <p style="width: 90px; color: #0d7c87"> Publish on Website</p>
+                    </label>*@
+                    <div class="col-md-2 col-xs-4 text-right">
+                        <label class="custom-switch d-inline-block">
+                            <input type="checkbox" class="book_mark_toggle" id="IS_CONTACT_NO_SHOW">
+                            <span class="slider"></span>
+                        </label>
+                        <small class="d-block text-muted" style="font-size: 11px; color: #0d7c87">Publish on Website</small>
+                    </div>
+                </div>
+
+                <div class="form-group ">
+                    @Html.LabelFor(model => model.EMAIL, "Email", htmlAttributes: new { @class = "control-label col-md-4 col-xs-12 text-md-right p-r-0" })
+                    <div class="col-md-6 col-xs-8">
+                        @Html.EditorFor(model => model.EMAIL_ID, new { htmlAttributes = new { @class = "form-control input-sm", autocomplete = "new-password", id = "EMAIL_ID", placeholder = "Ex:Example@gmail.com", @data_parsley_type = "email", @data_parsley_trigger = "keyup" } })
+                        @Html.ValidationMessageFor(model => model.EMAIL_ID, "", new { @class = "text-danger" })
+                    </div>
+                    @*<label class="custom-switch ">
+                        <input type="checkbox" class="book_mark_toggle" data-on="Yes" data-off="No" id="IS_EMAIL_SHOW">
+                        <span class="slider"></span>
+                        <p style="width: 90px; color: #0d7c87">Publish on Website</p>
+                    </label>*@
+                    <div class="p-5 text-right col-md-2 col-xs-4 ">
+                        <label class="custom-switch d-inline-block">
+                            <input type="checkbox" class="book_mark_toggle" id="IS_EMAIL_SHOW">
+                            <span class="slider"></span>
+                        </label>
+                        <small class="d-block text-muted" style="font-size: 11px; color: #0d7c87">Publish on Website</small>
+                    </div>
+                </div>
+                <div class="form-group ">
+                    @Html.LabelFor(model => model.COLLEGE_EMAIL_ID, "College Email", htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-6">
+                        @Html.EditorFor(model => model.COLLEGE_EMAIL_ID, new { htmlAttributes = new { @class = "form-control input-sm", autocomplete = "new-password", id = "COLLEGE_EMAIL_ID", placeholder = "Ex:Example@sjctnc.edu.in", @data_parsley_type = "email", @data_parsley_trigger = "keyup" } })
+                        @Html.ValidationMessageFor(model => model.COLLEGE_EMAIL_ID, "", new { @class = "text-danger" })
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.SPECIALIZATION, "Specialization", htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.SPECIALIZATION, new { htmlAttributes = new { @class = "form-control input-sm", autocomplete = "new-password", placeholder = "Ex: Decentralization, Political ecology, Public Administration" } })
+                        @Html.ValidationMessageFor(model => model.SPECIALIZATION, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.IRINS_ID, "IRINS ID", htmlAttributes: new { @class = "control-label col-md-4 complusary" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.IRINS_ID, new
+                        {
+                        htmlAttributes = new
+                        {
+                        @class = "form-control input-sm ",
+                        autocomplete = "new-password",
+                        placeholder = "https://kec.irins.org/profile/123456",
+                        @data_parsley_pattern = @"^https:\/\/[a-zA-Z0-9\-]+\.irins\.org\/profile\/\d+$",
+                        @data_parsley_pattern_message = "Enter a valid IRINS profile link (e.g., https://kec.irins.org/profile/123456)",
+                        @data_parsley_trigger = "change",
+                        @data_parsley_required = "true",
+                        }
+                        })
+                        @Html.ValidationMessageFor(model => model.IRINS_ID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.LINKEDIN_LINK, "Linkedin Link", htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.LINKEDIN_LINK, new
+                        {
+                        htmlAttributes = new
+                        {
+                        @class = "form-control input-sm",
+                        autocomplete = "new-password",
+                        placeholder = "Ex: https://www.linkedin.com/in/username",
+                        @data_parsley_type = "url",
+                        @data_parsley_trigger = "change",
+                        @data_parsley_pattern = "^(https?:\\/\\/)?([\\w.-]+)\\.linkedin\\.com\\/.*$",
+                        @data_parsley_pattern_message = "Please enter a valid LinkedIn profile URL (e.g., https://www.linkedin.com/in/username)"
+                        }
+                        })
+                        @Html.ValidationMessageFor(model => model.LINKEDIN_LINK, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.GOOGLE_SCHOLAR, "Google Scholar Link", htmlAttributes: new { @class = "control-label col-md-4 complusary" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.GOOGLE_SCHOLAR, new
+                        {
+                        htmlAttributes = new
+                        {
+                        @class = "form-control input-sm",
+                        autocomplete = "new-password",
+                        placeholder = "Google Scholar Link",
+                        @data_parsley_type = "url",
+                        @data_parsley_trigger = "change",
+                        @data_parsley_pattern = "^(https?:\\/\\/)?(www\\.)?scholar\\.google\\.com\\/.*$",
+                        @data_parsley_pattern_message = "Enter a valid Google Scholar profile link (e.g., https://scholar.google.com/citations?user=...)",
+                        @data_parsley_required = "true"
+                        }
+                        })
+                        @Html.ValidationMessageFor(model => model.GOOGLE_SCHOLAR, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                @*<div class="form-group">
+                    @Html.LabelFor(model => model.SCOPUS_ID, "Scopus ID", htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.SCOPUS_ID, new { htmlAttributes = new { @class = "form-control input-sm", autocomplete = "new-password", placeholder = "Enter Scopus ID" } })
+                        @Html.ValidationMessageFor(model => model.SCOPUS_ID, "", new { @class = "text-danger" })
+                    </div>
+                </div>*@
+                <div class="form-group">
+                    @Html.LabelFor(model => model.SCOPUS_ID, "Scopus ID", htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.SCOPUS_ID, new
+                        {
+                        htmlAttributes = new
+                        {
+                        @class = "form-control input-sm",
+                        autocomplete = "new-password",
+                        placeholder = "https://www.scopus.com/authid/detail.uri?authorId=12345678900",
+                        @data_parsley_pattern = @"^https:\/\/www\.scopus\.com\/authid\/detail\.uri\?authorId=\d{8,}$",
+                        @data_parsley_pattern_message = "Enter a valid Scopus link (e.g., https://www.scopus.com/authid/detail.uri?authorId=12345678900)",
+                        @data_parsley_trigger = "change"
+                        }
+                        })
+                        @Html.ValidationMessageFor(model => model.SCOPUS_ID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ORCID_ID, "Orcid ID", htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.ORCID_ID, new
+                        {
+                        htmlAttributes = new
+                        {
+                        @class = "form-control input-sm",
+                        autocomplete = "new-password",
+                        placeholder = "https://orcid.org/0000-0000-0000-0000",
+                        @data_parsley_pattern = "^(https?:\\/\\/)?orcid\\.org\\/\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$",
+                        @data_parsley_pattern_message = "Enter a valid ORCID link (e.g., https://orcid.org/0000-0002-1825-0097)",
+                        @data_parsley_trigger = "change"
+                        }
+                        })
+                        @Html.ValidationMessageFor(model => model.ORCID_ID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RESEARCHER_ID, "Researcher ID", htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.EditorFor(model => model.RESEARCHER_ID, new
+                        {
+                        htmlAttributes = new
+                        {
+                        @class = "form-control input-sm",
+                        autocomplete = "new-password",
+                        placeholder = "https://www.webofscience.com/wos/author/record/123456 or https://publons.com/researcher/1234567/",
+                        @data_parsley_pattern = @"^(https:\/\/(www\.)?(webofscience\.com\/wos\/author\/record\/\d+|publons\.com\/researcher\/\d+\/?))$",
+                        @data_parsley_pattern_message = "Enter a valid Web of Science or Publons ResearcherID link.",
+                        @data_parsley_trigger = "change"
+                        }
+                        })
+                        @Html.ValidationMessageFor(model => model.RESEARCHER_ID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-4">Are you PhD Awardee</label>
+                    <div class="col-md-8">
+                        <select class="selectpicker form-control input-sm" id="PHD_AWARDEES">
+                            <option value="">--- select ---</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        @Html.ValidationMessageFor(model => model.PHD_SUPERVISOR, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group hidden" id="isPHDSuperVisorsDiv">
+                    <label class="control-label col-md-4">Are you PhD Supervisor</label>
+                    <div class="col-md-8">
+                        <select class="selectpicker form-control input-sm" id="PHD_SUPERVISOR">
+                            <option value="">--- select ---</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        @Html.ValidationMessageFor(model => model.PHD_SUPERVISOR, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group hidden" id="currently_accepting_PHD_Div">
+                    <label class="control-label col-md-4">Currently accepting PhD Student</label>
+                    <div class="col-md-8">
+                        <select class="selectpicker form-control input-sm" id="NEW_ACCEPTING_PHD">
+                            <option value="">--- select ---</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        @Html.ValidationMessageFor(model => model.GOOGLE_SCHOLAR, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.Label("Attachments", htmlAttributes: new { @class = "control-label col-md-4 col-sm-12 col-xs-12 text-md-right p-r-0" })
+                    <div class="col-md-8 col-sm-12 col-xs-12">
+                        <div class="drag-drop-zone" id="attachmentsDropZone" style="padding: 15px; min-height: auto;">
+                            <i class="fa fa-copy upload-icon" style="font-size: 24px; margin-bottom: 5px;"></i>
+                            <p>Drag & Drop files here or click to add files</p>
+                            <input type="file" name="files[]" multiple id="fAttachment" onchange='readmultifiles()'>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-body">
+                <!-- begin table-responsive -->
+                <div class="col-md-12 table-responsive">
+                    <table class="table table-bordered table-hover" id="tblStaffPersonalFileList">
+                        <thead>
+                            <tr>
+                                <th>PREVIEW</th>
+                                <th>FILE INFO</th>
+                                <th width="30%">STATUS</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody class="files">
+                            <tr data-id="empty" style="display: none;" id="trEmpty">
+                                <td colspan="4" class="text-center text-muted p-t-30 p-b-30">
+                                    <div class="m-b-10"><i class="fa fa-file fa-3x"></i></div>
+                                    <div>No file selected</div>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+                <!-- end table-responsive -->
+            </div>
+        </div>
+
+    </div>
+    <hr />
+
+
+    <hr />
+    <div class="form-group pull-right">
+        <div class="col-md-12 pull-right">
+            <a id="btnEditStudentAcadamic" class="btn btn-primary">Submit</a>
+        </div>
+    </div>
+
+}
+
+<script>
+
+    function renderExistingAttachment(filePath) {
+        if (!filePath) return "";
+        
+        let fileName = filePath.split('/').pop().split('\\').pop();
+        let r = Math.random().toString(36).substring(7);
+        let baseUrl = window.location.origin + "/";
+        let fileUrl = baseUrl + filePath.replace(/\\/g, '/');
+
+        var filedom = "<tr id='" + r + "' data-existing-path='" + filePath + "'>" +
+            "<td>" +
+            "<span class='preview'><i class='fa fa-file-pdf-o fa-2x text-danger'></i></span>" +
+            "</td>" +
+            "<td>" +
+            "<div>" +
+            "<dl>" +
+            "<dt class=text-inverse>File Name:</dt>" +
+            "<dd class=name>" + fileName + "</dd>" +
+            "</dl>" +
+            "</div>" +
+            "</td>" +
+            "<td>" +
+            "<div class='m-b-15'>" +
+            "<a href='" + fileUrl + "' target='_blank' class='label label-primary' style='font-size:12px; cursor:pointer;'><i class='fa fa-eye'></i> View Uploaded File</a>" +
+            "</div>" +
+            "</td>" +
+            "<td nowrap=>" +
+            "<button class='btn btn-default width-100 p-r-20' onclick=\"FileCancel('" + r + "', true)\">" +
+            "<i class='fa fa-trash fa-fw pull-left m-t-2 m-r-5 text-muted'></i>" +
+            "<span>Remove</span>" +
+            "</button>" +
+            "</td>" +
+            "</tr>";
+        
+        return filedom;
+    }
+
+            $("#PHD_SUPERVISOR").on('change', function () {
+                var supervi = $('#PHD_SUPERVISOR').val();
+                if (supervi == "1") {
+                    $("#currently_accepting_PHD_Div").removeClass('hidden');
+
+                } else {
+                    $("#currently_accepting_PHD_Div").addClass('hidden');
+                    $("#NEW_ACCEPTING_PHD").val('');
+                }
+            });
+            $("#PHD_AWARDEES").on('change', function () {
+                var supervi = $('#PHD_AWARDEES').val();
+                if (supervi=="1") {
+                    $("#isPHDSuperVisorsDiv").removeClass('hidden');
+                    $("#currently_accepting_PHD_Div").addClass('hidden');
+                    $("#PHD_SUPERVISOR").val('');
+                    $('#NEW_ACCEPTING_PHD').val('');
+
+                } else {
+                    $("#currently_accepting_PHD_Div").addClass('hidden');
+
+                    $("#isPHDSuperVisorsDiv").addClass('hidden');
+                    $("#PHD_SUPERVISOR").val('');
+                    $('#NEW_ACCEPTING_PHD').val('');
+                }
+            })
+            function checkPhoto(target) {
+                var file = target.files[0];
+
+                var img = new Image();
+                img.onload = function () {
+
+                    //if (img.width != 150 ||   img.height != 150) {
+                    //    alert("**Passport Size :**\nImage dimensions must be 150 pixels in width and 150 pixels in height.");
+                    //    $('#img').attr('src', '');
+                    //    return false;
+                    //}
+                    //// Check if the image dimensions are 250x250px
+                    //if (img.width !== 250 || img.height !== 250) {
+                    //    alert("Image dimensions must be 250x250 pixels");
+                    //    $('#img').attr('src', '');
+                    //    return false;
+                    /*} */
+                    //else {
+                    //    // If both conditions are met, display the image and show information
+                    //    var reader = new FileReader();
+                    //    reader.onload = function (e) {
+                    //        $('#img').attr('src', e.target.result);
+                    //        alert("Image uploaded successfully!");
+                    //    };
+                    //    reader.readAsDataURL(file);
+                    //}
+                };
+                img.src = URL.createObjectURL(file);
+            }
+
+    $(document).ready(function ()
+    {
+       /* $('.selectpicker').selectpicker('refresh');*/
+       
+        function updateExperienceBadge(dateStr) {
+            if (dateStr) {
+                var parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    var joinDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                    var today = new Date();
+                    
+                    var totalMonths = (today.getFullYear() - joinDate.getFullYear()) * 12 + (today.getMonth() - joinDate.getMonth());
+                    if (today.getDate() < joinDate.getDate()) {
+                        totalMonths--;
+                    }
+                    
+                    if (totalMonths >= 0) {
+                        var expYears = Math.floor(totalMonths / 12);
+                        var expMonths = totalMonths % 12;
+                        
+                        var textParts = [];
+                        if (expYears > 0) textParts.push(expYears + (expYears === 1 ? " Year" : " Years"));
+                        if (expMonths > 0) textParts.push(expMonths + (expMonths === 1 ? " Month" : " Months"));
+                        
+                        var text = textParts.length > 0 ? textParts.join(" ") + " Experience" : "New Joinee";
+                        $("#YEARS_OF_EXPERIENCE_BADGE").text(text).removeClass("hidden");
+                    } else {
+                        $("#YEARS_OF_EXPERIENCE_BADGE").text("Future Joining date").removeClass("hidden");
+                    }
+                }
+            } else {
+                $("#YEARS_OF_EXPERIENCE_BADGE").addClass("hidden");
+            }
+        }
+
+        // DatePicker ...
+        handleDatepicker = function () {
+            "use strict";
+            $("#txtDOB, #DATE_OF_JOIN").datepicker({
+                todayHighlight: true,
+                autoclose: true,
+                endDate: new Date(),
+                format: "dd/mm/yyyy",
+                orientation: "right bottom"
+                // 'top': top,
+                // 'left': left
+            }).on('changeDate', function(e){
+               if($(this).attr('id') === 'DATE_OF_JOIN'){
+                   updateExperienceBadge($(this).val());
+               }
+            });
+            
+            $("#DATE_OF_JOIN").on("change", function() {
+                updateExperienceBadge($(this).val());
+            });
+        }
+        handleDatepicker();
+
+        // Fetch Personal Infomation ...
+        GetPersonal=function()
+        {
+
+            $.ajax({
+                url:"@Url.Action("FetchStaffPesonalInfobyId", "Website")",
+                method:"POST",
+                datatype:"html",
+                success:function(data)
+                {
+                    $("#STAFF_NAME").val(data.STAFF_NAME);
+                    $("#STAFF_ID").val(data.STAFF_ID);
+                    $("#PROFILE_ID").val(data.PROFILE_ID);
+                    $("#ADDRESS").val(data.ADDRESS);
+                    $("#QUALIFICATION").val(data.QUALIFICATION);
+                    $("#STAFF_CODE").val(data.STAFF_CODE);
+                    
+                    $("#PHOTO").val(data.PHOTO);
+                    $("#FILE_PATH").val(data.FILE_PATH);
+                    
+                    $("#DATE_OF_JOIN").val(data.DATE_OF_JOIN);
+                    updateExperienceBadge(data.DATE_OF_JOIN);
+
+                    $("#CONTACT_NO").val(data.CONTACT_NO);
+                    $("#EMAIL_ID").val(data.EMAIL_ID);
+                    //$("#PHOTO").val(data.PHOTO);
+                    $("#SPECIALIZATION").val(data.SPECIALIZATION);
+                    $("#RESEARCHER_ID").val(data.RESEARCHER_ID);
+                    $("#DESIGNATION").val(data.DESIGNATION);
+                    $("#PHD_SUPERVISOR").val(data.PHD_SUPERVISOR);
+                    // Then refresh the selectpicker to reflect changes
+                    $('#PHD_SUPERVISOR').selectpicker('refresh');
+                    if (data.PHD_AWARDEES == "1") {
+                        $("#currently_accepting_PHD_Div").addClass('hidden');
+                        $("#isPHDSuperVisorsDiv").removeClass('hidden');
+
+                    }
+                    else {
+                        $("#currently_accepting_PHD_Div").addClass('hidden');
+                        $("#isPHDSuperVisorsDiv").addClass('hidden');
+                    }
+                    if (data.PHD_SUPERVISOR == "1") {
+                        $("#currently_accepting_PHD_Div").removeClass('hidden');
+
+                    }
+                    else {
+                        $("#currently_accepting_PHD_Div").addClass('hidden');
+                    }
+
+                    $("#NEW_ACCEPTING_PHD").val(data.NEW_ACCEPTING_PHD);
+                    $("#IS_EMAIL_SHOW").val(data.IS_EMAIL_SHOW);
+                    if (data.IS_EMAIL_SHOW == "1") {
+                        $("#IS_EMAIL_SHOW").prop('checked', true);
+                    } else {
+                        $("#IS_EMAIL_SHOW").prop('checked', false);
+                    }
+                    if (data.IS_CONTACT_NO_SHOW == "1") {
+                        $("#IS_CONTACT_NO_SHOW").prop('checked', true);
+                    } else {
+                        $("#IS_CONTACT_NO_SHOW").prop('checked', false);
+                    }
+                    $("#IS_CONTACT_NO_SHOW").val(data.IS_CONTACT_NO_SHOW);
+                    $("#LINKEDIN_LINK").val(data.LINKEDIN_LINK);
+                    $("#GOOGLE_SCHOLAR").val(data.GOOGLE_SCHOLAR);
+                    $("#COLLEGE_EMAIL_ID").val(data.COLLEGE_EMAIL_ID);
+                    $("#SCOPUS_ID").val(data.SCOPUS_ID);
+                    $("#PHD_AWARDEES").val(data.PHD_AWARDEES);
+                    $("#IRINS_ID").val(data.IRINS_ID);
+                    $("#ORCID_ID").val(data.ORCID_ID);
+                    $("#DEPARTMENT").val(data.DEPARTMENT);
+                    
+                    if (data.PHOTO && data.PHOTO.trim() !== '') {
+                        $('#img').attr('src', data.PHOTO).show();
+                        $('#dragDropZone .upload-icon, #uploadText').hide();
+                        $('#photoActions').show();
+                    } else {
+                        $('#img').hide();
+                        $('#dragDropZone .upload-icon, #uploadText').show();
+                        $('#photoActions').hide();
+                    }
+
+                    // Render existing attachments
+                    console.log("Existing File Path Data:", data.FILE_PATH);
+                    $("#tblStaffPersonalFileList tbody tr").not("#trEmpty").remove();
+                    if (data.FILE_PATH) {
+                        var paths = data.FILE_PATH.split(',');
+                        var existingRows = "";
+                        paths.forEach(function(path) {
+                            if (path && path.trim()) {
+                                console.log("Rendering path:", path.trim());
+                                existingRows += renderExistingAttachment(path.trim());
+                            }
+                        });
+                        
+                        if (existingRows) {
+                            $("#tblStaffPersonalFileList tbody").append(existingRows);
+                            $("#trEmpty").hide();
+                        } else {
+                            $("#trEmpty").show();
+                        }
+                    } else {
+                        $("#trEmpty").show();
+                    }
+
+                    $('.selectpicker').selectpicker('refresh');
+
+                    // Pre-check saved roles in multiple select
+                    var savedRoles = data.STF_ROLE_RES_ID ? data.STF_ROLE_RES_ID.split(',') : [];
+                    $('#rolesMultiSelect').val(savedRoles);
+                    $('#rolesMultiSelect').selectpicker('refresh');
+                    $('#ROLES_RESPONSE').val(savedRoles.join(','));
+                },error:function(error)
+                {
+                    myAlert('Internal Server Error !', 'gritter-danger', '');
+                }
+            });
+        }
+    });
+    GetPersonal();
+
+    function removeMyPhoto() {
+        $('#img').attr('src', '').hide();
+        $('#PHOTO').val('REMOVE'); 
+        $('#inputimg').val('');
+        $('#dragDropZone .upload-icon, #uploadText').show();
+        $('#photoActions').hide();
+    }
+
+</script>
+
+
+
+<script>
+    var baseimage64;
+    var extension;
+    function encodeImagetoBase64(element) {
+        if (element != null && element != "") {
+            var file = element.files[0];
+            extension = String(file.value).substr(String(file.value).lastIndexOf('.') + 1);
+            var reader = new FileReader();
+            reader.onloadend = function () {
+
+                $(".link").attr("href", reader.result);
+
+                $(".link").text(reader.result);
+
+                $('#img').attr("src", reader.result).show();
+                $('#dragDropZone .upload-icon, #uploadText').hide();
+                $('#btnRemovePhoto').show();
+                
+                //only this is required to send file in ajax
+                baseimage64 = reader.result;
+            }
+
+
+        }
+        //this is method call
+        reader.readAsDataURL(file);
+    }
+    function getBase64AndExtension() {
+        var file = String($('#inputimg').val());
+        extension = file.split('.').pop();
+        return { base64String: baseimage64, sextension: extension }
+    }
+    $(document).ready(function () {
+        $('.complusary').each(function () {
+            // Append the asterisk only if it's not already present
+            if (!$(this).find('.asterisk').length) {
+                $(this).append('<span class="asterisk" style="color: red; margin-left: 5px;">*</span>');
+            }
+        });
+
+        // Removed pill toggle logic since we moved to standard bootstrap-select.
+
+
+        // Drag and drop styles
+        const dropZone = document.getElementById('dragDropZone');
+        if (dropZone) {
+            dropZone.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', function (e) {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                if(e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                   document.getElementById('inputimg').files = e.dataTransfer.files;
+                   encodeImagetoBase64(document.getElementById('inputimg'));
+                }
+            });
+        }
+
+        const attachmentsDropZone = document.getElementById('attachmentsDropZone');
+        if (attachmentsDropZone) {
+            attachmentsDropZone.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                attachmentsDropZone.classList.add('dragover');
+            });
+
+            attachmentsDropZone.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                attachmentsDropZone.classList.remove('dragover');
+            });
+
+            attachmentsDropZone.addEventListener('drop', function (e) {
+                e.preventDefault();
+                attachmentsDropZone.classList.remove('dragover');
+                if(e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                   document.getElementById('fAttachment').files = e.dataTransfer.files;
+                   if (typeof readmultifiles === "function") {
+                       readmultifiles();
+                   }
+                }
+            });
+        }
+    });
+
+</script>
+
+<!-- Cropping Modal -->
+<div class="modal fade" id="cropModal" tabindex="-1" role="dialog" aria-labelledby="cropModalLabel" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="cropModalLabel">Crop Profile Photo</h4>
+            </div>
+            <div class="modal-body p-0">
+                <div id="croppie-viewport-container">
+                    <div id="croppie-viewport"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnCropSave" onclick="cropImage()">Crop & Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var croppieInstance = null;
+
+    function initCroppie(imageSource) {
+        if (croppieInstance) {
+            croppieInstance.destroy();
+        }
+
+        var containerWidth = $('#croppie-viewport-container').width();
+        var boundaryWidth = containerWidth > 350 ? 350 : containerWidth - 20;
+        var viewportSize = boundaryWidth - 100;
+        if (viewportSize < 200) viewportSize = 200;
+        if (boundaryWidth < viewportSize + 40) boundaryWidth = viewportSize + 40;
+
+        croppieInstance = new Croppie(document.getElementById('croppie-viewport'), {
+            viewport: { width: viewportSize, height: viewportSize, type: 'square' },
+            boundary: { width: boundaryWidth, height: boundaryWidth + 50 },
+            showZoomer: true,
+            enableOrientation: true,
+            mouseWheelZoom: 'ctrl'
+        });
+
+        croppieInstance.bind({
+            url: imageSource
+        });
+    }
+
+    function cropImage() {
+        if (croppieInstance) {
+            croppieInstance.result({
+                type: 'base64',
+                size: { width: 400, height: 400 }, // Output size
+                format: 'jpeg',
+                quality: 0.9
+            }).then(function (base64) {
+                $('#img').attr('src', base64).show();
+                $('#PHOTO').val(base64); // Send this to backend
+                $('#dragDropZone .upload-icon, #uploadText').hide();
+                $('#photoActions').show();
+                $('#cropModal').modal('hide');
+                
+                // Keep the raw baseimage64 for any other legacy use
+                baseimage64 = base64;
+            });
+        }
+    }
+
+    // Override encodeImagetoBase64 to open modal
+    function encodeImagetoBase64(element) {
+        if (element != null && element.files && element.files[0]) {
+            var file = element.files[0];
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#cropModal').modal('show');
+                // The modal needs to be fully shown before initializing Croppie
+                setTimeout(function() {
+                    initCroppie(e.target.result);
+                }, 300);
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+
+

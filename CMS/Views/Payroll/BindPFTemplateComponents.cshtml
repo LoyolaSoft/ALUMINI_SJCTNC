@@ -1,0 +1,351 @@
+﻿@model  CMS.ViewModel.ViewModel.PayrollViewModel
+@{
+    Layout = null;
+}
+<div class="col-md-12 table-responsive">
+    <div class="form-group col-md-12">
+        <a class="btn btn-success pull-right form-group m-b-5" href="#pfcomponentmodal" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add">Add</i></a>
+    </div>
+    <div class="form-group col-md-12 table-responsive">
+        <table class="table table-hover table-bordered" id="tbltemplatepfcomponent">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Component Name</th>
+                    <th>Calcluation</th>
+                    <th>Percentage</th>
+                    <th>Action</th>
+
+                </tr>
+            </thead>
+            <tbody>
+
+                @if (Model.litemplatepfcomponent != null && Model.litemplatepfcomponent.Count > 0)
+            {
+                var count = 0;
+                foreach (var item in Model.litemplatepfcomponent)
+                {
+                    count = count + 1;
+
+                        <tr>
+                            <td>@count</td>
+                            <td>@item.PF_COMPONENT_NAME</td>
+                            <td>@("(" + item.FIRST_COMPONENT + " " + item.OPERATORS + "" + @item.SECOND_COMPONENT + ")")</td>
+                            <td>@item.PERCENTAGE</td>
+
+                            <td>
+                                <a href="#pfcomponentmodal" onclick="FetchPFComponentDetails(@item.TEMPLATE_PF_COMPONENT_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+                                <a href="javascrip:;" onclick="GetConfirm(@item.TEMPLATE_PF_COMPONENT_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+
+                            </td>
+                        </tr>
+                    }
+
+                }
+
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<div class="modal" id="pfcomponentmodal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <input type="text" id="templatepfcomponentid" class="hidden">
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Component</label>
+
+                                        <div class="col-md-8">
+                                            @Html.DropDownList("Component", (Model.PF_COMPONENTS != null) ? Model.PF_COMPONENTS : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl", @data_live_search = "true", @id = "ddlpfcomponents" })
+                                            @Html.ValidationMessageFor(model => model.PF_COMPONENTS, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label"></label>
+                                        <div class="form-group col-md-4">
+                                            <div class="radio radio-inline radio-css">
+                                                <input type="radio" name="cssRadio" id="cssRadio1" onchange="HideOrShow()" value="0" />
+                                                <label for="cssRadio1">
+                                                    Salary Component
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-md-offset-2 col-md-4">
+                                            <div class="radio radio-inline radio-css">
+                                                <input type="radio" name="cssRadio" id="cssRadio2" onchange="HideOrShow()" value="1" />
+                                                <label for="cssRadio2">
+                                                    PF Component
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group hidden" id="salarycomponent">
+                                        <label class="col-md-4 control-label">Salary Components</label>
+                                        <div class="col-md-8">
+                                            @Html.DropDownList("Component", (Model.COMPONENTS != null) ? Model.COMPONENTS : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl", @data_live_search = "true", @id = "ddlsalcomp1" })
+                                            @Html.ValidationMessageFor(model => model.COMPONENTS, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group hidden" id="pfcomponent">
+                                        <label class="col-md-4 control-label">Components</label>
+
+                                        <div class="col-md-8">
+                                            @Html.DropDownList("Component", (Model.PF_COMPONENTS != null) ? Model.PF_COMPONENTS : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl", @data_live_search = "true", @id = "ddlpfcomp1" })
+                                            @Html.ValidationMessageFor(model => model.PF_COMPONENTS, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Operator</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="operator" class="form-control" placeholder="*,+,-" data-parsley-required="true">
+                                        </div>
+
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label"></label>
+                                        <div class="form-group col-md-4">
+                                            <div class="radio radio-inline radio-css">
+                                                <input type="radio" name="cssRadio1" id="rbnsalary" onchange="HideOrShow1()" value="0" />
+                                                <label for="rbnsalary">
+                                                    Salary Component
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-md-offset-2 col-md-4">
+                                            <div class="radio radio-inline radio-css">
+                                                <input type="radio" name="cssRadio1" id="rbnpfcomponent" onchange="HideOrShow1()" value="1" />
+                                                <label for="rbnpfcomponent">
+                                                    PF Component
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group hidden" id="salarycomp">
+                                        <label class="col-md-4 control-label">Salary Components</label>
+                                        <div class="col-md-8">
+                                            @Html.DropDownList("Component", (Model.COMPONENTS != null) ? Model.COMPONENTS : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl", @data_live_search = "true", @id = "ddlsalcomp2" })
+                                            @Html.ValidationMessageFor(model => model.COMPONENTS, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group hidden" id="pfcomp">
+                                        <label class="col-md-4 control-label">Components</label>
+
+                                        <div class="col-md-8">
+                                            @Html.DropDownList("Component", (Model.PF_COMPONENTS != null) ? Model.PF_COMPONENTS : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl", @data_live_search = "true", @id = "ddlpfcomp2" })
+                                            @Html.ValidationMessageFor(model => model.PF_COMPONENTS, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 form-group">
+
+                                        <label class="col-md-4 control-label">Percentage</label>
+                                        <div class="col-md-8">
+                                            <input type="number" id="percentage" class="form-control">
+                                        </div>
+
+                                    </div>
+                                    <div class="col-md-12 form-group">
+
+                                        <label class="col-md-4 control-label">Fixed Amount</label>
+                                        <div class="col-md-8">
+                                            <input type="number" id="fixedamount" class="form-control">
+                                        </div>
+
+                                    </div>
+                                    <div class="col-md-12 form-group">
+
+                                        <label class="col-md-4 control-label">Percentage Amount</label>
+                                        <div class="col-md-8">
+                                            <input type="number" id="percentageamount" class="form-control">
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnsub" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function FetchPFComponentDetails(ID) {
+        if (ID != null) {
+            $.ajax({
+                url: "@Url.Action("FetchTemplatePFComponents", "Payroll")",
+                type: "post",
+                data: { sPfcomponentId: ID },
+                success: function (data) {
+                    if (data != null) {
+                        $('#templatepfcomponentid').val(data.TEMPLATE_PF_COMPONENT_ID);
+                        $('#ddlpfcomponents').val(data.PF_COMPONENT_ID);
+
+
+                        if (data.IS_SECOND_PF_COMPONENT == "1") {
+                            $('#ddlpfcomp2').val(data.SECOND_COMPONENT);
+                            $('#rbnpfcomponent').click();
+                        }
+                        else {
+                            $('#ddlsalcomp2').val(data.SECOND_COMPONENT);
+                            $('#rbnsalary').click();
+                        }
+                        if (data.IS_FIRST_PF_COMPONENT == "1") {
+                            $('#ddlpfcomp1').val(data.FIRST_COMPONENT);
+                            $('#cssRadio2').click();
+                        }
+                        else {
+                            $('#ddlsalcomp1').val(data.FIRST_COMPONENT);
+                            $('#cssRadio1').click();
+                        }
+
+                        $('#operator').val(data.OPERATORS);
+                        $('#percentage').val(data.PERCENTAGE);
+                        $('#fixedamount').val(data.FIXED_AMOUNT);
+                        $('#percentageamount').val(data.PERCENTAGE_AMOUNT);
+
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                },
+                error: function (ex) {
+                    alert(ex.Message);
+                }
+            });
+        }
+    }
+    $('#btnsub').click(function () {
+
+        var isValid = true;
+        var JsonData = null;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            return false;
+        }
+        var Is_firstpfcomponent = 0;
+        var Is_secondpfcomponent = 0;
+        var firstcomponent = 0;
+        var secondcomponent = 0;
+        if ($('#ddlpfcomp1').prop(':checked')) {
+            firstcomponent = $('#ddlpfcomp1').val();
+            Is_firstpfcomponent = $('#ddlpfcomp1').val();
+        }
+        else {
+            firstcomponent = $('#ddlsalcomp1').val();
+        }
+        if ($('#Is_secondpfcomponent').prop(':checked')) {
+            secondcomponent = $('#ddlsalcomp2').val();
+            Is_secondpfcomponent = $('#Is_secondpfcomponent').val();
+        }
+        else {
+            secondcomponent = $('#ddlsalcomp2').val();
+        }
+        JsonData = '{"TEMPLATE_PF_COMPONENT_ID":"' + $('#templatepfcomponentid').val() + '","TEMPLATE_ID":"' + $('#Templates').val() + '","PF_COMPONENT_ID":"' + $('#ddlpfcomponents').val() + '","FIRST_COMPONENT":"' + firstcomponent + '","IS_FIRST_PF_COMPONENT":"' + Is_firstpfcomponent + '","OPERATORS":"' + $('#operator').val() + '","SECOND_COMPONENT":"' + secondcomponent + '","IS_SECOND_PF_COMPONENT":"' + Is_secondpfcomponent + '","PERCENTAGE":"' + $('#percentage').val() + '","FIXED_AMOUNT":"' + $('#fixedamount').val() + '","PERCENTAGE_AMOUNT":"' + $('#percentageamount').val() + '"}';
+        $.ajax({
+            url: "@Url.Action("SaveorUpdateTemplatePFComponents", "Payroll")",
+            type: "post",
+            data: { sJsonData: JsonData },
+            success: function (data)
+            {
+                if (data.ErrorCode == "200")
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                    FetchPFComponentDetails();
+                }
+                if (data.ErrorCode == "400")
+                {
+                    swal({ title: "Error!", text:data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+                else {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                    FetchPFComponentDetails();
+                }
+
+            },
+            error: function (ex) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+
+
+
+    HideOrShow = function () {
+        if (cssRadio1.checked == true) {
+
+
+            $.ajax({
+                url: "@Url.Action("FetchTemplateComponentByTemplate", "Payroll")",
+                type: "post",
+                data: { sTemplateId: $('#Templates').val() },
+                success: function (data) {
+                    $('#ddlsalcomp1').empty();
+                    $('#ddlsalcomp1').append(data);
+
+                },
+                error: function (ex) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+            $('#salarycomponent').removeClass('hidden');
+            $('#pfcomponent').addClass('hidden');
+
+
+        }
+        if (cssRadio2.checked == true) {
+            $('#pfcomponent').removeClass('hidden');
+
+            $('#salarycomponent').addClass('hidden');
+
+
+        }
+    }
+    HideOrShow1 = function () {
+        if (rbnsalary.checked == true) {
+
+            $.ajax({
+                url: "@Url.Action("FetchTemplateComponentByTemplate", "Payroll")",
+                type: "post",
+                data: { sTemplateId: $('#Templates').val() },
+                success: function (data) {
+                    $('#ddlsalcomp2').empty();
+                    $('#ddlsalcomp2').append(data);
+
+                },
+                error: function (ex) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+            $('#salarycomp').removeClass('hidden');
+            $('#pfcomp').addClass('hidden');
+
+
+        }
+        if (rbnpfcomponent.checked == true) {
+            $('#pfcomp').removeClass('hidden');
+
+            $('#salarycomp').addClass('hidden');
+
+
+        }
+    }
+</script>

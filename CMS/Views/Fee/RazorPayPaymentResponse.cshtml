@@ -1,0 +1,96 @@
+﻿@model List<CMS.ViewModel.Model.FEE_STUDENT_ACCOUNT>
+@{
+    ViewBag.Title = "RazorPayPaymentResponse";
+    //  Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Fee</a></li>
+        <li class="active">Payment Response</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Payment Response<small></small></h1>
+    <!-- end page-header -->
+    <div class="form-horizontal">
+        <div class="panel panel-primary">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Payment Response</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal " id="divPrint">
+
+                    @{
+                        if (Model != null && Model.Count > 0)
+                        {
+                            var feeFrequencies = Model.GroupBy(x => x.TRANSACTION_ID);
+
+                            foreach (var frequencyItem in feeFrequencies)
+                            {
+                                var feeTransactions = Model.Where(x => x.TRANSACTION_ID == frequencyItem.FirstOrDefault().TRANSACTION_ID);
+                                <div style="page-break-after:always !important;page-break-inside:avoid !important;">
+                                    <h4 class="lead"><img src="~/Content/assets/img/hcc-img/hcclogo.jpg" width="70px" style="box-shadow:1px 1px #eee;" class="img-circle img" alt="HCC Logo" /> Holy Cross College,Nagercoil-629 004</h4>
+                                    <hr />
+                                    <table class="table table-bordered table-hover" width="100%">
+
+                                        <tr>
+                                            <td>Name</td>
+                                            <td>@feeTransactions.FirstOrDefault().FIRST_NAME.ToUpper()</td>
+                                        </tr>
+                                        @*<tr><td>Register No </td><td>@feeTransactions.FirstOrDefault().REGISTER_NO</td></tr>*@
+                                        <tr><td>Receipt No </td><td>@feeTransactions.FirstOrDefault().RECEIPT_NO</td></tr>
+                                        <tr><td>Transaction Date </td><td>@feeTransactions.FirstOrDefault().TRANSACTION_DATE</td></tr>
+                                        <tr><td>Status </td><td><b>@feeTransactions.FirstOrDefault().STATUS</b></td></tr>
+                                        @foreach (var item in feeTransactions)
+                                        {
+                                            <tr><td>@item.HEAD_NAME (@item.FREQUENCY_NAME) </td><td><i class="fa fa-rupee"></i> @item.BALANCE</td></tr>
+                                        }
+                                        <tr><td>Total </td><td><b><i class="fa fa-rupee"></i> @feeTransactions.Sum(o => Convert.ToDouble(o.BALANCE))</b></td></tr>
+
+                                    </table>
+                                </div>
+                            }
+                        }
+                        else
+                        { <table class="table table-bordered table-hover" width="100%">
+                                <tr><td>Erorr Message</td><td>Your Account is not available,Please meet software admin. </td></tr>
+                            </table>
+                        }
+                    }
+                </div>
+                <div class="form-group">
+                    <div class="col-md-6 p-l-0 p-t-5">
+                       @* <input type="button" id="submit" value="Print" class="btn btn-success " onclick="printDiv('divPrint')" />*@
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function ContentLoad() {
+
+    }
+    function printDiv(divName) {
+
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+       
+    }
+</script>

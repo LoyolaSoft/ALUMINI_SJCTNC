@@ -1,0 +1,314 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{ 
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <!-- begin breadcrumb -->
+        <ol class="breadcrumb pull-right">
+            <li><a @*href="@Url.Action("Student", "DashBoard")"*@ href="javascript:;">Home</a></li>
+            <li class="active">Question Paper Setting List</li>
+        </ol>
+        <!-- end breadcrumb -->
+        <!-- begin page-header -->
+        <h1 class="page-header">Question Paper Setting List<small></small></h1>
+        <!-- end page-header -->
+
+        <div class="panel panel-primary" id="panel">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Question Paper Setting List</h4>
+            </div>
+            <div class="panel-body">
+                <div class="col-md-12 form-group pull-right">
+                    <a href="#modal-dialog" data-toggle="modal" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add</a>
+                </div> 
+
+                <div class="col-md-12 form-group table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Department</th>
+                                <th>Programme Level</th>
+                                <th>Section</th>
+                                <th>Topic</th>
+                                <th>Total Question</th>
+                                <th>Mark Per Question</th>
+                                <th>Total Mark</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.liExamDeptQuestionSetting != null && Model.liExamDeptQuestionSetting.Count > 0)
+                            {
+                                int nCount = 0;
+                                foreach (var item in Model.liExamDeptQuestionSetting)
+                                {
+                                    <tr>
+                                        <td>@{nCount++;} @nCount</td>
+                                        <td>@item.DEPARTMENT_ID</td>
+                                        <td>@item.PROGRAMME_LEVEL_ID</td>
+                                        <td>@item.SECTION_ID</td>
+                                        <td>@item.TOPIC</td>
+                                        <td>@item.TOTAL_QUESTIONS</td>
+                                        <td>@item.MARK_PER_QUESTION</td>
+                                        <td>@item.TOTAL_MARK</td>
+                                        <td>
+                                            <a class="text-primary" href="#modal-dialog" data-toggle="modal" onclick="FetchRecordById(@item.QUESTION_PAPER_SETTING_ID)"><i class="fa fa-edit"></i></a>
+                                            <a class="text-danger" href="javascript:;" onclick="GetConfirm(@item.QUESTION_PAPER_SETTING_ID)"><i class="fa fa-trash"></i></a>
+                                        </td>
+                                    </tr>
+                                 }
+                                            
+                            }
+                       </tbody>
+                   </table>
+                </div>
+            </div>
+        </div>
+   }
+</div>
+
+
+<div class="modal" id="modal-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit </h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group" id="dvValidate" data-parsley-validate="true">
+                        <div class="col-md-12">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Section</label>
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(m => m.Section, (Model.Section != null) ? Model.Section : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Department</label>
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(m => m.DepartmentList, (Model.DepartmentList != null) ? Model.DepartmentList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Programme Level</label>
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(m => m.Program, (Model.Program != null) ? Model.Program : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="checkbox checkbox-css col-md-offset-3">
+                                    <input type="checkbox" id="EitherOr" />
+                                    <label for="EitherOr">Is Either Or Question</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Topic</label>
+                                <div class="col-md-9">
+                                    <input type="text" id="txtTopic" placeholder="Enter Topic For The Question" class="form-control" data-parsley-required="true" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Max Limit Questions</label>
+                                <div class="col-md-9">
+                                    <input type="number" max="100" maxlength="3" placeholder="Enter Max Limit Question" class="form-control" id="txtMaxQuestion" data-parsley-required="true" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Mark Per Questions</label>
+                                <div class="col-md-9">
+                                    <input type="number" max="100" maxlength="3" placeholder="Enter Mark Per Question" class="form-control" id="txtMarkPerQuestion" data-parsley-required="true" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Total Questions</label>
+                                <div class="col-md-9">
+                                    <input type="number" max="100" maxlength="3" placeholder="Enter Total Question" class="form-control" id="txtTotalQuestion" data-parsley-required="true" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Total Mark</label>
+                                <div class="col-md-9">
+                                    <input type="number" max="100" maxlength="3" placeholder="Enter Total Mark" class="form-control" id="txtTotalMark" data-parsley-required="true" />
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-toggle="modal" data-dismiss="modal" onclick="Save()">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="hdDeptQuestionSettingId" />
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+    $('.selectpicker').selectpicker({ size: 6 });
+    $('.selectpicker').selectpicker('refresh');
+    function ContentLoad()
+    {
+        // Document ready function ...
+    }
+</script>
+
+@* Fetch Record By Id *@
+<script>
+    function FetchRecordById(Id)
+    {
+        $.ajax({
+            url: '/Examination/FetchExamDeptQuestionSettingById',
+            method:'POST',
+            datatype:'json',
+            data: { sQuestionSettingId: Id },
+            success: function (data)
+            {
+                if (data.Message != null && data.Message != '')
+                {
+                    swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                } else
+                {
+                    $('#hdDeptQuestionSettingId').val(data[0].QUESTION_PAPER_SETTING_ID);
+                    $('#Section').val(data[0].SECTION_ID);
+                    $('#DepartmentList').val(data[0].DEPARTMENT_ID);
+                    $('#Program').val(data[0].PROGRAMME_LEVEL_ID);
+                    $('#txtMarkPerQuestion').val(data[0].MARK_PER_QUESTION);
+                    $('#txtTotalQuestion').val(data[0].TOTAL_QUESTIONS);
+                    $('#txtTotalMark').val(data[0].TOTAL_MARK);
+                    $('#txtTopic').val(data[0].TOPIC);
+                    $('#txtMaxQuestion').val(data[0].MAX_QUESTION);
+                    
+                    if (data[0].IS_EITHEROR=="1") 
+                    {
+                        $('#EitherOr').click();
+                    }
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+</script>
+
+@* Delete *@
+<script>
+    function GetConfirm(Id)
+    {
+        swal({
+            title: "Confirmation !",
+            text: "Are you sure to delete ?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree !",
+            closeOnConfirm: false
+        },
+        function () 
+        {
+            $.ajax({
+                url: '/Examination/DeleteExamDeptQuestionSetting',
+                method: 'POST',
+                datatype: 'json',
+                data: { sQuestionSettingId: Id },
+                success: function (data)
+                {
+                    if (data.ErrorCode == "200")
+                    {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                        loadContent('/Examination/ExamDeptQuestionSettingList');
+                    } else
+                    {
+                        swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                    }
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            })
+        }
+        );
+    }
+</script>
+
+@* Save *@
+<script>
+    function Save()
+    {
+        // Validation Check ,...
+        var isValid = true;
+        if ($('#dvValidate').parsley().validate() !== true) isValid = false;
+        if (!isValid)
+        {
+            //gritter-info,danger,success,warning,default
+            swal({ title: "Warning !", text: 'Something went wrong ! Please check your inputs !', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+        var IsEitherOr=0;
+        if ($('#EitherOr').is(':checked')) 
+            IsEitherOr=1;
+
+        var JsonData = '{"QUESTION_PAPER_SETTING_ID":"' + $('#hdDeptQuestionSettingId').val() + '",\
+                         "SECTION_ID":"' + $('#Section').val() + '",\
+                         "DEPARTMENT_ID":"' + $('#DepartmentList').val() + '",\
+                         "PROGRAMME_LEVEL_ID":"' + $('#Program').val() + '",\
+                         "TOPIC":"' + $('#txtTopic').val() + '",\
+                         "IS_EITHEROR":"' + IsEitherOr + '",\
+                         "MAX_QUESTION":"' + $('#txtMaxQuestion').val() + '",\
+                         "MARK_PER_QUESTION":"' + $('#txtMarkPerQuestion').val() + '",\
+                         "TOTAL_QUESTIONS":"' + $('#txtTotalQuestion').val() + '",\
+                         "TOTAL_MARK":"' + $('#txtTotalMark').val() + '"}'; 
+        $.ajax({
+            url: '/Examination/SaveExamDeptQuestionSetting',
+            method: 'POST',
+            datatype: 'json',
+            data: { sJson: JsonData },
+            success: function (data)
+            {
+                if (data.ErrorCode == "200")
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    loadContent('/Examination/ExamDeptQuestionSettingList');
+                } else
+                {
+                    swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+</script>

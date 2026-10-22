@@ -1,0 +1,444 @@
+﻿
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "ExaminarsDetails";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li class="active">Examinar Info</li>
+        </ol>
+        <h2 class="page-header">Examinar Info</h2>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Examinar Info</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="col-md-12">
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.liAcademicYear, "Ac year", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.liAcademicYear, (Model.liAcademicYear != null) ? Model.liAcademicYear : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.liAcademicYear, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.Programme, "Major", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.Programme, (Model.Programme != null) ? Model.Programme : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.Programme, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.ResultMonth, "Exam Setting", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.ResultMonth, (Model.ResultMonth != null) ? Model.ResultMonth : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.ResultMonth, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-10">
+                            <a href="#" id="btnget" class="btn btn-primary m-b-20 pull-right">Get</a>
+                        </div>  <div class="form-group col-md-1">
+                            <a href="#" id="btnExport" class="btn btn-success pull-right m-b-20">Export</a>
+                        </div>
+                    </div><div class="col-md-11"> <a class=" btn btn-success pull-right  hidden" onclick="Additem()" id="Additem" href="#ExaminarsDetails-dialog" data-toggle="modal"><i class="fa fa-plus" title="Add"> Add</i></a><br /></div>
+                    <div class="col-md-12 m-b-5">
+                        <div id="divBindExaminar" class="table-responsive">
+                            <!--Need to use this field to bind Course Structure-->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    }
+</div>
+<div class="modal" id="ExaminarsDetails-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Examinar Details</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div>
+                                <input class="hidden col-md-3" type="text" id="examinarid" />
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Examinar Name</label>
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(m => m.LiExaminars, (Model.LiExaminars != null) ? Model.LiExaminars : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @id = "sLiExaminars", @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(m => m.LiExaminars, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Result Month</label>
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(m => m.ResultMonth, (Model.ResultMonth != null) ? Model.ResultMonth : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @id = "sResultMonth", @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(m => m.ResultMonth, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Course Details</label>
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(m => m.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @id = "sCourseList", @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", multiple = "multiple", data_actions_box = "true", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(m => m.CourseList, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                @Html.Label("Role", htmlAttributes: new { @class = "col-md-4 control-label" })
+                                <div class="col-md-8">
+                                    <select class="selectpicker form-control" id="ddlexaminartype">
+                                        <option value="0"> -- Select -- </option>
+                                        <option value="1">Question Setter</option>
+                                        <option value="2">Examinar</option>
+                                        <option value="3">Practical</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group hidden" id="datepicker1">
+                                <label class="col-md-4 control-label">From Date</label>
+                                <div class="col-md-8">
+                                    <div class="input-group date">
+                                        <input type="text" id="FromDate" class="form-control input-sm " placeholder="Select Date" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 form-group hidden" id="datepicker2">
+                                <label class="col-md-4 control-label">To Date</label>
+                                <div class="col-md-8">
+                                    <div class="input-group date">
+                                        <input type="text" id="ToDate" class="form-control input-sm " placeholder="Select Date" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 hidden form-group pull-right" id="yesorno1">
+                                <label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Interval&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                <input type="radio" name="examiner" id="examineryes">
+                                <label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                <input type="radio" name="examiner" id="examinerno">
+                                <label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No</label>
+                            </div>
+                            <div class="col-md-12 form-group hidden" id="Indatepicker1">
+                                <label class="col-md-4 control-label">Interval From Date</label>
+                                <div class="col-md-8">
+                                    <div class="input-group date">
+                                        <input type="text" id="InFromDate" class="form-control input-sm " placeholder="Select Date" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 form-group hidden" id="Indatepicker2">
+                                <label class="col-md-4 control-label">Interval To Date</label>
+                                <div class="col-md-8">
+                                    <div class="input-group date">
+                                        <input type="text" id="InToDate" class="form-control input-sm " placeholder="Select Date" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Purpose</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control" id="Purpose" rows="5"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary">Submit</a>
+                <a href="javascript:;" id="btnCancel" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+
+<script>
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+    handleDatepicker();
+
+    $('.selectpicker').selectpicker({
+        size: 4
+    });
+    function handleDatepicker() {
+        "use strict";
+        $("#FromDate,#ToDate,#InToDate,#InFromDate").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            format: "yyyy-mm-dd",
+            orientation: "right bottom"
+        });
+    }
+    $('#ddlexaminartype').on('change', function () {
+        if ($('#ddlexaminartype').val() == "1") {
+            $('#datepicker1').addClass("hidden");
+            $('#datepicker2').addClass("hidden");
+            $('#yesorno1').addClass("hidden");
+        }
+        else {
+            $('#datepicker1').removeClass("hidden");
+            $('#datepicker2').removeClass("hidden");
+            $('#yesorno1').removeClass("hidden");
+        }
+
+    });
+    var INTERVAL = "0";
+    $('#yesorno1').on('change', function () {
+        if ($("#examineryes").is(':checked')) {
+            $('#Indatepicker1').removeClass("hidden");
+            $('#Indatepicker2').removeClass("hidden");
+            INTERVAL = "1";
+        }
+        else
+        {
+            $('#Indatepicker1').addClass("hidden");
+            $('#Indatepicker2').addClass("hidden");
+             INTERVAL = "0";
+        }
+        });
+
+   function Additem () {
+       $('#examinarid').val("");
+       $('#sLiExaminars').val("");
+       $('#Purpose').val("");
+      var resmonth =  $('#ResultMonth').val();
+       $('#sResultMonth').val(resmonth);
+       $('#FromDate').val("");
+       $('#ToDate').val("");
+       $('#InFromDate').val("");
+       $('#InToDate').val("");
+       $('#examinerno').attr('checked', false);
+       $('#examineryes').attr('checked', false);
+       $('#Indatepicker1').addClass("hidden");
+       $('#Indatepicker2').addClass("hidden");
+       $('#sCourseList').val("0");
+        $.ajax({
+            url:"@Url.Action("FetchsmcExaminarByprogramme", "Examination")",
+            method: "POST",
+            datatype:"json",
+            data: { sProgramme: $('#Programme').val() },
+            success:function(data)
+            {
+                if (data.Message != null && data.Message != '') {
+                    alert(data.Message);
+                } else {
+                    $("#sLiExaminars").empty();
+                    $("#sCourseList").val("0");
+                    $("#ddlexaminartype").val("0");
+                    $("#sLiExaminars").append('<option value="">-- select --</option>' + data);
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            },error:function(error)
+            {
+                alert('Internal Server Error ! ');
+            }
+        });
+    }
+    $('#btnget').on('click', function () {
+        BindExaminarDetails();
+    });
+    $('#examinerno').on('click', function () {
+        $("input[#examinerno]:checked").css('color', 'green');
+    });
+    function BindExaminarDetails() {
+        var dvExaminar = $('#divBindExaminar');
+        dvExaminar.empty();
+        if ($('#Programme').val() && $('#liAcademicYear option:selected').text() && $('#ResultMonth').val())
+            {
+                $.ajax({
+                    url: "@Url.Action("BindsmcExaminarDetails", "Examination")",
+                    method: "POST",
+                    datatype: "html",
+                    data: { sProgramme: $('#Programme').val(), sAcademicYear: $('#liAcademicYear option:selected').text(), sResultMonth: $('#ResultMonth').val() },
+                    success: function (option)
+                    {
+                        dvExaminar.append(option);
+                        $("#tblCoursePatternList").DataTable({ "bPaginate": false });
+                       // $('#btnExport').removeClass('hidden');
+                        $('#Additem').removeClass('hidden');
+                        $('.selectpicker').selectpicker('refresh');
+                    }, error: function (error)
+                    {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+        }
+    function GetConfirm(ID) {
+            if (!confirm('Are you sure to delete ?')) {
+                return false;
+            }
+            else {
+                $.ajax({
+                    url: "@Url.Action("DeleteExaminarEntryDetails", "Examination")",
+                    method: "POST",
+                    datatype: "json",
+                    data: { Id: ID },
+                    success: function (data) {
+                        swal({ title: " Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                        BindExaminarDetails();
+                        $('.selectpicker').selectpicker('refresh');
+                    }, error: function (error) {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+        }
+    function FetchExaminarDetails(ID)
+    {
+        Additem();
+        $.ajax({
+            url:"@Url.Action("FetchExaminarEntryDetails", "Examination")",
+            method: "POST",
+            datatype:"json",
+            data: { ID : ID },
+            success:function(data)
+            {
+                if (data.Message != null && data.Message != '') {
+                    alert(data.Message);
+                } else {
+                    $('#examinarid').val(data[0].EXAMINAR_ENTRY_ID);
+                    $('#sLiExaminars').val(data[0].EXAMINAR_ID);
+                    $('#ToDate').val(data[0].TO_DATE);
+                    $('#FromDate').val(data[0].FROM_DATE);
+                    $('#InToDate').val(data[0].INTERVAL_TO_DATE);
+                    $('#InFromDate').val(data[0].INTERVAL_FROM_DATE);
+                    $('#sResultMonth').val(data[0].EXAM_SETTING_ID);
+                    $('#sCourseList').val(data[0].COURSE_ID);
+                    $('#Purpose').val(data[0].PURPOSE);
+                    var IS_EXAMINAR = data[0].IS_EXAMINAR;
+                    var IS_QUESTIONSETTER = data[0].IS_QUESTIONSETTER;
+                    var IS_PRACTICAL = data[0].IS_PRACTICAL;
+                    if (IS_EXAMINAR == '1')
+                    {
+                        $('#datepicker1').removeClass("hidden");
+                        $('#datepicker2').removeClass("hidden");
+                        $('#ddlexaminartype').val("2");
+                    }
+                    if (IS_QUESTIONSETTER == '1')
+                    {
+                        $('#ddlexaminartype').val("1");
+                    }
+                    if (IS_PRACTICAL == '1') {
+                        $('#datepicker1').removeClass("hidden");
+                        $('#datepicker2').removeClass("hidden");
+                        $('#ddlexaminartype').val("3");
+                    }
+                    var INTERVAL = data[0].IS_INTERVAL;
+                    if (INTERVAL == '1')
+                    {
+                        $('#examineryes').attr('checked', true);
+
+                        $('#Indatepicker1').removeClass("hidden");
+                        $('#Indatepicker2').removeClass("hidden");
+                    }
+                    else
+                    {
+                        $('#examinerno').attr('checked', true);
+
+                        $('#Indatepicker1').addClass("hidden");
+                        $('#Indatepicker2').addClass("hidden");
+                    }
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            },error:function(error)
+            {
+                alert('Internal Server Error ! ');
+            }
+        });
+    }
+    $('#btnSubmit').on('click', function () {
+        var EXAMINAR_ID = $('#sLiExaminars').val();
+        var EXAM_SETTING_ID = $('#sResultMonth').val();
+        var COURSE = $('#sCourseList').val();
+        var sJsonData = null;
+        var examiner =0;
+        var questionsetter = 0;
+        var Practical = 0;
+        if ($("#ddlexaminartype").val() == "2") {
+            examiner = '1';
+        }
+        if ($("#ddlexaminartype").val() == "1") {
+            questionsetter = '1';
+        }
+        if ($("#ddlexaminartype").val() == "3") {
+            Practical = '1';
+        }
+        sJsonData = '{"EXAMINAR_ID":"' + $('#sLiExaminars').val() + '", "EXAMINAR_ENTRY_ID":"' + $('#examinarid').val() + '", "PURPOSE":"' + $('#Purpose').val() + '", "COURSE_ID":"' + String($('#sCourseList').val()) + '","IS_EXAMINAR":"' + examiner + '","IS_QUESTIONSETTER":"' + questionsetter + '","IS_PRACTICAL":"' + Practical + '","EXAM_SETTING_ID":"' + $('#sResultMonth').val() + '","FROM_DATE":"' + $('#FromDate').val() + '","TO_DATE":"' + $('#ToDate').val() + '","IS_INTERVAL":"' + INTERVAL + '","INTERVAL_FROM_DATE":"' + $('#InFromDate').val() + '","INTERVAL_TO_DATE":"' + $('#InToDate').val() +  '"}';
+        if (EXAMINAR_ID != "" && EXAMINAR_ID != null && EXAM_SETTING_ID != "" && EXAM_SETTING_ID != null && COURSE != "" && COURSE != null) {
+            $.ajax({
+                url: '@Url.Action("SavesmcExaminarDetails", "Examination")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sJsonData : sJsonData },
+                success: function (data) {
+                    if (data.ErrorCode == "200") {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                        $('#ExaminarsDetails-dialog').modal('hide');
+                        BindExaminarDetails();
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                    else {
+                        swal({
+                            title: data.Message, text: "", showConfirmButton: false, timer: 1500, type: 'error', animation: true
+                        });
+                    }
+                }, error: function (error) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+    });
+        $("#btnExport").click(function (e) {
+            let file = new Blob([$('#divBindExaminar').html()], { type: "application/vnd.ms-excel" });
+            let url = URL.createObjectURL(file);
+            var Pname = $('#Programme option:selected').text();
+            let a = $("<a />", {
+                href: url,
+                download: Pname + "QuestionSetters.xls"
+            }).appendTo("body").get(0).click();
+            e.preventDefault();
+        });
+</script>

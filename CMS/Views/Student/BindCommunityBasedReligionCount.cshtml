@@ -1,0 +1,85 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+
+@{
+    Layout = null;
+    int nCount = 0;
+}
+
+
+<div id="printtable">
+    @if (Model.liStats != null && Model.liStats.Count > 0)
+    {
+
+        <div class="text-center">
+            <address>
+                <h4>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME </h4>
+                @Model.liCollegeDetails.FirstOrDefault().UNIVERSITY <br />
+                @Html.Raw(Model.liCollegeDetails.FirstOrDefault().GRADE.Replace("rd", "<sup>rd</sup>")) <br />
+                @Model.liCollegeDetails.FirstOrDefault().PLACE .
+            </address>
+        </div>
+        <h3 class="statsname" style="text-align: center;">@Model.liStats.FirstOrDefault().SELECTED_NAME WISE STATISTICS</h3>
+
+        int totalSelected = 0;
+        var groupClassYear = Model.liStats.GroupBy(x => x.CLASS_YEAR).ToList();
+
+        var groupSelectedField = Model.liStats.GroupBy(x => x.SELECTED_FIELD).ToList();
+
+        <table class="table table-bordered table-responsive" id="studentlist">
+            <thead>
+                <tr>
+                    <th>Class Name</th>
+                    @foreach (var SelectedField in groupSelectedField)
+                    {
+                        <th style="white-space: nowrap;">@SelectedField.FirstOrDefault().SELECTED_FIELD</th>
+                    }
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var classYearGroup in groupClassYear)
+                {
+                    nCount = 0;
+
+
+                    var groupedByClassName = classYearGroup.GroupBy(x => x.CLASS_NAME).ToList();
+
+                    foreach (var classGroup in groupedByClassName)
+                    {
+                        var totalStudentsInClass = 0;
+                        <tr>
+                            <td style="white-space: nowrap; text-align: left;">@classGroup.Key</td>
+                            @foreach (var SelectedField in groupSelectedField)
+                            {
+                                var studentCount = classGroup.Where(x => x.SELECTED_FIELD == SelectedField.Key).Sum(x => (int?)Convert.ToInt32(x.STUDENT_COUNT));
+
+                                totalStudentsInClass += studentCount ?? 0;
+                                <td class="text-right">@studentCount</td>
+                            }
+
+                            <td class="text-right">@totalStudentsInClass</td>
+                            @{
+                                nCount += totalStudentsInClass;
+                                totalSelected += totalStudentsInClass;
+                            }
+                        </tr>
+                    }
+                }
+                <tr class="text-right">
+                    <td><strong>Total : </strong></td>
+                    @foreach (var SelectedField in groupSelectedField)
+                    {
+                        var totalForSelectedField = Model.liStats.Where(x => x.SELECTED_FIELD == SelectedField.Key).Sum(x => (int?)Convert.ToInt32(x.STUDENT_COUNT));
+                        <td><strong>@totalForSelectedField</strong></td>
+                    }
+                    <td><strong>@totalSelected</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="text-danger text-center"><h6 class="text-danger">No data available or you may have not selected stats field.</h6></div>
+    }
+
+</div>

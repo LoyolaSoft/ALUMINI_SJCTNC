@@ -1,0 +1,430 @@
+@model CMS.ViewModel.ViewModel.FeeReportViewModel
+@{
+    ViewBag.Title = "HostelStudentFeeReport";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Fee</a></li>
+        <li class="active">Hostel Student Fee Report</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Hostel Student Fee Report</h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Hostel Student Fee Report</h4>
+        </div>
+
+        <div class="panel-body">
+            <div id="loader" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+                <img src="~/Content/assets/img/loading-7528_128.gif" alt="Loading..." />
+            </div>
+
+            <div class="col-md-12 form-horizontal">
+                <ul class="nav nav-tabs">
+                    <li class="nav-items active" id="tabPaidwise">
+                        <a href="#paidwisePane" data-toggle="tab" class="nav-link active" onclick="SetTab('paidwise')">
+                            <span>Paid Report Date Wise</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabBalance">
+                        <a href="#balancePane" data-toggle="tab" class="nav-link" onclick="SetTab('balance')">
+                            <span>Balance Report</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabBalanceHeadwise">
+                        <a href="#balanceHeadwisePane" data-toggle="tab" class="nav-link" onclick="SetTab('balance_headwise')">
+                            <span>Head Wise Balance Report</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabFreqwise">
+                        <a href="#freqwisePane" data-toggle="tab" class="nav-link" onclick="SetTab('freqwise')">
+                            <span>Frequency Wise Report</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabFreqheadwise">
+                        <a href="#freqheadwisePane" data-toggle="tab" class="nav-link" onclick="SetTab('freqheadwise')">
+                            <span>Frequency & Head Wise Report</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <input type="hidden" id="hdnActiveTab" value="paidwise" />
+
+                <div class="tab-content" style="padding: 15px 0;">
+                    <!-- Balance Report View Toggle (Detailed vs Student Head-Wise Matrix) -->
+                    <div id="divBalanceViewToggle" style="display:none; margin-bottom: 18px; padding: 10px 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+                        <label style="font-weight: 700; margin-right: 20px; color: #1e3a8a;"><i class="fa fa-sliders"></i> Balance Report Format:</label>
+                        <label class="radio-inline" style="font-weight: 600; cursor: pointer; color: #334155;">
+                            <input type="radio" name="rbBalanceFormat" value="balance" checked onchange="OnBalanceFormatChange('balance')"> Detailed Report (Row per Head)
+                        </label>
+                        <label class="radio-inline" style="font-weight: 600; margin-left: 25px; cursor: pointer; color: #334155;">
+                            <input type="radio" name="rbBalanceFormat" value="balance_headwise" onchange="OnBalanceFormatChange('balance_headwise')"> Student Head-Wise Matrix (JUN, JUL, AUG...)
+                        </label>
+                    </div>
+
+                    <!-- Filter Area (Common fields & tab-specific fields wrapper) -->
+                    <div class="row">
+                        <div class="form-group col-md-3">
+                            <label class="control-label col-md-4">Academic Year</label>
+                            <div class="col-md-8">
+                                @Html.DropDownList("AcademicYearList", (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick drop-down", @data_live_search = "true" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-3">
+                            <label class="control-label col-md-4">Hostel</label>
+                            <div class="col-md-8">
+                                @Html.DropDownList("HostelList", (Model.HostelList != null) ? Model.HostelList : Enumerable.Empty<SelectListItem>(), "All Hostels", new { @class = "form-control selectpicker show-menu-arrow show-tick drop-down", @data_live_search = "true" })
+                            </div>
+                        </div>
+
+                        <!-- Date range wrapper for Paidwise Tab -->
+                        <div id="divDateFilters">
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-4">From Date</label>
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input class="form-control date-picker" id="txtFromDate" placeholder="From Date" autocomplete="off" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-4">To Date</label>
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input class="form-control date-picker" id="txtToDate" placeholder="To Date" autocomplete="off" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Frequency wrapper (Shown on Balance, FreqWise, FreqHeadWise) -->
+                        <div id="divFrequencyFilter" style="display:none;">
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-4">Frequency</label>
+                                <div class="col-md-8">
+                                    <select id="FrequencyList" class="form-control selectpicker show-menu-arrow show-tick" data-live-search="true">
+                                        <option value="">All Frequencies</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Head wrapper (Shown on Balance, FreqHeadWise) -->
+                        <div id="divHeadFilter" style="display:none;">
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-4">Heads</label>
+                                <div class="col-md-8">
+                                    <select id="MainHeadList" class="form-control selectpicker show-menu-arrow show-tick" data-live-search="true" multiple data-actions-box="true" title="All Heads">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 text-right">
+                            <button class="btn btn-sm btn-primary" onclick="GetHostelReport()"> Get </button>
+                            <button class="btn btn-sm btn-success btnPrint hidden" onclick="printDiv('dvReportBind')"> Print </button>
+                            <button class="btn btn-sm btn-primary btnExport hidden" onclick="Export()"> Export </button>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="margin-top: 10px; margin-bottom: 20px;" />
+                <div id="dvReportBind" class="table-responsive"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        $('.date-picker').datepicker({
+            format: 'dd/mm/yyyy',
+            todayHighlight: true,
+            autoclose: true
+        });
+
+        // Autoload current academic year's frequencies if set
+        var currentYear = $('#AcademicYearList option:selected').text();
+        if (currentYear && currentYear !== "-- Select --") {
+            LoadFrequencies(currentYear);
+        }
+    });
+
+    $('#AcademicYearList').on('change', function () {
+        var vAcademicyear = $('#AcademicYearList option:selected').text();
+        LoadFrequencies(vAcademicyear);
+    });
+
+    function LoadFrequencies(vAcademicyear) {
+        if (!vAcademicyear || vAcademicyear === "-- Select --") {
+            $('#FrequencyList').empty().append('<option value="">All Frequencies</option>');
+            $('#MainHeadList').empty();
+            $('.selectpicker').selectpicker('refresh');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("FetchHostelFrequencyByAcademicYear", "Fee")',
+            data: { Academicyear: vAcademicyear },
+            success: function (objResult) {
+                $('#FrequencyList').empty().append('<option value="">All Frequencies</option>' + objResult.sResult);
+                $('.selectpicker').selectpicker('refresh');
+            }
+        });
+    }
+
+    $('#FrequencyList').on('change', function () {
+        var vAcademicyear = $('#AcademicYearList option:selected').text();
+        var vFrequency = $(this).val();
+        if (!vFrequency) {
+            $('#MainHeadList').empty();
+            $('.selectpicker').selectpicker('refresh');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("FetchHostelHeadsByFrequencyId", "Fee")',
+            data: { sFrequencyId: vFrequency, Academicyear: vAcademicyear },
+            success: function (objResult) {
+                $('#MainHeadList').empty().append(objResult.sResult);
+                $('.selectpicker').selectpicker('refresh');
+            }
+        });
+    });
+
+    function SetTab(tabName) {
+        $('#hdnActiveTab').val(tabName);
+        $('#dvReportBind').empty();
+        $('.btnPrint').addClass('hidden');
+        $('.btnExport').addClass('hidden');
+
+        // Toggle UI Filters
+        if (tabName === "paidwise") {
+            $('#divDateFilters').show();
+            $('#divFrequencyFilter').show();
+            $('#divHeadFilter').hide();
+            $('#divBalanceViewToggle').hide();
+        } else if (tabName === "balance") {
+            $('#divDateFilters').hide();
+            $('#divFrequencyFilter').show();
+            $('#divHeadFilter').show();
+            $('#divBalanceViewToggle').show();
+            $('input[name="rbBalanceFormat"][value="balance"]').prop('checked', true);
+        } else if (tabName === "balance_headwise") {
+            $('#divDateFilters').hide();
+            $('#divFrequencyFilter').show();
+            $('#divHeadFilter').show();
+            $('#divBalanceViewToggle').show();
+            $('input[name="rbBalanceFormat"][value="balance_headwise"]').prop('checked', true);
+        } else if (tabName === "freqwise") {
+            $('#divDateFilters').hide();
+            $('#divFrequencyFilter').show();
+            $('#divHeadFilter').hide();
+            $('#divBalanceViewToggle').hide();
+        } else if (tabName === "freqheadwise") {
+            $('#divDateFilters').hide();
+            $('#divFrequencyFilter').show();
+            $('#divHeadFilter').show();
+            $('#divBalanceViewToggle').hide();
+        }
+    }
+
+    function OnBalanceFormatChange(val) {
+        if (val === "balance") {
+            $('#tabBalance a').tab('show');
+            SetTab('balance');
+        } else if (val === "balance_headwise") {
+            $('#tabBalanceHeadwise a').tab('show');
+            SetTab('balance_headwise');
+        }
+    }
+
+    function GetHostelReport() {
+        var tab = $('#hdnActiveTab').val();
+        var acYear = $('#AcademicYearList option:selected').text();
+        var hostel = $('#HostelList').val();
+        var fromDate = $('#txtFromDate').val();
+        var toDate = $('#txtToDate').val();
+        var frequency = $('#FrequencyList').val();
+        var head = $('#MainHeadList').val();
+        if (Array.isArray(head)) {
+            head = head.join(',');
+        }
+
+        if (!acYear || acYear === "-- Select --") {
+            swal("Error!", "Please select Academic Year.", "error");
+            return;
+        }
+
+        if (tab === "paidwise") {
+            if (!fromDate || !toDate) {
+                swal("Error!", "Please choose From and To Dates.", "error");
+                return;
+            }
+        }
+
+        $('#loader').show();
+
+        $.ajax({
+            url: '@Url.Action("BindHostelStudentFeeReport", "Fee")',
+            method: 'POST',
+            data: {
+                sTab: tab,
+                sAcYear: acYear,
+                FromDate: fromDate,
+                ToDate: toDate,
+                sFrequency: frequency,
+                sHead: head,
+                sHostel: hostel
+            },
+            success: function (data) {
+                $('#loader').hide();
+                $('#dvReportBind').html(data);
+                
+                if ($.fn.DataTable.isDataTable('#tblHostelFeeReport')) {
+                    $('#tblHostelFeeReport').DataTable().destroy();
+                }
+                
+                $('#tblHostelFeeReport').DataTable({
+                    "paging": true,
+                    "lengthChange": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": true,
+                    "autoWidth": false,
+                    "responsive": false,
+                    "scrollX": true
+                });
+
+                $('.btnPrint').removeClass('hidden');
+                $('.btnExport').removeClass('hidden');
+            },
+            error: function () {
+                $('#loader').hide();
+                swal("Error!", "Failed to fetch report data.", "error");
+            }
+        });
+    }
+
+    function printDiv(divId) {
+        if (!$.fn.DataTable.isDataTable('#tblHostelFeeReport')) {
+            swal("No Data", "Please load the report before printing.", "warning");
+            return;
+        }
+
+        // 1. Destroy DataTable temporarily so ALL student rows (not just page 1) are rendered in DOM
+        $('#tblHostelFeeReport').DataTable().destroy();
+
+        var reportHtml = document.getElementById(divId).innerHTML;
+
+        // 2. Hidden iframe print: Never blocked by popup blockers, prints full content cleanly
+        var frameId = 'printFrameHostelFee';
+        var iframe = document.getElementById(frameId);
+        if (!iframe) {
+            iframe = document.createElement('iframe');
+            iframe.id = frameId;
+            iframe.name = frameId;
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
+        }
+
+        var doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write('<!DOCTYPE html><html><head><title>Hostel Student Fee Report</title>');
+        doc.write('<link rel="stylesheet" href="/Content/assets/plugins/bootstrap/css/bootstrap.min.css">');
+        doc.write('<style>');
+        doc.write('@@page { size: landscape; margin: 8mm 10mm; }');
+        doc.write('body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; padding: 12px; color: #000; background: #fff; font-size: 10px; }');
+        doc.write('.print-college-header { display: block !important; text-align: center; margin-bottom: 12px; border-bottom: 2px solid #1e3a8a; padding-bottom: 8px; }');
+        doc.write('.print-college-header h2 { margin: 0 0 4px 0; font-size: 18px; font-weight: 800; text-transform: uppercase; color: #1e3a8a; }');
+        doc.write('.print-college-header h4 { margin: 0 0 6px 0; font-size: 12px; font-weight: 600; color: #334155; }');
+        doc.write('.print-college-header h3 { margin: 4px 0 8px 0; font-size: 14px; font-weight: 700; text-decoration: underline; color: #0f172a; }');
+        doc.write('.print-meta-info { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 600; color: #334155; margin-top: 6px; }');
+        doc.write('table { width: 100% !important; border-collapse: collapse !important; margin-top: 8px; font-size: 9.5px; }');
+        doc.write('table, th, td { border: 1px solid #475569 !important; }');
+        doc.write('th, td { padding: 4px 5px !important; }');
+        doc.write('th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: bold; text-align: center; }');
+        doc.write('.text-right { text-align: right !important; }');
+        doc.write('.text-center { text-align: center !important; }');
+        doc.write('.text-muted { color: #64748b !important; }');
+        doc.write('/* CRITICAL: display: table-row-group ensures Total Due appears ONLY at the end of the last sheet */');
+        doc.write('tfoot { display: table-row-group !important; page-break-inside: avoid !important; font-weight: bold; background-color: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }');
+        doc.write('</style>');
+        doc.write('</head><body>');
+        doc.write(reportHtml);
+        doc.write('</body></html>');
+        doc.close();
+
+        setTimeout(function () {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+
+            // 3. Re-initialize DataTable on screen so UI stays interactive
+            $('#tblHostelFeeReport').DataTable({
+                "paging": true,
+                "lengthChange": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "autoWidth": false,
+                "responsive": false,
+                "scrollX": true
+            });
+        }, 500);
+    }
+
+    function Export() {
+        if (!$.fn.DataTable.isDataTable('#tblHostelFeeReport')) {
+            swal("No Data", "Please load the report before exporting.", "warning");
+            return;
+        }
+        var tab = $('#hdnActiveTab').val();
+        var acYear = $('#AcademicYearList option:selected').text();
+        var title = "Hostel_Fee_" + tab + "_" + acYear;
+        var file = new Blob([$('#dvReportBind').html()], { type: "application/vnd.ms-excel" });
+        var url = URL.createObjectURL(file);
+        var a = $("<a />", {
+            href: url,
+            download: title + ".xls"
+        }).appendTo("body").get(0).click();
+    }
+</script>

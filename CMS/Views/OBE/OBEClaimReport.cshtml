@@ -1,0 +1,225 @@
+@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    ViewBag.Title = "OBE Claim Report";
+    Layout = "~/Views/Shared/SJCTNC_LayoutPage.cshtml";
+}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #2af598 0%, #009efd 100%);
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --accent-color: #764ba2;
+    }
+
+    .report-container {
+        padding: 30px;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 40px 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .custom-select {
+        border-radius: 10px;
+        border: 2px solid #e2e8f0;
+        padding: 10px 15px;
+        height: auto;
+        transition: all 0.3s;
+    }
+
+    .custom-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-search {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 12px 35px;
+        border-radius: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        margin-top: 28px;
+    }
+
+    .btn-search:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    #divReportResult {
+        transition: all 0.5s ease;
+    }
+
+    .loader-container {
+        display: none;
+        text-align: center;
+        padding: 50px;
+    }
+
+    .custom-loader {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<div class="report-container">
+    <div class="page-header">
+        <h1 style="margin:0; font-weight: 800; font-size: 2.5rem;"><i class="fa fa-file-text-o"></i> OBE Claim Report</h1>
+        <p style="opacity: 0.9; margin-top: 10px; font-size: 1.1rem;">Monitor and manage saved examination claim forms</p>
+    </div>
+
+    <div class="filter-card">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Academic Year</label>
+                    <select id="ddlAcademicYear" class="form-control selectpicker custom-select" data-live-search="true">
+                        <option value="0">--Select Year--</option>
+                        @if (Model.LiAcademicYear != null)
+                        {
+                            foreach (var item in Model.LiAcademicYear)
+                            {
+                                <option value="@item.ACADEMIC_YEAR">@item.ACADEMIC_YEAR</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Exam Setting</label>
+                    <select id="ddlExamSetting" class="form-control selectpicker custom-select" data-live-search="true">
+                        <option value="0">--All Exams--</option>
+                        @if (Model.LiExamSetting != null)
+                        {
+                            foreach (var item in Model.LiExamSetting)
+                            {
+                                <option value="@item.EXAM_SETTING_ID">@item.EXAM_NAME</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <button type="button" class="btn btn-search btn-block" onclick="GetClaimReport()"><i class="fa fa-search"></i> Generate Report</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="loader-container" id="reportLoader">
+        <div class="custom-loader"></div>
+        <p style="margin-top: 15px; color: #667eea; font-weight: 600;">Fetching Records...</p>
+    </div>
+
+    <div id="divReportResult">
+        <!-- Report data will be loaded here -->
+        <div class="text-center" style="padding: 100px; color: #a0aec0;">
+            <i class="fa fa-folder-open-o" style="font-size: 4rem; display: block; margin-bottom: 20px;"></i>
+            <h3>Please select filters and click Search to view data</h3>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker('refresh');
+        
+        // Auto-select current academic year if possible
+        var currentYear = '@Session[CMS.Utility.Common.SESSION_VARIABLES.ACADEMIC_YEAR]';
+        if(currentYear){
+            $('#ddlAcademicYear').val(currentYear).selectpicker('refresh');
+        }
+    });
+
+    function GetClaimReport() {
+        var academicYear = $('#ddlAcademicYear').val();
+        var examSettingId = $('#ddlExamSetting').val();
+
+        if (academicYear == "0") {
+            swal({
+                title: "Warning!",
+                text: "Please select an Academic Year.",
+                type: "warning"
+            });
+            return;
+        }
+
+        $('#reportLoader').show();
+        $('#divReportResult').css('opacity', '0.3');
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("BindOBEClaimReport", "OBE")',
+            data: { 
+                academicYear: academicYear,
+                examSettingId: examSettingId
+            },
+            success: function (data) {
+                $('#divReportResult').html(data).css('opacity', '1');
+                $('#reportLoader').hide();
+            },
+            error: function (err) {
+                console.error(err);
+                $('#reportLoader').hide();
+                $('#divReportResult').css('opacity', '1');
+                swal("Error", "Failed to fetch report data.", "error");
+            }
+        });
+    }
+</script>

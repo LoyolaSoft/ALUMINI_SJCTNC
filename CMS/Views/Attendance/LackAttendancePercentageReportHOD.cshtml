@@ -1,0 +1,153 @@
+﻿
+@{
+    ViewBag.Title = "LackAttendancePercentageReportHOD";
+}
+
+@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+@{
+    Layout = null;
+    string sExamNotAllowed = string.Empty;
+    string sArrearOnlyAllowed = string.Empty;
+    string sFineAndExamAllowed = string.Empty;
+}
+
+@if (Model.liAttAttendanceReport != null && Model.liAttAttendanceReport.Count > 0)
+{
+    string sMark = string.Empty;
+    //int nCount = 0;
+    int nExamNotAllowed = 0;
+    int nArrearOnlyAllowed = 0;
+    int nFineAndExamAllowed = 0;
+    var liGroupClass = Model.liAttAttendanceReport.GroupBy(x => x.CLASS_ID).OrderBy(o => o.Key).ToList();
+    foreach (var Classitem in liGroupClass)
+    {
+
+        var liAttendance = Model.liAttAttendanceReport.Where(x => x.CLASS_ID == Classitem.FirstOrDefault().CLASS_ID).ToList();
+        if (liAttendance != null && liAttendance.Count > 0)
+        {
+
+
+            foreach (var item in liAttendance)
+            {
+
+                var sAbseentCount = Convert.ToInt32(item.DAYS_COUNT) - Convert.ToInt32(item.ABSENT_COUNT);
+                var sPercentage = Convert.ToDouble(sAbseentCount) / Convert.ToDouble(item.DAYS_COUNT) * 100;
+                if (sPercentage > 74 && sPercentage < 75)
+                {
+                    sPercentage = Math.Ceiling(sPercentage);
+                }
+                if (Convert.ToInt32(sPercentage) < 75)
+                {
+                    if (sPercentage >= 64 && sPercentage < 65)
+                    {
+                        sPercentage = Math.Ceiling(sPercentage);
+                    }
+                    else if (sPercentage >= 54 && sPercentage < 55)
+                    {
+                        sPercentage = Math.Ceiling(sPercentage);
+                    }
+
+                    //PersentageCheck(Convert.ToInt32(sPercentage));
+                    //0
+                    sMark = "0";
+                    if (Convert.ToInt32(sPercentage) < 55)
+                    {
+                        nExamNotAllowed++;
+                        sExamNotAllowed += "<tr><td>" + nExamNotAllowed + "</td><td>" + item.ROLL_NO + "</td><td>" + item.CLASS_NAME + "</td><td>" + item.FIRST_NAME + "</td><td>" + item.MOBILE + "</td><td>" + item.DAYS_COUNT + "</td><td>" + sAbseentCount + "</td><td>" + item.ABSENT_COUNT + "</td><td>" + Math.Round(sPercentage, 2) + "</td></tr>";
+                    }
+                    else if (Convert.ToInt32(sPercentage) < 65)
+                    {
+                        nArrearOnlyAllowed++;
+                        sArrearOnlyAllowed += "<tr><td>" + nArrearOnlyAllowed + "</td><td>" + item.ROLL_NO + "</td><td>" + item.CLASS_NAME + "</td><td>" + item.FIRST_NAME + "</td><td>" + item.MOBILE + "</td><td>" + item.DAYS_COUNT + "</td><td>" + sAbseentCount + "</td><td>" + item.ABSENT_COUNT + "</td><td>" + Math.Round(sPercentage, 2) + "</td></tr>";
+
+                    }
+                    else
+                    {
+                        nFineAndExamAllowed++;
+                        sFineAndExamAllowed += "<tr><td>" + nFineAndExamAllowed + "</td><td>" + item.ROLL_NO + "</td><td>" + item.CLASS_NAME + "</td><td>" + item.FIRST_NAME + "</td><td>" + item.MOBILE + "</td><td>" + item.DAYS_COUNT + "</td><td>" + sAbseentCount + "</td><td>" + item.ABSENT_COUNT + "</td><td>" + Math.Round(sPercentage, 2) + "</td></tr>";
+
+                    }
+
+                }
+
+            }
+        }
+    }
+    <br />
+    <br />
+    if (!string.IsNullOrEmpty(sExamNotAllowed) || !string.IsNullOrEmpty(sArrearOnlyAllowed) || !string.IsNullOrEmpty(sFineAndExamAllowed))
+    {
+
+        <div class="form-group table-responsive" style="page-break-after:always !important;">
+            <table class="table table-bordered" border="1">
+                <thead>
+                    <tr>
+                        <th class="text-center" colspan="9"><b>ST.JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS), CUDDALORE</b></th>
+
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th class="text-center" colspan="7"><b>Attendance Report ( @Model.liAttAttendanceReport.FirstOrDefault().START_DATE - @Model.liAttAttendanceReport.FirstOrDefault().END_DATE ) - ( 0% - 75% )</b></th>
+                        <th></th>
+
+
+                    </tr>
+                    <tr>
+                        <th><b>#</b></th>
+                        <th><b>Reg.No</b></th>
+                        <th><b>Class</b></th>
+                        <th><b>Name</b></th>
+                        <th><b>Mobile</b></th>
+                        <th><b>WorkingDays</b></th>
+                        <th><b>Present</b></th>
+                        <th><b>Absent</b></th>
+                        <th><b>%</b></th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        if (!string.IsNullOrEmpty(sExamNotAllowed))
+                        {
+                            <tr>
+                                <td colspan="9" style="text-align:center;"><b>0 - 55%</b></td>
+                            </tr>
+                            @Html.Raw(sExamNotAllowed)
+                        }
+
+                        if (!string.IsNullOrEmpty(sArrearOnlyAllowed))
+                        {
+                            <tr>
+                                <td colspan="9" style="text-align:center;"><b>55 - 65%</b></td>
+                            </tr>
+                            @Html.Raw(sArrearOnlyAllowed)
+                        }
+
+                        if (!string.IsNullOrEmpty(sFineAndExamAllowed))
+                        {
+                            <tr>
+                                <td colspan="9" style="text-align:center;"><b>65 - 75%</b></td>
+                            </tr>
+                            @Html.Raw(sFineAndExamAllowed)
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+else
+{
+    <div class="bg-warning text-center">
+        <h4>No Record's Found</h4>
+    </div>
+}
+
+
+
+
+
+
+
+

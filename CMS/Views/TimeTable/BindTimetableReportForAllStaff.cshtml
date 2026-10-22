@@ -1,0 +1,94 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+
+
+@{
+    Layout = null;
+    string CourseCode = string.Empty;
+    string CourseTitle = string.Empty;
+    string ttTimeTable = string.Empty;
+}
+
+<div class="row table-responsive" id="event">
+    @if (Model.lstTimeTable != null && Model.lstTimeTable.Count > 0)
+    {
+        var liGroupStaff = Model.lstTimeTable.GroupBy(x => x.STAFF_CODE).OrderBy(x => x.FirstOrDefault().DEPARTMENT).ToList();
+        foreach (var GroupStaffitem in liGroupStaff)
+        {
+            <div style="page-break-after:always !important;page-break-inside:avoid !important;">
+                <div class="col-xs-4">
+                    <label> Staff Code : @GroupStaffitem.FirstOrDefault().STAFF_CODE</label>
+                </div>
+                <div class="col-xs-4">
+                    <label> Semester :  <b class="lblSemester"></b></label>
+                </div>
+                <div class="col-xs-4">
+                    <label> Staff Name : @GroupStaffitem.FirstOrDefault().FIRST_NAME</label>
+                </div>
+
+                @{
+                    var liGroupShift = Model.lstTimeTable.GroupBy(x => x.SHIFT).OrderBy(x => x.FirstOrDefault().SHIFT).ToList();
+                    foreach (var Groupitem in liGroupShift)
+                    {
+                        var liTimeTable = Model.lstTimeTable.Where(x => x.SHIFT == Groupitem.FirstOrDefault().SHIFT && x.Staff_Id == GroupStaffitem.FirstOrDefault().Staff_Id).ToList();
+                        <table class="table table-bordered text-center" id="TimeTableClassWiseList">
+                            <thead>
+                                <tr>
+                                    <th> Shift - @Groupitem.FirstOrDefault().SHIFT </th>
+                                    @if (Model.lstHours != null && Model.lstHours.Count > 0)
+                                    {
+                                        foreach (var dataitem in Model.lstHours)
+                                        {
+                                            <th><b> Hour- @dataitem.HOUR</b></th>
+                                        }
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.lstDayOrders != null && Model.lstDayOrders.Count > 0)
+                                {
+                                    foreach (var dataitem in Model.lstDayOrders)
+                                    {
+                                       <tr>
+                                           <td><b> Day- @dataitem.DAY</b></td>
+                                           @foreach (var item in Model.lstHours)
+                                           {
+                                               if (liTimeTable != null && liTimeTable.Count > 0)
+                                               {
+                                                   var TimeTableList = liTimeTable.Where(s => s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                                                   var TimeTable = TimeTableList.Where(s => s.Hour_Id == item.HOUR_ID && s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                                                   if (TimeTable != null && TimeTable.Count > 0)
+                                                   {
+                                                       ttTimeTable = string.Join(",", TimeTable.Select(x => x.CLASS_CODE.ToString()).ToArray());
+                                                       <td>
+                                                           @{ CourseCode = "(" + @TimeTable.FirstOrDefault().COURSE_CODE + ")";}
+                                                           @{ CourseTitle = @TimeTable.FirstOrDefault().COURSE_TITLE; }
+                                                           @ttTimeTable<br />
+                                                           @CourseCode<br />
+                                                           @CourseTitle<br />
+                                                       </td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td></td>
+                                                    }
+                                                 }
+                                                 else
+                                                 {
+                                                     <td></td>
+                                                 }
+                                               }
+                                           </tr>
+                                     }
+                                }
+                            </tbody>
+                        </table>
+                   }
+                }
+            </div>
+       }
+   }
+   else
+   {
+       <div class="alert alert-danger"> No Records Found !</div>
+   }
+</div>

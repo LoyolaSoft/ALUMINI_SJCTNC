@@ -1,0 +1,803 @@
+﻿
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "CertificateRequestFrom";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<style>
+
+    .custom-switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 24px;
+    }
+
+        .custom-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 24px;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+    input:checked + .slider {
+        background-color: #28a745;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+    .checkbox-on {
+        background-color: #d4edda;
+        border: 1px solid #28a745;
+        padding: 4px;
+        border-radius: 5px;
+    }
+
+    .checkbox-off {
+        background-color: #f8d7da;
+        border: 1px solid #dc3545;
+        padding: 4px;
+        border-radius: 5px;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 576px) {
+        .review-card {
+            font-size: 14px;
+        }
+
+        .custom-switch {
+            width: 40px;
+            height: 20px;
+        }
+
+        .slider:before {
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+    }
+</style>
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Certificate Request form</li>
+    </ol>
+    <h1 class="page-header">Certificate Request form</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Certificate Request form</h4>
+        </div>
+        <div class="panel-body noPadding">
+
+            @if (Model.liCertificaeteissueLeave != null && Model.liCertificaeteissueLeave.Count > 0)
+            {
+                <div class="text-center">
+
+                    <strong class="bg-danger p-5"><i class="fa fa-check-circle"></i> Today Certificate Not Issue  </strong>
+                    @if (!string.IsNullOrEmpty(@Model.liCertificaeteissueLeave.FirstOrDefault().REASON))
+                    {
+                        <span class="bg-warning p-5 m-3">Reason : @Model.liCertificaeteissueLeave.FirstOrDefault().REASON</span>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="form-group col-md-12">
+                    <a class="btn btn-success pull-right form-group m-b-5" href="#AddMarksheetRequest" data-toggle="modal" id="btnaddcertificate"><i class="fa fa-plus" title="Add">Add</i></a>
+                </div>
+            }
+            <br />
+            <div class="form-group col-md-12 table-responsive">
+                <table class="table table-hover table-bordered" id="tblMarkSheetRequested">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Certificate</th>
+                            <th>Requested Date</th>
+                            @*<th>Description</th>*@
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.liCertificateDistribution != null && Model.liCertificateDistribution.Count > 0)
+                        {
+                            int count = 0;
+                            foreach (var item in Model.liCertificateDistribution)
+                            {
+                                <tr data-json='@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(item))'>
+                                    <td>@{count++;} @count</td>
+                                    <td>@item.CERTIFICATE_NAME</td>
+                                    <td>@item.REQUEST_DATE</td>
+                                    @*<td>@item.REASON</td>*@
+                                    <td>
+                                        @if (@item.STATUS_NAME == "Approved")
+                                        {
+                                            <span class=" btn btn-success">@item.STATUS_NAME</span>
+                                        }
+                                        else if (@item.STATUS_NAME == "Rejected")
+                                        {
+                                            <span class="btn btn-danger">@item.STATUS_NAME</span>
+
+
+                                        }
+                                        else
+                                        {
+                                            <span class="btn btn-info">@item.STATUS_NAME</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (item.STATUS == "0" || item.STATUS == "")
+                                        {
+                                            <a href="#AddMarksheetRequest" onclick="FetchItemDetails(@item.CERTIFICATE_DISTRIBUTION_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+                                            <a href="javascrip:;" onclick="GetConfirm(@item.CERTIFICATE_DISTRIBUTION_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+                                        }
+                                        else
+                                        {
+
+                                            <button class="btn btn-info btn-sm btn-view"><i class="fa fa-eye"></i> View</button>
+
+                                        }
+                                    </td>
+                                </tr>
+                            }
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="AddMarksheetRequest" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content shadow-lg rounded-lg">
+
+            <!-- Modal Header -->
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fa fa-file-text-o"></i> Certificate Request</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body" id="pBody" data-parsley-validate="true">
+                <form id="certificateForm" class="needs-validation">
+                    <input type="hidden" id="marksheetdisid" />
+                    <div class="form-group col-lg-12">
+
+                        <div class="form-group row p-4">
+                            <label class="col-sm-4 col-form-label font-weight-bold">
+                                <i class="fa fa-level-down text-primary"></i> Certificate category
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="">
+                                    @Html.DropDownListFor(model => model.CertificateCategoryList, (Model.CertificateCategoryList != null) ? Model.CertificateCategoryList : Enumerable.Empty<SelectListItem>(), "--select--", new
+                                            {
+                                                @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm",
+                                                @data_live_search = "true",
+                                                @data_parsley_required = "true",
+                                                @id = "ddlCertificateType",
+                                                data_dropup_auto = "false",
+                                                data_container = "body"
+                                            })
+                                </div>
+                                <div class="form-group row p-5">
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Certificate Type -->
+                        <div class="form-group row p-4">
+                            <label class="col-sm-4 col-form-label font-weight-bold">
+                                <i class="fa fa-certificate text-info"></i> Certificate Type
+                            </label>
+                            <div class="col-sm-8">
+
+                                @Html.DropDownListFor(model => model.CertificateList, (Model.CertificateList != null) ? Model.CertificateList : Enumerable.Empty<SelectListItem>(), "--select--", new
+                                {
+                                    @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm",
+                                    @data_live_search = "true",
+                                    @data_parsley_required = "true",
+                                    @id = "CertificateList",
+                                    data_dropup_auto = "false",
+                                    data_container = "body"
+                           })
+                            </div>
+                        </div>
+
+                        <div class="form-group row p-4">
+                            <label class="col-sm-4 col-form-label font-weight-bold">
+                                <i class="fa fa-mobile-phone text-warning"></i> Register No
+                            </label>
+                            <div class="col-sm-8">
+                                @Html.EditorFor(model => model.REGISTER_NO, new { htmlAttributes = new { @class = "form-control input-sm", autocomplete = "new-password", placeholder = "Enter your Register Number", id = "REGISTER_NO", @data_parsley_trigger = "keyup", @data_parsley_required = "true" } })
+
+                                @Html.ValidationMessageFor(model => model.REGISTER_NO, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group row p-4">
+                            <label class="col-sm-4 col-form-label font-weight-bold">
+                                <i class="fa fa-mobile-phone text-warning"></i> Contact No
+                            </label>
+                            <div class="col-sm-8">
+                                @Html.EditorFor(model => model.CONTACT_NO, new { htmlAttributes = new { @class = "form-control input-sm", autocomplete = "new-password", placeholder = "Enter Mobile Number", id = "CONTACT_NO", @data_parsley_type = "digits", @data_parsley_length = "[10,10]", @data_parsley_trigger = "keyup", @data_parsley_required = "true" } })
+
+                                @Html.ValidationMessageFor(model => model.CONTACT_NO, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <!-- Month & Year of Semester -->
+                        @*<div class="form-group row hidden p-4" id="hiddenSemestDiv">*@
+                        <div class="form-group row p-4" id="hiddenSemestDiv">
+                            <label class="col-sm-4 col-form-label font-weight-bold" id="lblSemesterText">
+                                <i class="fa fa-calendar text-warning"></i> Semester Month & Year
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <input type="text" class="form-control date"
+                                               id="txtMonthYearofSemester"
+                                               placeholder="MM" autocomplete="off" />
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <input type="text" class="form-control"
+                                               id="txtYear"
+                                               placeholder="YYYY" autocomplete="off" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cleared All Subjects -->
+                        <div class="form-group row p-4" id="hiddenClearedAll">
+                            <label class="col-sm-4 col-form-label font-weight-bold">
+                                <i class="fa fa-check-circle text-success"></i> Cleared All Subjects?
+                            </label>
+                            <div class="col-sm-8 d-flex align-items-center">
+                                <label class="custom-switch mb-0">
+                                    <input type="checkbox" id="txtisAllSubjectCleard">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="ml-2" id="statusText">No</span>
+                            </div>
+                        </div>
+
+                        <!-- Authorized Person -->
+                        <div class="form-group row p-4 hidden">
+                            <label class="col-sm-4 col-form-label font-weight-bold">
+                                <i class="fa fa-user text-primary"></i>If you not come select a Authorized Person
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="">
+
+                                    @Html.DropDownListFor(model => model.AuthorizerList, (Model.AuthorizerList != null) ? Model.AuthorizerList : Enumerable.Empty<SelectListItem>(), "--select--", new
+                                        {
+                                        @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm",
+                                        @data_live_search = "true",
+                                        @id = "ddlAuthorizedPerson",
+                                        data_dropup_auto = "false",
+                                        data_container = "body"
+                                        })
+
+                                </div>
+                                <div class="form-group row p-5">
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reason -->
+                        <div class="p-4 hidden" id="ReasonDiv">
+                            <div class="form-group row p-4">
+                                <label class="col-sm-4 col-form-label font-weight-bold">
+                                    <i class="fa fa-photo text-success"></i> Authorized Person Name
+                                </label>
+                                <div class="col-sm-8 d-flex align-items-center">
+                                    <input type="text" class="form-control" id="txtAuthorizedName" placeholder="Enter Authorized Person Name" pattern="[A-Za-z\s]+" title="Only letters allowed" />
+
+                                </div>
+                            </div>
+                            <div class="form-group row  p-4">
+                                <label class="col-sm-4 col-form-label font-weight-bold">
+                                    <i class="fa fa-pencil text-danger"></i> Reason
+                                </label>
+                                <div class="col-sm-8">
+                                    <textarea class="form-control" id="txtValidReason" rows="3"
+                                              placeholder="Why didn’t you come? Please provide a valid reason."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <a href="" id="btnSubmitAdd" class="btn btn-success">
+                    <i class="fa fa-paper-plane"></i> Submit Request
+                </a>
+                <a href="" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fa fa-times"></i> Cancel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Details Modal -->
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Certificate Request Details</h5>
+                <button type="button" class="close" data-dismiss="modal">×</button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <tbody id="modalDetails"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+
+<script>
+    $(document).on("keypress", "#txtAuthorizedName", function (e) {
+        if (!/^[a-zA-Z\s]$/.test(e.key)) {
+            e.preventDefault();
+        }
+
+    });
+    $(document).on("keypress", "#CONTACT_NO", function (e) {
+        if (!/^[0-9]$/.test(e.key)) {
+            e.preventDefault();
+        }
+
+    })
+    $(document).on("click", ".btn-view", function () {
+        var data = $(this).closest("tr").data("json");
+
+        // ✅ Cleared All Subject check
+        var clearedAll = (data.IS_CLEARED_ALL_SUBJECT == "1" || data.IS_CLEARED_ALL_SUBJECT == 1) ? "Yes" : "No";
+
+        // ✅ Semester month + year
+        var semester = (data.MONTH_OF_SEMESTER ? data.MONTH_OF_SEMESTER : "") + " " +
+            (data.YEAR_OF_SEMESTER ? data.YEAR_OF_SEMESTER : "");
+
+        // ✅ Authorization details (conditionally added)
+        var authorizeRows = "";
+        if (data.AUTHORIZE_PERSON == "1" || data.AUTHORIZE_PERSON == "2") {
+            authorizeRows = `
+         <tr><th>Authorizer Name</th><td>${data.AUTHORIZE_PERSON_NAME}</td></tr>
+         <tr><th>Reason for not coming </th><td>${data.AUTHORIZE_REASON}</td></tr>
+     `;
+        }
+
+        // ✅ Build modal content
+        var html = `
+     <tr><th>Contact No</th><td>${data.CONTACT_NO}</td></tr>
+     <tr><th>Certificate</th><td>${data.CERTIFICATE_NAME}</td></tr>
+     <tr><th>Requested Date</th><td>${data.REQUEST_DATE}</td></tr>
+
+     <tr><th>Cleared All Subject</th><td>${clearedAll}</td></tr>
+     <tr><th>Semester Month & Year</th><td>${semester.trim()}</td></tr>
+     ${authorizeRows}
+     <tr><th>Status</th><td>${data.STATUS_NAME}</td></tr>
+     <tr><th>Reason</th><td>${data.REASON ?? ''}</td></tr>
+      <tr><th>To Be Collect Certificate</th><td>${data.TO_BE_COLLECTED_DATE}</td></tr>
+ `;
+
+        $("#modalDetails").html(html);
+        $("#distributionId").val(data.CERTIFICATE_DISTRIBUTION_ID);
+        $("#viewModal").modal("show");
+    });
+
+    function showError(inputId, errorId, message) {
+        $("#" + inputId).addClass("is-invalid").removeClass("is-valid");
+        $("#" + errorId).text(message).removeClass("d-none");
+    }
+
+    function clearError(inputId, errorId) {
+        $("#" + inputId).removeClass("is-invalid").addClass("is-valid");
+        $("#" + errorId).addClass("d-none");
+    }
+
+    $(document).on('click', '.datepicker, .datepicker *', function (e) {
+        e.stopPropagation();
+    });
+    $(document).ready(function () {
+        // ✅ Initialize DataTable
+        $('#tblMarkSheetRequested').DataTable({});
+
+        // ✅ Initialize Datepicker
+        //$(".date").datepicker({
+        //    format: "mm/yyyy",       // Display only month/year
+        //    startView: "months",     // Start view at months
+        //    minViewMode: "months",   // Restrict to month selection
+        //    autoclose: true,
+        //    orientation: "bottom auto"
+        //});
+
+        $('#txtYear').datepicker({
+            format: "yyyy",          // 👉 lowercase yyyy (not YYYY)
+            startView: "years",      // show years view
+            minViewMode: "years",    // restrict to years only
+            autoclose: true,
+            orientation: "bottom auto",
+            endDate: new Date()
+        }).on('show', function (e) {
+
+            e.stopPropagation();
+        });
+        $('.date').datepicker({
+            format: "MM",
+            startView: "months",
+            minViewMode: "months",
+            autoclose: true,
+            orientation: "bottom auto"
+        }).on('show', function (e) {
+            var allowedMonths = [ "Apr","Jun", "Nov"];
+            setTimeout(function () {
+                $(".datepicker-months .month").each(function () {
+                    var monthName = $(this).text();
+                    if (!allowedMonths.includes(monthName)) {
+                        $(this).addClass("disabled")
+                            .css("pointer-events", "none")
+                            .css("opacity", "0.3");
+                    }
+                });
+
+                // 🔴 Hide the year row (title)
+                $(".datepicker-months .datepicker-switch").hide();
+            }, 10);
+
+            e.stopPropagation();
+        });
+
+        // ✅ Initialize Selectpicker
+        $('.selectpicker').selectpicker({
+            size: 5,
+            dropupAuto: false
+        });
+        // ✅ Reset form when modal opens fresh
+        $('#AddMarksheetRequest').on('show.bs.modal', function () {
+            $("#CertificateList").val("").selectpicker("refresh");
+            $("#marksheetdisid").val("");
+            $("#txtMonthYearofSemester").datepicker("clearDates");
+            $("#txtisAllSubjectCleard").prop("checked", false);
+            $("#ddlAuthorizedPerson").val("").selectpicker("refresh");
+            $("#txtAuthorizedName").val("");
+            $("#ddlCertificateType").val("");
+            $("#txtValidReason").val("");
+            $("#statusText").text("No");
+            $("#ReasonDiv").addClass("hidden");
+            $("#hiddenSemestDiv").addClass("hidden");
+            // Cleared All Subjects is now always visible
+        });
+        // ✅ Show/Hide sections when Certificate changes
+        $("#CertificateList").on("change", function () {
+            var certificateId = parseInt($(this).val());
+
+            $("#hiddenSemestDiv").addClass("hidden");
+            if (certificateId < 17) {
+                $("#hiddenSemestDiv").removeClass("hidden");
+            }
+            if (certificateId > 6) {
+                $("#lblSemesterText").html('<i class="fa fa-calendar text-warning"></i> Last Appeared Month & Year');
+            } else {
+                $("#lblSemesterText").html('<i class="fa fa-calendar text-warning"></i> Semester Month & Year');
+            }
+        });
+        // ✅ Toggle switch label text update
+        $("#txtisAllSubjectCleard").on("change", function () {
+            if ($(this).is(":checked")) {
+                $("#statusText").text("Yes");
+            } else {
+                $("#statusText").text("No");
+            }
+        });
+        // ✅ Show Reason only if Authorized Person selected
+        $("#ddlAuthorizedPerson").on("change", function () {
+            var val = $(this).val();
+            if (val === "1" || val === "2") {
+                $("#ReasonDiv").removeClass("hidden");
+            } else {
+                $("#ReasonDiv").addClass("hidden");
+            }
+        });
+
+        // ✅ Filter Certificate Type based on Category
+        $("#ddlCertificateType").on('change', function () {
+            var categoryId = $(this).val();
+            if (categoryId != "") {
+                $.ajax({
+                    url: "@Url.Action("FetchCertificateByCategoryId", "Alumnae")",
+                    type: "POST",
+                    data: { categoryId: categoryId },
+                    success: function (data) {
+                        var items = '<option value="">--select--</option>';
+                        $.each(data, function (i, certificate) {
+                            items += "<option value='" + certificate.CERTIFICATE_ID + "'>" + certificate.CERTIFICATE_NAME + "</option>";
+                        });
+                        $('#CertificateList').html(items).selectpicker('refresh');
+                    },
+                    error: function (error) {
+                        // console.log(error);
+                    }
+                });
+            } else {
+                 $('#CertificateList').html('<option value="">--select--</option>').selectpicker('refresh');
+            }
+        });
+    });
+
+    // ✅ Fetch Item Details (edit mode)
+    function FetchItemDetails(ID) {
+        if (ID != null) {
+            $.ajax({
+                url: "@Url.Action("FetchCertificateRequestInfo", "Alumnae")",
+                type: "post",
+                data: { sMarkSheetRequestId: ID },
+                success: function (data) {
+                    if (data != null) {
+                        $('#marksheetdisid').val(data.CERTIFICATE_DISTRIBUTION_ID);
+                        $('#CertificateList').val(data.CERTIFICATE_ID).selectpicker('refresh');
+                        $('#txtYear').val(data.YEAR_OF_SEMESTER);
+                        $('#txtMonthYearofSemester').val(data.MONTH_OF_SEMESTER);
+                        $('#ddlCertificateType').val(data.CERTIFICATE_TYPE).selectpicker('refresh');
+                        $('#CONTACT_NO').val(data.CONTACT_NO);
+                        $('#REGISTER_NO').val(data.REGISTER_NO);
+
+                        if (data.IS_CLEARED_ALL_SUBJECT == "1" || data.IS_CLEARED_ALL_SUBJECT == 1) {
+                            $('#txtisAllSubjectCleard').prop('checked', true);
+                            $("#statusText").text("Yes");
+                        } else {
+                            $('#txtisAllSubjectCleard').prop('checked', false);
+                            $("#statusText").text("No");
+                        }
+
+                        $("#hiddenSemestDiv").addClass("hidden");
+                        if (parseInt(data.CERTIFICATE_ID) < 17) {
+                            $("#hiddenSemestDiv").removeClass("hidden");
+                        }
+                        if (parseInt(data.CERTIFICATE_ID) > 6) {
+                            $("#lblSemesterText").html('<i class="fa fa-calendar text-warning"></i> Last Appeared Month & Year');
+                        } else {
+                            $("#lblSemesterText").html('<i class="fa fa-calendar text-warning"></i> Semester Month & Year');
+                        }
+
+                        $('#ddlAuthorizedPerson').val(data.AUTHORIZE_PERSON).selectpicker('refresh');
+
+                        var val = data.AUTHORIZE_PERSON;
+                            if (val == "1" || val == "2") {
+                                $("#ReasonDiv").removeClass("hidden");
+                            } else {
+                                $("#ReasonDiv").addClass("hidden");
+                            }
+                        $('#txtAuthorizedName').val(data.AUTHORIZE_PERSON_NAME);
+                        $('#txtValidReason').val(data.AUTHORIZE_REASON);
+                    }
+                },
+                error: function (ex) {
+                    alert(ex.Message);
+                }
+            });
+        }
+    }
+
+    // ✅ Submit form
+    $('#btnSubmitAdd').click(function (e) {
+        e.preventDefault();
+        var isValid = true;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+
+        if (!isValid) {
+            //gritter-info,danger,success,warning,default
+            myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+            return false;
+        }
+        var certificateId = $("#CertificateList").val();
+        var AuthorizePerson = $("#ddlAuthorizedPerson").val();
+        var AuthorizeName = $("#txtAuthorizedName").val();
+        var certificateType = $("#ddlCertificateType").val();
+
+        var Reason = $("#txtValidReason").val();
+        var mobile = $("#CONTACT_NO").val();
+        var RegisterNo = $("#REGISTER_NO").val();
+        if (certificateId === "") {
+            swal({
+                title: "Validation Error",
+                text: "Please Choose a Certificate Type.",
+                type: "warning",
+                timer: 2000,
+                showConfirmButton: true
+            });
+            return false;
+        }
+
+        // 2. Mobile No Validation (10 digits, starts 6–9)
+        var mobileRegex = /^[6-9]\d{9}$/;
+        if (!mobileRegex.test(mobile)) {
+            swal({
+                title: "Validation Error",
+                text: "Please enter a valid 10-digit mobile number.",
+                type: "warning",
+                timer: 2000,
+                showConfirmButton: true
+            });
+            return false;
+        }
+
+        // 3. If Authorized Person is chosen, name & reason required
+        if (AuthorizePerson && (AuthorizeName.trim() === "" || Reason.trim() === "")) {
+            swal({
+                title: "Validation Error",
+                text: "Please provide Authorized Person Name and Reason.",
+                type: "warning",
+                timer: 2000,
+                showConfirmButton: true
+            });
+            return false;
+        }
+        // 4. Register No Validation (Must start with 107)
+        if (!RegisterNo.startsWith("107")) {
+            swal({
+                title: "Validation Error",
+                text: "enter the valid register number",
+                type: "warning",
+                timer: 2000,
+                showConfirmButton: true
+            });
+            return false;
+        }
+        var IS_CLEARED_ALL_SUBJECT = $('#txtisAllSubjectCleard').is(':checked') ? 1 : 0;
+
+        var JsonData = JSON.stringify({
+            CERTIFICATE_DISTRIBUTION_ID: $('#marksheetdisid').val(),
+            AUTHORIZE_PERSON: AuthorizePerson,
+            AUTHORIZE_PERSON_NAME: AuthorizeName,
+            CERTIFICATE_ID: certificateId,
+            IS_CLEARED_ALL_SUBJECT: IS_CLEARED_ALL_SUBJECT,
+            CERTIFICATE_TYPE: certificateType,
+            MONTH_OF_SEMESTER: $('#txtMonthYearofSemester').val(),
+            YEAR_OF_SEMESTER: $('#txtYear').val(),
+            CONTACT_NO: mobile,
+            REGISTER_NO: RegisterNo,
+            AUTHORIZE_REASON: Reason
+        });
+
+        $.ajax({
+            url: "@Url.Action("SaveorUpdateCertificateRequest", "Alumnae")",
+            type: "post",
+            data: { sJsonData: JsonData },
+            success: function (data) {
+                if (data.ErrorCode != null && data.ErrorCode == "406") {
+                    swal({ title: "Error..!!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                } else {
+                    swal({ title: "Success..!!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                }
+                loadContent('/Alumnae/CertificateRequestFrom');
+                $('#AddMarksheetRequest').modal('hide');
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open');
+            },
+            error: function () {
+                swal({ title: "Error..!!", text: "Internal Server Error..!!", showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+            }
+        });
+    });
+
+    // ✅ Delete confirmation
+    function GetConfirm(ID) {
+        swal({
+            title: "Are you sure want to Delete..?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                url: "@Url.Action("DeleteCertificateRequested", "Alumnae")",
+                type: "post",
+                data: { sMarkSheetRequestId: ID },
+                success: function (data) {
+                    if (data.ErrorCode != null && data.ErrorCode == "402") {
+                        swal({ title: "Error..!!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                    } else {
+                        swal({ title: "Success..!!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                    }
+                    loadContent('/Alumnae/CertificateRequestFrom');
+                },
+                error: function () {
+                    swal({ title: "Error..!!", text: "Internal Server Error..!!", showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                }
+            });
+        });
+    }
+
+    $("#btnaddcertificate").on('click', function () {
+        $('#txtAuthorizedName').attr('value', '');
+        $('#txtValidReason').attr('value', '');
+        $('#CONTACT_NO').attr('value', '');
+        $('#REGISTER_NO').attr('value', '');
+        $('#marksheetdisid').attr('value', '');
+        $('#txtMonthYearofSemester').attr('value', '');
+        $('#txtYear').attr('value', '');
+        $('#CertificateList option[value=""]').attr("selected", "selected");
+        $('#ddlAuthorizedPerson option[value=""]').attr("selected", "selected");
+        $('#ddlCertificateType option[value=""]').attr("selected", "selected");
+        $('.selectpicker').selectpicker('refresh');
+    });
+</script>
+
+<style>
+    /* ✅ Fix dropdown behind modal */
+    .bootstrap-select .dropdown-menu {
+        z-index: 2000 !important;
+    }
+</style>
+

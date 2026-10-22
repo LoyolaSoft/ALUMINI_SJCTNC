@@ -1,0 +1,142 @@
+@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    Layout = null;
+    var courses = Model.LiCourseEntryStatus ?? new List<CMS.ViewModel.ViewModel.OBEViewModel.ObeCourseEntryStatus>();
+}
+
+<style>
+    .label-entered {
+        background-color: #5cb85c;
+        color: #fff;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .label-not-entered {
+        background-color: #d9534f;
+        color: #fff;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .label-semester {
+        background-color: #5bc0de;
+        color: #fff;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+</style>
+
+<!-- Summary Stats Bar -->
+<div class="row" style="margin-bottom: 15px;">
+    <div class="col-md-4">
+        <div class="widget widget-stats bg-blue" style="border-radius:8px; padding:15px;">
+            <div class="stats-info">
+                <h4>Total Courses</h4>
+                <p style="font-size:2rem; font-weight:800; margin:0;">@courses.Count</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="widget widget-stats bg-green" style="border-radius:8px; padding:15px;">
+            <div class="stats-info">
+                <h4>Entered</h4>
+                <p style="font-size:2rem; font-weight:800; margin:0;">@courses.Count(c => c.ENTRY_STATUS == "Entered")</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="widget widget-stats bg-red" style="border-radius:8px; padding:15px;">
+            <div class="stats-info">
+                <h4>Not Entered</h4>
+                <p style="font-size:2rem; font-weight:800; margin:0;">@courses.Count(c => c.ENTRY_STATUS == "Not Entered")</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (courses.Count == 0)
+{
+    <div class="alert alert-warning">
+        <i class="fa fa-info-circle"></i> No courses found for the selected criteria.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped table-hover" style="margin-bottom:0;">
+            <thead>
+                <tr style="background-color: #2a5298 !important; color: #000000 !important;">
+                    <th style="width:50px; text-align:center; color:#000000 !important;">#</th>
+                    <th style="color:#000000 !important;">Course Code</th>
+                    <th style="color:#000000 !important;">Course Title</th>
+                    <th style="width:130px; color:#000000 !important;">Semester</th>
+                    <th style="width:130px; text-align:center; color:#000000 !important;">Entry Status</th>
+                    <th style="width:110px; text-align:center; color:#000000 !important;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int sno = 1; }
+                @foreach (var course in courses)
+                {
+                    <tr>
+                        <td style="text-align:center; vertical-align:middle; font-weight:600; color:#555;">@sno</td>
+                        <td style="vertical-align:middle; font-weight:700; color:#2a5298;">@course.COURSE_CODE</td>
+                        <td style="vertical-align:middle;">@course.COURSE_TITLE</td>
+                        <td style="vertical-align:middle;">
+                            @if (!string.IsNullOrEmpty(course.SEMESTER_NAME))
+                            {
+                                <span class="label-semester">@course.SEMESTER_NAME</span>
+                            }
+                            else
+                            {
+                                <span></span>
+                            }
+                        </td>
+                        <td style="text-align:center; vertical-align:middle;">
+                            @if (course.ENTRY_STATUS == "Entered")
+                            {
+                                <span class="label-entered"><i class="fa fa-check"></i> Entered</span>
+                            }
+                            else
+                            {
+                                <span class="label-not-entered"><i class="fa fa-times"></i> Not Entered</span>
+                            }
+                        </td>
+                        <td style="text-align:center; vertical-align:middle;">
+                            @if (course.ENTRY_STATUS == "Entered")
+                            {
+                                <a href="javascript:void(0);"
+                                   onclick="PreviewQuestionPaper('@course.COURSE_ID', '@course.EXAM_SETTING_ID');"
+                                   class="btn btn-xs btn-info">
+                                    <i class="fa fa-eye"></i> Preview
+                                </a>
+                            }
+                            else
+                            {
+                                <span></span>
+                            }
+                        </td>
+                    </tr>
+                    sno++;
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div style="padding: 10px 0; color: #888; font-size: 12px; border-top: 1px solid #eee; margin-top: 10px;">
+        <i class="fa fa-info-circle"></i> Report generated on @DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt")
+        &nbsp;|&nbsp; Total: <strong>@courses.Count</strong>
+        &nbsp;|&nbsp; Entered: <strong>@courses.Count(x => x.ENTRY_STATUS == "Entered")</strong>
+        &nbsp;|&nbsp; Pending: <strong>@courses.Count(x => x.ENTRY_STATUS == "Not Entered")</strong>
+    </div>
+}

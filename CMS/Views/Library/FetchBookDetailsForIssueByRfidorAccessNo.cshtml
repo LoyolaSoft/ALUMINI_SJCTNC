@@ -1,0 +1,173 @@
+﻿
+@model CMS.ViewModel.ViewModel.LibraryViewModel
+
+@{
+    ViewBag.Title = "FetchBookDetailsForIssueByRfidorAccessNo";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    int nCount = 0;
+}
+
+
+
+
+<div class="form-group">
+    <div class="col-md-12 table-responsive">
+        <table class="table table-bordered" id="tblIsueBooks">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>
+                        @*<div class="checkbox checkbox-css">
+                                <input type="checkbox" id="AllchkID" onchange="SelectOrUnselect()" />
+                                <label for="AllchkID"> &nbsp; &nbsp;</label>
+                            </div>*@
+                        Select
+                    </th>
+                    <th>A.No</th>
+                    <th>C.No</th>
+                    <th>ISBN</th>
+                    <th>B.No</th>
+                    <th>Title</th>
+                    <td>Language</td>
+                    <td>Personal Author1</td>
+                    <td>Personal Author2</td>
+                    <td>Name of Publisher</td>
+                    <td>Place of Publisher</td>
+                    <td>Price</td>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.liBookDetails != null && Model.liBookDetails.Count > 0)
+                {
+                    foreach (var item in Model.liBookDetails)
+                    {
+                        <tr cms-BookId="@item.BOOK_ID">
+                            <td>@{nCount++;} @nCount</td>
+                            <td>
+                                <div class="checkbox checkbox-css">
+                                    <input type="checkbox" id="@nCount" BookId="@item.BOOK_ID" />
+                                    <label for="@nCount"></label>
+                                </div>
+                            </td>
+                            <td>@item.ACCESS_NO</td>
+                            <td>@item.CLASS_NO</td>
+                            <td>@item.ISBN_NO</td>
+                            <td>@item.BOOK_NO</td>
+                            <td>@item.BOOK_TITLE</td>
+                            <td>@item.LANGUAGE</td>
+                            <td>@item.PERSONAL_AUTHOR1</td>
+                            <td>@item.PERSONAL_AUTHOR2</td>
+                            <td>@item.NAME_OF_PUBLISHER</td>
+                            <td>@item.PLACE_OF_PUBLISHER</td>
+                            <td><i class="fa fa-rupee"></i> @item.PRICE</td>
+                        </tr>
+                                    }
+                                }
+            </tbody>
+        </table>
+
+        <div class="form-group">
+            <a class="btn btn-primary pull-right" href="javascript:;" id="btnSubmit"> Submit </a>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+
+
+
+    
+
+        SelectOrUnselect = function ()
+        {
+            if (AllchkID.checked == true)
+            {
+                $('#tblIsueBooks tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", true);
+                    });
+                });
+            }
+            else
+            {
+                $('#tblIsueBooks tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", false);
+                    });
+                });
+            }
+        }
+
+
+</script>
+
+
+@* Book Issue Submit *@
+<script>
+
+   
+
+
+    $('#btnSubmit').on('click', function ()
+    {
+        
+        var JsonData = '{"liBookIssue":[';
+        var nCount = 0;
+        $('#tblIsueBooks tbody tr').each(function ()
+        {
+            if ($(this).find('input[type="checkbox"]').is(':checked'))
+            {
+                JsonData += '{"USER_ID":"' + $('#hdUserId').val() + '","BOOK_ID":"' + $(this).attr('cms-BookId') + '","ISSUE_DATE":"NOW()","BOOK_STATUS":"1","STATUS":"1"},';
+                nCount++;
+            }
+        });
+
+        if (nCount != 0)
+        {
+            JsonData = JsonData.slice(0, -1);
+            JsonData = JsonData + "]}";
+            $.ajax({
+                url: '@Url.Action("SaveBookCirculation", "Library")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sJsonBookDetails: JsonData },
+                success: function (data)
+                {
+                    if (data.ErrorCode == "417")
+                    {
+                        swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                    if (data.ErrorCode == "200") {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                        $('#activeTag').click();
+
+
+                    }
+                    if (data.ErrorCode == "406") {
+                        swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+
+                    }
+
+
+
+
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error !", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        } else
+        {
+            swal({ title: "Alert !", text: "Please Select Any One To Continue !", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+        }
+    });
+</script>
+
+

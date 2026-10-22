@@ -1,0 +1,98 @@
+@model List<CMS.ViewModel.Model.OBE_QUESTIONPAPER_PATTERN>
+@{
+    Layout = null;
+}
+
+<div class="row m-b-10">
+    <div class="col-md-12">
+        <button type="button" class="btn btn-sm btn-success pull-right" onclick="SendEmail()">
+            <i class="fa fa-envelope"></i> Send Email
+        </button>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table id="staff-table" class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th width="1%">S.No</th>
+                <th>Staff Code</th>
+                <th>Staff Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th class="text-center">Course Count</th>
+                <th class="text-center">Action</th>
+                <th width="1%" class="text-center">
+                    <input type="checkbox" id="check-all" onclick="SelectAllStaff(this)" />
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Count > 0)
+            {
+                int i = 1;
+                foreach (var item in Model)
+                {
+                    bool isSent = false;
+                    if (item.IS_MAIL_SENT == "1")
+                    {
+                         isSent = true;
+
+                    }
+                    else
+                    {
+                         isSent = false;
+
+                    }
+                    <tr class="@(isSent ? "success" : "")">
+                        <td>@i</td>
+                        <td>@item.STAFF_CODE</td>
+                        <td>@item.STAFF_NAME @(isSent ? "(Sent)" : "")</td>
+                        <td>@item.EMAIL</td>
+                        <td>@item.DEPARTMENT</td>
+                        <td class="text-center">@item.COURSE_COUNT</td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-xs btn-primary" onclick="ToggleCourses('@item.STAFF_ID')">
+                                <i class="fa fa-eye"></i> Show Details
+                            </button>
+                        </td>
+                        <td class="text-center">
+                            @if (!isSent)
+                            {
+                                <input type="checkbox" class="staff-checkbox" value="@item.STAFF_ID" />
+                            }
+                            else
+                            {
+                                <input type="checkbox" disabled checked="checked" />
+                            }
+                        </td>
+                    </tr>
+                    <tr id="courses-@item.STAFF_ID" style="display:none; background-color: #f9f9f9;">
+                        <td colspan="8">
+                            <div style="padding: 10px; border-left: 3px solid #348fe2;">
+                                <strong>Staff ID:</strong> @item.STAFF_ID <br/>
+                                <strong>Assigned Courses:</strong> <br/>
+                                <div class="m-t-5">
+                                    @Html.Raw(item.COURSE_LIST)
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    i++;
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center">No staff assignments found for the selected criteria.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Initialize datatable if needed, but simple table might be better for this custom layout
+    });
+</script>

@@ -1,0 +1,222 @@
+﻿@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.ViewModel.Model
+@{
+    ViewBag.Title = "FeedBackQuestionViewNew";
+    Layout = null;
+    int sCount = 0;
+}
+
+@if (Model.sErrorMessage != null)
+{
+    <div class="alert alert-warning">@Model.sErrorMessage</div>
+}
+else
+{
+    <div class="panel-body">
+        
+
+        <div class="box-body row">
+            <div class="form-group col-md-12 table-responsive">
+                <table class="table table-hover table-bordered" id="tblFeedBackAnswer">
+                    <thead>
+                        <tr><th>Q.No</th><th>Questions</th>
+                        <th>Answers</th></tr>
+                    </thead>
+                    @{
+                        if (Model.EventQuestionList != null)
+                        {
+                            string sQuestionType = string.Empty;
+                            bool bFlag = true;
+                            foreach (var QuestionItem in Model.EventQuestionList)
+                            {
+                                sCount++;
+                                // group objective by question
+                                var liObjective = new List<EVENT_FEEDBACK_OBJECTIVE>();
+                                if (Model.EventObjectiveList != null && Model.EventObjectiveList.Count > 0)
+                                {
+                                    liObjective = Model.EventObjectiveList.Where(x => x.QUESTION_ID == QuestionItem.QUESTION_ID).ToList();
+                                }
+
+                                if (bFlag)
+                                {
+                                    sQuestionType = QuestionItem.QUESTION_GROUP;
+                                    <tr>
+                                        <td></td>
+                                        <td><b>@sQuestionType </b> @{ bFlag = false; } </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    if (sQuestionType != QuestionItem.QUESTION_GROUP)
+                                    {
+                                        <tr>
+                                            <td></td>
+                                            <td> @{ sQuestionType = QuestionItem.QUESTION_GROUP; } <b>@sQuestionType </b></td>
+                                        </tr>
+                                    }
+                                }
+
+                                <tr id="trQuestionStart">
+                                    <td>@sCount</td>
+
+                                    <td width="" cms-question-id="@QuestionItem.QUESTION_ID" id="Ques">
+                                        <div class="">
+                                            @if (!string.IsNullOrEmpty(QuestionItem.QUESTION))
+                                            {
+                                                <b>@QuestionItem.QUESTION </b><br /> @QuestionItem.TAMIL_QUESTION
+                                            }
+                                        </div>
+                                    </td>
+                                    <td width="35%" id="">
+                                        <div class="">
+                                            @foreach (var ObjectiveItem in liObjective)
+                                            {
+                                                if (!String.IsNullOrEmpty(ObjectiveItem.OBJECTIVE_ID) && ObjectiveItem.OBJECTIVE_ID != "0")
+                                                {
+                                                    <div class="radio radio-css radio-inline radio-inverse" id="@ObjectiveItem.OBJECTIVE_ID">
+                                                        @Html.RadioButton(QuestionItem.QUESTION_ID, ObjectiveItem.OBJECTIVE_ID, new { @id = "fb+" + @ObjectiveItem.QUESTION_ID + @ObjectiveItem.OBJECTIVE_ID, @class = @ObjectiveItem.OBJECTIVE_ID })
+
+                                                        <label for="fb+@QuestionItem.QUESTION_ID@ObjectiveItem.OBJECTIVE_ID">
+                                                            <b> @ObjectiveItem.OBJECTIVES</b><br /> @ObjectiveItem.TAMIL_OBJECTIVES
+                                                        </label>
+                                                    </div>
+                                                    <br />
+                                                }
+                                                else
+                                                {
+                                                    <div class="col-md-12 form-group">
+                                                        <textarea type="text" id="fb+@QuestionItem.QUESTION_ID" class="form-control " name="@QuestionItem.QUESTION_ID" data-parsley-required="true"></textarea>
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="2"><p class="text-yellow">No Records available</p> </td></tr>
+                        }
+                    }
+                </table>
+            </div>
+            <div class="col-md-1 form-group pull-right">
+                <a class="btn btn-primary" id="btnSubmit">Submit</a>
+            </div>
+            <div class="col-md-1 form-group pull-right ">
+                <a class="btn btn-danger" id="btnCancel">Cancel</a>
+            </div>
+        </div>
+    </div>
+}
+
+<script>
+    var message = @Html.Raw(Json.Encode(Model.sErrorMessage));
+    if (message != null && message != "") {
+        swal({ title: "Info !", text: message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+    }
+
+    // Submit Logic
+    $('#btnSubmit').on("click", function () {
+        var answersArray = [];
+        var nCount = 0;
+        var sStatus = 0;
+        var isTextBox = false;
+
+        $('#tblFeedBackAnswer tbody tr').each(function () {
+            if ($(this).attr('id') == "trQuestionStart") {
+                var QuestionId = $(this).find("#Ques").attr("cms-question-id");
+                var names = {};
+
+                // radio button
+                $(this).find('input[name="' + QuestionId + '"]').each(function () {
+                    names[$(this).attr('name')] = true;
+                });
+
+                // check text box
+                if ($(this).find('textarea[name="' + QuestionId + '"]').length) {
+                    isTextBox = true;
+                } else {
+                    isTextBox = false; 
+                }
+
+                if (isTextBox == true) {
+                    var textVal = $(this).find('textarea[name="' + QuestionId + '"]').val();
+                    if (textVal) {
+                        answersArray.push({
+                            "QUESTION": QuestionId,
+                            "ANSWER_IN_TEXT": textVal
+                        });
+                        nCount++;
+                    } else {
+                        sStatus++;
+                        swal({ title: "Error !", text: "Please attend all questions!", showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                        return false;
+                    }
+                } else {
+                    for (var name in names) {
+                        var radio_buttons = $("input[name='" + name + "']");
+                        if (radio_buttons.filter(':checked').length == 0) {
+                            sStatus++;
+                            swal({ title: "Error !", text: "Please attend all questions!", showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                            return false;
+                        } else {
+                            if ($(radio_buttons).is(':checked')) {
+                                answersArray.push({
+                                    "QUESTION": name,
+                                    "ANSWER": $("input[name='" + name + "']:checked").val()
+                                });
+                                nCount++;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (nCount != 0 && sStatus == 0) {
+            var ArrayAnswer = JSON.stringify({ "liFB_Answer": answersArray });
+
+            var EventId = $("#EventFeedBackStudent").val();
+            var JsonData = '{"EVENT_ID":"' + EventId + '"}';
+
+            $.ajax({
+                url: "@Url.Action("SaveFeedBackAnswer", "Event")",
+                method: "POST",
+                datatype: "json",
+                data: { sJsonData: JsonData, sFeedBackAnswer: ArrayAnswer },
+                success: function (data) {
+                    if (data.Message != null && data.Message != "") {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'success', animation: true });
+                        var divAppend = $("#divAnswerView");
+                        divAppend.html('');
+                        // Reset dropdown if needed
+                        $("#EventFeedBackStudent").val('').selectpicker('refresh');
+                    } else {
+                         swal({ title: "Error !", text: "Failed to save.", showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                    }
+                },
+                error: function (error) {
+                    swal({ title: "Error !", text: "An error occurred.", showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                }
+            });
+        }
+    });
+
+    $('#btnCancel').click(function () {
+        $("#divAnswerView").empty();
+        $("#EventFeedBackStudent").val('').selectpicker('refresh');
+    });
+
+    $(document).ready(function () {
+        $('input[type="radio"]').on('click', function () {
+            var selectedClass = $(this).attr('class');
+            if ($('input[type="radio"].' + selectedClass).not(this).prop('checked')) {
+                alert('Do not select the same answer that you chose for the first question. ! முதல் கேள்விக்கு நீங்கள் தேர்ந்தெடுத்த அதே பதிலைத் தேர்ந்தெடுக்க வேண்டாம்.');
+                $(this).prop('checked', false);
+                $('input[type="radio"].' + selectedClass).not(this).prop('checked', true);
+            }
+        });
+    });
+</script>

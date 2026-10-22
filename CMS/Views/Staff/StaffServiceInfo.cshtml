@@ -1,0 +1,299 @@
+﻿@model IEnumerable<CMS.ViewModel.Model.StaffService>
+
+<div id="dvServiceInfo">
+    <div class="row">
+        <div class="form-group pull-right">
+            <div class="col-md-12 pull-right">
+                <a href="#Service-dialog" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="row form-group">
+            @{int count = 0; }
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>S.No</th>
+                            <th>Date Of Appoint</th>
+                            <th>Name</th>
+                            <th>Appointment Nature</th>
+                            <th>Date Of Termination</th>
+                            <th>Institute</th>
+                            <th>Remarks</th>
+                            <th>Place</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null)
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@{count++;} @count</td>
+                                    <td>@Html.DisplayFor(modelItem => item.DATEOFAPPOINT)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.NAME)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.APPOINTMENTNATURE)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.DATEOFTERMINATION)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.INSTITUTE)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.REMARKS)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Place)</td>
+                                    <td>
+                                        <a href="#Service-dialog" id="EditService" onclick="GetService(@item.SERVICEID)" data-toggle="modal"><i class="fa fa-edit text-primary"></i></a>
+                                        <a href="#" onclick="GetConfirm(@item.SERVICEID);"><i class="fa fa-trash text-danger"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td>No data found ...!</td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+            <script>
+                $(document).ready(function () {
+                    $("#btnEditService").hide();
+                    ////FormMultipleUpload.init();
+                    handleDatePicker = function () {
+                        "use strict";
+                        $("#DateOfAppoint,#DateOfTermination").datepicker({
+                            todayHighlight: true,
+                            autoclose: true,
+                            endDate: new Date(),
+                            format: "dd/mm/yyyy",
+                            orientation: "right bottom"
+                            // 'top': top,
+                            // 'left': left
+                        });
+                    }
+                    handleDatePicker();
+                });
+
+                GetServiceInfo = function ()
+                {
+                    $.ajax({
+                        url: "@Url.Action("StaffServiceInfo", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        success: function (data) {
+                            $('#dvServiceInfo').empty();
+                            $('#dvServiceInfo').append(data);
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+
+                // Bind Service Values ..
+                var GetService = function (ID) {
+                    $.ajax({
+                        url: "@Url.Action("BindService", "Staff")",
+                        method: "POST",
+                        datatype: "json",
+                        data: { sServiceID: ID },
+                        success: function (data)
+                        {
+                            $("#DateOfAppoint").val(data.DATEOFAPPOINT);
+                            $("#AppontmentName").val(data.NAME);
+                            $("#DateOfTermination").val(data.DATEOFTERMINATION);
+                            $("#Institute").val(data.INSTITUTE);
+                            $("#Remarks").val(data.REMARKS);
+                            $("#Place").val(data.Place);
+                            $("#btnService").hide();
+                            $("#btnEditService").show();
+                        }, error: function (error)
+                        {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+
+                // Delete Service ...
+                function GetConfirm(ID)
+                {
+                    if (!confirm('Are you sure to delete ?'))
+                    {
+                        return false;
+                    } else
+                    {
+                        $.ajax({
+                            url:"@Url.Action("DeleteServices", "Staff")",
+                            method: "POST",
+                            datatype:"json",
+                            data: { sServiceId: ID },
+                            success:function(data)
+                            {
+                                alert(data);
+                                GetServiceInfo();
+                            },error:function(error)
+                            {
+                                alert('Internal Server Error ..!');
+                            }
+                        });
+                    }
+                }
+
+                //Add Services...
+                $("#btnService").on("click", function ()
+                {
+                    var isValid = true;
+                    if ($('#nav-tab1-3').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        //gritter-info,danger,success,warning,default
+                        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    var DateofAppoint = $("#DateOfAppoint").val();
+                    var AppontmentName = $("#AppontmentName").val();
+                    var DateofTermination = $("#DateOfTermination").val();
+                    var Institute = $("#Institute").val();
+                    var Remarks = $("#Remarks").val();
+                    var Place = $("#Place").val();
+                    var JsonData;
+                    if (JsonData == null)
+                    {
+                        JsonData = '{"DateofAppoint":"' + DateofAppoint + '","Name":"' + AppontmentName + '","DateofTermination":"' + DateofTermination + '","Institute":"' + Institute + '","Remarks":"' + Remarks + '","Place":"' + Place + '"}';
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("StaffService", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        data: { JsonService: JsonData },
+                        success: function (data)
+                        {
+                            alert(data);
+                            GetServiceInfo();
+                        }, error: function (error)
+                        {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                });
+
+                //Update Services...
+                $("#btnEditService").on("click", function ()
+                {
+                    var isValid = true;
+                    if ($('#nav-tab1-3').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        //gritter-info,danger,success,warning,default
+                        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    var DateofAppoint = $("#DateOfAppoint").val();
+                    var AppontmentName = $("#AppontmentName").val();
+                    var DateofTermination = $("#DateOfTermination").val();
+                    var Institute = $("#Institute").val();
+                    var Remarks = $("#Remarks").val();
+                    var Place = $("#Place").val();
+                    var JsonData;
+                    if (JsonData == null)
+                    {
+                        JsonData = '{"DateofAppoint":"' + DateofAppoint + '","Name":"' + AppontmentName + '","DateofTermination":"' + DateofTermination + '","Institute":"' + Institute + '","Remarks":"' + Remarks + '","Place":"' + Place + '"}';
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("UpdateStaffServices", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        data: { JsonService: JsonData },
+                        success: function (data)
+                        {
+                            alert(data);
+                            GetServiceInfo();
+                        }, error: function (error)
+                        {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                });
+            </script>
+        </div>
+    </div>
+
+    <!--Modal-->
+    <div class="modal" id="Service-dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Service Information</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <div class="form-horizontal">
+                                <div class="col-md-12">
+                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Date Of Appoint</label>
+                                        <div class="col-md-9">
+                                            <div class="input-group date" id="datetimepicker1">
+                                                <input type="text" class="form-control input-sm" id="DateOfAppoint" placeholder="Select Date"  data-parsley-required="true" />
+                                                <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Appointment Name</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="AppontmentName" placeholder="Enter AppointmentName" data-parsley-required="true" data-parsley-length="[5,50]"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Date Of Termination</label>
+                                        <div class="col-md-9">
+                                            <div class="input-group date" id="datetimepicker1">
+                                                <input type="text" class="form-control input-sm" id="DateOfTermination" placeholder="Select Date" />
+                                                <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Institute</label>
+                                        <div class="col-md-9">
+                                            <input type="text" class="form-control input-sm" id="Institute" placeholder="Enter Istitute Name"  data-parsley-required="true" data-parsley-length="[5,100]"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Remarks</label>
+                                        <div class="col-md-9">
+                                            <textarea type="text" class="form-control input-sm" id="Remarks" placeholder="Enter Remarks" data-parsley-required="true" data-parsley-length="[5,250]" rows="3"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Place</label>
+                                        <div class="col-md-9">
+                                            <textarea type="text" class="form-control input-sm" id="Place" placeholder="Enter Place" data-parsley-required="true" data-parsley-length="[5,100]" rows="3"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="btnService" class="btn btn-sm btn-primary"  data-dismiss="modal">Submit</a>
+                    <a id="btnEditService" class="btn btn-sm btn-primary"  data-dismiss="modal">Update</a>
+                    <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Modal-->
+</div>

@@ -1,0 +1,1084 @@
+﻿@model CMS.ViewModel.ViewModel.AccountViewModel
+
+@{
+    Layout = null;
+    string sPwdPlaceholder = string.Empty;
+    //string sMoto = string.Empty;
+    string sMission = string.Empty;
+    var currentDate = DateTime.Now.ToString("dd:MM");
+    var CurrentMonth = DateTime.Today.Month;
+
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_CODE | Login </title>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+    @Styles.Render("~/bundles/basecss")
+    @Scripts.Render("~/bundles/headerbasejs")
+    <link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+    <style>
+        @@media only screen and (max-width:700px) {
+            #TeacherDayImg {
+                display: block
+            }
+
+            #clgLogoTD {
+                display: none
+            }
+        }
+
+        @@media only screen and (min-width:701px) {
+            #TeacherDayImg {
+                display: none
+            }
+
+            #clgLogoTD {
+                display: block
+            }
+        }
+
+        #ChristmasDiv {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: #a1a1a1;
+            height: 740px;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* OTP Styling */
+        .otp-container {
+            text-align: center;
+            padding: 30px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .otp-icon {
+            font-size: 60px;
+            color: #00acac; /* Teal color to match theme */
+            margin-bottom: 20px;
+        }
+
+        .otp-input {
+            letter-spacing: 5px;
+            font-weight: 600;
+            font-size: 24px;
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            height: 55px;
+            transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        }
+
+            .otp-input:focus {
+                border-color: #00acac;
+                box-shadow: 0 0 8px rgba(0, 172, 172, 0.6);
+                outline: 0;
+            }
+
+        .otp-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+            text-align: left;
+        }
+
+        .btn-verify {
+            background: #00acac;
+            border-color: #00acac;
+            color: #fff;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+            .btn-verify:hover {
+                background: #008a8a;
+                color: #fff;
+            }
+
+        .otp-fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Password Eye Icon Styling */
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #707478;
+            font-size: 18px;
+            z-index: 10;
+            user-select: none;
+            -webkit-user-select: none;
+            line-height: 1;
+        }
+
+        .toggle-password:hover {
+            color: #242a30;
+        }
+    </style>
+</head>
+
+
+<body class="pace-top bg-white" @*ng-app="myApp"*@>
+    @if (@CurrentMonth == 12)
+    {
+        <canvas id="ChristmasDiv"></canvas>
+
+    }
+    <div @*ng-controller="loginController"*@>
+        <!-- begin #page-loader -->
+        <div id="page-loader" class="fade in"><span class="spinner"></span></div>
+        <!-- end #page-loader -->
+        <!-- begin #page-container -->
+        <div id="page-container" class="fade">
+            <!-- begin login -->
+            <div class="login login-with-news-feed">
+                <!-- begin news-feed -->
+                <div class="news-feed">
+                    <div class="news-image">
+                        @if (currentDate == "05:09")
+                        {
+                            <img src="~/Content/assets/img/hcc-img/TeacherDayNew.gif" data-id="login-cover-image" style="width: 100%; height: 100%; " />
+                        }
+                        else
+                        {
+                            if (Model.liCalender != null && Model.liCalender.Count > 0)
+                            {
+                                if (!string.IsNullOrEmpty(Model.liCalender.FirstOrDefault().LOGIN_IMG_PATH))
+                                {
+                                    <img src="@Url.Content(Model.liCalender.FirstOrDefault().LOGIN_IMG_PATH)" data-id="login-cover-image" alt="" />
+                                }
+                                else
+                                {
+                                    <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().LOGIN_IMG_PATH)" data-id="login-cover-image" alt="" />
+                                }
+                            }
+                            else
+                            {
+                                <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().LOGIN_IMG_PATH)" data-id="login-cover-image" alt="" />
+                            }
+                        }
+                    </div>
+                    <div class="news-caption">
+
+                        <h4 class="caption-title"><i class="ion-ios-cloud m-r-15 fa-2x pull-left"></i><b> @Model.liCollegeDetails.FirstOrDefault().COLLEGE_CODE ERP </b> ADMIN </h4>
+                        <p>
+                            <b>
+                                @if (Model.liCollegeDetails.FirstOrDefault().COLLEGE_CODE == "SJC")
+                                {
+                                    sPwdPlaceholder = "Password";
+                                    sMission = "உழைப்பே உயர்வு தரும் / Hard Work Conquers All";
+                                }
+                                else
+                                {
+                                    sPwdPlaceholder = "Password";
+                                    sMission = "We strive to form academically excelling individuals committed to God and to social growth using all their endowments.";
+                                }
+                                @sMission
+                            </b>
+                        </p>
+
+                    </div>
+                </div>
+                <!-- end news-feed -->
+                <!-- begin right-content -->
+                <div class="right-content">
+                    @if (@CurrentMonth == 12)
+                    {
+                        <marquee direction="right" scrollamount="4" style=" padding-top: 30px; margin-bottom: -20px;">
+                            <img src="/Content/assets/img/santa.gif">
+                        </marquee>
+                    }
+
+                    <!-- begin login-header -->
+                    <div class="login-header">
+
+                        <div class="brand">
+                            <span class="logo">
+                                <i class="">
+                                    @if (currentDate == "05:09")
+                                    {
+                                        <img src="~/Content/assets/img/hcc-img/TeacherMobileView.gif" data-id="login-cover-image" height="50" class="" id="TeacherDayImg" style="height:100%; width:100%" />
+
+                                        <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO)" width="60px;" class="img-circle " id="clgLogoTD" />
+
+                                    }
+                                    else
+                                    {
+                                        <!-- ion-ios-cloud-->
+                                        <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO)" width="60px;" class="img-circle " />
+                                    }
+                                </i>
+                            </span> &nbsp;&nbsp; @Model.liCollegeDetails.FirstOrDefault().COLLEGE_CODE Admin
+                            <small>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;  @if (Model.liCollegeDetails.FirstOrDefault().COLLEGE_CODE == "SJC")
+                                {
+                                    //sPwdPlaceholder = "Ex: dd/mm/yyyy";
+                                    <label>உழைப்பே உயர்வு தரும்</label>
+                                    <label> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; Hard Work Conquers All</label>
+                                }
+                                else
+                                {
+                                    // sPwdPlaceholder = "Password";
+                                    <label>STRIVE TO EXCEL</label>
+                                }
+                            </small>
+                        </div>
+                        <div class="icon">
+                            <i class="ion-ios-locked"></i>
+                        </div>
+                    </div>
+                    <!-- end login-header -->
+
+                    <div id="loginForm">
+
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="login-content" id="parsley-form" data-parsley-validate="true">
+                            <div class="form-group m-b-15">
+                                @Html.EditorFor(model => model.objLoginViewModel.Username, new { htmlAttributes = new { @class = "form-control input-lg", placeholder = "Username", @data_parsley_required = "true" } })
+                                @Html.ValidationMessageFor(model => model.objLoginViewModel.Username, "", new { @class = "text-danger" })
+                            </div>
+                            <div class="form-group m-b-15">
+                                <div class="password-container">
+                                    @Html.EditorFor(model => model.objLoginViewModel.Password, new { htmlAttributes = new { @class = "form-control input-lg", placeholder = sPwdPlaceholder, @data_parsley_required = "true", @data_parsley_errors_container = "#password-errors", style = "padding-right: 45px;" } })
+                                    <span id="togglePassword" class="toggle-password" title="Show password">
+                                        <i class="fa fa-eye" id="togglePasswordIcon"></i>
+                                    </span>
+                                </div>
+                                <div id="password-errors"></div>
+                                @Html.ValidationMessageFor(model => model.objLoginViewModel.Password, "", new { @class = "text-danger" })
+                            </div>
+
+                            <div class="login-buttons">
+                                <button type="submit" id="btnLogin" class="btn btn-primary btn-block btn-lg">Sign me in</button>
+                            </div>
+                            <hr />
+                            <br />
+                            <div class="d-flex justify-content-end pull-right" style="margin-top: 10px;margin-right:30px">
+                                <a href="javascript:;" onclick="$(&#39;#policyModal&#39;).modal(&#39;show&#39;)" style="font-size:12px; color:#888; text-decoration:underline; cursor:pointer;">
+                                    <i class="fa fa-file-text-o"></i> Terms and Conditions
+                                </a>
+                            </div>
+                            <br />
+                            <br />
+                            <p class="text-center">
+                                &copy; @DateTime.Today.Year   All Rights Reserved by @Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME
+                            </p>
+                        </div>
+
+                    </div>
+                    
+                    <div id="otpForm" class="hidden otp-fade-in">
+                        @Html.AntiForgeryToken()
+                        <div class="login-content otp-container" id="otp-parsley-form" data-parsley-validate="true">
+                            <div class="m-b-20">
+                                <i class="ion-ios-chatboxes-outline otp-icon"></i> <!-- Changed icon -->
+                                <h3 class="text-primary">Verification Code</h3>
+                                <p class="text-muted m-b-30">Please enter the 6-digit One Time Password (OTP) sent to your mobile number.</p>
+                            </div>
+                            <div class="form-group m-b-20 text-left">
+                                <label class="otp-label">ONE TIME PASSWORD</label>
+                                <input type="text" id="txtLoginOTP" class="form-control input-lg otp-input" placeholder="Enter OTP" data-parsley-required="true" maxlength="6" autocomplete="off" />
+                            </div>
+                            <div class="login-buttons">
+                                <button type="button" id="btnVerifyLoginOTP" onclick="VerifyLoginOTPAction()" class="btn btn-block btn-lg btn-verify"><i class="ion-ios-checkmark-outline m-r-5"></i> Verify & Login</button>
+                                @*<button type="button" id="btnVerifyLoginOTP" onclick="VerifyLoginOTPAction()" class="btn btn-block btn-lg btn-verify"><i class="ion-ios-checkmark-outline m-r-5"></i> Verify & Login</button>*@
+                                <button type="button" onclick="ResendOTP()" class="btn btn-default btn-block btn-lg m-t-15 btn-white"><i class="ion-ios-refresh-empty m-r-5"></i> Resend OTP</button>
+                            </div>
+                            <hr />
+                            <p class="text-center text-inverse">
+                                &copy; @DateTime.Today.Year   All Rights Reserved by @Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME
+                            </p>
+                        </div>
+                    </div>
+
+
+                </div>
+                <!-- end right-container -->
+            </div>
+
+
+            <!-- end theme-panel -->
+        </div>
+        <!-- end page container -->
+
+    </div>
+
+    <!-- Start Modal -->
+    <div class="modal" id="Forgot-dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title"> Forgot Password </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-horizontal">
+                        <div id="dvFiled">
+                            <div class="form-group">
+                                @Html.Label("User Name", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control input-sm" id="USERNAME" placeholder="Enter Your UserName" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.Label("Date Of Birth", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control input-sm" id="DATE_OF_BIRTH" placeholder="Enter Your Date Of Birth" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hidden" id="dvSend">
+                            <div class="form-group">
+                                <div class="col-md-2">
+
+                                </div>
+                                <div class="col-md-9">
+                                    <h4>Select how you'd like to change your password.</h4>
+                                    <h5>We'll send a verification code to your preferred method.</h5>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-2">
+
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="radio radio-css radio-primary">
+                                        <input type="radio" name="cssRadio" id="cssRadioMail" value="1" />
+                                        <label for="cssRadioMail"> Send me an email <span class="dvMail"></span></label>
+                                    </div>
+
+                                    <div class="radio radio-css radio-success">
+                                        <input type="radio" name="cssRadio" id="cssRadioMobile" value="2" />
+                                        <label for="cssRadioMobile"> Text my phone number ending in <span class="dvNumber"></span></label>
+                                    </div>
+
+
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden" id="dvOTP">
+                            @Html.Label("Please enter the OTP", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                <input id="sOTP" type="text" class="form-control" maxlength="6" />
+                            </div>
+                        </div>
+
+                        <div id="dvResetPassword" class="hidden">
+                            <div class="form-group">
+                                @Html.Label("New Password", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    <input type="password" class="form-control input-sm" id="txtNewPassword" placeholder="Enter Your New Password" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.Label("Confrim Password", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    <input type="password" class="form-control input-sm" id="txtConfrimPassword" placeholder="Enter Your Confrim Password" />
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <a id="btnNext" href="javascript:;" onclick="Validate()" class="btn btn-primary">Next</a>
+                    <a id="btnSend" href="javascript:;" onclick="Send()" class="btn btn-primary hidden">Send</a>
+                    <a id="btnVerify" href="javascript:;" onclick="VerifyOTP()" class="btn btn-primary hidden">Verify</a>
+                    <a id="btnSubmit" href="javascript:;" onclick="ForgotSubmit()" class="btn btn-primary hidden" data-dismiss="modal">Submit</a>
+                    <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="policyModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document" style="width: 80%; max-width: 1000px;">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color:#fff; border-radius: 5px 5px 0 0;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#fff; opacity:1;"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" style="font-weight:700; letter-spacing:1px;">
+                        <i class="fa fa-shield" style="margin-right:8px;"></i> Terms &amp; Conditions
+                    </h4>
+                </div>
+                <div class="modal-body" style="padding: 0;">
+                    <iframe src="https://erp.sjctnc.edu.in/paymentgateway/sjctnc.pdf#toolbar=0"
+                            width="100%"
+                            height="580px"
+                            style="border: none; display:block;"></iframe>
+                </div>
+                <div class="modal-footer" style="text-align:center; background:#f8f9fa;">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Modal-->
+    <!-- Hidden Filed -->
+    <input type="hidden" id="sUserName" />
+    <input type="hidden" id="sAcountId" />
+    <input type="hidden" id="sUserId" />
+    <input type="hidden" id="sMailId" />
+    <input type="hidden" id="sMobileNo" />
+    <input type="hidden" id="sOTPString" />
+
+    <input type="hidden" id="Latitude" name="Latitude" />
+    <input type="hidden" id="Longitude" name="Longitude" />
+    <input type="hidden" id="IPAddress" name="IPAddress" />
+    <input type="hidden" id="UserAgent" name="UserAgent" />
+
+
+    @Scripts.Render("~/bundles/footerbasejs")
+
+
+    <script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+    <script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+
+    @Scripts.Render("~/bundle/pagebeginjs")
+
+    @*@Scripts.Render("~/bundles/jquery")*@
+    @*@Scripts.Render("~/bundles/bootstrap")*@
+
+
+    <script>
+    var latitude = "";
+    var longitude = "";
+    var place = "";
+    var userAgent = "";
+    var ipAddress = "";
+        // Fixed version of your logUserDetails function
+        function logUserDetails() {
+            // Show loading state
+            $('#locationLoading').addClass('active');
+
+            // Fetch IP address
+            $.get("https://api.ipify.org?format=json", function (data) {
+                 ipAddress = data.ip;
+                 userAgent = navigator.userAgent;
+
+                // Update UI
+                $('#ipValue').text(ipAddress);
+                $('#ipDot').addClass('active');
+                $('#deviceValue').text(getDeviceType(userAgent));
+
+                // Check if geolocation is available
+                if ("geolocation" in navigator) {
+                    // Configure options with timeout
+                    const options = {
+                        enableHighAccuracy: true,
+                        timeout: 5000, // 5 seconds
+                        maximumAge: 0 // Do not use cached position
+                    };
+                    navigator.geolocation.getCurrentPosition(
+                        function (position) {
+                            // Success callback
+                             latitude = position.coords.latitude;
+                             longitude = position.coords.longitude;
+
+                            // Update UI
+                            $('#coordValue').text(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+                            $('#locationDot').addClass('active');
+
+                            // Reverse geocoding
+                            var nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+                            $.get(nominatimUrl, function (geocodingData) {
+                                 place = geocodingData.display_name || "Unknown location";
+                                $('#placeValue').text(place);
+
+                                // Log the successful attempt
+                                logAttempt(ipAddress, userAgent, latitude, longitude, place);
+                            }).fail(() => {
+                                $('#placeValue').text('Location name unavailable');
+                                logAttempt(ipAddress, userAgent, latitude, longitude, "Reverse geocoding failed");
+                            });
+                        },
+                        function (error) {
+                            // Error callback
+                            $('#locationDot').addClass('active'); // Show we tried
+                            $('#coordValue').text('Not available');
+                            $('#placeValue').text('Location access not enabled');
+
+                            if (error.code === error.PERMISSION_DENIED) {
+                                swal({
+                                    title: "Location Access Restricted",
+                                    text: "Dear User: Please enable your location for better experience.",
+                                    type: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonColor: "#DD6B55",
+                                    confirmButtonText: "Retry Location",
+                                    cancelButtonText: "Continue Anyway",
+                                    closeOnConfirm: false,
+                                    closeOnCancel: false
+                                }, function (isConfirm) {
+                                    if (isConfirm) {
+                                        // Retry getting location
+                                        navigator.geolocation.getCurrentPosition(
+                                            function (position) {
+                                                var latitude = position.coords.latitude;
+                                                var longitude = position.coords.longitude;
+                                                logAttempt(ipAddress, userAgent, latitude, longitude, "User granted after prompt");
+
+                                                // Close current swal
+                                                swal.close();
+                                            },
+                                            function (error) {
+
+                                                //logAttempt(ipAddress, userAgent, 0, 0, "Location access still denied");
+                                                swal("Failed Again", "Location still not accessible.", "error");
+                                            },
+                                            { timeout: 5000 }
+                                        );
+                                    }
+                                    else {
+                                        swal.close();
+                                        logAttempt(ipAddress, userAgent, 0, 0, "User chose to continue without location");
+                                    }
+                                });
+                            } else {
+                                logAttempt(ipAddress, userAgent, 0, 0, `Geolocation error: ${error.message}`);
+                            }
+                        },
+                        options
+                    );
+                } else {
+                    // Geolocation not supported
+                    $('#coordValue').text('Not supported');
+                    $('#placeValue').text('Geolocation not available');
+                    logAttempt(ipAddress, userAgent, 0, 0, "Geolocation not supported");
+                }
+            }).fail(() => {
+                $('#ipValue').text('Not available');
+                logAttempt("", navigator.userAgent, 0, 0, "IP address fetch failed");
+            });
+        }
+   function logAttempt() {
+    $('#btnLogin').prop('disabled', true).html('<i class="fa fa-clock"></i> Login will start in 1 Sec...');
+    // Optional: Countdown display (show it somewhere in UI)
+    let countdown = 1;
+       const intervalId = setInterval(() => {
+        $('#btnLogin').html(`⏳ Login in ${countdown--} sec...`);
+        if (countdown < 0) clearInterval(intervalId);
+    }, 1000);
+       setTimeout(() => {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("Login", "Account")',
+            data: {
+                objLoginViewModel: {
+                    Username: $('#objLoginViewModel_Username').val(),
+                    Password: $('#objLoginViewModel_Password').val()
+                },
+                Latitude: latitude,
+                Longitude: longitude,
+                IPAddress: ipAddress,
+                UserAgent: userAgent,
+                Place: place
+            },
+            success: function (response) {
+                if (response.success) {
+                    if (response.isOtpRequired) {
+                         $('#loginForm').addClass('hidden');
+                         $('#otpForm').removeClass('hidden');
+                         myfunction(response.ErrorMessage);
+                    } else {
+                        myfunction(response.ErrorMessage)
+                        window.location.href = response.redirectUrl;
+                    }
+            } else {
+                    myfunction(response.ErrorMessage)
+
+                    if (response.redirectUrl) {
+                        window.location.href = response.redirectUrl;
+                    }
+                $('#btnLogin').prop('disabled', false).html('Sign me in');
+            }
+            },
+            error: function () {
+
+                swal("Error", "Unexpected error occurred while logging in.", "error");
+                $('#btnLogin').prop('disabled', false).html('Sign me in');
+            }
+        });
+    }, 1000); // 1-minute delay
+}
+        // Get device type from user agent
+        function getDeviceType(userAgent) {
+            if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(userAgent)) {
+                return "Tablet";
+            }
+            if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(userAgent)) {
+                return "Mobile";
+            }
+            return "Desktop";
+        };
+
+        function VerifyLoginOTPAction() {
+            var otp = $('#txtLoginOTP').val();
+            if(!otp) {
+                myfunction("Please enter the OTP");
+                return;
+            }
+
+             $.ajax({
+                type: "POST",
+                url: '@Url.Action("VerifyLoginOTP", "Account")',
+                data: { sOTP: otp },
+                success: function (response) {
+                    if (response.success) {
+                        myfunction(response.ErrorMessage)
+                        window.location.href = response.redirectUrl;
+                    } else {
+                         myfunction(response.ErrorMessage)
+                         if (response.redirectUrl) {
+                            window.location.href = response.redirectUrl;
+                        }
+                    }
+                },
+                error: function () {
+                     swal("Error", "Unexpected error occurred.", "error");
+                }
+            });
+        }
+
+
+    </script>
+    <script>
+        $(document).ready(function (e) {
+            App.init();
+
+            // Toggle password visibility
+            $('#togglePassword').on('click', function (e) {
+                e.preventDefault();
+                var pwdInput = document.getElementById('objLoginViewModel_Password');
+                var $icon = $('#togglePasswordIcon');
+                if (pwdInput.type === 'password') {
+                    pwdInput.type = 'text';
+                    $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                    $(this).attr('title', 'Hide password');
+                } else {
+                    pwdInput.type = 'password';
+                    $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                    $(this).attr('title', 'Show password');
+                }
+                pwdInput.focus();
+            });
+
+            // Enter key on inputs triggers Sign me in
+            $('#objLoginViewModel_Username, #objLoginViewModel_Password, #loginForm input').on('keydown keypress', function (e) {
+                if (e.which === 13 || e.keyCode === 13) {
+                    e.preventDefault();
+                    if (e.type === 'keydown') {
+                        if (!$('#btnLogin').prop('disabled')) {
+                            $('#btnLogin').click();
+                        }
+                    }
+                }
+            });
+
+            // Enter key on OTP input triggers Verify & Login
+            $('#txtLoginOTP').on('keydown keypress', function (e) {
+                if (e.which === 13 || e.keyCode === 13) {
+                    e.preventDefault();
+                    if (e.type === 'keydown') {
+                        if (!$('#btnVerifyLoginOTP').prop('disabled')) {
+                            $('#btnVerifyLoginOTP').click();
+                        }
+                    }
+                }
+            });
+
+            $('#btnLogin').click(function (e) {
+                var isValid = true;
+                if ($('#parsley-form').parsley().validate() !== true) isValid = false;
+                if (!isValid) {
+                    e.preventDefault();
+                } else {
+
+                    myfunction('Please wait...');
+                }
+                logUserDetails();
+            });
+
+        });
+        function myfunction(e) {
+
+
+            if (e != '') {
+                $.gritter.add({
+                    title: "Message",
+                    text: e,
+                    time:3000
+                });
+            }
+
+        }
+
+        function ResendOTP() {
+            $('#txtLoginOTP').val('');
+            logUserDetails(); // Re-trigger login logic to resend OTP
+        }
+
+        function FormSubmit()
+        {
+            var isValid = true;
+            if ($('#parsley-form').parsley().validate() !== true) isValid = false;
+            if (!isValid)
+            {
+                e.preventDefault();
+            } else
+            {
+                var sJsondata = '';
+                $.ajax({
+                    url:'@Url.Action("ValidateForgotPassword", "Account")',
+                    method:'POST',
+                    datatype:'json',
+                    data: { sJson: sJsondata },
+                    success: function (data)
+                    {
+                        loadContent('//');
+                    }, error: function (error)
+                    {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+        }
+    </script>
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '../../../../www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', 'UA-53034621-1', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+
+    <script>
+    function Validate()
+    {
+        if ($('#USERNAME').val() && $('#DATE_OF_BIRTH').val())
+        {
+            $.ajax({
+                url:'@Url.Action("ValidateForgotPassword", "Account")',
+                method:'POST',
+                datatype: 'json',
+                data: { sUsername: $('#USERNAME').val(), sDOB: $('#DATE_OF_BIRTH').val() },
+                success: function (data)
+                {
+                    if (data.ErrorCode != null && data.ErrorCode != '')
+                    {
+                        alert("Sorry ! No Matches Found .!");
+                    } else
+                    {
+                         $('#btnSend').removeClass('hidden');
+                        $('#btnNext').addClass('hidden');
+
+                        $('#dvSend').removeClass('hidden');
+                        $('#dvFiled').addClass('hidden');
+
+                        VerifyOTP();
+                        $('#sUserName').val(data[0].USERNAME);
+                        $('#sAcountId').val(data[0].USER_ACCOUNT_ID);
+                        $('#sUserId').val(data[0].USER_ID);
+                        $('#sMailId').val(data[0].EMAIL);
+                        $('#sMobileNo').val(data[0].MOBILE);
+
+                        $('.dvMail').text(data[0].EMAIL);
+                        $('.dvNumber').text('xxxxx' + data[0].MOBILE.substring(6,11));
+                    }
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+    }
+
+        function Send()
+        {
+            var sUrl = null;
+            if ($('#cssRadioMail').is(':checked'))
+            {
+                sUrl = '/Account/SendMail';
+            } else if ($('#cssRadioMobile').is(':checked'))
+            {
+                sUrl = '/Account/SendSMS';
+            } else if ($('#cssRadioCall').is(':checked'))
+            {
+                sUrl = '/Account/VoiceCall';
+            } else
+            {
+                alert('Please Select Any Options To Continue .!');
+                return false;
+            }
+            //alert($('#sUserId').val());
+            $.ajax({
+                url: sUrl,
+                method: 'POST',
+                datatype: 'json',
+                data: { sMobileNo: $('#sMobileNo').val(), sMailId: $('#sMailId').val(), sStudentId: $('#sUserId').val() },
+                success: function (data)
+                {
+                    alert(data.Message);
+                    if (data.ErrorCode ==  "200")
+                    {
+                        $('#sOTPString').val(data.sResult);
+                        $('#btnVerify').removeClass('hidden');
+                        $('#btnSend').addClass('hidden');
+
+                        $('#dvSend').addClass('hidden');
+                        $('#dvOTP').removeClass('hidden');
+                    }
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+
+    function VerifyOTP()
+    {
+        $('#dvFiled').addClass('hidden');
+        $('#dvSend').addClass('hidden');
+        $('#dvOTP').addClass('hidden');
+        $('#dvResetPassword').removeClass('hidden');
+        $('#btnSubmit').removeClass('hidden');
+        $('#dvFiled').addClass('hidden');
+        $('#btnVerify').addClass('hidden');
+        $('#btnSend').addClass('hidden');
+    }
+
+        $('#Forgot-dialog').on('hidden.bs.modal', function ()
+        {
+            $('#dvOTP').addClass('hidden');
+            $('#dvSend').addClass('hidden');
+            $('#dvResetPassword').addClass('hidden');
+            $('#dvFiled').removeClass('hidden');
+            $('#btnVerify').addClass('hidden');
+            $('#btnSend').addClass('hidden');
+            $('#btnSubmit').addClass('hidden');
+
+            $('#btnNext').removeClass('hidden');
+            $('#USERNAME').val('');
+            $('#DATE_OF_BIRTH').val('');
+            $('#sOTP').val('');
+            if ($('#cssRadioMail').is(':checked'))
+            {
+                $('#cssRadioMail').attr('checked',false);
+            } else if ($('#cssRadioMobile').is(':checked'))
+            {
+                $('#cssRadioMobile').attr('checked', false);
+            } else if ($('#cssRadioCall').is(':checked'))
+            {
+                $('#cssRadioCall').attr('checked', false);
+            }
+           // window.location.href = "/Account/Index";
+        });
+    </script>
+
+    <script>
+        function ForgotSubmit()
+        {
+            if ($('#txtNewPassword').val() && $('#txtConfrimPassword').val())
+            {
+                if ($('#txtNewPassword').val() == $('#txtConfrimPassword').val())
+                {
+                    var Password = $('#txtNewPassword').val();
+                    var ConfirmPassword = $('#txtConfrimPassword').val();
+                    var JsonData;
+                    JsonData = '{"PASSWORD":"' + Password + '","CONFIRM_PASSWORD":"' + ConfirmPassword + '","USERNAME":"' + $('#sUserName').val() + '"}';
+
+                    $.ajax({
+                        url: '@Url.Action("SaveChangePassword", "Account")',
+                        method: 'POST',
+                        datatype: 'json',
+                        data: { ChangePassword: JsonData },
+                        success: function (data)
+                        {
+                            alert(data);
+                        }, error: function (error) {
+                            alert('Internal Server Error !');
+                        }
+                    });
+                }
+            } else
+            {
+
+            }
+        }
+    </script>
+
+
+
+    <script>
+        var canvas;
+        var context;
+        var screenH;
+        var screenW;
+        var stars = [];
+        var fps = 30;
+        var numStars = 2500;
+
+        $('document').ready(function () {
+
+            // Calculate the screen size
+            screenH = $(window).height();
+            screenW = $(window).width();
+
+            // Get the canvas
+            canvas = $('#ChristmasDiv');
+
+            // Fill out the canvas
+            canvas.attr('height', screenH);
+            canvas.attr('width', screenW);
+            context = canvas[0].getContext('2d');
+
+            // Create all the stars
+            for (var i = 0; i < numStars; i++) {
+                var x = Math.round(Math.random() * screenW);
+                var y = Math.round(Math.random() * screenH);
+                var length = 2 + Math.random() * 3;
+                var opacity = Math.random();
+
+                // Create a new star and draw
+                var star = new Star(x, y, length, opacity);
+
+                // Add the the stars array
+                stars.push(star);
+            }
+
+            setInterval(animate, 1000 / fps);
+        });
+
+        /**
+         * Animate the canvas
+         */
+        function animate() {
+            context.clearRect(0, 0, screenW, screenH);
+            $.each(stars, function () {
+                this.draw(context);
+            })
+        }
+
+
+        function Star(x, y, length, opacity) {
+            this.x = parseInt(x);
+            this.y = parseInt(y);
+            this.length = parseInt(length);
+            this.opacity = opacity;
+            this.factor = 1;
+            this.increment = Math.random() * .03;
+        }
+
+
+        Star.prototype.draw = function () {
+            context.rotate((Math.PI * 1 / 10));
+
+            // Save the context
+            context.save();
+
+            // move into the middle of the canvas, just to make room
+            context.translate(this.x, this.y);
+
+            // Change the opacity
+            if (this.opacity > 1) {
+                this.factor = -1;
+            }
+            else if (this.opacity <= 0) {
+                this.factor = 1;
+
+                this.x = Math.round(Math.random() * screenW);
+                this.y = Math.round(Math.random() * screenH);
+            }
+
+            this.opacity += this.increment * this.factor;
+
+            context.beginPath()
+            for (var i = 5; i--;) {
+                context.lineTo(0, this.length);
+                context.translate(0, this.length);
+                context.rotate((Math.PI * 2 / 10));
+                context.lineTo(0, - this.length);
+                context.translate(0, - this.length);
+                context.rotate(-(Math.PI * 6 / 10));
+            }
+            context.lineTo(0, this.length);
+            context.closePath();
+            context.fillStyle = "rgba(255, 165, 0, " + this.opacity + ")";
+            context.shadowBlur = 1;
+            context.shadowColor = '#fff';
+            context.fill();
+
+            context.restore();
+        }
+        function animate() {
+            context.clearRect(0, 0, screenW, screenH);
+
+            $.each(stars, function () {
+                // Increment the y coordinate to make stars fall
+                this.y += 1; // You can adjust the value to control the falling speed
+                // Reset the y coordinate when stars reach the bottom
+                if (this.y > screenH) {
+                    this.y = 0;
+                }
+
+                this.draw(context);
+            });
+        }
+    </script>
+</body>
+</html>

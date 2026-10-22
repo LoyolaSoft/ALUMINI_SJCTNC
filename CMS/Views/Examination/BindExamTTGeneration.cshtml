@@ -1,0 +1,71 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{ Layout = null; string UgcType = string.Empty; string vUgcId = string.Empty; string ipen = "-"; int tcount = 0;}
+<div class="col-md-12">
+    <table class="table table-bordered text-center" id="tblExamttGeneration">
+        <thead>
+            <tr>
+                <th></th>
+                @if (Model.LiExamSession != null && Model.LiExamSession.Count > 0)
+                {
+                    foreach (var itemExamSession in Model.LiExamSession)
+                    {
+                        <th>@itemExamSession.EXAM_SESSION</th>
+                    }
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.LiCalender != null && Model.LiCalender.Count > 0)
+            {
+                foreach (var ExamDates in Model.LiCalender)
+                {
+                    <tr>
+                        <td><b>Date- @ExamDates.DAY_ORDER_DATE</b></td>
+                        @foreach (var itemExamSession in Model.LiExamSession)
+                        {
+                            if (Model.LiExamttStructure != null && Model.LiExamttStructure.Count > 0)
+                            {
+                                var DateStructure = Model.LiExamttStructure.Where(S => S.EXAM_DATE == ExamDates.DAY_ORDER_DATE).ToList();
+                                var SessionStructure = DateStructure.Where(S => S.EXAM_SESSION_ID == itemExamSession.EXAM_SESSION_ID).ToList();
+                                if (SessionStructure != null && SessionStructure.Count > 0)
+                                {
+                                    tcount = 0;
+                                    vUgcId = SessionStructure.FirstOrDefault().UGC_COURSE_TYPE;
+                                    if (SessionStructure.Count > 1)
+                                    {
+                                        vUgcId = string.Join(",", SessionStructure.Select(x => x.UGC_COURSE_TYPE.ToString()).ToArray());
+                                        tcount = 1;
+                                    }
+                                    <td class="editable" cms-structure=""
+                                        cms-programmelevel=""
+                                        cms-programmeYear=""
+                                        cms-Examsession="@itemExamSession.EXAM_SESSION_ID"
+                                        cms-Examdate="@ExamDates.DAY_ORDER_DATE"
+                                        cms-Ugctype="@vUgcId"
+                                        cms-Examsetting=""
+                                        cms-Examtype="">
+                                        @{  UgcType = "(" + SessionStructure.FirstOrDefault().UGC_COURSE_TYPE + ")"; }
+                                        @if (tcount == 0 && UgcType != "()")
+                                        {
+                                            @UgcType @ipen @SessionStructure.FirstOrDefault().PROGRAMME_YEAR @ipen @SessionStructure.FirstOrDefault().PROGRAMME_LEVEL
+
+                                        }
+                                    </td>
+                                            }
+                                            else
+                                            {
+                                                <td class="editable" cms-dayid="@ExamDates.START_DATE" cms-hourid="@itemExamSession.EXAM_SESSION_ID"></td>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <td class="editable" cms-dayid="@ExamDates.START_DATE" cms-hourid="@itemExamSession.EXAM_SESSION_ID"></td>
+                                                }
+
+                                            }
+                    </tr>
+                                                }
+                                            }
+        </tbody>
+    </table>
+</div>

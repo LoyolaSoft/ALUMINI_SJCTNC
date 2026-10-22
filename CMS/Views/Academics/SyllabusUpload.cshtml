@@ -1,0 +1,402 @@
+@model CMS.ViewModel.ViewModel.AcademicsViewModel
+
+@{
+    ViewBag.Title = "Syllabus Upload";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Academics</a></li>
+        <li class="active">Syllabus Upload</li>
+    </ol>
+    <h2 class="page-header">Syllabus Upload</h2>
+
+    <div class="panel panel-inverse">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <button type="button" class="btn btn-xs btn-success" onclick="openAddModal()">
+                    <i class="fa fa-plus"></i> Add Syllabus
+                </button>
+            </div>
+            <h4 class="panel-title">Syllabus Management</h4>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="control-label">Filter by Academic Year</label>
+                        @Html.DropDownList("ddlMainAcYear", new SelectList(Model.AcademicYearList, "AC_YEAR", "AC_YEAR"), "-- Select Year --", new { @class = "form-control selectpicker", data_live_search = "true", onchange = "LoadSyllabusList()" })
+                    </div>
+                </div>
+            </div>
+
+            <div id="syllabusListContainer">
+                <div class="alert alert-info">Please select academic year to see list</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Add/Edit Syllabus -->
+<div class="modal fade" id="syllabusModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="modalTitle">Add Syllabus</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <input type="hidden" id="hdnSyllabusId" value="0" />
+                    <input type="hidden" id="hdnCourseId" value="0" />
+
+                    <div class="form-group">
+                        <label class="col-md-4 control-label">Academic Year</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtModalAcYear" class="form-control" readonly />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-4 control-label">Course Code</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtCourseCode" class="form-control" placeholder="Type to search course..." autocomplete="off" />
+                            <ul id="courseListResults" class="list-group" style="position:absolute; z-index:9999; width:94%; display:none; max-height:200px; overflow-y:auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border:1px solid #ddd;"></ul>
+                            <span id="courseInfo" class="help-block bold" style="display:block; margin-top:5px;"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-4 control-label">Course Title</label>
+                        <div class="col-md-8">
+                            <input type="text" id="txtCourseTitle" class="form-control" readonly />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-4 control-label">PDF File</label>
+                        <div class="col-md-8">
+                            <div id="dropZone" class="drop-zone">
+                                <span class="drop-zone__prompt">Drop PDF here or click to upload</span>
+                                <input type="file" id="fileSyllabus" class="drop-zone__input" accept=".pdf">
+                            </div>
+                            <div id="fileInfo" class="margin-top-10 text-primary bold"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="btnSave" onclick="SaveSyllabus()" disabled>Save Syllabus</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .drop-zone {
+        max-width: 100%;
+        height: 120px;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        border: 2px dashed #348fe2;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .drop-zone:hover, .drop-zone--over {
+        background: #f0f7ff;
+        border-color: #2a72b5;
+    }
+    .drop-zone__input {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+    }
+    .drop-zone__prompt {
+        color: #707478;
+        font-weight: 500;
+    }
+    #courseInfo .text-danger { color: #ff5b57 !important; }
+    #courseInfo .text-success { color: #00acac !important; }
+    
+    .ui-autocomplete {
+        display: none !important;
+    }
+    #courseListResults .list-group-item {
+        cursor: pointer;
+        padding: 8px 12px;
+    }
+    #courseListResults .list-group-item:hover {
+        background-color: #f5f5f5;
+        color: #348fe2;
+    }
+</style>
+
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script>
+    $(document).ready(function () {
+        ContentLoad();
+    });
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $('.selectpicker').selectpicker('refresh');
+
+    function ContentLoad() {
+        $('.selectpicker').selectpicker();
+        initDropZone();
+
+        // Manual Course Lookup
+        var searchTimer;
+        $("#txtCourseCode").on('input', function() {
+            var term = $(this).val().trim();
+            clearTimeout(searchTimer);
+            
+            if (term === "") {
+                $('#courseListResults').hide().empty();
+                $('#hdnCourseId').val('0');
+                $('#txtCourseTitle').val('');
+                $('#courseInfo').text('');
+                $('#btnSave').prop('disabled', true);
+                return;
+            }
+
+            if (term.length < 2) {
+                $('#courseListResults').hide();
+                $('#btnSave').prop('disabled', true);
+                return;
+            }
+
+            $('#btnSave').prop('disabled', true);
+            $('#courseInfo').html('<span class="text-danger">Selection required*</span>');
+
+            searchTimer = setTimeout(function() {
+                var acYear = $('#ddlMainAcYear').val();
+                $.ajax({
+                    url: '@Url.Action("GetCourseList", "Academics")',
+                    type: "GET",
+                    data: { sTerm: term, sAcYear: acYear },
+                    success: function (data) {
+                        var $results = $('#courseListResults');
+                        $results.empty();
+                        if (data && data.length > 0) {
+                            $.each(data, function(i, item) {
+                                var $li = $('<li class="list-group-item"></li>')
+                                    .text(item.label)
+                                    .attr('data-id', item.id)
+                                    .attr('data-code', item.value)
+                                    .attr('data-title', item.title)
+                                    .on('click', function() {
+                                        $('#txtCourseCode').val($(this).attr('data-code'));
+                                        $('#txtCourseTitle').val($(this).attr('data-title'));
+                                        $('#hdnCourseId').val($(this).attr('data-id'));
+                                        $('#courseInfo').html('<span class="text-success">Selected: ' + $(this).attr('data-title') + '</span>');
+                                        $('#btnSave').prop('disabled', false);
+                                        $results.hide();
+                                    });
+                                $results.append($li);
+                            });
+                            $results.show();
+                        } else {
+                            $results.hide();
+                            $('#courseInfo').html('<span class="text-danger">No matching courses found</span>');
+                        }
+                    }
+                });
+            }, 400);
+        });
+
+        // Close dropdown when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#txtCourseCode, #courseListResults').length) {
+                $('#courseListResults').hide();
+            }
+        });
+
+        LoadSyllabusList();
+    }
+
+    function initDropZone() {
+        const dropZone = document.getElementById("dropZone");
+        const input = document.getElementById("fileSyllabus");
+        if(!dropZone || !input) return;
+        dropZone.onclick = () => input.click();
+        input.onchange = () => { if (input.files.length) handleFile(input.files[0]); };
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add("drop-zone--over"); };
+        ["dragleave", "dragend"].forEach(type => { dropZone.addEventListener(type, () => dropZone.classList.remove("drop-zone--over")); });
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("drop-zone--over");
+            if (e.dataTransfer.files.length) {
+                input.files = e.dataTransfer.files;
+                handleFile(e.dataTransfer.files[0]);
+            }
+        };
+    }
+
+    function handleFile(file) {
+        if (file.type !== "application/pdf") {
+            swal("Invalid File", "Only PDF files are allowed!", "error");
+            document.getElementById("fileSyllabus").value = "";
+            document.getElementById("fileInfo").innerText = "";
+            return;
+        }
+        document.getElementById("fileInfo").innerText = "Selected: " + file.name;
+    }
+
+    function LoadSyllabusList() {
+        var year = $('#ddlMainAcYear').val();
+        if (year === "" || year === null) {
+            $('#syllabusListContainer').html('<div class="alert alert-info">Please select academic year to see list</div>');
+            return;
+        }
+
+        if (window.App && App.blockUI) {
+            App.blockUI({ target: '#syllabusListContainer', animate: true });
+        }
+        $.ajax({
+            url: '@Url.Action("GetSyllabusList", "Academics")',
+            type: 'GET',
+            data: { sAcYear: year },
+            success: function (html) {
+                $('#syllabusListContainer').html(html);
+                if ($('#tblSyllabus').length > 0) {
+                    $('#tblSyllabus').DataTable({ "pageLength": 10, "responsive": true });
+                }
+                if (window.App && App.unblockUI) {
+                    App.unblockUI('#syllabusListContainer');
+                }
+            },
+            error: function () {
+                swal("Error", "Failed to load syllabus list.", "error");
+                if (window.App && App.unblockUI) {
+                    App.unblockUI('#syllabusListContainer');
+                }
+            }
+        });
+    }
+
+    function openAddModal() {
+        var year = $('#ddlMainAcYear').val();
+        if (year === "" || year === null) {
+            swal("Warning", "Please select academic year first.", "warning");
+            return;
+        }
+
+        $('#modalTitle').text('Add Syllabus');
+        $('#hdnSyllabusId').val('0');
+        $('#hdnCourseId').val('0');
+        $('#txtModalAcYear').val(year);
+        $('#txtCourseCode').val('').prop('readonly', false);
+        $('#txtCourseTitle').val('');
+        $('#courseInfo').text('');
+        $('#fileInfo').text('');
+        $('#fileSyllabus').val('');
+        $('#btnSave').prop('disabled', true);
+        $('#syllabusModal').appendTo("body").modal('show');
+    }
+
+    function EditSyllabus(id, code, title, courseId) {
+        $('#modalTitle').text('Edit Syllabus');
+        $('#hdnSyllabusId').val(id);
+        $('#hdnCourseId').val(courseId);
+        $('#txtModalAcYear').val($('#ddlMainAcYear').val());
+        $('#txtCourseCode').val(code).prop('readonly', false);
+        $('#txtCourseTitle').val(title);
+        $('#courseInfo').html('<span class="text-success">Validated: ' + title + '</span>');
+        $('#fileInfo').text('');
+        $('#fileSyllabus').val('');
+        $('#btnSave').prop('disabled', false); // Enabled for edit
+        $('#syllabusModal').appendTo("body").modal('show');
+    }
+
+    function SaveSyllabus() {
+        var file = $('#fileSyllabus')[0].files[0];
+        var syllabusId = $('#hdnSyllabusId').val();
+        
+        if (!file && syllabusId == "0") {
+            swal("File Required", "Please select a PDF file.", "warning");
+            return;
+        }
+
+        var formData = new FormData();
+        if (file) formData.append('file', file);
+        formData.append('sAcYear', $('#txtModalAcYear').val());
+        formData.append('sCourseCode', $('#txtCourseCode').val());
+        formData.append('iCourseId', $('#hdnCourseId').val());
+        formData.append('iSyllabusId', syllabusId);
+
+        if (window.App && App.blockUI) {
+            App.blockUI({ target: '#syllabusModal .modal-content', animate: true });
+        }
+        $.ajax({
+            url: '@Url.Action("UploadSyllabusFile", "Academics")',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (window.App && App.unblockUI) {
+                    App.unblockUI('#syllabusModal .modal-content');
+                }
+                if (res.sResult == "True") {
+                    swal("Success", res.Message, "success");
+                    $('#syllabusModal').modal('hide');
+                    LoadSyllabusList();
+                } else {
+                    swal("Error", res.Message, "error");
+                }
+            },
+            error: function () {
+                if (window.App && App.unblockUI) {
+                    App.unblockUI('#syllabusModal .modal-content');
+                }
+                swal("Error", "Server error occurred.", "error");
+            }
+        });
+    }
+
+    function DeleteSyllabus(id) {
+        swal({
+            title: "Are you sure?",
+            text: "You will not be able to recover this syllabus!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, delete it!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                url: '@Url.Action("DeleteSyllabusEntry", "Academics")',
+                type: 'POST',
+                data: { iSyllabusId: id, sAcYear: $('#ddlMainAcYear').val() },
+                success: function (res) {
+                    if (res.sResult == "True") {
+                        swal("Deleted!", res.Message, "success");
+                        LoadSyllabusList();
+                    } else {
+                        swal("Error", res.Message, "error");
+                    }
+                }
+            });
+        });
+    }
+</script>

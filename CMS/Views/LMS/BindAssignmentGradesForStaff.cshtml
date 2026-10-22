@@ -1,0 +1,123 @@
+﻿@model CMS.ViewModel.ViewModel.LMSViewModel
+@{
+    Layout = null;
+    int No = 0;
+    // int secmark = 0;
+}
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+
+
+<button class="pull-right btn btn-success" onclick="printDiv('divname')">Print</button>
+<div class="form-group col-md-12 table-responsive" id="divname">
+    <table class="col-md-12 table table-hover table-bordered" id="tblAssignmentsGrades">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Student Name</th>
+                <th>Register Number</th>
+                <th>Course</th>
+                @if (Model.liassignmentsetting != null && Model.liassignmentsetting.Count > 0)
+                {
+
+                    foreach (var set in Model.liassignmentsetting)
+                    {
+
+                        <th>@set.ASSIGNMENT_NAME (@set.TOTAL_MARK)</th>
+                    }
+                }
+
+                <th>Total Marks</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.listuassignment != null)
+            {
+                var grpstudent = Model.listuassignment.GroupBy(o => o.STUDENT_ID).ToList();
+                foreach (var item in grpstudent)
+                {
+                    int secmark = 0;
+                    <tr>
+
+                        <td>@{No++; } @No</td>
+                        <td>@item.FirstOrDefault().NAME</td>
+                        <td>@item.FirstOrDefault().REGISTER_NO</td>
+                        <td>@item.FirstOrDefault().COURSE_TITLE</td>
+
+                        @if (Model.liassignmentsetting != null && Model.liassignmentsetting.Count > 0)
+                        {
+
+                            foreach (var set1 in Model.liassignmentsetting)
+                            {
+                                var stu = Model.listuassignment.Where(o => o.STUDENT_ID == item.FirstOrDefault().STUDENT_ID
+                                && o.ASSIGNMENT_SETTING_ID == set1.ASSIGNMENT_SETTING_ID).ToList();
+                                if (stu != null && stu.Count > 0)
+                                {
+                                    int i = 0;
+
+                                    foreach (var st in stu)
+                                    {
+                                        i++;
+                                        <td id="secmark_@i">@st.SEC_MARK</td>
+                                        if (@st.SEC_MARK != null && @st.SEC_MARK != "")
+                                        {
+                                            secmark += Convert.ToInt16(@st.SEC_MARK);
+                                        }
+
+                                    }
+
+                                }
+                            }
+                        }
+                        <td id="totalmark">@secmark</td>
+
+                    </tr>
+                }
+
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6">No Assignment Found...!</td>
+                </tr>
+            }
+
+
+        </tbody>
+    </table>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+
+<script>
+
+        function printDiv(divName) {
+            var printContents = document.getElementById(divName).innerHTML;
+            var myWindow = window.open('', '', 'width=500,height=500');
+            myWindow.document.write(printContents);
+            myWindow.document.close();
+            myWindow.focus();
+            myWindow.print();
+            BindData()
+        }
+
+
+
+
+</script>
+

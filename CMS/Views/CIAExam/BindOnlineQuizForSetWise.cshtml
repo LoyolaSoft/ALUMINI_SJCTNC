@@ -1,0 +1,475 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@using CMS.ViewModel.Model;
+@{
+    Layout = null;
+
+    int nCount = 0;
+
+}
+<link rel="stylesheet" href="~/Content/assets/plugins/jquery/jquery-1.9.1.min.js" />
+<link rel="stylesheet" href="~/Content/assets/plugins/bootstrap/css/bootstrap.min.css" />
+
+<style>
+    body {
+        overflow: scroll;
+    }
+
+    .table-bordered {
+        padding: 10px !important;
+    }
+</style>
+<br />
+
+<div id="content" class="content">
+    <div id="FullScreen_Content_Expand">
+        <div class="col-md-12">
+        <div class="col-md-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+
+                </div>
+                <h4 class="panel-title">
+                    Online Quiz
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+                    <span id="tittlediv"> Time : &nbsp;&nbsp;&nbsp;<b id="lblQuizTimeRunner" class="blink"> </b></span>
+                    <input type="hidden" id="min" value="">
+                    <input type="hidden" id="sec" value="">
+                </h4>
+
+            </div>
+            <div class="panel-body">
+                <div class="col-md-12" id="dvOnlineQuizQuestionsEntry">
+                    @{
+                        <input type="hidden" id="userid" value="@Model.sUserId">
+                        <input type="hidden" id="acyear" value="@Model.sAcyear">
+                        <input type="hidden" id="timespend" value="@Model.sSpendTime">
+                        if (Model.liCourseInfo != null && Model.liCourseInfo.Count > 0 && Model.liQuizSetting != null && Model.liQuizSetting.Count > 0)
+                        {
+
+                            <div class="col-md-12 form-inline">
+
+                                <div class="form-group col-md-4">
+                                    <div><b> Course Code</b> @Model.liCourseInfo.FirstOrDefault().COURSE_CODE</div>
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <div><b> Course Title</b> @Model.liCourseInfo.FirstOrDefault().COURSE_TITLE</div>
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <div><b> Class </b> @Model.liCourseInfo.FirstOrDefault().CLASS_NAME</div>
+                                </div>
+
+                            </div>
+                            <br /><br />
+
+                            <div class="col-md-12 form-inline">
+
+                                <div class="form-group col-md-4">
+                                    <div><b> Incharge </b> @Model.liCourseInfo.FirstOrDefault().STAFF_NAME</div>
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <div><b> Incharge No </b> @Model.liCourseInfo.FirstOrDefault().MOBILE_NO</div>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    @{
+                                        var count = Convert.ToInt32(@Model.liQuizSetting.FirstOrDefault().COUNT) + 1;
+                                        var noofques = Convert.ToInt32(@Model.liQuizSetting.FirstOrDefault().NO_OF_QUESTIONS);
+                                    }
+                                    @if (count > noofques)
+                                    {
+                                        <div><b> Questions: </b><span id="attendquestions">@(@Convert.ToInt32(@Model.liQuizSetting.FirstOrDefault().COUNT)) </span>/<span id="totalquestion">@Model.liQuizSetting.FirstOrDefault().NO_OF_QUESTIONS</span></div>
+                                    }
+                                    else
+                                    {
+                                        <div><b> Questions: </b><span id="attendquestions">@(@Convert.ToInt32(@Model.liQuizSetting.FirstOrDefault().COUNT) + 1) </span>/<span id="totalquestion">@Model.liQuizSetting.FirstOrDefault().NO_OF_QUESTIONS</span></div>
+                                    }
+
+
+
+                                </div>
+                            </div>
+
+                            <br /><br />
+                            <input class="hidden" id="hdSemesterId" value="@Model.liCourseInfo.FirstOrDefault().SEMESTER_ID" />
+                            <input class="hidden" id="hdStudentId" value="@Model.liCourseInfo.FirstOrDefault().STUDENT_ID" />
+                        }
+                    }
+
+                    <br />
+
+                    <!-- Hidden Filed -->
+                    <input class="hidden" id="hdClassId" value="@Model.ClassId" />
+                    <input class="hidden" id="hdCourseId" value="@Model.CourseId" />
+                    <input class="hidden" id="hdSettingId" value="@Model.SettingId" />
+                    <input class="hidden" id="hdStaffId" value="@Model.StaffId" />
+                    <input type="text" value="@Model.sTime" id="hdQuizTime" class="hidden" />
+                    <!-- Hidden Filed -->
+
+                    @if (!string.IsNullOrEmpty(Model.sErrorMessage))
+                    {
+                        <div> @Model.sErrorMessage</div>
+                    }
+                    else
+                    {
+                        <div class="col-md-12" id="maindiv">
+                            <input type="hidden" id="questionno" value="1" />
+                           
+                            @if (Model.liOnlineQuizQuestions != null && Model.liOnlineQuizQuestions.Count > 0 && Model.liOnlineQuizOptions != null && Model.liOnlineQuizOptions.Count > 0)
+                            {
+                                foreach (var item in Model.liOnlineQuizQuestions)
+                                {
+                                    nCount++;
+
+                                    var liGroupOptions = Model.liOnlineQuizOptions.Where(x => x.QUIZ_ID == item.QUIZ_ID && item.QUESTION_TYPE == x.QUESTION_TYPE).ToList();
+
+                                    <div class="card-body hidden" id="Questionno_@nCount" questiontype="@item.QUESTION_TYPE" questionid="@item.QUIZ_ID" answerid="@item.ANSWER_ID">
+
+                                        @if (item.QUESTION_TYPE == "3")
+                                        {
+                                            <pre><b> @*@nCount .*@ @(new HtmlString(Model.GetStrigFromBase64String(item.QUIZ_QUESTION)))</b></pre>
+                                            <br>
+                                                    foreach (var GpOptionitem in liGroupOptions)
+                                                    {
+                                                        <div class="col-md-12 form-group">
+                                                            <div class="col-md-1">
+                                                                <span> @(new HtmlString(Model.GetStrigFromBase64String(GpOptionitem.QUESTION)))&nbsp;&nbsp;&nbsp;&nbsp; </span>
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <select id="ddlAnswer" class="form-control  input-sm" data-live-search="true">
+                                                                    <option value="">-- select --</option>
+                                                                    @{
+                                                                        var ddlOptions = liGroupOptions.OrderBy(x => Guid.NewGuid());
+                                                                        foreach (var ddlitem in ddlOptions)
+                                                                        {
+                                                                            <option value="@ddlitem.OPTION_ID" cms-SetId="@ddlitem.SET_ID" cms-QuestionType="@GpOptionitem.QUESTION_TYPE" cms-OptionId="@GpOptionitem.OPTION_ID" cms-sQuizId="@ddlitem.QUIZ_ID" data-content='@(new HtmlString(Model.GetStrigFromBase64String(ddlitem.ANSWER)))'>@(new HtmlString(Model.GetStrigFromBase64String(ddlitem.ANSWER)))</option>
+                                                                        }
+                                                                    }
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                             
+
+                                              
+                                                
+                                                            }
+                                                        }
+                                                        else if (item.QUESTION_TYPE == "2")
+                                                        {
+                                                            <pre><b> @*@nCount .*@ @(new HtmlString(Model.GetStrigFromBase64String(item.QUIZ_QUESTION)))</b></pre>
+                                                            <br>
+                                                                            <div class="col-md-3">
+                                                                                <select id="ddlAnswer" class="form-control  input-sm" data-live-search="true">
+                                                                                    <option value="">-- select --</option>
+                                                                                    @{
+                                                                                        var ddlOptions = liGroupOptions.OrderBy(x => Guid.NewGuid());
+                                                                                        foreach (var ddlitem in ddlOptions)
+                                                                                        {
+                                                                                            <option value="@ddlitem.OPTION_ID" cms-SetId="@ddlitem.SET_ID" cms-AnswerId="@item.ANSWER_ID" cms-QuestionType="@item.QUESTION_TYPE" cms-OptionId="@item.OPTION_ID" cms-sQuizId="@ddlitem.QUIZ_ID" data-content='@(new HtmlString(Model.GetStrigFromBase64String(ddlitem.OPTION)))'>@(new HtmlString(Model.GetStrigFromBase64String(ddlitem.OPTION)))</option>
+                                                                                        }
+                                                                                    }
+                                                                                </select>
+                                                                                </div>
+
+                                                                                }
+                                                                                else if (item.QUESTION_TYPE == "1")
+                                                                                {
+
+                                                                                <pre><b> @*@nCount .*@ @(new HtmlString(Model.GetStrigFromBase64String(item.QUIZ_QUESTION)))</b></pre>
+
+                                                                                <div class="form-group">
+                                                                                    @{
+                                                                                        foreach (var GpOptionitem in liGroupOptions)
+                                                                                        {
+                                                                                            <div class="radio radio-css radio-inline">
+                                                                                                <input type="radio" class="radio-inline" id="@GpOptionitem.OPTION_ID" radio-id="RadioOption" name="@item.QUIZ_ID" cms-AnswerId="@item.ANSWER_ID" cms-OptionId="@GpOptionitem.OPTION_ID" cms-SetId="@GpOptionitem.SET_ID" cms-QuestionType="@GpOptionitem.QUESTION_TYPE" />
+                                                                                                <label for="@GpOptionitem.OPTION_ID" class="control-label">@(new HtmlString(Model.GetStrigFromBase64String(GpOptionitem.OPTION)))</label>
+                                                                                            </div>
+                                                                                            <br>
+                                                                                            <br>
+                                                                                        }
+                                                                                    }
+                                                                                </div>
+                                                                                }
+
+                                                                            </div>
+
+
+                                                                                        }
+                                                                                <br>
+                                                                                <div class="col-md-12" id="dvbtnSubmit">
+                                                                                    <center>
+                                                                                        <label class="blink text-danger" id="message" ></label>
+                                                                                    </center>
+                                                                                    <button type="button" value="1" class="btn btn-primary pull-right" id="btnSubmit">Next</button>
+                                                                                    <input type="text" id="hdQuizCount" value="@nCount" class="hidden" />
+                                                                                </div>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    <pre>There is no questions to be attend...!</pre>
+                                                                                }
+                        </div>
+                    }
+
+
+                </div>
+                <div class="col-md-12" id="dvOnlineQuiz">
+
+                </div>
+            </div>
+        </div>
+        </div>
+        
+        </div>
+    </div>
+</div>
+
+<button id="quizentry" class="hidden"></button>
+
+<script type="text/javascript" src="~/Content/assets/plugins/jquery/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="~/Content/assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+
+<script>
+    if (parseInt($('#totalquestion').text()) == parseInt($('#attendquestions').text()))
+    {
+        $('#tittlediv').addClass('hidden');
+    }
+    else
+    {
+        $('#tittlediv').removeClass('hidden');
+    }
+   
+    var div = $('#questionno').val();
+    $('#Questionno_' + div).removeClass('hidden');
+    // On Submit ...
+    $('#btnSubmit').on('click', function ()
+    {
+        SubmitData();
+    });
+
+    function SubmitData()
+    {
+        var btnValue = $('#btnSubmit').val();
+        var ClassList = $('#hdClassId').val();
+        var CourseList = $('#hdCourseId').val();
+        var StaffList = $("#hdStaffId").val();
+        var SettingId = $("#hdSettingId").val();
+        var JsonCount = 0;
+        var JsonData = '{"liOnlineQuiz":[';
+        var sStatus = null;
+        var qc = $('#questionno').val();
+        var divid = "Questionno_" + qc;
+        var AnswerId = $('#' + divid).attr('answerid');
+        var sQuestionType = $('#' + divid).attr('questiontype');
+        var sQuizId = $('#' + divid).attr('questionid');
+        if (sQuestionType == "1")
+        {
+
+            var AnswerId = $('input[name="' + sQuizId + '"]:checked').attr('cms-AnswerId');
+            var OptionId = $('input[name="' + sQuizId + '"]:checked').attr('cms-OptionId');
+            var SetId = $('input[name="' + sQuizId + '"]:checked').attr('cms-SetId');
+            if (AnswerId != null && AnswerId != '' && AnswerId != 'undefine') {
+                if (AnswerId == OptionId) { sStatus = 1; } else { sStatus = 0; }
+                JsonData += '{"QUIZ_ID":"' + sQuizId + '",\
+                                              "ANSWER_ID":"' + AnswerId + '",\
+                                              "OPTION_ID":"' + OptionId + '",\
+                                              "STATUS":"' + sStatus + '",\
+                                              "CLASS_ID":"' + ClassList + '",\
+                                              "COURSE_ID":"' + CourseList + '",\
+                                              "SEMESTER_ID":"' + $('#hdSemesterId').val() + '",\
+                                              "SET_ID":"' + SetId + '",\
+                                              "SETTING_ID":"' + SettingId + '",\
+                                              "STUDENT_ID":"' + $('#hdStudentId').val() + '",\
+                                              "QUESTION_TYPE":"' + sQuestionType + '","MINUTES":"' + $('#lblQuizTimeRunner').text() + '"},';
+                JsonCount++;
+            }
+        }
+        else if (sQuestionType == "2")
+        {
+            var sAnswer = $('#' + divid).find('select Option:selected').val();
+            var sQuizId = $('#' + divid).find('select Option:selected').attr('cms-sQuizId');
+            var sAnswerId = $('#' + divid).find('select Option:selected').attr('cms-AnswerId');
+            var sSetId = $('#' + divid).find('select Option:selected').attr('cms-SetId');
+            if (sAnswer != 0) {
+                if (sAnswer != null && sAnswer != 'undefined') {
+                    if (sAnswerId == sAnswer) { sStatus = 1; } else { sStatus = 0; }
+                    JsonData += '{"QUIZ_ID":"' + sQuizId + '",\
+                                          "ANSWER_ID":"' + sAnswerId + '",\
+                                          "OPTION_ID":"' + sAnswer + '",\
+                                          "STATUS":"' + sStatus + '",\
+                                          "CLASS_ID":"' + ClassList + '",\
+                                          "COURSE_ID":"' + CourseList + '",\
+                                          "SEMESTER_ID":"' + $('#hdSemesterId').val() + '",\
+                                          "SET_ID":"' + sSetId + '",\"SETTING_ID":"' + SettingId + '",\
+                                          "STUDENT_ID":"' + $('#hdStudentId').val() + '",\
+                                          "QUESTION_TYPE":"' + sQuestionType + '","MINUTES":"' + $('#lblQuizTimeRunner').text() + '"},';
+                    JsonCount++;
+                }
+            }
+        }
+        else if (sQuestionType = "3")
+        {
+            $('#' + divid).find('select').each(function ()
+            {
+                var sAnswer = $(this).find('option:selected').val();
+                var sQuizId = $(this).find('option:selected').attr('cms-sQuizId');
+                var sOptionId = $(this).find('option:selected').attr('cms-OptionId');
+                var sSetId = $(this).find('option:selected').attr('cms-SetId');
+                //var sAnswer = $(this).find('select Option:selected').val();
+                //var sQuizId = $(this).find('select Option:selected').attr('cms-sQuizId');
+                //var sOptionId = $(this).find('select Option:selected').attr('cms-OptionId');
+                //var sSetId = $(this).find('select Option:selected').attr('cms-SetId');
+                if (sAnswer != 0) {
+                    if (sAnswer != null && sAnswer != 'undefined') {
+                        if (sOptionId == sAnswer)
+                        { sStatus = 1; } else { sStatus = 0; }
+                        JsonData += '{"QUIZ_ID":"' + sQuizId + '",\
+                                          "ANSWER_ID":"' + sOptionId + '",\
+                                          "OPTION_ID":"' + sAnswer + '",\
+                                          "STATUS":"' + sStatus + '",\
+                                          "CLASS_ID":"' + ClassList + '",\
+                                          "COURSE_ID":"' + CourseList + '",\
+                                          "SEMESTER_ID":"' + $('#hdSemesterId').val() + '",\
+                                          "SET_ID":"' + sSetId + '",\"SETTING_ID":"' + SettingId + '",\
+                                          "STUDENT_ID":"' + $('#hdStudentId').val() + '",\
+                                          "QUESTION_TYPE":"' + sQuestionType + '","MINUTES":"' + $('#lblQuizTimeRunner').text() + '"},';
+                        JsonCount++;
+                    }
+                }
+            });
+        }
+
+        if (JsonCount != 0)
+        {
+            JsonData = JsonData.slice(0, -1);
+            JsonData += ']}';
+            //StopTimer();
+        } else if (btnValue == "0")
+        {
+            JsonData += '{"QUIZ_ID":"0",\
+                                          "ANSWER_ID":"0",\
+                                          "OPTION_ID":"0",\
+                                          "STATUS":"0",\
+                                          "CLASS_ID":"' + ClassList + '",\
+                                          "COURSE_ID":"' + CourseList + '",\
+                                          "SEMESTER_ID":"' + $('#hdSemesterId').val() + '",\
+                                          "SET_ID":"0",\"SETTING_ID":"' + SettingId + '",\
+                                          "STUDENT_ID":"' + $('#hdStudentId').val() + '",\
+                                          "QUESTION_TYPE":"2","MINUTES":"' + +$('#lblQuizTimeRunner').text() + + '"},';
+            JsonData = JsonData.slice(0, -1);
+            JsonData += ']}';
+        } else
+        {
+            //alert('Please Choose Options to Continue !');
+            $('#message').text('Please Choose Options to Continue !');
+            return false;
+        }
+
+        $.ajax({
+            url: '@Url.Action("SaveQuizForSetWise", "CIAExam")',
+            method: 'POST',
+            datatype: 'json',
+            async: false,
+            cache: false,
+            data: { sJsonSaveQuiz: JsonData, sSettingId: SettingId, sStaffId: StaffList, sUserId: $('#userid').val(), sAcademicYear: $('#acyear').val() },
+            success: function (data) {
+                if (data.ErrorCode == "200") {
+                    $('#message').text('');
+                    var qc = $('#questionno').val();
+                    $('#Questionno_' + qc).addClass('hidden');
+                    $('#questionno').val(parseInt(qc) + 1);
+                    $('#Questionno_' + (parseInt(qc) + 1)).removeClass('hidden');
+                    $('#Questionno_' + (parseInt(qc) + 1)).show("slide", { direction: "right" }, 2000);
+                    if (parseInt(data.sResult) + 1 == parseInt($('#totalquestion').text())) {
+                        $('#btnSubmit').text('Submit');
+                    }
+                    if (parseInt(data.sResult) + 1 > parseInt($('#totalquestion').text())) {
+                        $('#tittlediv').addClass('hidden');
+                        $("#attendquestions").text(parseInt(data.sResult));
+                        $('#maindiv').empty();
+                        $('#maindiv').append('<pre>You have attended all the questions...!</pre>');
+                    }
+                    else {
+                        $("#attendquestions").text(parseInt(data.sResult) + 1);
+                    }
+                    //$('.selectpicker').selectpicker('refresh');
+                }
+
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+</script>
+
+<script>
+    $(document).ready(function () {
+        $('#panel-expand').click();
+        
+    });
+    function blink_text() {
+        $('.blink').fadeOut(500);
+        $('.blink').fadeIn(500);
+    }
+
+    $(function () {
+        $(document).keydown(function (e) {
+            return (e.which || e.keyCode) != 116;
+        });
+    });
+
+</script>
+
+<script>
+    var timer2 = null;
+    if ($('#timespend').val() != "0" && $('#timespend').val() != "")
+    {
+        timer2 = $('#timespend').val();
+    }
+    else if ($('#timespend').val() != "0" && $('#timespend').val() != "")
+    {
+        $('#lblQuizTimeRunner').html("0" + ':' + "00");
+    }
+    else
+    {
+        timer2 = "" + $('#hdQuizTime').val() + ":01";
+    }
+   
+    var interval = setInterval(function ()
+    {
+        var timer = timer2.split(':');
+        //by parsing integer, I avoid all extra string processing
+        var minutes = parseInt(timer[0], 10);
+        var seconds = parseInt(timer[1], 10);
+        --seconds;
+        minutes = (seconds < 0) ? --minutes : minutes;
+        if (minutes < 0) clearInterval(interval);
+        seconds = (seconds < 0) ? 59 : seconds;
+        seconds = (seconds < 10) ? '0' + seconds : seconds;
+        $('#lblQuizTimeRunner').html(minutes + ':' + seconds);
+        timer2 = minutes + ':' + seconds;
+        if (minutes == 0 && seconds == 00)
+        {
+            $("#btnSubmit").val('0');
+            SubmitData();
+            $('#maindiv').empty();
+            $('#maindiv').append('<pre>Time’s up...!</pre>');
+            clearInterval(interval);
+        }
+
+    }, 1000);
+</script>
+
+
+
+
+
+

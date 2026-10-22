@@ -1,0 +1,1205 @@
+﻿
+@{
+    ViewBag.Title = "AttendancePercentageCommon";
+}
+
+@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+@{
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- HTML for loader (hidden initially) -->
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Attendance</a></li>
+        <li class="active">Attendance Report</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Attendance Report<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Attendance Report</h4>
+        </div>
+
+        <div class="panel-body">
+
+            <div id="loader" style="display:none; position:fixed; top:70%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+                <img src="~/Content/assets/img/loading-7528_128.gif" alt="Loading..." />
+            </div>
+            <div class="col-md-12 form-horizontal">
+                <ul class="nav nav-tabs">
+                    <li class="nav-items active" id="binddayWiseAbsenteeList">
+                        <a href="#bindDaywiseAbsenteeReport" data-toggle="tab" class="nav-link active">
+                            <span class="d-sm-none">Day Wise Absentee's List</span>
+                        </a>
+                    </li>
+                    <li class="nav-items " id="bindDateWiseAbsenteeList">
+                        <a href="#bindDateWiseAbsenteeReport" data-toggle="tab" class="nav-link">
+                            <span class="d-sm-none">Overall Absentee's List</span>
+                        </a>
+                    </li>
+                    <li class="nav-items " id="bindRangeWiseAbsenteeList">
+                        <a href="#bindRangewiseAbsenteeReport" data-toggle="tab" class="nav-link">
+                            <span class="d-sm-none">Range Wise Absentee's List</span>
+                        </a>
+                    </li>
+                    <li class="nav-items " id="bindgAttendancePercentage">
+                        <a href="#bindPercentageReport" data-toggle="tab" class="nav-link ">
+                            <span class="d-sm-none">Percentage Report </span>
+                        </a>
+                    </li>
+                    <li class="nav-items " id="bindgAttendancePercentageMark">
+                        <a href="#bindPercentageReportMark" data-toggle="tab" class="nav-link ">
+                            <span class="d-sm-none">Percentage with Mark Report </span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="bindgLackAttendancePercentage">
+                        <a href="#bindLackPercentageReport" data-toggle="tab" class="nav-link ">
+                            <span class="d-sm-none">Lack Attendance Percentage Report </span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="bindgClassWiseAbsenteeList">
+                        <a href="#bindClassWiseAbsentee" data-toggle="tab" class="nav-link ">
+                            <span class="d-sm-none">Class Wise Absentee List </span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="bindIndividualAbsenteeList">
+                        <a href="#bindIndividualAbsentee" data-toggle="tab" class="nav-link ">
+                            <span class="d-sm-none">Individual Absentee List </span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="bindNotAbsenteeList">
+                        <a href="#bindNotAbsentee" data-toggle="tab" class="nav-link ">
+                            <span class="d-sm-none">Not Absent Taken List </span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+
+                    @*Percentage Report*@
+                    <div class="tab-pane fade" id="bindPercentageReport">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-6 form-group">
+                                    @Html.Label("Start Date", htmlAttributes: new { @class = "control-label col-md-3" })
+
+                                    <div class="col-md-8">
+                                        <div class="input-group">
+                                            <input class="form-control date" id="txtStartDate" placeholder="Pick Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    @Html.Label("EndDate", htmlAttributes: new { @class = "control-label col-md-3" })
+
+                                    <div class="col-md-8">
+                                        <div class="input-group ">
+                                            <input class="form-control date" id="txtEndDate" placeholder="Pick Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 ">
+                                <div class="col-md-5 form-group">
+                                    @Html.Label("AcYear", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-8">
+                                        @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Shift", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Shift, (Model.Shift != null) ? Model.Shift : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true " })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary" id="btnGet" onclick="BindAttendancePercentage()"> Get </button>
+                                </div>
+
+                                <div class="col-md-1">
+                                    <button class="btn btn-success btnPrint hidden" onclick="printDiv('dvAttendanceReport')"> Print </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary btnExport hidden" onclick="Export()"> Export </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    @*Percentage with Mark Report*@
+
+                    <div class="tab-pane fade" id="bindPercentageReportMark">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Start Date", htmlAttributes: new { @class = "control-label col-md-3" })
+
+                                    <div class="col-md-9">
+                                        <div class="input-group ">
+                                            <input class="form-control date" id="mStartDate" placeholder="Pick Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("EndDate", htmlAttributes: new { @class = "control-label col-md-3" })
+
+                                    <div class="col-md-9">
+                                        <div class="input-group ">
+                                            <input class="form-control date" id="mEndDate" placeholder="Pick Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("AcYear", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "mAc_year" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Programme Level", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.ClassLevel, (Model.ClassLevel != null) ? Model.ClassLevel : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true", @data_parsley_required = "true",@id="ProgrammeLevel" })
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Shift", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Shift, (Model.Shift != null) ? Model.Shift : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "mShift", @multiple = "multiple", @data_actions_box = "true " })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary" id="btnGet" onclick="BindAttendancePercentageWithMark()"> Get </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-success btnPrint hidden" onclick="printDiv('dvAttendanceReport')"> Print </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary btnExport hidden" onclick="Export()"> Export </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*Date Wise Absentee's List*@
+
+                    <div class="tab-pane fade " id="bindDateWiseAbsenteeReport">
+                        <div class="row col-md-12">
+
+                            <div class="col-md-6 form-group">
+                                @Html.Label("Start Date", htmlAttributes: new { @class = "control-label col-md-5" })
+
+                                <div class="col-md-7">
+                                    <div class="input-group " id="datetimepicker1">
+                                        <input class="form-control date" id="startDate" placeholder="Pick Date" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5 form-group">
+                                @Html.Label("EndDate", htmlAttributes: new { @class = "control-label col-md-5" })
+
+                                <div class="col-md-7">
+                                    <div class="input-group date" id="datetimepicker1">
+                                        <input class="form-control" id="endDate" placeholder="Pick Date" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-4 form-group">
+                                @Html.Label("AcYear", htmlAttributes: new { @class = "control-label col-md-4" })
+                                <div class="col-md-9 form-group">
+                                    @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "AcYearddl" })
+                                </div>
+                            </div>
+                            <div class="col-md-4 form-group">
+                                @Html.Label("Shift", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.Shift, (Model.Shift != null) ? Model.Shift : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "Shiftddl", @multiple = "multiple", @data_actions_box = "true " })
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <button class="btn btn-primary" id="btnGet" onclick="BindAbsentlistDateWise()"> Get </button>
+                            </div>
+                            <div class="col-md-1">
+                                <button class="btn btn-success btnPrint hidden" onclick="printDiv('dvAttendanceReport')"> Print </button>
+                            </div>
+                            <div class="col-md-1">
+                                <button class="btn btn-primary btnExport hidden" onclick="Export()"> Export </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*Lack Attendance Percentage Report*@
+
+                    <div class="tab-pane fade" id="bindLackPercentageReport">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-5 form-group">
+                                    @Html.Label("Start Date", htmlAttributes: new { @class = "control-label col-md-3" })
+
+                                    <div class="col-md-7">
+                                        <div class="input-group">
+                                            <input class="form-control date" id="LstartDate" placeholder="Pick Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-5 form-group">
+                                    @Html.Label("EndDate", htmlAttributes: new { @class = "control-label col-md-3" })
+
+                                    <div class="col-md-7">
+                                        <div class="input-group">
+                                            <input class="form-control date" id="LendDate" placeholder="Pick Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-5 form-group">
+                                    @Html.Label("AcYear", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "LAcYearddl" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-5 form-group">
+                                    @Html.Label("Shift", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Shift, (Model.Shift != null) ? Model.Shift : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "LShiftddl", @multiple = "multiple", @data_actions_box = "true " })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary" id="btnGet" onclick="BindLackAttendancePercentage()"> Get </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-success btnPrint hidden" onclick="printDiv('dvAttendanceReport')"> Print </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary btnExport hidden" onclick="Export()"> Export </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    @*Day Wise Absentee's List*@
+
+                    <div class="tab-pane fade" id="bindDaywiseAbsenteeReport">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-5 form-group">
+                                    @Html.Label("Shift", htmlAttributes: new { @class = "control-label col-md-2" })
+                                    <div class="col-md-10">
+                                        @Html.DropDownListFor(model => model.Shift, (Model.Shift != null) ? Model.Shift : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "shiftD", @data_actions_box = "true", @multiple = "multiple" })
+                                    </div>
+                                </div>
+                                <div class="col-md-5 form-group">
+                                    @Html.Label("Date", htmlAttributes: new { @class = "control-label col-md-4" })
+                                    <div class="col-md-7">
+                                        <div class="input-group " id="datetimepicker1">
+                                            <input class="form-control date" id="txtDate" placeholder="Pick Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                @*<div class="col-md-1">
+                                        <button class="btn btn-primary" id="btnGet" onclick="BindDayWiseAttendanceReport()"> Get </button>
+                                    </div>*@
+                                <div class="col-md-1">
+                                    <button class="btn btn-success btnPrint hidden" onclick="printDiv('dvAttendanceReport')"> Print </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary btnExport hidden" onclick="Export()"> Export </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*Range Wise Absentee's List*@
+
+                    <div class="tab-pane fade" id="bindRangewiseAbsenteeReport">
+
+                        @*<div class="col-md-4 form-group">
+                                @Html.Label("Date", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    <input type="text" id="txtDate" class="datepicker date form-control" />
+                                </div>
+                            </div>*@
+                        <div class="col-md-4 form-group">
+                            @Html.Label("Shift", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.Shift, (Model.Shift != null) ? Model.Shift : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "RshiftD", @data_actions_box = "true", @multiple = "multiple" })
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            @Html.Label("Range", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                <select id="rangelist" class="form-control selectpicker show-menu-arrow show-tick">
+                                    <option value=""> --- select --- </option>
+
+                                    <option value="1,5"> 1 - 5</option>
+                                    <option value="5,10"> 5 - 10</option>
+                                    <option value="10,20"> 10 - 20</option>
+                                    <option value="20,30"> 20 - 30</option>
+                                    <option value="30,90"> 30 - 90 </option>
+                                    @*<option value="50, 100"> Above 50  </option>*@
+                                </select>
+                            </div>
+                        </div>
+                        @*<div class="col-md-1">
+                                <button class="btn btn-primary" id="btnGet" onclick="BindDayWiseAttendanceReport()"> Get </button>
+                            </div>*@
+                        <div class="col-md-1">
+                            <button class="btn btn-success btnPrint hidden" onclick="printDiv('dvAttendanceReport')"> Print </button>
+                        </div>
+                        <div class="col-md-1">
+                            <button class="btn btn-primary btnExport hidden" onclick="Export()"> Export </button>
+                        </div>
+                    </div>
+
+                    @*Individual Wise Absentee's List*@
+
+                    <div class="tab-pane fade" id="bindIndividualAbsentee">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("AcYear", htmlAttributes: new { @class = "control-label col-md-4" })
+                                    <div class="col-md-8">
+                                        @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "IAcYearddl" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Shift", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Shift, (Model.Shift != null) ? Model.Shift : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "IShiftddl", @data_actions_box = "true", @multiple = "multiple" })
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    @Html.LabelFor(model => model.StudentList, htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+
+                                        @Html.DropDownListFor(m => m.StudentList, (Model.StudentList != null) ? Model.StudentList : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control  selectpicker ", @data_live_search = "true", @data_parsley_required = "true" })
+                                        @Html.ValidationMessageFor(m => m.StudentList, "", new { @class = "text-danger" })
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Start Date", htmlAttributes: new { @class = "control-label col-md-3" })
+
+                                    <div class="col-md-8">
+                                        <div class="input-group">
+                                            <input class="form-control date" id="IstartDate" placeholder="Pick Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("EndDate", htmlAttributes: new { @class = "control-label col-md-3" })
+
+                                    <div class="col-md-8">
+                                        <div class="input-group">
+                                            <input class="form-control date" id="IendDate" placeholder="Pick Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary" id="btnGet" onclick="BindIndividualAbsenteelist()"> Get </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-success btnPrint hidden" onclick="printDiv('dvAttendanceReport')"> Print </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary btnExport hidden" onclick="Export()"> Export </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    @*Class Wise Absentee's List*@
+
+                    <div class="tab-pane fade " id="bindClassWiseAbsentee">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("AcYear", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "CAcYearddl" })
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Shift", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Shift, (Model.Shift != null) ? Model.Shift : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "CShiftddl", @multiple = "multiple", @data_actions_box = "true" })
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Programme Level", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.ClassLevel, (Model.ClassLevel != null) ? Model.ClassLevel : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true", @data_parsley_required = "true" })
+                                    </div>
+                                </div>
+
+
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Class Year", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.ClassYear, (Model.ClassYear != null) ? Model.ClassYear : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true", @data_parsley_required = "true" })
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.DepartmentList, (Model.DepartmentList != null) ? Model.DepartmentList : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 form-group">
+                                    @Html.LabelFor(model => model.ClassList, htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+
+                                        @Html.DropDownListFor(m => m.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control  selectpicker ", @data_live_search = "true", @data_actions_box = "true", @multiple = "multiple", @data_parsley_required = "true" })
+                                        @Html.ValidationMessageFor(m => m.ClassList, "", new { @class = "text-danger" })
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Start Date", htmlAttributes: new { @class = "control-label col-md-3" })
+
+                                    <div class="col-md-9">
+                                        <div class="input-group">
+                                            <input class="form-control date" id="CstartDate" placeholder="Pick Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("EndDate", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        <div class="input-group">
+                                            <input class="form-control date" id="CendDate" placeholder="Pick Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary" id="btnGet" onclick="BindClassWiseAbsentlist()"> Get </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-success btnPrint hidden" onclick="printDiv('dvAttendanceReport')"> Print </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary btnExport hidden" onclick="Export()"> Export </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*NOt Abbsentee list*@
+                    <div class="tab-pane fade " id="bindNotAbsentee">
+                        <div class="row">
+                            <div class="col-md-12">
+
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("AcYear", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "NAcYearddl" })
+                                    </div>
+                                </div>
+
+
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Shift", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.Shift, (Model.Shift != null) ? Model.Shift : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @id = "nShiftddl", @data_actions_box = "true", @multiple = "multiple" })
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Programme Level", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.ClassLevel, (Model.ClassLevel != null) ? Model.ClassLevel : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true", @data_parsley_required = "true", @id = "nClassLevel" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+
+
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Class Year", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.ClassYear, (Model.ClassYear != null) ? Model.ClassYear : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true", @data_parsley_required = "true", @id = "nClassYear" })
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.DepartmentList, (Model.DepartmentList != null) ? Model.DepartmentList : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_actions_box = "true", @multiple = "multiple", @data_live_search = "true", id = "nDepartment" })
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    @Html.LabelFor(model => model.ClassList, htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+
+                                        @Html.DropDownListFor(m => m.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control  selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_actions_box = "true", @multiple = "multiple", id = "NClassList" })
+                                        @Html.ValidationMessageFor(m => m.ClassList, "", new { @class = "text-danger" })
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-4 form-group">
+                                    @Html.LabelFor(model => model.SemesterType, htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+
+                                        @Html.DropDownListFor(m => m.SemesterType, (Model.SemesterType != null) ? Model.SemesterType : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control  selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_actions_box = "true", @multiple = "multiple", id = "nSemesterType" })
+                                        @Html.ValidationMessageFor(m => m.SemesterType, "", new { @class = "text-danger" })
+
+                                    </div>
+                                </div>
+                                @*<div class="form-group col-md-3">
+                                        <label class="col-md-4">Class list</label>
+                                        <div class="col-md-8">
+
+                                            <select id="Classes" class="form-control    selectpicker show-menu-arrow show-tick">
+                                            </select>
+
+                                        </div>
+                                    </div>*@
+
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary" id="btnGet" onclick="BindNotAbsenteeList()"> Get </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-success btnPrint hidden" onclick="printDiv('dvAttendanceReport')"> Print </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary btnExport hidden" onclick="Export()"> Export </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="form-group col-md-12">
+                    <div id="dvAttendanceReport"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#bindDaywiseAbsenteeReport').addClass("active in");
+        $('.nav-items').on("click", function () {
+
+            $('#dvAttendanceReport').html('');
+
+        });
+        //$(".date").datepicker({
+        //    todayHighlight: true,
+        //    autoclose: !0,
+        //    endDate: new Date(),
+        //    format: "dd/mm/yyyy",
+        //    orientation: "right bottom"
+        //});
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+    });
+
+    function ContentLoad() {
+        $(document).ready(function () {
+            handleDatepicker = function () {
+                "use strict";
+                $(".date").datepicker({
+                    todayHighlight: true,
+                    autoclose: !0,
+                    format: "dd/mm/yyyy",
+                    orientation: "right bottom"
+                    // 'top': top,
+                    // 'left': left
+                }
+                )
+
+            }
+            handleDatepicker();
+        });
+    }
+    $("#CShiftddl").on("change", function ()
+{
+        FetchClassList()
+    });
+    $("#DepartmentList").on("change", function () {
+        FetchClassList()
+    });
+    $("#ClassYear").on("change", function () {
+        FetchClassList()
+    });
+    $("#ClassLevel").on("change", function () {
+        FetchClassList()
+    });
+    $("#IShiftddl").on("change", function () {
+        FetchStudentList()
+    });
+    $("#IAcYearddl").on("change", function () {
+        FetchStudentList()
+    });
+    $("#nShiftddl").on("change", function () {
+        FetchClassListForNotAbsentee()
+    });
+    $("#nDepartment").on("change", function () {
+        FetchClassListForNotAbsentee()
+    });
+    $("#nClassLevel").on("change", function () {
+        FetchClassListForNotAbsentee()
+    });
+    $("#nClassYear").on("change", function () {
+        FetchClassListForNotAbsentee()
+    });
+    function FetchClassList()
+    {
+        var Shift = String($("#CShiftddl").val());
+        var Department = String($("#DepartmentList").val());
+        var classYear = String($("#ClassYear").val());
+        var classLevel = String($("#ClassLevel").val());
+        if ($("#ClassLevel").val() && $("#ClassYear").val() && $("#DepartmentList").val() && $("#CShiftddl").val())
+        {
+
+            $.ajax({
+                url: "@Url.Action("FetchClassByshiftandDepartmentID", "Attendance")",
+                method: "POST",
+                datatype: "html",
+                data: { shift: Shift, sdepart: Department, classYear: classYear, classLevel: classLevel },
+                success: function (data) {
+                    var select = $("#ClassList");
+                    select.empty();
+                    if (data.sResult != null && data.sResult != '') {
+                        select.append(data.sResult);
+                    } else {
+                        alert(data.Message);
+                    }
+                    $('#ClassList').selectpicker('refresh');
+                }, error: function (error) {
+                    alert('Internal Server Error ...!');
+                }
+            });
+        }
+    }
+                  function FetchClassListForNotAbsentee()
+                  {
+                      if ($("#nShiftddl").val() && $("#nDepartment").val() && $("#nClassYear").val() && $("#nClassLevel").val()) {
+                          var Shift = String($("#nShiftddl").val());
+                          var Department = String($("#nDepartment").val());
+                          var classYear = String($("#nClassYear").val());
+                          var classLevel = String($("#nClassLevel").val());
+
+                          $.ajax({
+                              url: "@Url.Action("FetchClassByshiftandDepartmentID", "Attendance")",
+                              method: "POST",
+                              datatype: "html",
+                              data: { shift: Shift, sdepart: Department, classYear: classYear, classLevel: classLevel },
+                              success: function (data) {
+                                  var select = $("#NClassList");
+                                  select.empty();
+                                  if (data.sResult != null && data.sResult != '') {
+                                      select.append(data.sResult);
+                                  } else {
+                                      alert(data.Message);
+                                  }
+                                  $('#NClassList').selectpicker('refresh');
+                              }, error: function (error) {
+                                  alert('Internal Server Error ...!');
+                              }
+                          });
+                      }
+}
+                    function FetchStudentList()
+                    {
+                    var Shift = String($("#IShiftddl").val());
+                        var AcYear = $('#IAcYearddl Option:selected').text();
+                        if ($("#IShiftddl").val() && $('#IAcYearddl Option:selected').text()) {
+                            $.ajax({
+                                url: "@Url.Action("FetchStudentByShiftId", "Attendance")",
+                                method: "POST",
+                                datatype: "html",
+                                data: { sShiftID: Shift, sAc_year: AcYear },
+                                success: function (data) {
+                                    var select = $("#StudentList");
+                                    select.empty();
+                                    if (data.sResult != null && data.sResult != '') {
+                                        select.append(data.sResult);
+                                    } else {
+                                        alert(data.Message);
+                                    }
+                                    $('#StudentList').selectpicker('refresh');
+                                }, error: function (error) {
+                                    alert('Internal Server Error ...!');
+                                }
+                            });
+                        }
+                }
+
+</script>
+
+<script>
+    $('#AcademicYearList').on('change', function () {
+        BindAttendancePercentage();
+    });
+
+    $('#Shift').on('change', function () {
+        BindAttendancePercentage();
+    });
+
+    $('#AcYearddl').on('change', function () {
+        BindAbsentlistDateWise();
+    });
+
+    $('#Shiftddl').on('change', function () {
+        BindAbsentlistDateWise();
+    });
+    $('#LAcYearddl').on('change', function () {
+        BindLackAttendancePercentage();
+    });
+
+    $('#LShiftddl').on('change', function () {
+        BindLackAttendancePercentage();
+    });
+    $('#shiftD').on('change', function () {
+        BindDayWiseAttendanceReport();
+    });
+    $('#txtDate').on('change', function () {
+        BindDayWiseAttendanceReport();
+    });
+    $('#rangelist').on('change', function () {
+        BindRangeWiseAbsenteeList();
+    });
+    $('#RshiftD').on('change', function () {
+        BindRangeWiseAbsenteeList();
+    });
+    $('#mAc_year').on('change', function () {
+        BindAttendancePercentageWithMark();
+    });
+    $('#ProgrammeLevel').on('change', function () {
+        BindAttendancePercentageWithMark();
+    });
+    $('#mShift').on('change', function () {
+        BindAttendancePercentageWithMark();
+    });
+</script>
+
+<script>
+function BindIndividualAbsenteelist()
+{
+            if ($('#StudentList').val() && $('#IShiftddl').val() && $('#IAcYearddl').val() && $('#IstartDate').val() && $('#IendDate').val())
+    {
+        $.ajax({
+            url:'@Url.Action("BindCommonIndividualAttendanceReport", "Attendance")',
+            method:'POST',
+            datatype:'json',
+            data: { sAcYear: $('#IAcYearddl Option:selected').text(), sStartDate: $('#IstartDate').val(), sEndDate: $('#IendDate').val(), sStudent: String($("#StudentList").val()) },
+            success: function (data)
+            {
+
+                if (data.Message!=null && data.Message!='')
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                }else
+                {
+                    $('.btnPrint').removeClass('hidden');
+                    $('.btnExport').removeClass('hidden');
+                    $('#dvAttendanceReport').empty();
+                    $('#dvAttendanceReport').append(data);
+                }
+            }, eror: function (error)
+            {
+                swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+            }
+        });
+    }
+            else {
+
+        swal({ title: "Error !", text: "Please Select All Field's", showConfirmButton: false, timer: 1000, type: 'error', animation: true });
+
+    }
+}
+
+    function BindDayWiseAttendanceReport()
+    {
+        if ($('#shiftD').val() && $('#txtDate').val()) {
+            $('#loader').show();
+            $('.btnPrint').removeClass('hidden');
+            $('.btnExport').removeClass('hidden');
+            $('#dvAttendanceReport').empty();
+            $.ajax({
+                url: '@Url.Action("BindCommonAbsenteesListDayWise", "Attendance")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sShiftId: String($('#shiftD').val()), sDate: $('#txtDate').val() },
+                success: function (data) {
+                    $('#loader').hide();
+                    if (data.Message != null && data.Message != '') {
+                        swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                    } else {
+                        $('.btnPrint').removeClass('hidden');
+                        $('.btnExport').removeClass('hidden');
+                        $('#dvAttendanceReport').empty();
+                        $('#dvAttendanceReport').append(data);
+                    }
+                }, eror: function (error) {
+                    $('#loader').hide();
+                    swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                }
+            });
+        }
+        //else {
+        //    swal({ title: "Error !", text: "Please Select All Field's", showConfirmButton: false, timer: 1000, type: 'error', animation: true });
+
+        //}
+}
+    function BindAttendancePercentage()
+    {
+        if ($('#AcademicYearList').val() && $('#Shift').val() && $('#txtStartDate').val() && $('#txtEndDate').val())
+        {
+            $('#loader').show();
+            $.ajax({
+                url:'@Url.Action("BindAttendancePercentageCommon", "Attendance")',
+                method:'POST',
+                datatype:'json',
+                data: { sAcYear: $('#AcademicYearList Option:selected').text(), sShiftId: String($('#Shift').val()), sStartDate: $('#txtStartDate').val(), sEndDate: $('#txtEndDate').val() },
+                success: function (data)
+                {
+                    $('#loader').hide();
+                    if (data.Message!=null && data.Message!='')
+                    {
+                        swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                    }else
+                    {
+                        $('.btnPrint').removeClass('hidden');
+                        $('.btnExport').removeClass('hidden');
+                        $('#dvAttendanceReport').empty();
+                        $('#dvAttendanceReport').append(data);
+                    }
+                }, eror: function (error)
+                {
+                    swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                }
+            });
+        }
+
+    }
+    function BindAttendancePercentageWithMark()
+{
+        if ($('#mAc_year').val() && $('#mShift').val() && $('#mStartDate').val() && $('#mEndDate').val() && $('#ProgrammeLevel').val())
+        {
+            $('#loader').show();
+        $.ajax({
+            url:'@Url.Action("BindCommonAttendancePercentageWithMark", "Attendance")',
+            method:'POST',
+            datatype:'json',
+            data: { sAcYear: $('#mAc_year Option:selected').text(), sShiftId: String($('#mShift').val()), sStartDate: $('#mStartDate').val(), sEndDate: $('#mEndDate').val(), programmeLevel: $('#ProgrammeLevel').val() },
+            success: function (data)
+            {
+                $('#loader').hide();
+                if (data.Message!=null && data.Message!='')
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                }else
+                {
+                    $('.btnPrint').removeClass('hidden');
+                    $('.btnExport').removeClass('hidden');
+                    $('#dvAttendanceReport').empty();
+                    $('#dvAttendanceReport').append(data);
+                }
+            }, eror: function (error)
+            {
+                swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+            }
+        });
+    }
+
+}
+    function BindAbsentlistDateWise()
+{
+        if ($('#AcYearddl').val() && $('#Shiftddl').val() && $('#startDate').val() && $('#endDate').val())
+        {
+            $('.btnPrint').removeClass('hidden');
+            $('.btnExport').removeClass('hidden');
+            $('#dvAttendanceReport').empty();
+            $('#loader').show();
+        $.ajax({
+            url:'@Url.Action("BindCommonAbsenteesListDateWise", "Attendance")',
+            method:'POST',
+            datatype:'json',
+            data: { sAcYear: $('#AcYearddl Option:selected').text(), sShiftId: String($('#Shiftddl').val()), sStartDate: $('#startDate').val(), sEndDate: $('#endDate').val() },
+            success: function (data)
+            {
+                $('#loader').hide();
+                if (data.Message!=null && data.Message!='')
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                }else
+                {
+                    $('.btnPrint').removeClass('hidden');
+                    $('.btnExport').removeClass('hidden');
+                    $('#dvAttendanceReport').empty();
+                    $('#dvAttendanceReport').append(data);
+                }
+            }, eror: function (error)
+            {
+                $('#loader').hide();
+                swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+            }
+        });
+        }
+
+    }
+    function BindLackAttendancePercentage()
+{
+        if ($('#LAcYearddl').val() && $('#LShiftddl').val() && $('#LstartDate').val() && $('#LendDate').val())
+        {
+            $('#dvAttendanceReport').empty();
+            $('#loader').show();
+        $.ajax({
+            url:'@Url.Action("LackAttendancePercentageCommon", "Attendance")',
+            method:'POST',
+            datatype:'json',
+            data: { sAcYear: $('#LAcYearddl Option:selected').text(), sShiftId: String($('#LShiftddl').val()), sStartDate: $('#LstartDate').val(), sEndDate: $('#LendDate').val() },
+            success: function (data)
+            {
+                if (data.Message!=null && data.Message!='')
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                }else
+                {
+                    $('#loader').hide();
+                    $('.btnPrint').removeClass('hidden');
+                    $('.btnExport').removeClass('hidden');
+                    $('#dvAttendanceReport').empty();
+                    $('#dvAttendanceReport').append(data);
+                }
+            }, eror: function (error)
+            {
+                swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+            }
+        });
+        }
+        //else {
+        //    swal({ title: "Error !", text: "Please Select All Field's", showConfirmButton: false, timer: 1000, type: 'error', animation: true });
+
+        //}
+    }
+    function BindRangeWiseAbsenteeList()
+{
+        if ($('#rangelist').val() && $('#RshiftD').val())
+        {
+            $('.btnPrint').removeClass('hidden');
+            $('.btnExport').removeClass('hidden');
+            $('#dvAttendanceReport').empty();
+            $('#loader').show();
+        $.ajax({
+            url:'@Url.Action("BindCommonAbsenteesListRangeWise", "Attendance")',
+            method:'POST',
+            datatype:'json',
+            data: { sShiftId: String($('#RshiftD').val()), Range: $('#rangelist').val() },
+            success: function (data)
+            {
+                $('#loader').hide();
+                if (data.Message!=null && data.Message!='')
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                }else
+                {
+                    $('.btnPrint').removeClass('hidden');
+                    $('.btnExport').removeClass('hidden');
+                    $('#dvAttendanceReport').empty();
+                    $('#dvAttendanceReport').append(data);
+                }
+            }, eror: function (error)
+            {
+                $('#loader').hide();
+                swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+            }
+        });
+        }
+
+    }
+    function BindClassWiseAbsentlist()
+{
+        if ($('#CAcYearddl').val() && $('#CstartDate').val() && $('#CendDate').val() && $('#ClassList').val())
+        {
+            $('#dvAttendanceReport').empty();
+            $('#loader').show();
+        $.ajax({
+            url:'@Url.Action("BindCommonAttendanceReportbyClassWise", "Attendance")',
+            method:'POST',
+            datatype:'json',
+            data: { sAcYear: $('#CAcYearddl Option:selected').text(), sStartDate: $('#CstartDate').val(), sEndDate: $('#CendDate').val(), classId: String($("#ClassList").val()) },
+            success: function (data)
+            {
+
+                $('#loader').hide();
+                if (data.Message!=null && data.Message!='')
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                }else
+                {
+
+
+                    $('.btnPrint').removeClass('hidden');
+                    $('.btnExport').removeClass('hidden');
+                    $('#dvAttendanceReport').empty();
+                    $('#dvAttendanceReport').append(data);
+                }
+            }, eror: function (error)
+            {
+                swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+            }
+        });
+    }
+    else {
+        swal({ title: "Error !", text: "Please Select All Field's", showConfirmButton: false, timer: 1000, type: 'error', animation: true });
+
+    }
+    }
+
+    function BindNotAbsenteeList()
+{
+        if ($('#NAcYearddl').val() && $('#NClassList').val() && $('#nSemesterType').val())
+        {
+            $('#dvAttendanceReport').empty();
+            $('#loader').show();
+        $.ajax({
+            url:'@Url.Action("BindCommonNotAbsenteesListClassWise", "Attendance")',
+            method:'POST',
+            datatype:'json',
+            data: { sAcYear: $('#NAcYearddl Option:selected').text(), classId: String($('#NClassList').val()), semestertype:$('#nSemesterType').val() },
+            success: function (data)
+            {
+
+                $('#loader').hide();
+                if (data.Message!=null && data.Message!='')
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+                }else
+                {
+                    $('.btnPrint').removeClass('hidden');
+                    $('.btnExport').removeClass('hidden');
+                    $('#dvAttendanceReport').empty();
+                    $('#dvAttendanceReport').append(data);
+                }
+            }, eror: function (error)
+            {
+                swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 3500, type: 'error', animation: true });
+            }
+        });
+    }
+    else {
+        swal({ title: "Error !", text: "Please Select All Field's", showConfirmButton: false, timer: 1000, type: 'error', animation: true });
+
+    }
+}
+</script>
+<script>
+    //$('#btnPrint').on('click', function () {
+    //    var printContents = document.getElementById('dvAttendanceReport').innerHTML;
+    //    myWindow = window.open('', '', 'width=200,height=100');
+    //    myWindow.document.write(printContents);
+    //    myWindow.document.close(); //missing code
+    //    myWindow.focus();
+    //    myWindow.print();
+    //});
+    function printDiv(divName) {
+        var table = $('#tbltpmReport').DataTable();
+        table.destroy();
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+
+        //loadContent('/attendance/AttendancePercentageCommon');
+    }
+    function Export() {
+        var title = "";
+        //var sSatff = $('#StaffListByDepartmet option:selected').text();
+        title = "Attendance_report";
+        let file = new Blob([$('#dvAttendanceReport').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: title + ".xls"
+        }).appendTo("body").get(0).click();
+        //$('#btnGet').click();
+        //loadContent('/attendance/AttendancePercentageCommon');
+        //e.preventDefault();
+        // loadContent('/IQAC/IQACDateWiseReportForIncharge');
+    }
+</script>
+

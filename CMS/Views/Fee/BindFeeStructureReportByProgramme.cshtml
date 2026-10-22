@@ -1,0 +1,108 @@
+﻿@model CMS.ViewModel.ViewModel.FeeStructureViewModel
+
+@if (Model.lstFeeStructure != null && Model.lstFeeStructure.Count() > 0 && Model.LiFeeStructure != null && Model.LiFeeStructure.Count() > 0)
+{
+    <div class="col-md-12 table-responsive">
+        <table class="table table-bordered  table-hover" id="tblFeeStrutureProgramme" border="1" align="left">
+            <thead>
+                <tr>
+                    <th>
+                        #
+                    </th>
+                    <th>ApplicationType</th>
+                    <th>Programme</th>
+                    <th>Shift-ProgrmmeMode</th>
+                    @{
+                        var main = Model.LiFeeStructure.GroupBy(x => x.MAIN_HEAD_ID).ToList();
+                        foreach (var item in main)
+                        {
+                            var suphead = Model.LiFeeStructure.Where(s => s.MAIN_HEAD_ID == item.FirstOrDefault().MAIN_HEAD_ID).ToList();
+                            <th colspan="@suphead.Count()">@suphead.FirstOrDefault().MAIN_HEAD</th>
+                        }
+
+                    }
+                    <th>
+                        Total
+                    </th>
+                </tr>
+                <tr>
+                    <th colspan="4">SubHeads</th>
+                    @{
+                        var mains = Model.LiFeeStructure.GroupBy(x => x.MAIN_HEAD_ID).ToList();
+                        foreach (var item in main)
+                        {
+                            var suphead = Model.LiFeeStructure.Where(s => s.MAIN_HEAD_ID == item.FirstOrDefault().MAIN_HEAD_ID).ToList();
+                            foreach (var items in suphead)
+                            {
+                                <th>@items.HEAD</th>
+                            }
+                        }
+                    }
+                    <td>
+
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int count = 0;
+                    var Programme = Model.lstFeeStructure.GroupBy(x => x.PROGRAMME).ToList();
+                    foreach (var items in Programme)
+                    {
+                        var classyear = Model.lstFeeStructure.Where(s => s.PROGRAMME == items.FirstOrDefault().PROGRAMME).GroupBy(S=>S.CLASS_YEAR_ID).ToList();
+                        if (classyear.Count() > 0 && classyear != null)
+                        {
+                            foreach (var clitem in classyear)
+                            {
+                                <tr>
+                                    @{
+                                        var structure = Model.lstFeeStructure.Where(s => s.PROGRAMME == items.FirstOrDefault().PROGRAMME && s.CLASS_YEAR_ID == clitem.FirstOrDefault().CLASS_YEAR_ID).ToList();
+                                        <td>@{count++;} @count</td>
+                                        <td>@structure.FirstOrDefault().APPLICATION_TYPE</td>
+                                        <td>@structure.FirstOrDefault().PROGRAMME_NAME</td>
+                                        <td>@structure.FirstOrDefault().SHIFT_NAME-@structure.FirstOrDefault().PROGRAMME_MODE</td>
+                                            var mainhead = Model.LiFeeStructure.GroupBy(x => x.MAIN_HEAD_ID).ToList();
+                                            foreach (var mitem in main)
+                                            {
+                                                var suphead = Model.LiFeeStructure.Where(s => s.MAIN_HEAD_ID == mitem.FirstOrDefault().MAIN_HEAD_ID).ToList();
+                                                if (suphead!=null && suphead.Count()>0)
+                                                {
+                                                    foreach (var sitem in suphead)
+                                                    {
+                                                        var amount = structure.Where(x => x.MAIN_HEAD_ID == sitem.MAIN_HEAD_ID && x.HEAD_ID == sitem.HEAD_ID && x.PROGRAMME == items.FirstOrDefault().PROGRAMME && x.CLASS_YEAR_ID == clitem.FirstOrDefault().CLASS_YEAR_ID).ToList();
+                                                        if (amount != null && amount.Count() > 0)
+                                                        {
+                                                            foreach (var aitem in amount)
+                                                            {
+                                                                <td>@aitem.AMOUNT</td>
+                                                            }
+
+                                                        }
+                                                        else
+                                                        {
+                                                            <td>-</td>
+                                                        }
+                                                    }
+
+                                                }
+                                                else
+                                                {
+
+                                                }
+
+                                            }
+                                            <td><b>@structure.Sum(o => Convert.ToDouble(o.AMOUNT))</b></td>
+                                    }
+                                </tr>
+                                                    }
+                                                }
+
+
+
+                                            }
+
+                }
+            </tbody>
+        </table>
+    </div>
+                                    }

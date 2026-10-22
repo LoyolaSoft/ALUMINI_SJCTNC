@@ -1,0 +1,143 @@
+~@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active"> Instant Exam Class-Wise Analysis</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header"> Instant Exam Class-Wise Analysis<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title"> Instant Exam Class-Wise Analysis</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+                    <div class="form-group col-md-12">
+                        <div class="col-md-5">
+                            @Html.Label("Department", htmlAttributes: new { @class = "col-md-3 control-label " })
+                            <div class="col-md-9">
+                                @Html.ListBoxFor(m => m.DepartmentList, (Model.DepartmentList != null) ? Model.DepartmentList : Enumerable.Empty<SelectListItem>(), new { @class = "form-control selectpicker", @multiple = "multiple", @data_live_search = "true", @data_actions_box = "true", @id="DepartmentId", @title="-- Select Departments --" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-5">
+                            @Html.Label("Class", htmlAttributes: new { @class = "col-md-3 control-label " })
+                            <div class="col-md-9">
+                                <select id="ClassList" name="ClassList" class="form-control selectpicker" multiple data-live-search="true" data-actions-box="true" title="-- Select Classes --">
+                                    <!-- Classes loaded via AJAX -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2 text-right">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="BindAnalysisData()">Search</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group col-md-12">
+                    <div id="dvAnalysisResult"></div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<!-- end #content -->
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<!-- Datatables Exporter -->
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+
+<script>
+    function ContentLoad()
+    {
+        // Document Ready Function
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+    }
+
+    // Load Classes Based on Department
+    $('#DepartmentId').on('change', function () {
+        var depIds = $(this).val();
+        $('#ClassList').html('');
+        if (depIds && depIds.length > 0) {
+            // Join multi IDs with comma for the SQL generic handler
+            var sDepId = depIds.join(',');
+            $.ajax({
+                url: '/Staff/FetchClassessByDepartment?sDepId=' + sDepId,
+                type: 'GET',
+                success: function (data) {
+                    $('#ClassList').html(data);
+                    $('#ClassList').selectpicker('refresh');
+                },
+                error: function () {
+                    swal({ title: "Error", text: "Failed to load classes.", showConfirmButton: false, timer: 1500, type: 'error' });
+                }
+            });
+        }
+        $('#ClassList').selectpicker('refresh');
+    });
+
+    function BindAnalysisData() {
+        var classIds = $('#ClassList').val();
+        if (!classIds || classIds.length === 0) {
+            swal({ title: "Warning", text: "Please select at least one class", showConfirmButton: false, timer: 1500, type: 'warning' });
+            return;
+        }
+
+        $('#dvAnalysisResult').html('<div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+
+        $.ajax({
+            url: '@Url.Action("BindInstantExamClassWiseAnalysis", "Examination")',
+            method: 'POST',
+            traditional: true, // Needed for array passing in MVC
+            data: { ClassList: classIds },
+            success: function (data) {
+                if (data.Message && data.ErrorCode) {
+                    swal({ title: " Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error' });
+                } else {
+                    $('#dvAnalysisResult').html(data);
+                }
+            }, 
+            error: function (error) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error' });
+                $('#dvAnalysisResult').html('');
+            }
+        });
+    }
+</script>

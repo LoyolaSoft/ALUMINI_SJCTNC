@@ -1,0 +1,330 @@
+﻿
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.ViewModel.ViewModel
+@{
+    ViewBag.Title = "ListFeedbackRoleSetting";
+}
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">ListFeedbackRoleSetting</li>
+    </ol>
+    <h1 class="page-header">List Feedback Role Setting</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Feedback Role Setting</h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="form-group col-md-12">
+                <a class="btn btn-success pull-right form-group m-b-5" href="#FbRoleSetting-dialog" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add"> Add</i></a>
+            </div>
+
+            <div class="form-group col-md-12 table-responsive">
+                <table class="table table-hover table-bordered" id="tblLiFbRoleSetting">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+
+                            <th>Feedback Name</th>
+                            <th>Feedback Role Name</th>
+                            @*<th>IsAttended</th>*@
+                            @*<th>Active/Deactive</th>*@
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @if (Model.liFbRoleSettings != null && Model.liFbRoleSettings.Count > 0)
+                        {
+                            var count = 0;
+                            foreach (var item in Model.liFbRoleSettings)
+                            {
+                                count = count + 1;
+                                <tr>
+                                    <td>@count</td>
+
+                                    <td>@item.FEEDBACK_NAME</td>
+                                    <td>@item.FEEDBACK_ROLE_NAME</td>
+                                    @*@if (@item.IS_ATTENDED == "1")
+                                    {
+                                        <td>Attended</td>
+                                    }
+                                    else
+                                    {
+                                        <td>Not  Attended</td>
+                                    }*@
+
+                                    @*<td>
+                                        @if (item.IS_ACTIVE == "1")
+                                        {
+                                            <a href="javascrip:;" onclick="SetActive(@item.FEEDBACK_ROLE_ID,0)" class="text-success"><i class="fa fa-check"></i></a>             }
+                                        else
+                                        {
+                                            <a href="javascrip:;" onclick="SetActive(@item.FEEDBACK_ROLE_ID,1)" class="text-danger"><i class="fa fa-times"></i></a>
+                                        }
+                                    </td>*@
+
+                                    <td>
+                                        <a href="#FbRoleSetting-dialog" onclick="FetchLiFeedBackRoleSettingById(@item.FEEDBACK_ROLE_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+
+                                        <a href="javascrip:;" onclick="GetConfirm(@item.FEEDBACK_ROLE_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+
+                                    </td>
+                                </tr>
+                            }
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="FbRoleSetting-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit Feedback Role Settings</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+
+                                    <div class="col-md-12 form-group">
+                                        @Html.Label("Feedback  ", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(m => m.FeedBackSettingList, (Model.FeedBackSettingList != null) ? Model.FeedBackSettingList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.FeedBackSettingList, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        @Html.Label("Feedback Role ", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(m => m.FeedBackRoleList, (Model.FeedBackRoleList != null) ? Model.FeedBackRoleList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.FeedBackRoleList, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    @*<div class="col-md-12 form-group">
+                                        <div class="checkbox checkbox-css checkbox-inline checkbox-inverse">
+                                            <input type="checkbox" value="" id="cbIsAttended" checked="">
+                                            <label for="cbIsAttended">
+                                                Is Attended
+                                            </label>
+                                        </div>
+                                       
+                                    </div>*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+        <input type="hidden" id="FeedBackRoleId" value="" />
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+        var sAcademicStatus=@Html.Raw(Json.Encode(FeedbackViewModel.sAcademicAttempt));
+
+        if(sAcademicStatus>0)
+        {
+            if(sAcademicStatus==1)
+            {
+                changeAcademicYear(@Session["ACADEMIC_YEAR"]);
+            }
+                
+        }
+        else
+        {
+                  
+                  
+        }
+
+
+
+
+        var tbl = $('#tblLiFbRoleSetting').DataTable();
+
+        function FetchLiFeedBackRoleSettingById(FeedBackRoleId)
+        {
+            $('#pBody').parsley().destroy();
+
+            if (FeedBackRoleId != null)
+            {
+                $.ajax({
+                    url: "/FeedBack/FetchLiFeedBackRoleSettingById",
+                    type:"post",
+                    data: { sFeedBackRoleId: FeedBackRoleId },
+                    success:function(data)
+                    {
+                        if(data.Message!=null)
+                        {
+                            alert(data.Message);
+                        }
+                        else {
+                            if (data.oResult[0] != null)
+                            {
+                                $('#FeedBackSettingList option[value="' + data.oResult[0].FEEDBACK_ID + '"]').attr("selected", "selected");
+                                $('#FeedBackRoleList option[value="' + data.oResult[0].SUP_FEEDBACK_ROLE_ID + '"]').attr("selected", "selected");
+
+                                //if (data.oResult[0].IS_ATTENDED=='1')
+                                //{
+                                //    $('#cbIsAttended').attr('checked', true);
+                                //}
+                                //else
+                                //{
+                                //    $('#cbIsAttended').attr('checked', false);
+                                //}
+                                $('#FeedBackRoleId').attr('value', data.oResult[0].FEEDBACK_ROLE_ID);
+                               
+                                $('.selectpicker').selectpicker('refresh');
+                            }
+
+
+                        }
+
+                    },
+                    error:function(ex)
+                    {
+                        alert(ex.Message);
+                    }
+                });
+            }
+        }
+
+        $('#btnSubmit').click(function () {
+
+            var isValid = true;
+            if ($('#pBody').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //gritter-info,danger,success,warning,default
+                //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+
+            var FeedBackRoleId = $('#FeedBackRoleId').val();
+            var FeedBackId = $('#FeedBackSettingList').val();
+            var FeedBAckRoleId = $('#FeedBackRoleList').val();
+            //var isAttended = $('#cbIsAttended').is(':checked') ? "1" : "0";
+         
+
+            var jsonData = '{"FEEDBACK_ROLE_ID":"' + FeedBackRoleId + '","FEEDBACK_ID":"' + FeedBackId + '","SUP_FEEDBACK_ROLE_ID":"' + FeedBAckRoleId + '","IS_ATTENDED":"0"}';
+
+
+              var req=  $.ajax({
+                    url: "/FeedBack/SaveorUpdateFeedBackRoleSetting",
+                    type: "post",
+                    data: { sJsonData: jsonData },
+                    success: function (data) {
+                        if (data.Message != null && data.Message != "")
+                        {
+                            if (data.ErrorCode == "417")
+                            {
+                                swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                            }
+                            if (data.ErrorCode == "208") {
+                                swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'info', animation: true });
+                            }
+                            if (data.ErrorCode == "200") {
+                                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                                loadContent('/FeedBack/ListFeedbackRoleSetting');
+                            }
+                           
+                        }
+                    },
+                    error: function (ex) {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+
+              });
+
+        });
+
+    GetConfirm = function (FeedBackRoleId)
+        {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+       function () {
+           $.ajax({
+               url: "/FeedBack/DeleteLiFeedBackRoleSettingById",
+               type: "post",
+               data: { sFeedBackRoleId: FeedBackRoleId },
+               success: function (data) {
+                   if (data.Message != null && data.Message != "") {
+                       swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                       loadContent('/FeedBack/ListFeedbackRoleSetting');
+                   }
+               },
+               error: function (ex) {
+                   swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+               }
+
+
+           });
+       });
+        }
+
+        $('#Add').click(function () {
+
+            $('#pBody').parsley().destroy();
+
+            $('#FeedBackSettingList option[value=""]').attr("selected", "selected");
+            $('#FeedBackRoleList option[value=""]').attr("selected", "selected");
+            //$('#cbIsAttended').attr('checked', false);
+            $('.selectpicker').selectpicker('refresh');
+        });
+
+
+
+
+    
+</script>
+
+
+
+

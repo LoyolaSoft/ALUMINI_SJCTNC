@@ -1,0 +1,522 @@
+﻿@model CMS.ViewModel.ViewModel.AcademicsViewModel
+
+@{
+    ViewBag.Title = "ListCIAGroupComponent";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<div class="content" id="content">
+
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">ListCIAGroupComponent</li>
+    </ol>
+    <h1 class="page-header">List CIAGroup Component</h1>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List CIAGroup Component</h4>
+        </div>
+        <div class="panel-body">
+            <div class="col-md-12">
+                <a class="btn btn-success pull-right form-group m-b-5" href="#CourseTypeGroup" data-toggle="modal" id="btnAdd"><i class="fa fa-plus" title="Add"> Add</i></a>
+            </div>
+            <br />
+            @{ int count = 0;}
+            <div class="table-responsive col-md-12">
+                <table class="table table-hover table-bordered" id="tblCourses">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Course Type</th>
+                            <th>Internal</th>
+                            <th>CA Group</th>
+                            <th>Group Mark</th>
+                            <th>Component</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.LiCourseTypeGroup != null && Model.LiCourseTypeGroup.Count > 0)
+                        {
+                            foreach (var item in Model.LiCourseTypeGroup)
+                            {
+                                <tr>
+                                    <td>@{ count++;}@count</td>
+                                    <td>@item.COURSE_TYPE</td>
+                                    <td>@item.INTERNAL</td>
+                                    <td>@item.CA_GROUP</td>
+                                    <td>@item.GROUP_MARK</td>
+                                    <td>@item.COMPONENT</td>
+
+                                    <td>
+                                       
+                                        <a href="javascrip:;" onclick="GetConfirm(@item.CIA_GROUP_COMPONENT_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+
+                                    </td>
+
+                                </tr>
+                                            }
+                                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="CourseTypeGroup">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">CIAGroup Component </h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true"  id="pBody">
+                <div class="form-horizontal">
+
+                    <div class="form-group">
+                        <label class="col-md-3">Course Type</label>
+                        <div class="col-md-9">
+                            <select class="selectpicker show-menu-arrow show-tick drop-down form-control input-sm" id="ddlCourseType" data-live-search="true">
+
+                                @if (Model.liCourseType != null && Model.liCourseType.Count > 0)
+                                {
+                                    <option value=""> -- Select -- </option>
+                                    foreach (var item in Model.liCourseType)
+                                    {
+                                        <option value="@item.COURSE_TYPE_ID" cms-component="@item.NO_OF_COMPONENTS"> @item.COURSE_TYPE</option>
+                                    }
+                                }
+                            </select>
+                            @*@Html.DropDownListFor(model => model.CourseType, (Model.CourseType != null) ? Model.CourseType : Enumerable.Empty<SelectListItem>(), "-- Select -- ", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true" })*@
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-12">Group Component</label>
+                        <div class="col-md-12">
+                            @*@Html.DropDownListFor(model => model.GroupComponent, (Model.GroupComponent != null) ? Model.GroupComponent : Enumerable.Empty<SelectListItem>(), null, new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @data_actions_box = "true", multiple = "multiple" })*@
+                        
+                        
+                            <table class="table table-bordered  table-hover" id="tblComponent">
+                            
+                            </table>
+
+
+                        </div>
+                    </div>
+
+                    @*<div class="form-group">
+                        <label class="control-label col-md-3">Group Mark</label>
+                        <div class="col-md-9">
+                            @Html.EditorFor(model => model.ObjCourseTypeGroup.GROUP_MARK, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Enter Group Mark", type = "number" } })
+                        </div>
+                    </div>*@
+
+                    <div class="form-group">
+                        <label class="col-md-12">Order</label>
+                        <div class="col-md-12">
+                            @Html.EditorFor(model => model.ObjCourseTypeGroup.ORDER_ID, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Enter Order", type = "number" ,id="OrderId", @data_parsley_required="true" } })
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" id="btnSubmitGroupTypeGroup" class="btn btn-default" data-dismiss="modal">Submit</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+    $('#tblCourses').DataTable();
+    function ContentLoad() {
+        // Document Ready Function .
+    }
+    $('.selectpicker').selectpicker({
+        size: 5
+    });
+
+    $('.selectpicker').selectpicker('refresh');
+
+
+    //get cia group componet
+    var sCiaGroupComponent = "";
+    var sIndex = 1;
+    var sCiagroupObject = {
+        scaGroup: "",
+        scaGroupId: ""
+    };
+
+
+
+
+    function ConstrtuctCiaGroup(group,groupId,e)
+    {
+       
+        if(group!="" && group!=null)
+        {
+            sCiagroupObject.scaGroup = group;
+        }
+        if (groupId != "" && groupId != null) {
+            sCiagroupObject.scaGroupId = groupId;
+        }
+        
+        addCourseTypeGroupForCiaGroupcomponentAdd(sCiagroupObject, $(e).closest("tr").attr("cms-row"));
+
+    }
+
+
+    // Fetch Course Type Group For Edit ...
+    function GetCourseTypeGroup(Id) {
+        if (Id != null && Id != '') {
+            $.ajax({
+                url: '@Url.Action("FetchCourseTypeGroupById", "Academics")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sCourseTypeGroupId: Id },
+                success: function (data) {
+                    if (data.Message != null && data.Message != '') {
+                        alert(data.Message);
+                    } else {
+                        $('#ddlCourseType').val();
+                    }
+                }, error: function (error) {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+    }
+
+    // When Course Type Change ....
+    $('#ddlCourseType').on('change', function () {
+        if ($('#ddlCourseType').val()) {
+            // var sDoubleQuot = '"';
+            var Limit = $('#ddlCourseType Option:selected').attr('cms-component');
+            $.ajax({
+                url: '@Url.Action("FetchCourseTypeGroupDDLandCiaComponent", "Academics")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sCourseTypeId: $('#ddlCourseType').val() },
+                success: function (data) {
+                    if (data.Message != null && data.Message != '') {
+                        alert(data.Message);
+                    } else {
+                       
+                        $('#tblComponent').empty();
+                        var result = "";
+                        var aGroupId = [];
+                        if (data.oResult != null)
+                        {
+                           
+                            result = "<tbody>";
+                            $.each(data.oResult, function (id, info) {
+                                if (info.CIA_GROUP_COMPONENT_ID != null && info.CIA_GROUP_COMPONENT_ID != '')
+                                {
+
+                                    if (aGroupId.indexOf(info.GROUP_ID) != -1) {
+
+                                        result += "<tr cms-ca-group-id='" + info.CIA_GROUP_COMPONENT_ID + "' id='" + sIndex + "' cms-row='" + sIndex + "'>" +
+                                  "<td><input type='text' value='" + info.CA_GROUP + "' class='form-control' id='" + info.GROUP_ID + "' data-parsley-required='true'></td>" +
+                                  "<td>" + data.sResult + "</td>" +
+                                  "<td><input type='number' name='max-mark' class='form-control' placeholder='Ente maximum mark' value='" + info.MAX_MARK + "' data-parsley-required='true'></input></td>" +
+                                "<td><input type='number' name='min-mark' class='form-control' placeholder='Enter minimum mark' value='" + info.MIN_MARK + "' data-parsley-required='true'></input></td>" +
+                                "<td></td>" +
+                              "</tr>";
+                                        
+                                    } else {
+                                      
+                                        result += "<tr cms-ca-group-id='" + info.CIA_GROUP_COMPONENT_ID + "' id='" + sIndex + "' cms-row='" + sIndex + "'>" +
+                                  "<td><input type='text' value='" + info.CA_GROUP + "' class='form-control' id='" + info.GROUP_ID + "' data-parsley-required='true'></td>" +
+                                  "<td>" + data.sResult + "</td>" +
+                                  "<td><input type='number' name='max-mark' class='form-control' placeholder='Ente maximum mark' value='" + info.MAX_MARK + "' data-parsley-required='true'></input></td>" +
+                                "<td><input type='number' name='min-mark' class='form-control' placeholder='Enter minimum mark' value='" + info.MIN_MARK + "' data-parsley-required='true'></input></td>" +
+                                "<td><a class='btn btn-primary btn-icon btn-circle btn-lg' href='javascript:;' onclick=ConstrtuctCiaGroup('" + info.CA_GROUP + "','" + info.GROUP_ID + "',this) ><i class='fa fa-plus'></i></a></td>" +
+                              "</tr>";
+
+                                    }
+
+
+                                   
+                                    aGroupId.push(info.GROUP_ID);
+
+                                }
+                                else
+                                {
+                                    if (aGroupId.indexOf(info.GROUP_ID) != -1) {
+
+                                        result += "<tr cms-ca-group-id='" + info.CIA_GROUP_COMPONENT_ID + "' id='" + sIndex + "' cms-row='" + sIndex + "'>" +
+                               "<td><input type='text' value='" + info.CA_GROUP + "' class='form-control' id='" + info.GROUP_ID + "' data-parsley-required='true'></td>" +
+                               "<td>" + data.sResult + "</td>" +
+                               "<td><input type='number' name='max-mark' class='form-control' placeholder='Ente maximum mark' value='" + info.MAX_MARK + "' data-parsley-required='true'></input></td>" +
+                             "<td><input type='number' name='min-mark' class='form-control' placeholder='Enter minimum mark' value='" + info.MIN_MARK + "' data-parsley-required='true'></input></td>" +
+                              "<td></td>"+
+                           "</tr>";
+                                    }
+                                    else
+                                    {
+                                        result += "<tr cms-ca-group-id='" + info.CIA_GROUP_COMPONENT_ID + "' id='" + sIndex + "' cms-row='" + sIndex + "'>" +
+                               "<td><input type='text' value='" + info.CA_GROUP + "' class='form-control' id='" + info.GROUP_ID + "' data-parsley-required='true'></td>" +
+                               "<td>" + data.sResult + "</td>" +
+                               "<td><input type='number' name='max-mark' class='form-control' placeholder='Ente maximum mark' value='" + info.MAX_MARK + "' data-parsley-required='true'></input></td>" +
+                             "<td><input type='number' name='min-mark' class='form-control' placeholder='Enter minimum mark' value='" + info.MIN_MARK + "' data-parsley-required='true'></input></td>" +
+                              "<td><a class='btn btn-primary btn-icon btn-circle btn-lg' href='javascript:;' onclick=ConstrtuctCiaGroup('" + info.CA_GROUP + "','" + info.GROUP_ID + "',this)><i class='fa fa-plus'></i></a></td>" +
+                           "</tr>";
+                                    }
+
+
+
+                                   
+
+                                    aGroupId.push(info.GROUP_ID);
+
+                                }
+
+
+                               
+                                sIndex = parseInt(sIndex) + 1;
+                            });
+                            result += "</tbody>";
+
+                            $('#OrderId').val(data.oResult[0].ORDER_ID);
+                            $('#tblComponent').append(result);
+
+                            var rIndex = 0;
+                            $.each(data.oResult, function (id, info) {
+
+                                if (info.SUP_CIA_COMPONENT_ID != null && info.SUP_CIA_COMPONENT_ID != "")
+                                {
+                                    $("#tblComponent tbody tr:eq(" + rIndex + ")").find('select[name="ciacomponent"] option[value=' + info.SUP_CIA_COMPONENT_ID + ']').prop("selected", true);
+
+                                }
+                                rIndex = parseInt(rIndex)+1;
+                            });
+                        }
+                        sCiaGroupComponent = data.sResult;
+                       
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                }, error: function (error) {
+                    // alert('Internal Server Error !');
+                    swal({ title: "Info !", text: "Internal Server Error", showConfirmButton: false, timer: 5000, type: 'info', animation: true });
+
+                }
+            });
+            //  $('#GroupComponent').selectpicker({ limit: $('#ddlCourseType Option:selected').attr('cms-component') });
+            // $('#GroupComponent').selectpicker('refresh');
+        }
+
+    });
+
+    // On Delete .....
+    @*function GetConfrim(Id) {
+        if (Id != null && Id != '') {
+            $.ajax({
+                url: '@Url.Action("","Academics")',
+                method: 'POST',
+                datatype: 'json',
+                data: {},
+                success: function (data) {
+                    if (data.Message != null && data.Message != '') {
+                        //alert(data.Message);
+                        swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 5000, type: 'info', animation: true });
+                    }
+
+                }, error: function (error) {
+                   // alert('Internal Server Error !');
+                    swal({ title: "Info !", text: "Internal Server Error", showConfirmButton: false, timer: 5000, type: 'info', animation: true });
+                }
+            });
+        }
+    }*@
+
+
+    // On Submit ....
+    $('#btnSubmitGroupTypeGroup').on('click', function () {
+        var isValid = true;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            //gritter-info,danger,success,warning,default
+            //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+            return false;
+        }
+
+
+
+        var JsonData = '[';
+        $("#tblComponent tbody tr").each(function () {
+
+                var group_id = $(this).find('input[type="text"]').attr('id');
+
+                var cia_group_component_id = $(this).attr('cms-ca-group-id');
+
+                var max_mark = $(this).find('input[name="max-mark"]').val();
+
+                var min_mark = $(this).find('input[name="min-mark"]').val();
+
+                var supComponent = $(this).find('select[name="ciacomponent"]').val();
+
+                JsonData += '{"CIA_GROUP_COMPONENT_ID":"' + cia_group_component_id + '",\
+                                "CIA_GROUP_ID":"' + group_id + '",\
+                                "SUP_CIA_COMPONENT_ID":"' + supComponent + '",\
+                               "MAX_MARK":"' + max_mark + '",\
+                               "MIN_MARK":"' + min_mark + '",\
+                               "ORDER_ID":"'+ $('#OrderId').val() + '"},';
+           
+        });
+        JsonData = JsonData.slice(0, -1);
+        JsonData += ']';
+        
+
+            $.ajax({
+                url: '@Url.Action("SaveCIAGroupComponent", "Academics")',
+                type: "post",
+                data: { sJsonData: JsonData },
+                success: function (data) {
+                 //   alert(data.Message)
+
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 5000, type: 'success', animation: true });
+                    loadContent('/Academics/ListCIAGroupComponent');
+                },
+                error:function()
+                {
+                    //alert("Internal Server Error");
+                    swal({ title: "Info !", text: "Internal Server Error", showConfirmButton: false, timer: 5000, type: 'info', animation: true });
+                }
+                
+                
+            });
+        
+    });
+
+
+    GetConfirm = function (ciaGroupComponentId) {
+        swal({
+            title: "Are you sure?",
+            text: "Your will not be able to recover this file!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+      function () {
+          var req = $.ajax({
+              url: "/Academics/DeletedCIAGroupComponentById",
+              type: "post",
+              data: { sGroupComponentId: ciaGroupComponentId },
+              success: function (data) {
+                  if(data.Message!="" && data.Message!=null)
+                  {
+                      swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                      loadContent('/Academics/ListCIAGroupComponent');
+                  }
+                  else
+                  {
+                      swal({ title: "Info !", text: "Something went wrong please try again!", showConfirmButton: false, timer: 1800, type: 'info', animation: true });
+                  }
+                  
+
+
+              },
+              error: function (ex) {
+                  alert(ex.Message);
+              }
+
+
+          });
+      });
+    }
+    
+    $('#btnAdd').click(function () {
+         sIndex = 1;
+        $('#tblComponent').empty();
+        $('#OrderId').val('');
+        $('#ddlCourseType option[value=""]').prop("selected", true);
+        $('.selectpicker').selectpicker('refresh');
+        $('#ddlCourseType').trigger("change");
+
+    });
+
+</script>
+
+<script>
+
+    function addCourseTypeGroupForCiaGroupcomponentAdd(objGroup,sRowIndex)
+    {
+        indexArrange(sRowIndex);
+
+        sIndex = parseInt(sRowIndex) + 1;
+        var sHtml = "<tr cms-ca-group-id='' id='" + sIndex + "' cms-row='" + sIndex + "'>" +
+                               "<td><input type='text' value='" + objGroup.scaGroup + "' class='form-control' id='" + objGroup.scaGroupId + "' data-parsley-required='true'></td>" +
+                               "<td>" + sCiaGroupComponent + "</td>" +
+                               "<td><input type='number' name='max-mark' class='form-control' placeholder='Ente maximum mark' value='' data-parsley-required='true'></input></td>" +
+                             "<td><input type='number' name='min-mark' class='form-control' placeholder='Enter minimum mark' value='' data-parsley-required='true'></input></td>" +
+                               "<td><a class='btn btn-danger btn-icon btn-circle btn-lg' href='javascript:;' onclick=ComponentCancel(this)><i class='fa fa-times'></i></a></td>" +
+                           "</tr>"; 
+        $('#tblComponent > tbody > tr:nth-child(' + sRowIndex + ')').after(sHtml);
+        $('.selectpicker').selectpicker('refresh');
+    }
+
+    function ComponentCancel(e) {
+        var rowId = $(e).closest("tr").attr("id");
+        var row = document.getElementById(rowId);
+        row.parentNode.removeChild(row);
+        indexArrangeDecrease(rowId);
+
+    }
+
+
+
+    function indexArrange(rowIndex)
+    {
+        $("#tblComponent tbody tr").each(function () {
+
+            if($(this).attr("cms-row")>parseInt(rowIndex))
+            {
+                var sVal=$(this).attr("cms-row");
+                $(this).attr("cms-row", parseInt(sVal) + 1);
+                $(this).attr("id", parseInt(sVal) + 1);
+            }
+
+        });
+
+    }
+    function indexArrangeDecrease(rowIndex) {
+        $("#tblComponent tbody tr").each(function () {
+
+            if ($(this).attr("cms-row") > parseInt(rowIndex)) {
+                var sVal = $(this).attr("cms-row");
+                $(this).attr("cms-row", parseInt(sVal) - 1);
+                $(this).attr("id", parseInt(sVal) - 1);
+            }
+
+        });
+
+    }
+
+
+</script>
+

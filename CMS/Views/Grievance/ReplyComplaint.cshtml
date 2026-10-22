@@ -1,0 +1,255 @@
+﻿@model CMS.ViewModel.ViewModel.GrievanceViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "ReplyComplaint";
+     //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+    @*<link href="~/Content/assets/plugins/summernote/summernote.css" rel="stylesheet" />*@
+    <link href="~/Content/assets/css/animate.min.css" rel="stylesheet" />
+
+
+ @Html.Partial("ReplyComplaints")
+
+   
+
+
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+    @*<script src="~/Content/assets/plugins/summernote/summernote.min.js"></script>*@
+    <script>
+
+        ContentLoad = function () {
+            $('.selectpicker').selectpicker({
+                size: 5
+            }); 
+            $('.selectpicker').selectpicker('refresh');
+            //handleSummernote();
+        }
+
+        
+        var formData = new FormData();
+       
+        function AppendFileDom(fileDom, fileName, exactSize, iProgress,files,i) {
+            let r = Math.random().toString(36).substring(i);
+            var filedom = "<tr id=" + r + ">" +
+                            "<td>" +
+                                "<span class='preview'>" + fileDom + "</span>" +
+                            "</td>" +
+                            "<td>" +
+                                "<div>" +
+                                    "<dl>" +
+                                        "<dt class=text-inverse>File Name:</dt>" +
+                                        "<dd class=name>" + fileName + "</dd>" +
+                                        "<dt class=text-inverse>File Size:</dt>" +
+                                        "<dd class=size>" + exactSize + "</dd>" +
+                                    "</dl>" +
+                                "</div>" +
+                                "<strong class='error text-danger'></strong>" +
+                            "</td>" +
+                            "<td>" +
+                                    "<div class=progress rounded-corner m-b-15>" +
+                                        "<div class=progress-bar style='width:" + iProgress + "%;max-width:100;'>" + iProgress + "%</div>" +
+                                    "</div>" +
+                            "</td>" +
+                            "<td nowrap=>" +
+
+                                    "<button class='btn btn-default cancel width-100 p-r-20' onclick=FileCancel('" + r + "')>" +
+                                    "<i class='fa fa-trash fa-fw pull-left m-t-2 m-r-5 text-muted'></i>" +
+                                        "<span>Cancel</span>" +
+                                    "</button>" +
+
+                            "</td>" +
+                        "</tr>";
+            formData.append(r, files[i]);
+            return filedom;
+
+        }
+
+
+        function readmultifiles() {
+            var totalFiles = document.getElementById('fAttachment').files.length;
+            if (totalFiles > 0) {
+                $('#trEmpty').empty();
+            }
+            var files = document.getElementById('fAttachment').files;
+          
+            // Read first file
+            setup_reader(files, 0);
+        }
+
+        function setup_reader(files, i) {
+            var file = files[i];
+            var name = file.name;
+            var reader = new FileReader();
+            reader.onloadend = function (e) {
+
+                readerLoaded(e, files, i, name);
+            };
+            reader.readAsBinaryString(file);
+            // After reading, read the next file.
+        }
+
+        function readerLoaded(e, files, i, name) {
+            var Dom = $('.files');
+            var _size = files[i].size;
+            var extension = GetFileExtension(files, i);
+            var size = GetFileSize(files, i);
+            var iProgress = GetProgressRate(_size);
+
+
+
+            if (size != null && size != '') {
+                var actualFileDom;
+                if (extension != null && extension != '') {
+                    if (extension == 'jpg' || extension == 'png') {
+                        actualFileDom = "<img src=" + window.URL.createObjectURL(files[i]) + " width=77 height=80></img>";
+                    }
+                    else {
+                        actualFileDom = "<span style='color:green;'>" + name + "</span> ";
+                    }
+                    var filedom = AppendFileDom(actualFileDom, name, size, iProgress, files, i);
+                    Dom.append(filedom);
+                    //     formData.append(files[i].name, files[i]);
+                }
+               
+            }
+           
+            // get file content  
+            var bin = e.target.result;
+            // do sth with text
+
+
+            // If there's a file left to load
+            if (i < files.length - 1) {
+                // Load the next file
+                setup_reader(files, i + 1);
+
+            }
+        }
+
+
+
+
+
+        function GetFileExtension(files, i) {
+            
+            // Get uploaded file extension  
+            var extension = files[i].name.split('.').pop().toLowerCase();
+            var validFileExtensions = ['doc', 'docx', 'pdf', 'jpg', 'png', 'txt', 'xlsx'];
+            if ($.inArray(extension, validFileExtensions) == -1) {
+                alert("Sorry!! Upload only 'doc', 'docx', 'pdf','jpf','png','txt','xlsx' file")
+                //$(this).replaceWith($(this).val('').clone(true));
+                return extension=null;
+               
+            } else {
+                return extension;
+            }
+            
+                
+        }
+
+        function GetFileSize(files, i)
+        {
+            var _size = files[i].size;
+            var fileSize = _size;
+            
+            var fSExt = new Array('Bytes', 'KB', 'MB', 'GB'),
+            i = 0; while (_size > 900) { _size /= 1024; i++; }
+            var exactSize = (Math.round(_size * 100) / 100) + ' ' + fSExt[i];
+            if (fileSize > 128000) {
+                alert("Sorry!! Max allowed file size is 128 kb");
+                // Clear fileuload control selected file  
+              //  $(this).replaceWith($(this).val('').clone(true));
+                return exactSize = null;
+
+            }
+            else {
+                return exactSize;
+            }
+            
+        }
+
+        function GetProgressRate(size) {
+            
+            var dataTotal = 0;
+            // sum up files lengths
+            dataTotal = dataTotal + size;
+            var iProgress = parseInt((dataTotal / 1000)*100/128);
+            return iProgress;
+        }
+
+        $('#btnPost').on("click", function () {
+            var isValid = true;
+            if ($('#Pbody').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //gritter-info,danger,success,warning,default
+                //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+         
+            var GrievanceId = $('#txtGrievanceId').val();
+            var UserId = $('#txtId').val();
+            var GrievanceType = $('#GrievanceTypeId').attr('value');
+            //var GrievanceTitle = $('#txtGrievanceTitle').val();
+            var GrievanceSubject = $('#txtGrievanceSubject').val();
+          //  var GrievanceContent = $($("#txtGrievanceReplyContent").summernote("code")).text();
+            //for Summer Note 
+            var SummerNote = $('#txtGrievanceReplyContent').summernote('code');
+            var str = btoa(SummerNote);
+            var JsonData = '{"GRIEVANCE_ID":"'+ GrievanceId +'",\
+                             "USER_ID":"' + UserId + '",\
+                            "GRIEVANCE_TYPE_ID":"' + GrievanceType + '",\
+                            "GRIEVANCE_SUBJECT":"' + GrievanceSubject + '",\
+                            "GRIEVANCE_CONTENT":"' + str + '"}';
+
+
+            formData.append("sJsonData", JsonData);
+
+            $.ajax({
+                url: "/Grievance/ReplyComplaints",
+                type: "post",
+                data: formData,
+                contentType: false,
+                processData: false,
+                datatype: "json",
+                success: function (result) {
+                    alert(result.Message)
+                    loadContent('/Grievance/ViewPostedComplaints');
+                },
+                error: function (ex) {
+                    alert(ex.statusText)
+                }
+            });
+
+
+            $('.selectpicker').selectpicker('refresh');
+            $('#Pbody').parsley().reset();
+
+        });
+
+        $('#btnCancel').on("click", function () {
+            $('.selectpicker').selectpicker('refresh');
+            $('#Pbody').parsley().reset();
+        });
+        $('#btnCancelPage').on("click", function () {
+
+            loadContent('/Grievance/ViewPostedComplaints');
+        });
+
+        function FileCancel(rowId) {
+
+            var row = document.getElementById(rowId);
+            formData.delete(rowId);
+            row.parentNode.removeChild(row);
+
+        }
+    </script>

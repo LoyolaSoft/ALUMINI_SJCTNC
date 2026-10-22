@@ -1,0 +1,186 @@
+﻿@model CMS.ViewModel.ViewModel.LMSViewModel
+@{
+    ViewBag.Title = "ListAssignmentclassgroupInfo";
+    Layout = null;
+}
+
+
+<div class="col-md-12 form-horizontal">
+
+    <!-- Class -->
+    <div class="col-md-4 form-group">
+        <label class="col-md-3 control-label">Class</label>
+        <div class="col-md-9">
+            @Html.DropDownListFor(m => m.CLASSLIST, (Model.CLASSLIST != null) ? Model.CLASSLIST : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true", @id = "classlist2" })
+            @Html.ValidationMessageFor(m => m.CLASSLIST, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <!-- Course -->
+    <div class="col-md-4 form-group">
+        <label class="col-md-3 control-label">Course</label>
+        <div class="col-md-9">
+            @Html.DropDownListFor(m => m.COURSELIST, (Model.COURSELIST != null) ? Model.COURSELIST : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true", @id = "courselist2" })
+            @Html.ValidationMessageFor(m => m.COURSELIST, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="col-md-4 form-group">
+        <label class="col-md-3 control-label">Assigment Setting</label>
+        <div class="col-md-9">
+            @Html.DropDownListFor(m => m.SETTING, (Model.SETTING != null) ? Model.SETTING : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true" , @id = "setting2" })
+            @Html.ValidationMessageFor(m => m.SETTING, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+
+
+    <div class="" id="binddivinfo">
+    </div>
+
+
+</div>
+<div class="modal" id="AssignmentSettinggroup">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title"> Edit  Group</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12" id="dvValidate" data-parsley-validate="true">
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Setting Name</label>
+                                    <div class="col-md-9">
+                                        <input type="text" id="txtassigmnetname" class="form-control" placeholder="Enter Setting Name" data-parsley-required="true" disabled>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="lmsgroupid" />
+                                <!-- Class -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Class</label>
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(m => m.CLASSLIST, (Model.CLASSLIST != null) ? Model.CLASSLIST : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true", @id = "groupclass", disabled = "disabled" })
+                                        @Html.ValidationMessageFor(m => m.CLASSLIST, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <!-- Course -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Course</label>
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(m => m.COURSELIST, (Model.COURSELIST != null) ? Model.COURSELIST : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true", @id = "groupcourse", disabled = "disabled" })
+                                        @Html.ValidationMessageFor(m => m.COURSELIST, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-12 form-group " >
+                                    <label class="control-label col-md-3">Group Name</label>
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(m => m.CLASS_GROUP, (Model.CLASS_GROUP != null) ? Model.CLASS_GROUP : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true", @id = "assigngroupid" })
+                                        @Html.ValidationMessageFor(m => m.CLASS_GROUP, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Assignment Info</label>
+                                    <div class="col-md-9">
+                                        <input type="text" id="assigninfo" class="form-control" placeholder="Enter Setting Name" data-parsley-required="true" disabled>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmitgroup" data-dismiss="modal" class="btn btn-sm btn-primary">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $('#classlist2').on('change', function ()
+        {
+            $.ajax({
+                url: '@Url.Action("FetchCourseByClassidlms", "LMS")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sClassid: $('#classlist2').val()},
+                success: function (data)
+                {
+                    $('#courselist2').empty();
+                    if (data.Message != null && data.Message != '')
+                    {
+                        alert(data.Message);
+                    } else
+                    {
+                        $('#courselist2').append('<option value="0" >---select---</option>'+data.sResult);
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+    });
+    $('#courselist2').on('change', function ()
+       {
+           $.ajax({
+               url: '@Url.Action("Fetchassignmentsettingid", "LMS")',
+               method: 'POST',
+               datatype: 'json',
+               data: { sClassid: $('#classlist2').val(), sCourseid: $('#courselist2').val() },
+               success: function (data)
+               {
+                   $('#setting2').empty();
+                   if (data.Message != null && data.Message != '')
+                   {
+                       alert(data.Message);
+                   } else
+                   {
+                       $('#setting2').append('<option value="0" >---select---</option>'+data.sResult);
+                       $('.selectpicker').selectpicker('refresh');
+                   }
+               }, error: function (error)
+               {
+                   alert('Internal Server Error !');
+               }
+           });
+    });
+    $(document).ready(function () {
+        $('#isgroup').change(function () {
+            if ($(this).is(':checked')) {
+                $('#classGroupDiv').removeClass('hidden');
+            } else {
+                $('#classGroupDiv').addClass('hidden');
+            }
+        });
+    });
+
+    $('#setting2').on('change', function () {
+        Getstudentlist2();
+    });
+    function Getstudentlist2() {
+
+            $.ajax({
+                url: '@Url.Action("BindstudentlistyClassgroupinfo", "LMS")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sClassid: $('#classlist2').val(), settingid: $('#setting2').val(), sCourseid: $('#courselist2').val() },
+                success: function (data)
+                {
+                    $('#binddivinfo').empty();
+                    $('#binddivinfo').append(data);
+
+                }, error: function (error)
+                {
+                    alert('Internal Server Error data null!');
+                }
+            });
+    };
+  
+</script>

@@ -1,0 +1,300 @@
+﻿@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+@{
+    ViewBag.Title = "ListBulkFeeCollection";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="content" id="content">
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li class="active">List Bulk Fee Collection</li>
+        </ol>
+        <h2 class="page-header"> Bulk Fee Collection</h2>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Add Academic Year</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    <div class="col-md-12">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        <div class="col-md-12">
+                            <div class="form-group col-md-5">
+                                @Html.LabelFor(model => model.liSupFeeFrequency, "Frequency", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-7">
+                                    @Html.DropDownListFor(model => model.liSupFeeFrequency, (Model.liSupFeeFrequency != null) ? Model.liSupFeeFrequency : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "drop-down form-control  input-sm" })
+                                    @Html.ValidationMessageFor(model => model.liSupFeeFrequency, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-5">
+                                @Html.LabelFor(model => model.liClassList, "Class", htmlAttributes: new { @class = "control-label col-md-5" })
+                                <div class="col-md-7">
+                                    @Html.DropDownListFor(model => model.liClassList, (Model.liClassList != null) ? Model.liClassList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick form-control  input-sm", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(model => model.liClassList, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-2 pull-right">
+                                <a href="javascript:;" id="sPrint" onclick="printDiv('divFeeReceipt')" class="btn btn-sm btn-success m-b-10 pull-right hidden"><i class="fa fa-print m-r-5"></i> Print</a>
+                            </div>
+                            <div class="col-md-2 pull-right">
+                                <a href="javascript:;" id="Print" onclick="printDiv('divIndividualFeeReceipt')" class="btn btn-sm btn-success m-b-10 pull-right hidden"><i class="fa fa-print m-r-5"></i> Print</a>
+                            </div>
+                        </div>
+                        <div class="col-lg-12 m-b-5 table-responsive">
+                            <div id="divBulkFeeCollection">
+                                <!--Need to use this fied to bind Student List-->
+                            </div>
+                        </div>
+                        <div class="col-lg-12 m-b-5">
+                            <div id="divFeeReceipt">
+                                <!--Need to use this fied to bind Student List-->
+                            </div>
+                        </div>
+                        <div class="col-lg-12 m-b-5">
+                            <div id="divIndividualFeeReceipt">
+                                <!--Need to use this fied to bind Student List-->
+                            </div>
+                        </div>
+                        <div class="form-group pull-right ">
+                            <div class="col-md-12">
+                                <a id="btnSubmit" value="SUBMIT" class="btn btn-primary hidden">Collect</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+
+
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+
+    <script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+            var FrequencyId = $('#liSupFeeFrequency').val();
+            var ClassId = $('#liClassList').val();
+            if (FrequencyId != 0 && ClassId != 0) {
+                loadStudents(FrequencyId, ClassId);
+            }
+        }
+       
+
+        $('#BulkFeeCollectionList').DataTable();
+
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        $('.selectpicker').selectpicker('refresh');
+        $('#liClassList').on('change', function () {
+            var FrequencyId = $('#liSupFeeFrequency').val();
+            var ClassId = $('#liClassList').val();
+            if (FrequencyId != 0 && ClassId != 0) {
+                loadStudents(FrequencyId, ClassId);
+            }
+            else {
+                alert('Please Select Frequency Type And Class...!!!');
+            }
+        });
+
+        function loadStudents(FrequencyId, ClassId) {
+
+            $.ajax({
+                url: '@Url.Action("BindBulkFeeCollectionDetails", "Fee")',
+                data: { sFrequencyId: FrequencyId, sClassId: ClassId },
+                success: function (option) {
+                    var dvBulkFeeCollection = $('#divBulkFeeCollection');
+                    dvBulkFeeCollection.empty();
+                    dvBulkFeeCollection.append(option);
+                    $('#btnSubmit').removeClass('hidden');
+                    $("#BulkFeeCollectionList").DataTable({ "bPaginate": false, "ordering": false });
+                    $("#BulkFeeCollectionList_filter").addClass("dataTables_filter pull-right");
+                    $(".pagination").addClass("pagination pull-right");
+                    $('#sPrint').addClass('hidden');
+                    $('#Print').addClass('hidden');
+                    $('#divIndividualFeeReceipt').addClass('hidden');
+                    $('#divBulkFeeCollection').removeClass('hidden');
+                    $('#divIndividualFeeReceipt').addClass('hidden');
+                    $('#divFeeReceipt').addClass('hidden');
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+        }
+        
+    </script>
+    <script>
+        SelectOrUnselect = function () {
+
+            if (AllchkID.checked == true) {
+                $('#BulkFeeCollectionList tbody tr').each(function () {
+                    $(this).find('input[type="checkbox"]').each(function () {
+                        $('input[type="checkbox"]').attr("checked", true);
+                    });
+                });
+            }
+            else {
+                $('#BulkFeeCollectionList tbody tr').each(function () {
+                    $(this).find('input[type="checkbox"]').each(function () {
+                        $('input[type="checkbox"]').attr("checked", false);
+                    });
+                });
+            }
+        }
+    </script>
+    <script>
+        $('#btnSubmit').on('click', function () {
+            var JsonData;
+            var StudentId;
+            $('#divFeeReceipt').removeClass('hidden');
+            var Search = $('input[type="search"]').val();
+            var FrequencyId = $('#liSupFeeFrequency').val();
+            $('#BulkFeeCollectionList tbody tr').each(function () {
+                $(this).find('td').each(function () {
+                    var chkBox = $(this).find('input[type="checkbox"]');
+                    if (chkBox.is(':checked')) {
+                        StudentId = '"' + $(this).find('input[type="checkbox"]').attr("cms-studentid") + '"';
+                    }
+                });
+            });
+            if (StudentId == null) {
+                alert('Please select the student...!!!');
+                return false;
+            }
+            if (FrequencyId != 0) {
+                if (Search == '') {
+                    JsonData = '{"FeeTransactionList":[';
+                    $('#BulkFeeCollectionList tbody tr').each(function () {
+                        $(this).find('td').each(function () {
+                            var chkBox = $(this).find('input[type="checkbox"]');
+                            if (chkBox.is(':checked')) {
+                                JsonData += '{"FREQUENCY":"' + FrequencyId + '",';
+                                JsonData += '"' + "STUDENT_ID" + '":"' + $(this).find('input[type="checkbox"]').attr("cms-studentid") + '","COLLECTED":"' + $(this).find('input[type="checkbox"]').attr("cms-balance") + '"},';
+                            }
+                        });
+                    });
+                    JsonData = JsonData.slice(0, -1);
+                    JsonData +=
+                    ']}';
+                    $.ajax({
+                        url: "@Url.Action("SaveBulkFeeCollection", "Fee")",
+                        method: "POST",
+                        data: { sStudentId: JsonData },
+                        datatype: "json",
+                        success: function (objResult) {
+                            if (objResult.sResult != null) {
+                                GenerateBulkFeeReceipt(objResult.sResult);
+                                $('#sPrint').removeClass('hidden');
+                            }
+                            else
+                                alert('No Values Found...!!!');
+                        }, error: function (xhr, textStatus, error) {
+                            alert(error + "\n" + textStatus + error);
+                        }
+                    });
+                }
+                else {
+                    alert('Please Clear the Search Box...!!!');
+                }
+            } else {
+                alert('Please Select the Frequency...!!!');
+            }
+        });
+    </script>
+    <script>
+        function GenerateBulkFeeReceipt(TransactionId) {
+            $('#divIndividualFeeReceipt').removeClass('hidden');
+            var JsonData;
+            var i = 0;
+            var FrequencyId = $('#liSupFeeFrequency').val();
+            var sArray = TransactionId.split(",");
+            JsonData = '{"FeeTransactionList":[';
+            $('#BulkFeeCollectionList tbody tr').each(function () {
+                $(this).find('td').each(function () {
+                    var chkBox = $(this).find('input[type="checkbox"]');
+                    if (chkBox.is(':checked')) {
+                        JsonData += '{"FREQUENCY":"' + FrequencyId + '",';
+                        JsonData += '"STUDENT_ID":"' + $(this).find('input[type="checkbox"]').attr("cms-studentid") + '","TRANSACTION_ID":"' + sArray[i] + '"},';
+                        i = i + 1;
+                    }
+                });
+            });
+            JsonData = JsonData.slice(0, -1);
+            JsonData +=
+            ']}';
+            $.ajax({
+                url: "@Url.Action("GenerateBulkFeeReceipt", "Fee")",
+                method: "POST",
+                data: { sStudentId: JsonData },
+                datatype: "json",
+                success: function (objResult) {
+                    var dvFeeReceipt = $('#divFeeReceipt');
+                    dvFeeReceipt.empty();
+                    dvFeeReceipt.append(objResult);
+                    $('#divBulkFeeCollection').addClass('hidden');
+                    $('#sPrint').removeClass('hidden');
+                    $('#btnSubmit').addClass('hidden');
+                }, error: function (xhr, textStatus, error) {
+                    alert(error + "\n" + textStatus + error);
+                }
+            });
+        }
+
+        function GenerateReceipt(StudentId) {
+            var FrequencyId = $('#liSupFeeFrequency').val();
+            $('#divIndividualFeeReceipt').removeClass('hidden');
+            $.ajax({
+                url: "@Url.Action("GenerateIndividualFeeReceipt", "Fee")",
+                method: "POST",
+                data: { sFrequencyId: FrequencyId, sStudentId: StudentId },
+                datatype: "json",
+                success: function (objResult) {
+                    var dvIndividualFeeReceipt = $('#divIndividualFeeReceipt');
+                    dvIndividualFeeReceipt.empty();
+                    dvIndividualFeeReceipt.append(objResult);
+                    $('#divBulkFeeCollection').addClass('hidden');
+                    $('#Print').removeClass('hidden');
+                    $('#sPrint').addClass('hidden');
+                    $('#btnSubmit').addClass('hidden');
+                }, error: function (xhr, textStatus, error) {
+                    alert(error + "\n" + textStatus + error);
+                }
+            });
+        }
+
+        function printDiv(divName) {
+            var FrequencyId = $('#liSupFeeFrequency').val();
+            var ClassId = $('#liClassList').val();
+            var printContents = document.getElementById(divName).innerHTML;
+            var originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+        }
+    </script>
+
+

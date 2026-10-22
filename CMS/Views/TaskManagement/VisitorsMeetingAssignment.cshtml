@@ -1,0 +1,423 @@
+﻿@model CMS.ViewModel.ViewModel.TaskManagementViewModel
+@{
+    ViewBag.Title = "VisitorsMeetingAssignment";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/css/jquery.jqGauges.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/morris/morris.css" rel="stylesheet" />
+<link href="~/Content/assets/css/timepicki.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="#" onclick="loadContent('@Url.Action("ADMIN","DashBoard")')"></a></li>
+
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <!-- end page-header -->
+    <!-- begin panel -->
+    <div class="panel panel-default panel-with-tabs" data-sortable-id="ui-unlimited-tabs-2">
+        <div class="panel-heading p-0">
+            <div class="panel-heading-btn m-r-10 m-t-10">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-inverse" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+            </div>
+            <!-- begin nav-tabs -->
+            <div class="tab-overflow" data-parsley-validate="true" name="form-wizard">
+                <ul class="nav nav-tabs">
+                    @*<li class="prev-button"><a href="javascript:;" data-click="prev-tab" aria-controls="first" class="text-inverse"><i class="fa fa-arrow-left"></i></a></li>*@
+
+                    <li class="nav-item active" id="bookedlist"><a href="#nav-tab1-1" class="nav-link active" data-toggle="tab">Visitors Meeting Assign</a></li>
+                    <li class="" id=""><a href="#nav-tab1-2" data-toggle="tab">Visitors Meeting Appointed</a></li>
+
+                </ul>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="tab-content">
+                <div class="tab-pane fade active in" id="nav-tab1-1" data-parsley-validate="true">
+                    <div class="form-group col-md-12">
+                        <a class="btn btn-success pull-right form-group m-b-5" href="#visitorsmeetingassign" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add">Add</i></a>
+                    </div>
+                    <div class="col-md-12" id="hallreserved">
+
+                        <table class="table table-hover table-bordered" id="tblvisitorassign">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Visitors Name</th>
+                                    <th>Mobile</th>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Purpose</th>
+                                    <th>Is Required Appoinment</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @if (Model.livisitorsmeetingassignment != null && Model.livisitorsmeetingassignment.Count > 0)
+                                {
+                                    var count = 0;
+                                    foreach (var item in Model.livisitorsmeetingassignment)
+                                    {
+                                        count = count + 1;
+
+                                        <tr>
+                                            <td>@count</td>
+                                            <td>@item.VISITORS_NAME</td>
+                                            <td>@item.MOBILE</td>
+                                            <td>@item.VISIT_DATE</td>
+                                            <td>@item.VISITORS_CATEGORY_NAME</td>
+                                            <td>@item.PURPOSE</td>
+                                            <td>
+                                                @if (@item.IS_REQUIRED_APPOINMENT == "1")
+                                                {
+                                                    <i class="fa fa-check text-success" title="Required"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fa fa-close text-danger" title="Not Required"></i>
+                                                }
+                                            </td>
+                                            @if (@item.STATUS != "")
+                                            {
+                                                <td>
+                                                    <a href="#visitorsmeetingassign" onclick="FetchVisitorsMeetingAssignment(@item.VISITORS_MEET_ID)" data-toggle="modal" class="btn btn-primary text-primary"><i style="color:white" class="glyphicon glyphicon-edit" title="EDIT"></i></a>
+                                                    <a href="javascrip:;" onclick="GetConfirm(@item.VISITORS_MEET_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td><label class="label label-success">Viewed</label></td>
+                                            }
+
+
+                                        </tr>
+                                    }
+
+                                }
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-tab1-2" data-parsley-validate="true">
+                    <table class="table table-hover table-bordered" id="tblvisitorsappoinment">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Visitors Name</th>
+                                <th>Mobile No</th>
+                                <th>Appointment Date&Time</th>
+                                <th>Reply</th>
+                                <th>Status</th>                                                              
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            @if (Model.livisitorsmeetingappointment != null && Model.livisitorsmeetingappointment.Count > 0)
+                            {
+                                var count = 0;
+                                foreach (var item in Model.livisitorsmeetingappointment)
+                                {
+                                    count = count + 1;
+
+                                    <tr>
+                                        <td>@count</td>
+                                        <td>@item.VISITORS_NAME</td>
+                                        <td>@item.MOBILE</td>
+                                        <td>@item.APPOINTMENT_DATE & @item.APPOINTMENT_TIME</td>
+                                        <td>@item.REPLY</td>
+                                        <td>@item.STATUS_NAME</td>
+                                       
+
+
+                                    </tr>
+                                }
+
+                            }
+                        </tbody>
+                    </table>
+
+
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- end panel -->
+</div>
+<div class="modal" id="visitorsmeetingassign">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                   
+                                    <input type="text" id="visitorsmeetid" class="hidden">
+                                  
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Visitor Name</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="visitorname" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Mobile No</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="mobileno" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Visit Date</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="visitdate" class="form-control" data-parsley-required="true" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        @Html.Label("Visit Category", htmlAttributes: new { @class = "control-label col-md-4" })
+                                        <div class="col-md-7">
+                                            @Html.DropDownListFor(model => model.VisitorsCategory, (Model.VisitorsCategory != null) ? Model.VisitorsCategory : Enumerable.Empty<SelectListItem>(), new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @multiple = "multiple", @data_selected_text_format = "count", @data_action_box = "true" })
+                                            @Html.ValidationMessageFor(model => model.VisitorsCategory, "", new { @class = "text-danger" })
+
+                                          
+                                        </div>
+                                        <div class="col-md-1">
+                                           <a href="#visitorscategory" data-toggle="modal"><i class="glyphicon glyphicon-plus-sign"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        @Html.Label("Staff", htmlAttributes: new { @class = "control-label col-md-4" })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(model => model.StaffList, (Model.StaffList != null) ? Model.StaffList : Enumerable.Empty<SelectListItem>(), new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @multiple = "multiple", @data_selected_text_format = "count", @data_action_box = "true" })
+                                            @Html.ValidationMessageFor(model => model.StaffList, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                 
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Purpose</label>
+                                        <div class="col-md-8">
+                                            <textarea id="purpose" style="height:100px" class="form-control" data-parsley-required="true"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Is Required Appoinment</label>
+                                        <div class="col-md-8">
+                                            <div class="checkbox">
+                                                <input type="checkbox" id="cssCheckbox1" value="1" checked="">
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal" id="visitorscategory">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Visitors Category</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="col-md-12 form-group">
+                    <label class="col-md-4 control-label">Visitor Category</label>
+                    <div class="col-md-8">
+                        <input type="text" id="visitorcategory" class="form-control" data-parsley-required="true" />
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnsave" class="btn btn-sm btn-primary" data-dismiss="modal">Save</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script src="~/Content/assets/plugins/morris/raphael.min.js"></script>
+<script src="~/Content/assets/plugins/morris/morris.js"></script>
+<script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap.min.js"></script>
+<script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap-world-merc-en.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="~/Content/assets/js/timepicki.js"></script>
+
+<script>
+    $('.selectpicker').selectpicker({});
+    $("#visitdate").datepicker({
+        todayHighlight: true,
+        autoclose: true,
+        startDate: new Date(),
+        //endDate: new Date(),
+        format: "dd/mm/yyyy",
+        orientation: "right bottom"
+    });
+   
+    $('#tblvisitorsappoinment').DataTable({});
+    $('#tblvisitorassign').DataTable({});
+
+    function FetchVisitorsMeetingAssignment(ID)
+    {
+        if (ID != null) {
+            $.ajax({
+                url: "@Url.Action("FetchVisitorMeetingAssign", "TaskManagement")",
+                type: "post",
+                data: { sVisitormeetId: ID },
+                success: function (data) {
+                    if (data != null)
+                    {
+                        $('#visitorsmeetid').val(data.VISITORS_MEET_ID);
+                        $('#visitorname').attr('value', data.VISITORS_NAME);
+                        $('#mobileno').val(data.MOBILE);
+                        $('#visitdate').attr('value', data.VISIT_DATE);
+                        $('#VisitorsCategory').attr('value', data.VISITORS_CATEGORY);
+                        $('#purpose').val(data.PURPOSE);
+                        $('#StaffList').val(data.STAFF_ID);
+                        if (data.IS_REQUIRED_APPOINMENT == "1")
+                        {
+                            $("#cssCheckbox1").prop("checked", true);
+                        }
+                        else
+                        {
+                            $("#cssCheckbox1").prop("checked", false);
+                        }
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                },
+                error: function (ex)
+                {
+                    alert(ex.Message);
+                }
+            });
+        }
+    }
+    $('#btnSubmit').click(function () {
+       
+        var isValid = true;
+        var JsonData = null;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            return false;
+        }
+            var isrequired = 0;     
+            if ($('input[type="checkbox"]').is(":checked"))
+            {
+                isrequired = 1;
+            }
+           
+       
+        JsonData = '{"VISITORS_MEET_ID":"' + $('#visitorsmeetid').val() + '","VISITORS_NAME":"' + $('#visitorname').val() + '","MOBILE":"' + $('#mobileno').val() + '","VISIT_DATE":"' + $('#visitdate').val() + '","VISITORS_CATEGORY":"' + $('#VisitorsCategory').val() + '","PURPOSE":"' + $('#purpose').val() + '","STAFF_ID":"' + $('#StaffList').val() + '","IS_REQUIRED_APPOINMENT":"' + isrequired + '"}';
+        var req = $.ajax({
+            url: "@Url.Action("SaveorUpdateVisitorsMeetingAssign", "TaskManagement")",
+            type: "post",
+            data: { sJsonData: JsonData },
+            success: function (data)
+            {              
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/TaskManagement/VisitorsMeetingAssignment');
+            },
+            error: function (ex) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+
+    });
+    $('#btnsave').on('click', function ()
+    {      
+        var visitorcategory = $('#visitorcategory').val();
+        $.ajax({
+            url: "@Url.Action("SaveVisitorCategory", "TaskManagement")",
+            type: "post",
+            data: { sVisitorcategory: visitorcategory },
+            success: function (data)
+            {
+                $('#VisitorsCategory').empty();
+                $('#VisitorsCategory').append(data);
+                $('.selectpicker').selectpicker('refresh');
+            },
+            error: function (ex) {
+                alert(ex.Message);
+            }
+        });
+    });
+
+    GetConfirm = function (ID)
+    {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+
+function ()
+{
+    $.ajax({
+        url: "@Url.Action("", "TaskManagement")",
+        type: "post",
+    data: { sHallId: ID },
+    success: function (data)
+    {
+        if (data.Message != null && data.Message != "")
+        {
+            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+            loadContent('/TaskManagement/VisitorsMeetingAssignment');
+        }
+    },
+    error: function (ex)
+    {
+        swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+    }
+
+
+});
+    });
+
+    }
+</script>
+
+

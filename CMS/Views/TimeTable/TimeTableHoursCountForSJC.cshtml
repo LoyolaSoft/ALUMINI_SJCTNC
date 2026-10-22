@@ -1,0 +1,129 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+@{
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">TimeTable</a></li>
+        <li class="active">TT Total Report </li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">TimeTable Report<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">TimeTable Total Report  </h4>
+        </div>
+        <div class="panel-body table-responsive">
+            <div class="col-md-12 form-group pull-right"> <a href="javascript:;" onclick="Export()" class="btn btn-success pull-right" title="Click To "> Export</a></div>
+            <div id="dvIQACBind">
+                @{
+                    if (Model.Listaff != null && Model.Listaff.Count > 0)
+                    {
+
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Staff Code</th>
+                                    <th>Name</th>
+                                    <th>Department</th>
+                                    <th>Day </th>
+                                    <th>Eve </th>
+                                    <th>Total </th>
+                                    <th>Claimable Hours</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    int count = 0; string sShiftCount = string.Empty;
+                                    if (Model.lstTimeTable != null && Model.lstTimeTable.Count > 0)
+                                    {
+                                        foreach (var item in Model.Listaff)
+                                        {
+
+                                            <tr>
+                                                <td>@{count++;}@count</td>
+                                                <td>@item.STAFF_CODE</td>
+                                                <td>@item.FIRST_NAME</td>
+                                                <td>@item.DEPARTMENT</td>
+                                                <td>
+                                                    @{  var lishift1 = Model.lstTimeTable.Where(x => x.Staff_Id == item.STAFF_ID && x.SHIFT == "1").ToList();
+                                                        if (lishift1 != null && lishift1.Count > 0)
+                                                        {
+                                                            sShiftCount = lishift1.FirstOrDefault().Count;
+                                                        }
+                                                        else
+                                                        {
+                                                            sShiftCount = "0";
+                                                        }
+                                                    }@sShiftCount
+                                                </td>
+                                                <td>
+                                                    @{
+                                                        var lishift2 = Model.lstTimeTable.Where(x => x.Staff_Id == item.STAFF_ID && x.SHIFT == "2").ToList();
+                                                        if (lishift2 != null && lishift2.Count > 0)
+                                                        {
+                                                            sShiftCount = lishift2.FirstOrDefault().Count;
+                                                        }
+                                                        else
+                                                        {
+                                                            sShiftCount = "0";
+                                                        }
+                                                    }@sShiftCount
+                                                </td>
+                                                <td>@{double litotal = Model.lstTimeTable.Where(x => x.Staff_Id == item.STAFF_ID).Sum(x => Convert.ToDouble(x.Count));} @litotal</td>
+                                                <td>@{var liclaimhour = litotal - 18;}@liclaimhour</td>
+
+
+                                            </tr>
+
+                                                        }
+                                                    }
+                                }
+                            </tbody>
+                        </table>
+                                                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+    function ContentLoad()
+    {
+       // alert("Test");
+        $('.table').DataTable({ "bPaginate": false });
+    }
+
+    function Export() {
+        let file = new Blob([$('#dvIQACBind').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: "TimeTableHoursCount" + ".xls"
+        }).appendTo("body").get(0).click();
+        //e.preventDefault();
+        loadContent('/Examination/TimeTable_totalhoursforsjc');
+    }
+</script>

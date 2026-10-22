@@ -1,0 +1,500 @@
+﻿@model CMS.ViewModel.ViewModel.NMEViewModel
+
+@{
+    ViewBag.Title = "NMERegisteredStudentList";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+
+
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    {@Html.AntiForgeryToken()
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+
+        <li class="active">Student NME Registered List </li>
+    </ol>
+    <h2 class="page-header"> Student NME Registered List  </h2>
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Student NME Registered List </h4>
+        </div>
+        <div class="panel-body">
+            <div class="form-group col-md-12 pull-right">
+                <div class="form-group col-md-1 pull-right">
+                    <a class="btn btn-success" onclick="PushNMERegisteredStudent()"><i class="fa fa-plus" title="Push"> Push</i></a>
+                </div>
+                <div class="form-group col-md-1 pull-right">
+                    <a class="btn btn-success" data-toggle="modal" href="#NMEModal-dialog"><i class="fa fa-plus" title="Add"> Add</i></a>
+                </div>
+
+            </div>
+            @{int count = 0;}
+            <div class="form-group col-md-12 table-responsive">
+                <table class="table table-bordered table-hover" id="tblNMERegistration">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Roll No</th>
+                            <th>Student Name</th>
+                            <th>Class</th>
+                            <th>Course Title</th>
+                            <th>Selected Class</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    @if (Model.lstNMERegisteredStudent != null)
+                    {
+                        foreach (var item in Model.lstNMERegisteredStudent)
+                        {
+                            <tr>
+                                <td>
+                                    @{ count++;}@count
+                                </td>
+                                <td>@item.ROLL_NO</td>
+                                <td>@item.FIRST_NAME</td>
+                                <td>@item.CLASS_CODE</td>
+                                <td>@item.COURSE_CODE</td>
+                                <td>@item.SELECTED_CLASS</td>
+                                @if (string.IsNullOrEmpty(item.REGISTRATION_ID))
+                                {
+                                    <td>NOT REGISTERD</td>
+                                }
+                                else
+                                {
+                                    <td>
+                                        @*<a href="#editModal" title="Click to Add Class Wise Courses" data-dismiss="modal"><i class="fa fa-pencil-square-o text-primary" title="Edit"></i></a>*@
+                                        <a href="#EditModal-dialog" onclick="EditNMERegisteredStudent(@item.REGISTRATION_ID)" data-toggle="modal"><i class="fa fa-edit text-primary" title="Edit"></i></a>
+                                        <a @*href="@Url.Action("DeleteNMERegisteredStudent","NME",new { id=@item.REGISTRATION_ID})"*@ href="javascript:;" onclick="GetConfrim(@item.REGISTRATION_ID);"><i class="fa fa-trash text-danger" title="Delete"></i></a>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+}
+</div>
+
+
+<div class="modal" id="EditModal-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Edit NME Registered Student</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Roll No</label>
+                        <div class="col-md-9">
+                            <input id="txtRollNo" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Student Name</label>
+                        <div class="col-md-9">
+                            <input id="txtStudentName" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Class</label>
+                        <div class="col-md-9">
+                            <input id="txtClassCode" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Course</label>
+                        <div class="col-md-9">
+                            <select id="ddlCourse" onchange="GetNMEClassCourseByCoursId();" class="selectpicker form-control input-sm ">
+                                <option value="0">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Alloted Seats</label>
+                        <div class="col-md-9">
+                            <input id="txtAllotedSeats" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Sum Of Quota</label>
+                        <div class="col-md-9">
+                            <input id="txtQuota" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="sbtnSubmit" value="SUBMIT" class="btn btn-primary" data-dismiss="modal">Submit</a>
+                <a id="btnCancel" value="Submit" class="btn btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal" id="NMEModal-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add NME Registered Student</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Class</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(modal => modal.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), " -- Select --", new { @class = "selectpicker form-control input-sm", @data_live_search = "true" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Student</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(modal => modal.StudentList, (Model.StudentList != null) ? Model.StudentList : Enumerable.Empty<SelectListItem>(), null, new { @class = "selectpicker form-control input-sm", @data_live_search = "true", multiple = "multiple", @data_actions_box = "true" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Course</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(modal => modal.NMECourseList, (Model.NMECourseList != null) ? Model.NMECourseList : Enumerable.Empty<SelectListItem>(), " -- Select --", new { @class = "selectpicker form-control input-sm", @data_live_search = "true" })
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="btnSubmit" class="btn btn-primary" data-dismiss="modal">Submit</a>
+                <a id="btnCancel" class="btn btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Filed -->
+<input id="txtClassId" class="form-control input-sm hidden" type="text" disabled="disabled" />
+<input id="txtStudentId" class="form-control input-sm hidden" type="text" disabled="disabled" />
+<input id="txtCourseId" class="form-control input-sm hidden" type="text" disabled="disabled" />
+<input id="txtRegistrationId" class="form-control input-sm hidden" type="text" disabled="disabled" />
+<!-- Hidden Filed -->
+
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+
+<script>
+    function ContentLoad()
+    {
+        // Document Ready Function .
+    }
+    $('#tblNMERegistration').DataTable({
+        dom: "lBfrtip", buttons: [{ extend: "copy", className: "btn-sm" },
+        { extend: "csv", className: "btn-sm" },
+        { extend: "excel", className: "btn-sm" },
+        { extend: "pdf", className: "btn-sm" },
+        { extend: "print", className: "btn-sm" }
+        ]
+    });
+    $('.selectpicker').selectpicker({
+        size: 5
+    });
+    $('.selectpicker').selectpicker('refresh');
+
+    // Class List Change ...
+    $('#ClassList').on('change', function () {
+        $.ajax({
+            url: '@Url.Action("GetStudentAndNMECourseList", "NME")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sClassId: $('#ClassList').val() },
+            success: function (data) {
+                $('#StudentList').empty();
+                $('#NMECourseList').empty();
+                if (data.Message != null && data.Message != '') {
+                    alert(data.Message);
+                } else {
+                    $('#StudentList').append(data.sResult);
+                    $('#NMECourseList').append(data.ErrorCode);
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+    });
+
+
+    // Save Class List ...
+    $('#btnSubmit').on('click', function () {
+        var sStudentIds = String($('#StudentList').val());
+        if ($('#NMECourseList').val() && sStudentIds != 0 && $('#ClassList').val()) {
+            $.ajax({
+                url: '@Url.Action("SaveNMERegistration", "NME")',
+                method: 'POST',
+                datatype: 'json',
+                data: {
+                    sClassId: $('#ClassList').val(),
+                    sCourseId: $('#NMECourseList').val(),
+                    sStudentId: sStudentIds,
+                    sSelectedClassId: $('#NMECourseList Option:selected').attr('cms-sClassId'),
+                    sSemesterId: $('#NMECourseList Option:selected').attr('cms-Semster'),
+                    sSettingId: $('#NMECourseList Option:selected').attr('cms-SettingsId')
+                },
+                success: function (data) {
+                    alert(data.Message);
+                }, error: function (error) {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+    });
+
+    $(function () {
+        $('#NMEModal-dialog').on('hidden.bs.modal', function (e) {
+            $('#ClassList').val(0);
+            $('#StudentList').empty();
+            $('#NMECourseList').empty();
+            $('.selectpicker').selectpicker('refresh');
+        });
+    });
+</script>
+<script>
+    $('#sbtnSubmit').on('click', function () {
+        if (parseInt($('#NMECourseList').val()) != 0)
+        {
+            if (Validate()) {
+                alert('No More Allotment For This Course');
+                return false;
+            }
+        }
+        var RegistrationId = $("#txtRegistrationId").val();
+        var StudentId = $("#txtStudentId").val();
+        var ClassId = $("#txtClassId").val();
+        var CourseId = $("#ddlCourse").val();
+        var JsonData;
+        if (JsonData == null)
+        {
+            JsonData = '{"REGISTRATION_ID":"' + RegistrationId + '","STUDENT_ID":"' + StudentId + '","CLASS_ID":"' + ClassId + '","COURSE_ID":"' + CourseId + '"}';
+        }
+        $.ajax({
+            url: "@Url.Action("UpdateNMERegisteredStudent", "NME")",
+            method: "POST",
+            datatype: "html",
+            data: { NMERegisteredStudent: JsonData },
+            success: function (data)
+            {
+                alert(data);
+
+                loadContent("/NME/NMERegisteredStudentList");
+            }, error: function (error) {
+                alert('Internal Server Error ..!');
+            }
+        });
+    });
+</script>
+<script>
+    $('#ShiftList').on('change', function () {
+        var ShiftId = $('#ShiftList').val();
+        if (ShiftId != 0) {
+            $.ajax({
+                url: '@Url.Action("GetClassIdByShiftId", "NME")',
+                data: { sShiftId: ShiftId },
+                success: function (option) {
+                    $('#ClassList').empty().append(option).select2();
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+
+        } else {
+            alert('Please Select Shift !!!');
+        }
+    });
+</script>
+<script>
+    //$('#ClassList').on('change', function () {
+    //    loadGird();
+    //});
+    function loadGird() {
+
+        var vClassId = $('#ClassList').val();
+        if (vClassId != 0) {
+            $.ajax({
+                url: '@Url.Action("BindNMERegisteredStudent", "NME")',
+                data: { sClassId: vClassId },
+                success: function (option)
+                {
+                    var dvNMERegisteredStudent = $('#divNMERegisteredStudent');
+                    dvNMERegisteredStudent.empty();
+                    dvNMERegisteredStudent.append(option);
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+
+        } else {
+            alert('Please Select Class !!!');
+        }
+    }
+</script>
+<script>
+    function EditNMERegisteredStudent(e) {
+        $('#hdNMEStudentRegisteredId').val(e);
+        var NMERegiseteredStudent = String(e);
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("FetchNMERegisteredStudentById", "NME")',
+            data: { sNMERegiseteredStudent: NMERegiseteredStudent },
+            dataType: "Json",
+            success: function (data) {
+                $('#ddlCourse').empty();
+                $('#ddlCourse').append('<option value="">-- select --</option>' + data.COURSE_CODE);
+                $('.selectpicker').selectpicker('refresh');
+                $('#txtRegistrationId').val(data.REGISTRATION_ID);
+                $('#txtRollNo').val(data.ROLL_NO);
+                $('#txtStudentName').val(data.FIRST_NAME);
+                $('#txtStudentId').val(data.STUDENT_ID);
+                $('#txtClassCode').val(data.CLASS_CODE);
+                $('#txtQuota').val(data.SUMOFQUTOA);
+                $('#txtCourseId').val(data.COURSE_ID);
+                $('#txtClassId').val(data.CLASS_ID);
+                $('#ddlCourse').val(data.COURSE_ID);
+
+                $('#ddlCourse').append(data.COURSE_ID).trigger('change');
+            },
+            error: function (xhr, textStatus, error) {
+                alert(error + "\n" + textStatus + error);
+            }
+        });
+    }
+</script>
+<script>
+    GetDropDown = function () {
+        var ClassId = $('#ClassList').val();
+
+        $.ajax({
+            url: "@Url.Action("GetNMECourseListByClassId", "NME")",
+            method: "POST",
+            data: { sClassId: ClassId },
+            datatype: "json",
+            success: function (data)
+            {
+                var ddl = JSON.parse(data);
+                $('#ddlCourse').empty();
+                $('#ddlCourse').append('<option value="0">-- select --</option>' + ddl.COURSE_ID);
+
+
+            }, error: function (error) {
+                alert('Internal Server Error ...!');
+            }
+        });
+    }
+</script>
+<script>
+    GetNMEClassCourseByCoursId = function ()
+    {
+        var CourseId = $('#ddlCourse').val();
+        var ClassId = $('#txtClassId').val();
+
+        $.ajax({
+            url: "@Url.Action("GetNMEClassCourseQuotaByCourseId", "NME")",
+            method: "POST",
+            data: { sClassId: ClassId, sCourseId: CourseId },
+            datatype: "json",
+            success: function (data)
+            {
+                $('#txtQuota').val(data.SUMOFQUTOA);
+                $('#txtAllotedSeats').val(data.ALLOTED_SEATS);
+            }, error: function (xhr, textStatus, error) {
+                alert(error + "\n" + textStatus + error);
+            }
+        });
+    }
+</script>
+<script>
+    function Validate() {
+        var validate = 0;
+        if (($('#txtCourseId').val() != ($('#ddlCourse').val()))) {
+            if (($('#txtQuota').val() + 1) > $('#txtAllotedSeats').val()) {
+                validate = 1;
+            }
+        }
+        return validate;
+    }
+</script>
+<script>
+    PushNMERegisteredStudent = function () {
+        $.ajax({
+            url: "@Url.Action("FetchNMERegisteredStudentAndUpdateStuCourseInfo", "NME")",
+            method: "POST",
+            datatype: "json",
+            success: function (data) {
+                alert(data);
+            }, error: function (xhr, textStatus, error) {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+
+
+    function GetConfrim(ID) {
+        if (!confirm('Are you sure to delete ?')) {
+            return false;
+        }
+        $.ajax({
+            url: "@Url.Action("DeleteNMERegisteredStudent", "NME")",
+            method: "POST",
+            datatype: "json",
+            data: { id: ID },
+            success: function (data) {
+                alert(data);
+                loadContent('/NME/NMERegisteredStudentList');
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+</script>
+
+

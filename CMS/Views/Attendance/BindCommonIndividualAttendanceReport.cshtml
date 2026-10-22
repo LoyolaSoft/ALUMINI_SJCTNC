@@ -1,0 +1,102 @@
+﻿
+@{
+    ViewBag.Title = "BindCommonIndividualAttendanceReport";
+}
+
+@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+@{
+    Layout = null;
+    string sExamNotAllowed = string.Empty;
+    string sArrearOnlyAllowed = string.Empty;
+    string sFineAndExamAllowed = string.Empty;
+}
+
+@if (Model.liAttAttendanceReport != null && Model.liAttAttendanceReport.Count > 0)
+{
+    string sMark = string.Empty;
+    int nCount = 0;
+    int totalAbsentCount = 0;
+    int DayCount = 0;
+    var liGroupClass = Model.liAttAttendanceReport.GroupBy(x => x.CLASS_ID).ToList();
+    foreach (var Classitem in liGroupClass)
+    {
+        nCount = 0;
+        var liAttendance = Model.liAttAttendanceReport.Where(x => x.CLASS_ID == Classitem.FirstOrDefault().CLASS_ID).ToList();
+        if (liAttendance != null && liAttendance.Count > 0)
+        {
+            <div class="form-group table-responsive" style="page-break-after:always !important;">
+                <table class="table table-bordered" border="1">
+                    <thead>
+                        <tr>
+                            <th colspan="6" class="text-center">ST.JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS), CUDDALORE</th>
+
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th colspan="3"><b>@Classitem.FirstOrDefault().CLASS_NAME </b> - Attendance Report ( @Classitem.FirstOrDefault().START_DATE - @Classitem.FirstOrDefault().END_DATE )</th>
+
+                        </tr>
+                        <tr>
+                            <th><b>#</b></th>
+                            <th><b>Reg.No</b></th>
+                            <th><b>Name</b></th>
+                            <th><b>Mobile</b></th>
+                            <th><b>Attendance Date</b></th>
+
+                            @*<th>Mark</th>*@
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in liAttendance)
+                        {
+                            totalAbsentCount += Convert.ToInt32(item.ABSENT_COUNT);
+                            DayCount = Convert.ToInt32(item.DAYS_COUNT);
+                            <tr>
+                                <td>@{nCount++;} @nCount</td>
+                                <td>@item.ROLL_NO</td>
+                                <td>@item.FIRST_NAME</td>
+                                <td>@item.MOBILE</td>
+                                <td>@item.ATTENDENCE_DATE</td>
+
+                            </tr>
+                        }
+                        <tr>
+
+                            <td colspan="2"><b>Total</b></td>
+                            <td>  <b>Absent  count</b></td>
+                            <td> <b> Working Days </b></td>
+                            <td> <b>  %</b> </td>
+                        </tr>
+                        <tr>
+                            @{var sAbseentCount = Convert.ToDouble(DayCount) - Convert.ToInt32(totalAbsentCount);
+                                var sPercentage = Convert.ToDouble(sAbseentCount) / Convert.ToDouble(DayCount) * 100;
+                                var PercenRound = Math.Round(sPercentage, 2);
+                            }
+                            <td colspan="2"></td>
+                            <td> <b> @totalAbsentCount  </b></td>
+                            <td> <b> @DayCount  </b></td>
+                            <td> <b> @PercenRound % </b></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+
+
+}
+else
+{
+    <div class="bg-warning text-center">
+        <h4>No Record's Found</h4>
+    </div>
+}
+
+
+
+
+
+
+
+

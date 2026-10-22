@@ -1,0 +1,244 @@
+@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+@{
+    Layout = null;
+    int count = 0;
+    var currentYear = DateTime.Now.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture);
+    var currentMonth = DateTime.Now.ToString("MMMM", System.Globalization.CultureInfo.InvariantCulture);
+
+}
+
+<style>
+    @@page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+
+    .report-container {
+        width: 100%;
+        max-width: 190mm;
+        margin: 0 auto;
+        font-family: Arial, Helvetica, sans-serif;
+        box-sizing: border-box;
+    }
+
+    .mark-table {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-collapse: collapse !important;
+        border: 1px solid #000 !important;
+        table-layout: fixed !important;
+        box-sizing: border-box !important;
+        margin-bottom: 20px;
+    }
+
+    .mark-table th, .mark-table td {
+        border: 1px solid #000 !important;
+        padding: 4px 6px !important;
+        font-size: 10pt !important;
+        box-sizing: border-box !important;
+        vertical-align: middle;
+    }
+
+    .mark-table th:last-child, .mark-table td:last-child {
+        border-right: 1px solid #000 !important;
+    }
+
+    .header-info {
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .college-name {
+        font-size: 13pt;
+        font-weight: bold;
+    }
+
+    .sub-header {
+        font-size: 11pt;
+        font-weight: bold;
+    }
+
+    .list-info {
+        font-size: 10.5pt;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+
+    .exam-info td {
+        border-top: 1px solid #000 !important;
+        border-bottom: 1px solid #000 !important;
+        font-weight: bold;
+        text-align: left;
+        padding: 5px 8px !important;
+    }
+
+    .class-header-row td {
+        background-color: #e0e0e0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        font-weight: bold;
+        text-align: center;
+        padding: 5px 8px !important;
+    }
+
+    .text-left {
+        text-align: left !important;
+    }
+
+    .text-center {
+        text-align: center !important;
+    }
+
+    .footer-row td {
+        font-weight: bold;
+        text-align: left;
+        border-top: 2px solid #000 !important;
+        padding: 5px 6px !important;
+    }
+
+    .empty-cell {
+        min-height: 25px;
+        height: 25px;
+    }
+
+    @@media print {
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            background: #fff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .page-break {
+            page-break-before: always !important;
+            break-before: page !important;
+        }
+
+        .report-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+        }
+
+        .mark-table {
+            width: 100% !important;
+            max-width: 100% !important;
+            border-collapse: collapse !important;
+            table-layout: fixed !important;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+        }
+
+        .mark-table th, .mark-table td {
+            border: 1px solid #000 !important;
+            box-sizing: border-box !important;
+        }
+
+        .mark-table th:last-child, .mark-table td:last-child {
+            border-right: 1px solid #000 !important;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tfoot {
+            display: table-footer-group;
+        }
+
+        tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+    }
+</style>
+
+<div class="report-container">
+    @if (Model != null && Model.liFeeDueReport != null && Model.liFeeDueReport.Count > 0)
+    {
+        var liGroupClass = Model.liFeeDueReport.GroupBy(x => x.CLASS_ID).ToList();
+        for (int idx = 0; idx < liGroupClass.Count; idx++)
+        {
+            var classGroup = liGroupClass[idx];
+            count = 0;
+            var liStudents = classGroup.ToList();
+            var firstStudent = liStudents.FirstOrDefault();
+
+            <div class="@(idx > 0 ? "page-break" : "")" style="@(idx < liGroupClass.Count - 1 ? "page-break-after:always; break-after:page;" : "")">
+                <table class="mark-table">
+                    <thead>
+                        <tr>
+                            <th colspan="5" class="header-info">
+                                <div class="college-name">ST. JOSEPH'S COLLEGE OF ARTS &amp; SCIENCE (AUTONOMOUS)</div>
+                                <div class="sub-header">CUDDALORE - 1</div>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th colspan="5" class="header-info list-info">
+                                @(firstStudent.CLASS_YEAR ?? "I") - YEAR NAME LIST FOR THE YEAR @(firstStudent.ACADEMIC_YEAR ?? "2025-2026")
+                            </th>
+                        </tr>
+                        <tr>
+                            <th colspan="5" class="header-info list-info">
+                                @ViewBag.Semester SEMESTER @ViewBag.CIA CIA MARK LIST @currentMonth-@currentYear
+                            </th>
+                        </tr>
+                        <tr class="exam-info">
+                            <td colspan="3">DATE OF EXAMINATION :</td>
+                            <td colspan="2">SUBJECT CODE:</td>
+                        </tr>
+                        <tr class="exam-info">
+                            <td colspan="3">STAFF NAME :</td>
+                            <td colspan="2">SUBJECT:</td>
+                        </tr>
+                        <tr>
+                            <th style="width: 7%; text-align: center;">S.NO</th>
+                            <th style="width: 15%; text-align: center;">ROLLNO</th>
+                            <th style="width: 42%;" class="text-left">NAME</th>
+                            <th style="width: 16%; text-align: center;">MARKS</th>
+                            <th style="width: 20%; text-align: center;">SIGNATURE</th>
+                        </tr>
+                        <tr class="class-header-row">
+                            <td colspan="5">@firstStudent.CLASS_NAME</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in liStudents)
+                        {
+                            count++;
+                            <tr>
+                                <td class="text-center">@count</td>
+                                <td class="text-center">@item.ROLL_NO</td>
+                                <td class="text-left">@item.FIRST_NAME</td>
+                                <td class="empty-cell"></td>
+                                <td class="empty-cell"></td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="footer-row">
+                            <td colspan="1">TOTAL:</td>
+                            <td colspan="1">ABSENT:</td>
+                            <td colspan="1">PRESENT:</td>
+                            <td colspan="2">SIGNATURE:</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        }
+    }
+    else
+    {
+        <div style="text-align:center; padding: 20px;">
+            <h4>No Data Found</h4>
+        </div>
+    }
+</div>

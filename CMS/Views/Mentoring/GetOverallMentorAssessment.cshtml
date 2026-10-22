@@ -1,0 +1,135 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+}
+
+<input type="hidden" id="hdnAssessmentStudentId" value="@ViewBag.StudentId" />
+
+<h4 class="text-primary mb-3">
+    <i class="fa fa-line-chart"></i> <b>Overall Mentor Assessment (Semester Wise)</b>
+</h4>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped text-center" id="tblOverallAssessment">
+        <thead class="bg-light">
+            <tr>
+                <th>Area</th>
+                <th>Semester I</th>
+                <th>Semester II</th>
+                <th>Semester III</th>
+                <th>Semester IV</th>
+                <th>Semester V</th>
+                <th>Semester VI</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liOverallMentorAssessment != null && Model.liOverallMentorAssessment.Count > 0)
+            {
+                foreach (var item in Model.liOverallMentorAssessment)
+                {
+                    <tr>
+                        <td class="text-left font-weight-bold">
+                            @item.AREA
+                            <input type="hidden" class="assessment-id" value="@item.OVERALL_ASSESSMENT_ID" />
+                        </td>
+
+                        <td>
+                            <textarea class="form-control assess-txt" data-area="@item.AREA" data-sem="1" rows="2">@item.SEM1</textarea>
+                        </td>
+                        <td>
+                            <textarea class="form-control assess-txt" data-area="@item.AREA" data-sem="2" rows="2">@item.SEM2</textarea>
+                        </td>
+                        <td>
+                            <textarea class="form-control assess-txt" data-area="@item.AREA" data-sem="3" rows="2">@item.SEM3</textarea>
+                        </td>
+                        <td>
+                            <textarea class="form-control assess-txt" data-area="@item.AREA" data-sem="4" rows="2">@item.SEM4</textarea>
+                        </td>
+                        <td>
+                            <textarea class="form-control assess-txt" data-area="@item.AREA" data-sem="5" rows="2">@item.SEM5</textarea>
+                        </td>
+                        <td>
+                            <textarea class="form-control assess-txt" data-area="@item.AREA" data-sem="6" rows="2">@item.SEM6</textarea>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-3">
+                        No assessment data available
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-3">
+    <button class="btn btn-success" id="btnSaveOverallAssessment">
+        <i class="fa fa-save"></i> Save Assessment
+    </button>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#btnSaveOverallAssessment').on('click', function () {
+        var rows = {};
+        var assessmentBusy = false;
+
+        if (assessmentBusy) return;
+        assessmentBusy = true;
+
+        $('.assess-txt').each(function () {
+            var area = $(this).data('area');
+            var sem = $(this).data('sem');
+            var assessmentId = $(this).closest('tr').find('.assessment-id').val();
+
+            if (!rows[area]) {
+                rows[area] = {
+                    AREA: area,
+                    OVERALL_ASSESSMENT_ID: assessmentId
+                };
+            }
+
+            rows[area]['SEM' + sem] = $(this).val();
+        });
+
+        var payload = Object.values(rows);
+        var studentId = $('#hdnAssessmentStudentId').val();
+
+        if (!studentId) {
+            swal('Error', 'Student identification failed', 'error');
+            assessmentBusy = false;
+            return;
+        }
+
+        $(this).prop('disabled', true);
+
+        $.ajax({
+            url: '@Url.Action("SaveOverallMentorAssessment", "Mentoring")',
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            data: JSON.stringify({
+                studentId: studentId,
+                data: payload
+            }),
+            success: function (res) {
+                if (res.success !== false) {
+                    swal('Success', 'Overall Mentor Assessment saved successfully', 'success');
+                } else {
+                    swal('Error', res.message || 'Failed to save assessment', 'error');
+                }
+            },
+            error: function () {
+                swal('Error', 'Server error occurred while saving assessment', 'error');
+            },
+            complete: function() {
+                $('#btnSaveOverallAssessment').prop('disabled', false);
+                assessmentBusy = false;
+            }
+        });
+    });
+});
+</script>

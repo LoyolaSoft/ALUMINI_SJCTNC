@@ -1,0 +1,290 @@
+﻿@model IEnumerable<CMS.ViewModel.Model.StaffTraining>
+
+<div id="dvTrainingInfo">
+    <div class="row">
+        <div class="form-group pull-right">
+            <div class="col-md-12 pull-right">
+                <a href="#modal-dialog" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus"></i></a>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="table-responsive">
+            @{int count = 0; }
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Date From</th>
+                        <th>Date To</th>
+                        <th>Programme</th>
+                        <th>Place</th>
+                        <th>Level</th>
+                        <th>Comments</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null)
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @{count++;} @count
+                                </td>
+                                <td>@Html.DisplayFor(modelItem => item.DateFrom)</td>
+                                <td>@Html.DisplayFor(modelItem => item.DateTo)</td>
+                                <td>@Html.DisplayFor(modelItem => item.PROGRAMME)</td>
+                                <td>@Html.DisplayFor(modelItem => item.PLACE)</td>
+                                <td>@Html.DisplayFor(modelItem => item.LEVEL)</td>
+                                <td>@Html.DisplayFor(modelItem => item.COMMENTS)</td>
+                                <td>
+                                    <a href="#modal-dialog" onclick="GetTraining(@item.TraininngId)" data-toggle="modal"><i class="fa fa-edit text-primary"></i></a>
+                                    <a href="javascript:;" onclick="GetConfirm(@item.TraininngId)"><i class="fa fa-trash text-danger"></i></a>
+                                </td>
+                            </tr>
+                         }
+                     }
+                     else
+                     {
+                         <tr>
+                             <td>No Data Found ...!</td>
+                         </tr>
+                     }
+
+                </tbody>
+            </table>
+
+            <script>
+                $(document).ready(function () {
+                    $("#btnEditTraining").hide();
+                    ////FormMultipleUpload.init();
+                    handleDatePicker = function () {
+                        "use strict";
+                        $("#DateFrom,#DateTo").datepicker({
+                            todayHighlight: true,
+                            autoclose: true,
+                            endDate: new Date(),
+                            format: "dd/mm/yyyy",
+                            orientation: "right bottom"
+                            // 'top': top,
+                            // 'left': left
+                        });
+                    }
+                    handleDatePicker();
+                });
+
+                GetTrainingInfo = function ()
+                {
+                    $.ajax({
+                        url: "@Url.Action("StaffTrainingInfo", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        success: function (data) {
+                            $('#dvTrainingInfo').empty();
+                            $('#dvTrainingInfo').append(data);
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+              
+                // Bind Training ..
+                var GetTraining = function (ID) {
+                    $.ajax({
+                        url: "@Url.Action("BindTraining", "Staff")",
+                        method: "POST",
+                        datatype: "json",
+                        data: { sTrainingID: ID },
+                        success: function (data) {
+                            $("#txtProgramme").val(data.PROGRAMME);
+                            $("#txtPlace").val(data.PLACE);
+                            $("#DateFrom").val(data.DateFrom);
+                            $("#DateTo").val(data.DateTo);
+                            $("#txtLevel").val(data.LEVEL);
+                            $("#txtComments").val(data.COMMENTS);
+                            $("#btnEditTraining").show();
+                            $("#btnTraining").hide();
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+
+                // Delete Training ...
+                function GetConfirm(ID)
+                {
+                    if (!confirm('Are you sure to delete ?'))
+                    {
+                        return false;
+                    } else
+                    {
+                        $.ajax({
+                            url:"@Url.Action("DeleteTraining", "Staff")",
+                            method: "POST",
+                            datatype:"json",
+                            data: { sTrainingId: ID },
+                            success:function(data)
+                            {
+                                alert(data);
+                                GetTrainingInfo();
+                            },error:function(error)
+                            {
+                                alert('Internal Server Error ..!');
+                            }
+                        });
+                    }
+                }
+
+
+                //Update Training ...
+                $("#btnEditTraining").on("click", function ()
+                {
+                    var isValid = true;
+                    if ($('#nav-tab1-6').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        //gritter-info,danger,success,warning,default
+                        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    var txtProgramme = $("#txtProgramme").val();
+                    var txtPlace = $("#txtPlace").val();
+                    var DateFrom = $("#DateFrom").val();
+                    var DateTo = $("#DateTo").val();
+                    var txtLevel = $("#txtLevel").val();
+                    var txtComments = $("#txtComments").val();
+                    var JsonData;
+                    if (JsonData == null) {
+                        JsonData = '{"PROGRAMME":"' + txtProgramme + '","PLACE":"' + txtPlace + '","DateFrom":"' + DateFrom + '","DateTo":"' + DateTo + '","LEVEL":"' + txtLevel + '","COMMENTS":"' + txtComments + '"}';
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("UpdateStaffTraining", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        data: { JsonTraining: JsonData },
+                        success: function (data) {
+                            alert(data);
+                            GetTrainingInfo();
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                });
+
+                //Add Training ...
+                $("#btnTraining").on("click", function ()
+                {
+                    var isValid = true;
+                    if ($('#nav-tab1-6').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        //gritter-info,danger,success,warning,default
+                        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    var txtProgramme = $("#txtProgramme").val();
+                    var txtPlace = $("#txtPlace").val();
+                    var DateFrom = $("#DateFrom").val();
+                    var DateTo = $("#DateTo").val();
+                    var txtLevel = $("#txtLevel").val();
+                    var txtComments = $("#txtComments").val();
+                    var JsonData;
+                    if (JsonData == null) {
+                        JsonData = '{"PROGRAMME":"' + txtProgramme + '","PLACE":"' + txtPlace + '","DateFrom":"' + DateFrom + '","DateTo":"' + DateTo + '","LEVEL":"' + txtLevel + '","COMMENTS":"' + txtComments + '"}';
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("Training", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        data: { JsonTraining: JsonData },
+                        success: function (data) {
+                            alert(data);
+                            GetTrainingInfo();
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                });
+            </script>
+        </div>
+    </div>
+
+
+    <!-- Modal-->
+    <div class="modal" id="modal-dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Training Information</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-horizontal row">
+                        <div class="col-md-12">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Programme</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control input-sm" id="txtProgramme" placeholder="Enter Programme Name" data-parsley-required="true" data-parsley-length="[5,100]"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Date From</label>
+                                <div class="col-md-9">
+                                    <div class="input-group date" id="datetimepicker1">
+                                        <input type="text" class="form-control input-sm" id="DateFrom" placeholder="Select Date" data-parsley-required="true"/>
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Date To</label>
+                                <div class="col-md-9">
+                                    <div class="input-group date" id="datetimepicker1">
+                                        <input type="text" class="form-control input-sm" id="DateTo" placeholder="Select Date" data-parsley-required="true"/>
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Level</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control input-sm" id="txtLevel" placeholder="Enter Level" data-parsley-required="true" data-parsley-length="[5,100]"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Comments</label>
+                                <div class="col-md-9">
+                                    <textarea id="txtComments" class="form-control" placeholder="Enter Comments" rows="3" data-parsley-required="true" data-parsley-length="[5,250]"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Place</label>
+                                <div class="col-md-9">
+                                    <textarea id="txtPlace" class="form-control" placeholder="Enter Place" rows="3" data-parsley-required="true" data-parsley-length="[5,100]"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="btnTraining" class="btn btn-sm btn-primary"  data-dismiss="modal">Submit</a>
+                    <a id="btnEditTraining" class="btn btn-sm btn-primary"  data-dismiss="modal">Update</a>
+                    <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Modal-->
+</div>

@@ -1,0 +1,284 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+}
+
+<input type="hidden" id="CONTRIB_STUDENT_ID" value="@ViewBag.StudentId" />
+
+<div class="text-right mb-2">
+    <button class="btn btn-success btn-sm" id="btnOpenAddContribution" data-toggle="modal" data-target="#ContributionModal">
+        <i class="fa fa-plus"></i> Add Contribution
+    </button>
+</div>
+
+<table class="table table-bordered" id="tblContributions">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Place</th>
+            <th>Nature Of Contribution</th>
+            <th>Event</th>
+            <th>Remarks</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.liContributions != null)
+        {
+            for (int i = 0; i < Model.liContributions.Count; i++)
+            {
+                <tr>
+                    <td>@(i + 1)</td>
+                    <td>@Model.liContributions[i].CONTRIBUTION_TYPE_NAME</td>
+                    <td>@Model.liContributions[i].EVENT_DATE</td>
+                    <td>@Model.liContributions[i].PLACE</td>
+                    <td>@Model.liContributions[i].NATURE_OF_CONTRIBUTION</td>
+                    <td>@Model.liContributions[i].EVENT_NAME</td>
+                    <td>@Model.liContributions[i].REMARKS</td>
+                    <td>
+                        <button class="btn btn-warning btn-xs contrib-edit"
+                                data-id="@Model.liContributions[i].CONTRIBUTION_ID">
+                            Edit
+                        </button>
+                        <button class="btn btn-danger btn-xs contrib-delete"
+                                data-id="@Model.liContributions[i].CONTRIBUTION_ID">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<!-- MODAL -->
+<div class="modal fade" id="ContributionModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info text-white">
+                <h5 id="contributionModalTitle">Contribution</h5>
+                <button class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="CONTRIB_ID" />
+
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label>Contribution Type <span class="text-danger">*</span></label>
+                        <select id="CONTRIB_TYPE_ID" class="form-control">
+                            <option value="">-- Select --</option>
+                            @if (Model.ContributionTypeList != null && Model.ContributionTypeList.Count > 0)
+                            {
+                                foreach (var x in Model.ContributionTypeList)
+                                {
+                                    <option value="@x.Value">@x.Text</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 form-group">
+                        <label>Date <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" id="CONTRIB_EVENT_DATE" class="form-control" autocomplete="off" />
+                            <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label>Event Name <span class="text-danger">*</span></label>
+                        <input type="text" id="CONTRIB_EVENT_NAME" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6 form-group">
+                        <label>Place</label>
+                        <input type="text" id="CONTRIB_PLACE" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label>Nature of Contribution</label>
+                        <input type="text" id="CONTRIB_NATURE" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6 form-group">
+                        <label>Remarks</label>
+                        <textarea id="CONTRIB_REMARKS" class="form-control" rows="1"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-success" id="btnSaveContribution">Save</button>
+                <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+
+        // Initialize DataTable
+        if (!$.fn.DataTable.isDataTable('#tblContributions')) {
+            $('#tblContributions').DataTable({
+                "pageLength": 10,
+                "ordering": true,
+                "searching": true
+            });
+        }
+
+        $('#CONTRIB_EVENT_DATE').datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            format: "dd/mm/yyyy",
+            orientation: "bottom"
+        });
+
+        // Open datepicker on icon click
+        $('#CONTRIB_EVENT_DATE').closest('.input-group').find('.input-group-addon').on('click', function(){
+            $('#CONTRIB_EVENT_DATE').focus();
+        });
+
+        // ADD - Clear Form
+        $('#btnOpenAddContribution').off('click').on('click', function () {
+            $('#contributionModalTitle').text('Add Contribution');
+            $('#CONTRIB_ID').val('');
+            $('#ContributionModal input, #ContributionModal select').val('');
+            $('#CONTRIB_EVENT_DATE').datepicker('update', '');
+        });
+
+        // EDIT - Load Data
+        $('#tblContributions').off('click', '.contrib-edit').on('click', '.contrib-edit', function () {
+            var contributionId = $(this).data('id');
+            $('#contributionModalTitle').text('Edit Contribution');
+
+            $.ajax({
+                url: '@Url.Action("GetContributionById", "Mentoring")',
+                type: 'GET',
+                data: { contributionId: contributionId },
+                success: function (res) {
+                    if (res) {
+                        $('#CONTRIB_ID').val(res.CONTRIBUTION_ID);
+                        $('#CONTRIB_TYPE_ID').val(res.CONTRIBUTION_TYPE_ID);
+                        $('#CONTRIB_EVENT_NAME').val(res.EVENT_NAME);
+                        $('#CONTRIB_PLACE').val(res.PLACE);
+                        $('#CONTRIB_NATURE').val(res.NATURE_OF_CONTRIBUTION);
+                        $('#CONTRIB_REMARKS').val(res.REMARKS);
+
+                        // Date conversion
+                        if (res.EVENT_DATE) {
+                            var date = new Date(parseInt(res.EVENT_DATE.substr(6)));
+                            var day = ("0" + date.getDate()).slice(-2);
+                            var month = ("0" + (date.getMonth() + 1)).slice(-2);
+                            var year = date.getFullYear();
+                            //$('#CONTRIB_EVENT_DATE').val(year + "-" + month + "-" + day);
+                            $('#CONTRIB_EVENT_DATE').datepicker('update', date);
+                        }
+
+                        $('#ContributionModal').modal('show');
+                    } else {
+                        swal('Error', 'Unable to load details', 'error');
+                    }
+                },
+                error: function () {
+                    swal('Error', 'Server error', 'error');
+                }
+            });
+        });
+
+        // SAVE / UPDATE
+        $(document).off('click', '#btnSaveContribution').on('click', '#btnSaveContribution', function () {
+            var eDate = $('#CONTRIB_EVENT_DATE').val();
+            if(eDate) eDate = eDate.split("/").reverse().join("-");
+
+            var data = {
+                CONTRIBUTION_ID: $('#CONTRIB_ID').val(),
+                STUDENT_ID: $('#CONTRIB_STUDENT_ID').val(),
+                CONTRIBUTION_TYPE_ID: $('#CONTRIB_TYPE_ID').val(),
+                EVENT_DATE: eDate,
+                EVENT_NAME: $('#CONTRIB_EVENT_NAME').val(),
+                PLACE: $('#CONTRIB_PLACE').val(),
+                NATURE_OF_CONTRIBUTION: $('#CONTRIB_NATURE').val(),
+                REMARKS: $('#CONTRIB_REMARKS').val()
+            };
+
+            if (!data.STUDENT_ID) {
+                swal('Error', 'Student ID is missing. Please reload the page.', 'error');
+                return;
+            }
+
+            if (!data.CONTRIBUTION_TYPE_ID || !data.EVENT_NAME || !data.EVENT_DATE) {
+                swal('Warning', 'Please fill required fields (*)', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("SaveContribution", "Mentoring")',
+                type: 'POST',
+                data: data,
+                success: function (res) {
+                    if (res.success) {
+                        $('#ContributionModal').modal('hide');
+                        $('.modal-backdrop').remove();
+                        $('body').removeClass('modal-open');
+                        swal('Success', res.message || 'Saved successfully', 'success');
+
+                        setTimeout(function() {
+                            if (typeof BindContribution === 'function') {
+                                BindContribution();
+                            } else {
+                                location.reload();
+                            }
+                        }, 500);
+                    } else {
+                        swal('Error', res.message || 'Error occurred', 'error');
+                    }
+                },
+                error: function () {
+                    swal('Error', 'Server Error', 'error');
+                }
+            });
+        });
+
+
+        // DELETE
+        $('#tblContributions').on('click', '.contrib-delete', function () {
+            var contributionId = $(this).data('id');
+
+            swal({
+                title: 'Are you sure?',
+                text: "Delete this contribution record?",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    $.post('@Url.Action("DeleteContribution","Mentoring")', { contributionId: contributionId }, function (res) {
+                        swal('Deleted', 'Contribution removed successfully', 'success');
+                        setTimeout(function () {
+                            if (typeof BindContribution === 'function') {
+                                BindContribution();
+                            } else {
+                                $('#stuContributtons').click();
+                            }
+                        }, 300);
+                    }).fail(function () {
+                        swal('Error', 'Server error', 'error');
+                    });
+                }
+            });
+        });
+
+    });
+</script>

@@ -1,0 +1,576 @@
+﻿
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "ListMatchTheFollowingForAdmin";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    int Count = 0;
+}
+
+@*<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />*@
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<div id="content" class="">
+    <!-- begin breadcrumb -->
+    @*<ol class="breadcrumb pull-right">
+        <li><a href="@Url.Action("Staff","Dashboard")" href="javascript:;">Home</a></li>
+        <li class="active">List Quiz Questions </li>
+    </ol>*@
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    @*<h1 class="page-header"> List Quiz Questions </h1>*@
+    <!-- end page-header -->
+    <!-- begin row -->
+    <div class="row">
+        <!-- begin col-12 -->
+        <div class="col-md-12">
+            <!-- begin panel -->
+            <div class="panel panel-primary">
+                @*<div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h4 class="panel-title"> List Quiz Questions</h4>
+                </div>*@
+                <div class="panel-body">
+                    <div class="form-horizontal">
+                        @*<div class="row">
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Class", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                        @Html.ValidationMessageFor(model => model.CourseList, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-2 form-group">
+                                    <a class="btn btn-primary" id="btnGet"> Get </a>
+                                </div>
+
+                            </div>*@
+                        <div class="form-group col-md-12 pull-right">
+                            <a class="btn btn-success pull-right" href="javascript:;" onclick="" id="btnAdd"><i class="fa fa-plus"> Add </i></a>
+                        </div>
+                        <br />
+                        <br />
+
+                        <input type="hidden" id="hdErrorMessage" value="@if (!string.IsNullOrEmpty(Model.sErrorMessage)) { @Model.sErrorMessage }" />
+                        <div class="form-group col-md-12 table-responsive pull-right">
+                            <table class="table table-bordered table-hover pull-right" id="tblMatchTheFollowing">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Class</th>
+                                        <th>Course</th>
+                                        <th>Question Type</th>
+                                        <th>Question</th>
+                                        <th>Set</th>
+                                        <th>Semester</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        if (Model.liQuizMFQuestions != null && Model.liQuizMFQuestions.Count > 0)
+                                        {
+                                            foreach (var item in Model.liQuizMFQuestions)
+                                            {
+                                                <tr>
+                                                    <td>@{Count++;} @Count</td>
+                                                    <td>@item.CLASS_ID</td>
+                                                    <td>@item.COURSE_ID</td>
+                                                    <td>@item.QUESTION_TYPE</td>
+                                                    <td>@item.QUESTION</td>
+                                                    <td>@item.SET_ID</td>
+                                                    <td>@item.SEMESTER_ID</td>
+                                                    <td>
+                                                        <a href="#MatchTheFollowing-dialog" onclick="FetchMathTheFollowingById('@item.QUIZ_ID','@item.QUESTION','@item.QUESTION_TYPE_ID','@item.MARK')" data-toggle="modal"><i class="fa fa-edit"></i></a>
+                                                        <a href="javasript:;" onclick="GetConfirm('@item.QUIZ_ID','@item.QUESTION_TYPE_ID');"><i class="fa fa-trash text-danger"></i></a>
+                                                    </td>
+                                                </tr>
+                                                            }
+                                                        }
+                                                        if (Model.liListQuiz != null && Model.liListQuiz.Count > 0)
+                                                        {
+                                                            foreach (var item in Model.liListQuiz)
+                                                            {
+                                                                <tr>
+                                                                    <td>@{Count++;} @Count</td>
+                                                                    <td>@item.CLASS_NAME</td>
+                                                                    <td>@item.COURSE_TITLE - @item.COURSE_CODE</td>
+                                                                    <td>@item.QUESTION_TYPE</td>
+                                                                    <td>@item.QUESTION</td>
+                                                                    <td>@item.SET_ID</td>
+                                                                    <td>@item.SEMESTER_NAME</td>
+                                                                    <td>
+                                                                        <a href="#MatchTheFollowing-dialog" onclick="FetchMathTheFollowingById('@item.QUIZ_ID','@item.QUESTION','@item.QUESTION_TYPE_ID','@item.MARK')" data-toggle="modal"><i class="fa fa-edit"></i></a>
+                                                                        <a href="javasript:;" onclick="GetConfirm('@item.QUIZ_ID','@item.QUESTION_TYPE_ID');"><i class="fa fa-trash text-danger"></i></a>
+                                                                    </td>
+                                                                </tr>
+                                                                            }
+                                                                        }
+                                                                        if (Model.liQuizFillInBlanks != null && Model.liQuizFillInBlanks.Count > 0)
+                                                                        {
+                                                                            foreach (var item in Model.liQuizFillInBlanks)
+                                                                            {
+                                                                                <tr>
+                                                                                    <td>@{Count++;} @Count</td>
+                                                                                    <td>@item.CLASS_NAME</td>
+                                                                                    <td>@item.COURSE_TITLE - @item.COURSE_CODE</td>
+                                                                                    <td>@item.QUESTION_TYPE</td>
+                                                                                    <td>@item.QUESTION</td>
+                                                                                    <td>@item.SET_ID</td>
+                                                                                    <td>@item.SEMESTER_NAME</td>
+                                                                                    <td>
+                                                                                        <a href="#MatchTheFollowing-dialog" onclick="FetchMathTheFollowingById('@item.QUIZ_ID','@item.QUESTION','@item.QUESTION_TYPE_ID','@item.MARK')" data-toggle="modal"><i class="fa fa-edit"></i></a>
+                                                                                        <a href="javasript:;" onclick="GetConfirm('@item.QUIZ_ID','@item.QUESTION_TYPE_ID');"><i class="fa fa-trash text-danger"></i></a>
+                                                                                    </td>
+                                                                                </tr>
+                                                                                            }
+                                                                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- end panel -->
+        </div>
+        <!-- end col-6 -->
+    </div>
+    <!-- end row -->
+</div>
+
+
+<!-- Begin Modal -->
+
+<div class="modal" id="MatchTheFollowing-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit Quiz</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="form-group col-md-12">
+
+                                <div class="col-md-8 form-group" id="Question">
+                                    <label class="col-md-2 control-label">Title</label>
+                                    <div class="col-md-10">
+                                        <input type="text" id="TxtTitle" class="form-control" placeholder="Enter Your Title" maxlength="200">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 form-group">
+                                    @*<div class="hidden" id="Mark">*@
+                                    <label class="col-md-3 control-label">Mark</label>
+                                    <div class="col-md-9">
+                                        <input type="number" id="txtMark" class="form-control" placeholder="Enter Your Mark">
+                                    </div>
+                                    @*</div>*@
+
+                                    <div class="col-md-1 form-group">
+                                        <a href="javascript:;" onclick="AddTextBox();" class="btn btn-success"><i class="fa fa-plus"> Add </i></a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 form-group hidden" id="dvMathTheFollowing">
+                                <div class="col-md-6">
+                                    <div id="dvOptions1"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div id="dvOptions2"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 form-group" id="dvOtherType">
+                                <div id="dvOptions3"></div>
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <div class="col-md-10 form-group hidden" id="Answer">
+                                    <label class="col-md-2 control-label">Answer</label>
+                                    <div class="col-md-10">
+                                        <input type="text" id="txtAnswer" class="form-control" placeholder="Enter Your Answer" style="width:140%">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Modal -->
+<!-- Hidden Filed -->
+<input type="text" class="hidden" id="hdQuizId" />
+<input type="text" class="hidden" id="QuizSettingId" value="@Model.SettingId" />
+<!-- Hidden Filed -->
+@*<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>*@
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+    var Count = 0;
+    var sQuestionType = '';
+    function ContentLoad()
+    {
+        // Document Ready Function .
+        $('#tblMatchTheFollowing').DataTable();
+        var liMessage = $('#hdErrorMessage').val();
+        if (liMessage != null && liMessage != '')
+        {
+            alert(liMessage);
+        }
+    }
+
+    function FetchMathTheFollowingById(QUIZ_ID, Question,QuestionTypeId,sMark)
+    {
+        var Option = '';
+        var Option2 = '';
+        sQuestionType = QuestionTypeId;
+        $('#hdQuizId').val(QUIZ_ID);
+        $.ajax({
+            url: "@Url.Action("FetchMatchTheFollowingByQuizId", "Examination")",
+            method: "POST",
+            datatype: "json",
+            data: { sQuizId: QUIZ_ID, sQuestionTypeId: QuestionTypeId },
+            success: function (data) {
+                if (data.sErrorMessage != null && data.sErroeMessage != '')
+                {
+                    alert(data.sErroeMessage);
+                } else
+                {
+                    //$('#Mark').addClass('hidden');
+                    $("#dvOptions1").empty();
+                    $("#dvOptions2").empty();
+                    $("#dvOptions3").empty();
+                    $('#txtMark').val(sMark);
+                    if (QuestionTypeId == "3")
+                    {
+                        $('#dvMathTheFollowing').removeClass('hidden');
+                        $('#dvOtherType').addClass('hidden');
+
+                       // $('#Mark').removeClass('hidden');
+                        // Match The Following ...
+                        $.each(data, function (i, Quiz)
+                        {
+                            //alert(data[i].QUESTION);
+                            var j = i;
+                            j++;
+                            Option += '<div class="form-group" id="Qustion_' + i + '">';
+                            Option += '<label class = "control-label col-md-3">' + j + ' .)</label>';
+                            Option += '<div class="col-md-9">';
+                            Option += '<input type="text" value="' + data[i].QUESTION + '" cms-OptionId="' + Quiz.OPTION_ID + '" id="Qustions' + i + '" class="form-control" placeholder="Enter Your Questions" maxlength="145">';
+                            Option += '</div>';
+                            Option += '</div>';
+                            Option2 += '<div class="form-group" id="Option_' + i + '">';
+                            Option2 += '<div class="col-md-12">';
+                            Option2 += '<input type="text" value="' + data[i].ANSWER + '" id="Option' + i + '" class="form-control" placeholder="Enter Your Options" maxlength="145">';
+                            Option2 += '</div>';
+                            Option2 += '</div>';
+                            Count = i;
+                        });
+                        $("#dvOptions1").append(Option);
+                        $("#dvOptions2").append(Option2);
+                    } else
+                    {
+                        $('#dvMathTheFollowing').addClass('hidden');
+                        $('#dvOtherType').removeClass('hidden');
+                        // Objective Type && Fill In The Blank Quiz ...
+                        $.each(data, function (i, Quiz)
+                        {
+                            if (Quiz.ANSWER != null && Quiz.ANSWER != '')
+                            {
+                                //alert(Quiz.ANSWER);
+                                $('#txtAnswer').val(Quiz.ANSWER);
+                            }
+                            var j = i;
+                            j++;
+                            Option += '<div class="form-group" id="Qustion_' + i + '">';
+                            Option += '<label class ="col-md-2 control-label">' + j + ' .)</label>';
+                            Option += '<div class="col-md-10">';
+                            Option += '<input type="text" value="' + data[i].OPTION + '" cms-OptionId="' + Quiz.OPTION_ID + '" id="Option' + i + '" class="form-control" placeholder="Enter Your Options" maxlength="145">';
+                            Option += '</div>';
+                            Option += '</div>';
+                            //Option2 += '<div class="form-group" id="Option_' + i + '">';
+                            //Option2 += '<div class="col-md-9">';
+                            //Option2 += '<input type="number" value="' + Quiz.MARK + '" id="Mark' + i + '" class="form-control" placeholder="Enter Your Mark">';
+                            //Option2 += '</div>';
+                            //Option2 += '</div>';
+                            Count = i;
+
+                        });
+                        $('#Answer').removeClass('hidden');
+                        $("#dvOptions3").append(Option);
+                    }
+                    $("#TxtTitle").val(Question);
+                }
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+
+    function AddTextBox()
+    {
+        Count++;
+        var i = Count;
+        var j = Count + 1;
+        if (j > 10)
+        {
+            alert('Invalid Option .! Maximum Option is 10 .');
+            Count--;
+            return false;
+        }
+       // alert(sQuestionType);
+
+        if (sQuestionType == "3")
+        {
+            // Bind Match The Following Type Empty Text Box ....
+            var Option = '';
+            Option += '<div class="form-group" id="Qustion_' + i + '">';
+            Option += '<label class = "control-label col-md-3">' + j + ' .)</label>';
+            Option += '<div class="col-md-9">';
+            Option += '<input type="text" value="" id="Qustions' + i + '" cms-OptionId="" class="form-control" placeholder="Enter Your Questions"  maxlength="145">';
+            Option += '</div>';
+            Option += '</div>';
+            $('#dvOptions1').append(Option);
+
+            var Option2 = '';
+            Option2 += '<div class="form-group" id="Option_' + i + '">';
+            Option2 += '<div class="col-md-12">';
+            Option2 += '<input type="text" value="" id="Option' + i + '" class="form-control" placeholder="Enter Your Options"  maxlength="145">';
+            Option2 += '</div>';
+            Option2 += '</div>';
+            $('#dvOptions2').append(Option2);
+        } else
+        {
+            // Bind Objective Type && Fill In The Blank Empty Text Box ...
+            var Option = '';
+            Option += '<div class="form-group" id="Qustion_' + i + '">';
+            Option += '<label class = "control-label col-md-3">' + j + ' .)</label>';
+            Option += '<div class="col-md-12">';
+            Option += '<input type="text" value="" id="Option' + i + '" cms-OptionId="" class="form-control" placeholder="Enter Your Options"  maxlength="145">';
+            Option += '</div>';
+            Option += '</div>';
+            $('#dvOptions3').append(Option);
+
+            //var Option2 = '';
+            //Option2 += '<div class="form-group" id="Option_' + i + '">';
+            //Option2 += '<div class="col-md-9">';
+            //Option2 += '<input type="number" value="" id="Mark' + i + '" class="form-control" placeholder="Enter Your Marks">';
+            //Option2 += '</div>';
+            //Option2 += '</div>';
+            //$('#dvOptions2').append(Option2);
+        }
+    }
+
+
+    $("#btnSubmit").on("click", function ()
+    {
+        // alert('Class :' + $("#ClassList").val() + 'Course :' + $("#CourseList").val() + 'Batch :' + $("#Batch").val());
+
+        var Endvalue = Count;
+        var Question = $("#TxtTitle").val();
+        var QuizId=$('#hdQuizId').val();
+        var ClassId = $("#ClassList").val();
+        var CourseId = $("#CourseList").val();
+        var QuestionId = $("#QuestionId").val();
+        var SetId = $('#Batch').val();
+        var Answer = $('#txtAnswer').val();
+        var ArrayOption = '';
+        var nCount = 0;
+        ArrayOption = '{"liMF_Option":[';
+        for (var i = 0; i <= Endvalue; i++)
+        {
+            if (sQuestionType == "3")
+            {
+                if ($("#Option" + i).val() && $("#Qustions" + i).val())
+                {
+                    ArrayOption += '{"QUESTION":"' + $("#Qustions" + i).val() + '","ANSWER":"' + $("#Option" + i).val() + '","OPTION_ID":"' + $("#Qustions" + i).attr('cms-OptionId') + '"},';
+                    nCount++;
+                } else
+                {
+                    alert('All the Options Must to Fill ..!');
+                    return false;
+                    break;
+                }
+            } else
+            {
+                if ($("#Option" + i).val())
+                {
+                    ArrayOption += '{"OPTION_ID":"' + $("#Option" + i).attr('cms-OptionId') + '","OPTION":"' + $("#Option" + i).val() + '"},';
+                    nCount++;
+                } else
+                {
+                    alert('All the Options Must to Fill ..!');
+                    return false;
+                    break;
+                }
+            }
+
+        }
+        if (nCount != 0)
+        {
+            ArrayOption = ArrayOption.slice(0, -1);
+            ArrayOption += ']}';
+        } else
+        {
+            alert('Something is went wrong . please check your code !');
+            return false;
+        }
+
+        var JsonData;
+        JsonData = '{"QUESTION":"' + Question + '","QUIZ_ID":"' + QuizId + '","QUESTION_TYPE":"' + sQuestionType + '","ANSWER_ID":"' + Answer + '","MARK":"' + $('#txtMark').val() + '"}';
+        if (!$('#txtMark').val() || $('#txtMark').val() == '0')
+        {
+            alert('Please Enter Mark To Continue !');
+            return false;
+        }
+
+        $.ajax({
+            url:"@Url.Action("UpdateMathTheFollowingQuiz", "Examination")",
+            method: "POST",
+            datatype: "json",
+            data: { QuizQuestion: JsonData, sSaveMatchTheFollowing: ArrayOption },
+            success: function (data)
+            {
+                alert(data.Message);
+                loadContent('/Examination/AddQuizForAdmin');
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+    });
+
+
+
+    function GetConfirm(QuizId,QuestionType)
+    {
+        if (!confirm('Are you sure to delete ?'))
+        {
+            return false;
+        }
+        else
+            {
+                $.ajax({
+                    url:"@Url.Action("DeleteMatchTheFollowing", "Examination")",
+                    method: "POST",
+                    datatype:"json",
+                    data: { sQuizId: QuizId, sQuestionType: QuestionType },
+                    success:function(data)
+                    {
+                        alert(data.Message);
+                        loadContent('/Examination/AddQuizForAdmin');
+                    },error:function(error)
+                    {
+                        alert('Internal Server Error ! ');
+                    }
+                });
+            }
+    }
+
+    $('#btnAdd').click(function () {
+
+        var formData = new FormData();
+        formData.append('sSettingId', $('#QuizSettingId').val());
+
+        $.ajax({
+            url: "/Examination/MatchTheFollowingForAdmin",
+            type: "post",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                if (data.Message != null) {
+                    alert(data.Message)
+                }
+                else
+                {
+                    loadContent('/Examination/MatchTheFollowingForAdmin');
+                }
+            },
+            error: function () {
+
+            }
+        });
+
+    });
+    @*$("#btnGet").on("click", function ()
+    {
+        var ClassId = $('#ClassList').val();
+        var CourseId = $('#CourseList').val();
+        if ($('#ClassList').val() && $('#CourseList').val())
+        {
+            $.ajax({
+                url: "@Url.Action("BindMathTheFollowing", "Examination")",
+                method: "POST",
+                datatype: "json",
+                data: { sClassId: ClassId, sCourseId: CourseId },
+                success: function (data)
+                {
+
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        } else
+        {
+            alert('Please Select All The Filed To Continue !');
+            return false;
+        }
+    });
+
+
+    $('.selectpicker').selectpicker({
+        size: 5
+    });
+    $('.selectpicker').selectpicker('refresh');
+    $("#ClassList").on("change", function () {
+        var Class = $("#ClassList").val();
+        $.ajax({
+            url: "@Url.Action("FethCourseByClassId", "Examination")",
+            method: "POST",
+            datatype: "json",
+            data: { Class_Id: Class },
+            success: function (data) {
+                $("#CourseList").empty();
+                $("#CourseList").append('<option value=""> -- Select -- </option>' + data);
+                $('.selectpicker').selectpicker('refresh');
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+    });*@
+</script>
+
+

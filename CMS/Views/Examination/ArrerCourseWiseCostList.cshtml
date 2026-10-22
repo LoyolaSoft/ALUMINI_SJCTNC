@@ -1,0 +1,179 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "ArrerCourseWiseCostList";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    int nCount = 0;
+}
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">Arrear Course Wise Cost List </li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Arrear Course Wise Cost List<small></small></h1>
+    <!-- end page-header -->
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+            <div class="panel panel-primary">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h4 class="panel-title">Arrear Course Wise Cost List</h4>
+                </div>
+                <div class="panel-body">
+                    <div class="form-horizontal">
+                        <div class="form-group col-md-12 pull-right">
+                            <a href="javascript:;" id="btnExcel" class="btn btn-success">Excel</a>
+                        </div>
+                        <div class="form-group col-md-12 table-responsive" id="dvArrear">
+                            <br />
+                            <table class="table table-bordered table-hover" id="tblCourseWiseCost">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Prog Type</th>
+                                        <th>Course Code</th>
+                                        <th>Course Title</th>
+                                        <th>Cost</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.liArrerPapers != null && Model.liArrerPapers.Count > 0)
+                                    {
+                                        string sSelected = string.Empty;
+                                        foreach (var item in Model.liArrerPapers)
+                                        {
+                                            <tr cms-courseWiseCost="@item.COURSE_WISE_COST_ID" cms-sExamSettingId="@item.EXAM_SETTING_ID" cms-sCourseId="@item.COURSE_ID" cms-sCourseCode="@item.COURSE_CODE">
+                                                <td>@{nCount++;} @nCount</td>
+                                                <td>@item.PROGRAMME_TYPE</td>
+                                                <td>@item.COURSE_CODE</td>
+                                                <td>@item.COURSE_TITLE</td>
+                                                <td>
+                                                    <select id="ddlExamCourseWiseCost" data-live-search="true" class="selectpicker show-menu-arrow show-tick">
+                                                        <option value="0"> -- Select --</option>
+                                                        @if (Model.liExamUGCTypeCost != null && Model.liExamUGCTypeCost.Count > 0)
+                                                        {
+                                                            var liGroupUgcType = Model.liExamUGCTypeCost.Where(x => x.UGC_COURSE_TYPE_ID == item.SUBJECT_TYPE).ToList();
+                                                            if (liGroupUgcType != null && liGroupUgcType.Count > 0)
+                                                            {
+                                                                foreach (var UGCTypeitem in liGroupUgcType)
+                                                                {
+                                                                    sSelected = string.Empty;
+                                                                    <option value="@UGCTypeitem.UGC_TYPE_COST_ID"
+                                                                            @if (item.SUBJECT_TYPE == UGCTypeitem.UGC_COURSE_TYPE_ID && item.PROGRAMME_TYPE_ID == UGCTypeitem.PROGRAMME_TYPE_ID) { sSelected = "SELECTED"; }
+                                                                            @sSelected>
+                                                                        @UGCTypeitem.TITLE
+                                                                    </option>
+                                                                }
+                                                            }
+
+                                                        }
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+
+                            <div class="col-md-12 form-group">
+                                <a class="btn btn-primary pull-right" id="btnSubmit" href="javascript:;">Submit</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      }
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+    function ContentLoad()
+    {
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+    }
+</script>
+
+<script>
+    $('#btnSubmit').on('click', function ()
+    {
+        var JsonData = '{"liExamCourseWiseCost":[';
+        var nJsonCount = 0;
+        $('.table tbody tr').each(function ()
+        {
+            if ($(this).find('select').val() != 0)
+            {
+                JsonData += '{"COURSE_WISE_COST_ID":"",\
+                          "COURSE_ID":"' + $(this).attr('cms-sCourseId') + '",\
+                          "COURSE_CODE":"' + $(this).attr('cms-sCourseCode') + '",\
+                          "EXAM_TYPE_ID":"1",\
+                          "UGC_TYPE_COST_ID":"' + $(this).find('select Option:selected').val() + '",\
+                          "EXAM_SETTING_ID":"' + $(this).attr('cms-sExamSettingId') + '"},';
+                nJsonCount++;
+            }
+
+        });
+        if (nJsonCount != 0)
+        {
+            JsonData = JsonData.slice(0, -1);
+            JsonData += "]}";
+        } else
+        {
+            alert('Please Select Options To Continue !');
+            return false;
+        }
+        $.ajax({
+            url: '@Url.Action("SaveExamCourseWiseCost", "Examination")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sJsonExamCourseWiseCost: JsonData },
+            success: function (data)
+            {
+                alert(data.Message);
+                loadContent('/Examination/ArrerCourseWiseCostList');
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+
+    });
+
+   
+
+    $('#btnExcel').live('click', function () {
+        
+        let file = new Blob([$('#dvArrear').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: "ArrearList" + "_Supplementary.xls"
+        }).appendTo("body").get(0).click();
+        e.preventDefault();
+    });
+</script>

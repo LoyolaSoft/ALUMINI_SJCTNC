@@ -1,0 +1,112 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+
+    Layout = null;
+}
+
+<style>
+    /*
+      This CSS is identical to the student-side view to maintain a consistent UI.
+      It ensures uniform card sizes, hover effects, and icon positioning.
+    */
+    .chat-room-card {
+        min-height: 160px;
+        border-radius: 12px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .chat-room-card .stats-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .chat-room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .chat-room-card .stats-icon {
+            opacity: 0.15;
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            font-size: 4em;
+        }
+
+    a.card-link, a.card-link:hover {
+        text-decoration: none !important;
+    }
+</style>
+<div class="content" id="content">
+    <div class="row justify-content-center">
+        @if (Model.liStaffCourseList != null && Model.liStaffCourseList.Any())
+        {
+            foreach (var course in Model.liStaffCourseList)
+            {
+                <div class="col-lg-4 col-md-6 mb-4">
+                    @*
+                        The JavaScript function now includes 'course.CLASS_ID'.
+                        This is critical for identifying the correct chat room since a staff member can
+                        teach the same course to multiple classes.
+                    *@
+                    <a class="card-link" href="javascript:;"
+                       onclick="openChatRoom('@course.COURSE_ID', '@course.COURSE_TITLE', '@course.COURSE_CODE')">
+
+                        <div class="widget widget-stats bg-gradient-blue chat-room-card">
+                            <div class="stats-icon stats-icon-lg"><i class="fa fa-comments fa-fw"></i></div>
+                            <div class="stats-content">
+                                <div class="stats-title" style="font-size:16px; color:white; font-weight:bold;">
+                                    @course.COURSE_TITLE
+                                </div>
+                                <div class="stats-number" style="color:white; font-size:13px; opacity: 0.9;">
+                                    @course.COURSE_CODE
+                                </div>
+                                <div class="small text-light mt-2" style="color: #eee;">
+                                    @* For staff, we display the Class Name to provide context *@
+                                    Class: @course.CLASS_NAME
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center text-muted">
+                <h4>No courses are assigned to you for the current academic year.</h4>
+            </div>
+        }
+    </div>
+</div>
+
+@*
+    This hidden form will be used to POST the data to the 'CourseChat' action.
+    An extra hidden field 'formClassId' is added to handle the class context.
+*@
+<form id="chatRoomForm" action="@Url.Action("ChatRoom", "LMS")" method="post" style="display:none;">
+    <input type="hidden" name="courseId" id="formCourseId" />
+    <input type="hidden" name="courseName" id="formCourseName" />
+    <input type="hidden" name="courseCode" id="formCourseCode" />
+</form>
+
+<script>
+        // This script populates the hidden form with the details of the clicked course
+        // and then submits it to navigate to the chat room.
+        function openChatRoom(courseId, courseName, courseCode, classId) {
+            // 1. Set the values of the hidden input fields in the form
+            document.getElementById('formCourseId').value = courseId;
+            document.getElementById('formCourseName').value = courseName;
+            document.getElementById('formCourseCode').value = courseCode;
+
+            // 2. Submit the form to navigate to the chat action
+            document.getElementById('chatRoomForm').submit();
+        }
+</script>

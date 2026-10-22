@@ -1,0 +1,158 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+}
+
+<!-- ================= CSS ================= -->
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<input type="hidden" id="STUDENT_ID" value="@ViewBag.StudentId" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+
+
+    <div class="panel panel-primary" id="panel">
+        
+        <div class="panel-body">
+            <div class="row ">
+                <div class="col-md-4">
+                    <label class="control-label"><b>Semester</b></label>
+                    @Html.DropDownList("SemesterId", Model.SemesterList ?? new List<SelectListItem>(), "--Select Semester--", new { @class = "form-control selectpicker", data_live_search = "true", @id = "ddlSemester" })
+                </div>
+                <div class="col-sm-12 col-md-8 pull-right">
+                    <br />
+                    <div class="col-sm-6 col-md-3">
+                        <button class="btn btn-success btnPrint" onclick="printDiv('dvAbsentReport')"> Print </button>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <button class="btn btn-primary btnExport" onclick="Export()"> Export </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-12 form-horizontal" id="dvAbsentReport">
+                <br />
+                <div id="reportContainer">
+                    @* Table will be rendered here by AJAX *@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= JS ================= -->
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker();
+
+        // Pre-select active semester and trigger change if available
+        var activeSem = '@ViewBag.ActiveSemester';
+        if (activeSem) {
+            $('#ddlSemester').val(activeSem);
+            $('.selectpicker').selectpicker('refresh');
+            $('#ddlSemester').trigger('change');
+        }
+
+        $('#ddlSemester').change(function () {
+            var semesterId = $(this).val();
+            var studentId = $('#STUDENT_ID').val();
+
+            if (semesterId) {
+                $.ajax({
+                    url: '@Url.Action("GetStudentAbsentReport", "Mentoring")',
+                    type: 'GET',
+                    data: { studentId: studentId, semesterId: semesterId },
+                    success: function (response) {
+                        renderReport(response);
+                    },
+                    error: function () {
+                        alert('Error fetching attendance report.');
+                    }
+                });
+            } else {
+                $('#reportContainer').empty();
+            }
+        });
+
+        // Handle panel-reload
+        $('#btnReload').click(function () {
+            var studentId = $('#STUDENT_ID').val();
+            loadContent('/Mentoring/MentorAttendanceAbsentReport?studentId=' + studentId);
+        });
+    });
+
+    function renderReport(data) {
+        var container = $('#reportContainer');
+        container.empty();
+
+        if (data.AttendanceList && data.AttendanceList.length > 0) {
+            var firstItem = data.AttendanceList[0];
+            var summary = data.Summary;
+            var daysCount = summary.DaysCount;
+            var absentCount = summary.AbsentCount;
+            var presentCount = daysCount - absentCount;
+            var percentage = daysCount > 0 ? (presentCount / daysCount * 100).toFixed(2) : 0;
+
+            var html = '<div class="form-group table-responsive" style="page-break-after:always !important;">' +
+                '<table class="table table-bordered" border="1">' +
+                '<thead>' +
+                '<tr><th colspan="6" class="text-center">ST.JOSEPH\'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS), CUDDALORE</th></tr>' +
+                '<tr><th></th><th colspan="3" class="text-center"><b>' + firstItem.CLASS_NAME + '</b> - Attendance Report</th></tr>' +
+                '<tr><th><b>#</b></th><th><b>Reg.No</b></th><th><b>Name</b></th><th><b>Mobile</b></th><th><b>Attendance Date</b></th></tr>' +
+                '</thead>' +
+                '<tbody>';
+
+            $.each(data.AttendanceList, function (i, item) {
+                html += '<tr>' +
+                    '<td>' + (i + 1) + '</td>' +
+                    '<td>' + item.ROLL_NO + '</td>' +
+                    '<td>' + item.FIRST_NAME + '</td>' +
+                    '<td>' + (item.MOBILE || '') + '</td>' +
+                    '<td>' + item.ATTENDENCE_DATE + '</td>' +
+                    '</tr>';
+            });
+
+            html += '<tr><td colspan="2"><b>Total</b></td><td><b>Absent count</b></td><td><b>Working Days</b></td><td><b>%</b></td></tr>' +
+                '<tr><td colspan="2"></td><td><b>' + absentCount + '</b></td><td><b>' + daysCount + '</b></td><td><b>' + percentage + ' %</b></td></tr>' +
+                '</tbody></table></div>';
+
+            container.append(html);
+        } else if (data.Summary && data.Summary.DaysCount > 0) {
+             // 100% Attendance case
+             container.append('<div class="bg-warning text-center p-2"><h4>The student has no absent dates. Attendance Percentage 100%</h4></div>');
+        } else {
+            container.append('<div class="text-center text-muted">No attendance data available for the selected semester.</div>');
+        }
+    }
+
+    function printDiv(divName) {
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        window.location.reload();
+    }
+
+    function Export() {
+        var title = "Attendance_Report";
+        let file = new Blob([$('#dvAbsentReport').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: title + ".xls"
+        }).appendTo("body").get(0).click();
+    }
+</script>

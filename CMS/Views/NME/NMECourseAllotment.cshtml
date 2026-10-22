@@ -1,0 +1,106 @@
+﻿@model CMS.ViewModel.ViewModel.NMEViewModel
+
+@{
+    ViewBag.Title = "NMECourseAllotment";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="content" id="content">
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li><a href="javascript:;" onclick="loadContent('/NME/NMECourseAllotmentList')">List NME Course Allotment </a></li>
+            <li class="active">Add NME Course Allotment </li>
+        </ol>
+        <h1 class="page-header">NME Course Allotment </h1>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Add NME Course Allotment</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    <div class="col-md-12">
+                        <div class="col-md-6 col-md-offset-3">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.ShiftList, htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.ShiftList, Model.ShiftList, "-- Select --", new { @class = "drop-down form-control input-sm" })
+                                    @Html.ValidationMessageFor(model => model.ShiftList, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.NMECourseList, htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.NMECourseList, (Model.NMECourseList != null) ? Model.NMECourseList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "drop-down form-control input-sm" })
+                                    @Html.ValidationMessageFor(model => model.NMECourseList, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.SaveNMECourseAllotment.ALLOTED_SEATS, htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.EditorFor(model => model.SaveNMECourseAllotment.ALLOTED_SEATS, new { htmlAttributes = new { @class = "form-control input-sm", type = "Number", placeholder = "Enter Alloted Seats" } })
+                                    @Html.ValidationMessageFor(model => model.SaveNMECourseAllotment.ALLOTED_SEATS, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group pull-right ">
+                                <div class="col-md-12">
+                                    <a id="btnSubmit" value="SUBMIT" class="btn btn-primary">Submit</a>
+                                    <a id="" @*href="@Url.Action("NMECourseAllotmentList","NME")"*@ href="javascript:;" onclick="loadContent('/NME/NMECourseAllotmentList')" value="SUBMIT" class="btn btn-danger">Cancel</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script src="~/Content/assets/plugins/select2/dist/js/select2.min.js"></script>
+<script>
+    function ContentLoad() {
+        // Document Ready Function .
+    }
+    $("#NMECourseList").select2();
+</script>
+<script>
+        $("#btnSubmit").on("click", function () {
+            var Shift = $("#ShiftList").val();
+            var NMECourseList = $("#NMECourseList").val();
+            var AllotedSeats = $("#SaveNMECourseAllotment_ALLOTED_SEATS").val();
+            var JsonData;
+            if (AllotedSeats == '' || NMECourseList == '' || NMECourseList=='0') {
+                alert("Please Enter All The Values...!!!");
+                return false;
+            }
+            if (JsonData == null) {
+                JsonData = '{"SHIFT_ID":"' + Shift + '","COURSE_ID":"' + NMECourseList + '","ALLOTED_SEATS":"' + AllotedSeats + '"}';
+            }
+            $.ajax({
+                url: "@Url.Action("SaveNMECourseAllotment", "NME")",
+                method: "POST",
+                datatype: "html",
+                data: { NMECourseAllotment: JsonData },
+                success: function (data) {
+                    alert(data);
+                }, error: function (error) {
+                    alert('Internal Server Error ..!');
+                }
+            });
+        });
+</script>
+

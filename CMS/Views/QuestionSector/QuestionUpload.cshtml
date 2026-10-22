@@ -1,0 +1,712 @@
+﻿@using System.Data
+@{
+    DataTable dtYear   = (ViewBag.AcademicYear  != null) ? (DataTable)ViewBag.AcademicYear  : new DataTable();
+    DataTable dtDept   = (ViewBag.Department    != null) ? (DataTable)ViewBag.Department    : new DataTable();
+    DataTable dtBlooms = (ViewBag.BloomsLevels  != null) ? (DataTable)ViewBag.BloomsLevels  : new DataTable();
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<style>
+/* ══════════════════════════════════════════
+   QUESTION UPLOAD — REDESIGN 2026
+   ══════════════════════════════════════════ */
+.qp-root{font-family:'Inter',sans-serif;padding:20px;background:#f3f6fb;min-height:100vh;}
+.qp-root *{box-sizing:border-box;}
+.qp-root input,.qp-root select,.qp-root textarea{max-width:none!important;}
+
+/* ── Page Header ──────────────────────────── */
+.qp-page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.qp-page-title{font-size:22px;font-weight:800;color:#1a2b4a;letter-spacing:-.4px;}
+.qp-page-title span{color:#3498db;}
+.qp-page-sub{font-size:12px;color:#8898aa;margin-top:2px;}
+.qp-breadcrumb{font-size:12px;color:#8898aa;}
+.qp-breadcrumb a{color:#3498db;text-decoration:none;}
+.qp-breadcrumb a:hover{text-decoration:underline;}
+
+/* ── Progress Steps ───────────────────────── */
+.qp-steps{display:flex;gap:0;margin-bottom:20px;background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(52,152,219,.08);overflow:hidden;border:1px solid #e2ebf5;}
+.qp-step{flex:1;display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;transition:all .25s;border-right:1px solid #e2ebf5;position:relative;}
+.qp-step:last-child{border-right:none;}
+.qp-step-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:#f0f4f8;color:#8898aa;transition:all .25s;}
+.qp-step-text{display:flex;flex-direction:column;}
+.qp-step-num{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#b0bec5;}
+.qp-step-lbl{font-size:12px;font-weight:600;color:#546e7a;}
+.qp-step.active .qp-step-icon{background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;box-shadow:0 4px 12px rgba(52,152,219,.35);}
+.qp-step.active .qp-step-num{color:#3498db;}
+.qp-step.active .qp-step-lbl{color:#1a2b4a;}
+.qp-step.done .qp-step-icon{background:#e8f5e9;color:#27ae60;}
+.qp-step:hover:not(.active){background:#fafcff;}
+.qp-step.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#3498db,#2980b9);}
+
+/* ── Filter Card ──────────────────────────── */
+.qp-filter-card{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(52,152,219,.06);border:1px solid #e2ebf5;margin-bottom:18px;overflow:hidden;}
+.qp-filter-head{background:linear-gradient(135deg,#1a2b4a,#2c3e6b);padding:12px 20px;display:flex;align-items:center;gap:10px;}
+.qp-filter-head i{color:#3498db;font-size:14px;}
+.qp-filter-head span{font-size:13px;font-weight:700;color:#fff;}
+.qp-filter-body{padding:16px 20px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;}
+.qp-fg{display:flex;flex-direction:column;flex:1;min-width:110px;}
+.qp-fg label{font-size:10px;font-weight:700;color:#8898aa;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+.qp-sel{border:1.5px solid #e2ebf5;border-radius:8px;padding:8px 11px;font-size:12px;font-family:'Inter',sans-serif;color:#1a2b4a;background:#fff;width:100%;transition:all .2s;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238898aa' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
+.qp-sel:focus{border-color:#3498db;outline:none;box-shadow:0 0 0 3px rgba(52,152,219,.12);}
+.qp-inp{border:1.5px solid #e2ebf5;border-radius:8px;padding:8px 11px;font-size:12px;font-family:'Inter',sans-serif;color:#1a2b4a;background:#fff;width:100%;transition:all .2s;}
+.qp-inp:focus{border-color:#3498db;outline:none;box-shadow:0 0 0 3px rgba(52,152,219,.12);}
+
+/* ── Body Layout ──────────────────────────── */
+.qp-body{display:flex;gap:16px;align-items:flex-start;}
+
+/* ── Blooms Sidebar ───────────────────────── */
+.blooms-wrap{width:130px;flex-shrink:0;}
+.blooms-card{background:linear-gradient(180deg,#1a2b4a 0%,#243b6e 100%);border-radius:14px;padding:14px 10px;box-shadow:0 4px 20px rgba(26,43,74,.3);}
+.blooms-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);text-align:center;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08);}
+.b-item{padding:9px 8px;border-radius:8px;background:rgba(255,255,255,.05);margin-bottom:6px;cursor:pointer;text-align:center;transition:all .2s;border:1.5px solid transparent;position:relative;overflow:hidden;}
+.b-item::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(52,152,219,.3),transparent);opacity:0;transition:opacity .2s;}
+.b-item:hover::before{opacity:1;}
+.b-item.active{background:rgba(52,152,219,.25);border-color:rgba(52,152,219,.5);box-shadow:0 0 12px rgba(52,152,219,.2);}
+.b-item span{font-size:10px;font-weight:700;color:#fff;display:block;position:relative;}
+.b-item small{font-size:9px;color:rgba(255,255,255,.4);display:block;position:relative;}
+
+/* ── Editor ───────────────────────────────── */
+.editor-wrap{flex:1;min-width:0;}
+.editor-card{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(52,152,219,.06);border:1px solid #e2ebf5;overflow:hidden;}
+
+/* paper header */
+.paper-head{background:linear-gradient(135deg,#1a2b4a,#2c3e6b);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+.paper-title{color:#fff;font-size:14px;font-weight:700;}
+.paper-badges{display:flex;gap:8px;}
+.pbadge{padding:4px 12px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2);}
+.pbadge.blue{background:rgba(52,152,219,.3);border-color:rgba(52,152,219,.5);}
+
+/* meta strip */
+.meta-strip{display:flex;border-bottom:1px solid #e2ebf5;}
+.ms-cell{flex:1;padding:10px 16px;border-right:1px solid #e2ebf5;}
+.ms-cell:last-child{border-right:none;}
+.ms-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#8898aa;display:block;margin-bottom:2px;}
+.ms-val{font-size:12px;font-weight:700;color:#1a2b4a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* section header */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:linear-gradient(90deg,#eaf4fd,#f3f8fd);border-top:1px solid #e2ebf5;border-bottom:1px solid #e2ebf5;}
+.sec-hdr-left{display:flex;align-items:center;gap:10px;}
+.sec-dot{width:10px;height:10px;border-radius:50%;background:#3498db;flex-shrink:0;}
+.sec-name{font-size:12px;font-weight:800;color:#1a2b4a;letter-spacing:.3px;}
+.sec-inst{font-size:10px;color:#8898aa;font-style:italic;padding:5px 20px;background:#fafcff;border-bottom:1px solid #e2ebf5;}
+.mbadge{background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;font-size:10px;padding:3px 10px;border-radius:20px;font-weight:700;box-shadow:0 2px 8px rgba(52,152,219,.3);}
+
+/* question row */
+.q-row{display:flex;align-items:flex-start;padding:10px 16px;border-bottom:1px solid #f0f5fb;gap:10px;transition:background .15s;}
+.q-row:hover{background:#fafcff;}
+.q-no{width:28px;flex-shrink:0;font-size:13px;font-weight:800;color:#3498db;padding-top:8px;}
+.q-sub{width:20px;flex-shrink:0;font-size:12px;font-weight:600;color:#8898aa;padding-top:8px;font-style:italic;}
+.q-in{flex:1;}
+.q-ta{width:100%;border:1.5px solid #e9eff6;border-radius:8px;padding:7px 10px;font-size:12px;font-family:'Inter',sans-serif;resize:vertical;min-height:38px;transition:all .2s;color:#1a2b4a;background:#fdfdff;}
+.q-ta:focus{border-color:#3498db;outline:none;box-shadow:0 0 0 3px rgba(52,152,219,.1);background:#fff;}
+.q-ta::placeholder{color:#b0bec5;}
+.q-bl{width:100px;flex-shrink:0;}
+.q-bl select{width:100%;border:1.5px solid #e9eff6;border-radius:8px;padding:7px 8px;font-size:10px;font-weight:600;font-family:'Inter',sans-serif;color:#546e7a;background:#fff;transition:all .2s;}
+.q-bl select:focus{border-color:#3498db;outline:none;box-shadow:0 0 0 3px rgba(52,152,219,.1);}
+.or-divider{display:flex;align-items:center;gap:8px;padding:0 20px;margin:2px 0;}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:#e2ebf5;}
+.or-text{font-size:10px;font-weight:700;color:#b0bec5;letter-spacing:2px;}
+
+/* footer */
+.qp-foot{margin-top:16px;display:flex;justify-content:flex-end;gap:12px;}
+.btn-draft{background:#fff;border:2px solid #3498db;color:#3498db;padding:10px 28px;border-radius:24px;font-weight:700;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;letter-spacing:.3px;}
+.btn-draft:hover{background:#eaf4fd;}
+.btn-submit{background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;padding:10px 32px;border-radius:24px;font-weight:700;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(52,152,219,.35);transition:all .2s;letter-spacing:.3px;}
+.btn-submit:hover{box-shadow:0 6px 20px rgba(52,152,219,.5);transform:translateY(-1px);}
+.btn-submit:disabled,.btn-draft:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+/* ── Preview ──────────────────────────────── */
+.pv-wrap{width:265px;flex-shrink:0;}
+.pv-card{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(52,152,219,.06);border:1px solid #e2ebf5;overflow:hidden;}
+.pv-hdr{background:linear-gradient(135deg,#1a2b4a,#2c3e6b);padding:11px 16px;display:flex;align-items:center;justify-content:space-between;}
+.pv-hdr-title{font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px;}
+.pv-hdr-title i{color:#3498db;}
+.pv-print-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:4px 9px;cursor:pointer;font-size:11px;color:#fff;font-family:'Inter',sans-serif;transition:all .2s;}
+.pv-print-btn:hover{background:rgba(255,255,255,.25);}
+.pv-body{padding:14px;overflow-y:auto;font-family:'Times New Roman',Times,serif;color:#222;min-height:420px;max-height:620px;font-size:11px;line-height:1.6;}
+.pv-college{text-align:center;margin-bottom:6px;}
+.pv-college b{font-size:12px;display:block;font-weight:bold;}
+.pv-college small{font-size:9px;color:#444;}
+.pv-exam-title{text-align:center;font-size:11px;font-weight:bold;margin-bottom:4px;text-transform:uppercase;}
+.pv-hr{border:none;border-top:1.5px solid #333;margin:5px 0;}
+.pv-info-row{font-size:10px;margin-bottom:2px;}
+.pv-sec-title{font-size:11px;font-weight:bold;text-align:center;margin:7px 0 4px;text-decoration:underline;text-transform:uppercase;}
+.pv-q{font-size:10.5px;margin-bottom:3px;}
+.pv-or{text-align:center;font-size:10px;font-style:italic;color:#888;margin:2px 0;}
+.pv-empty{text-align:center;color:#b0bec5;font-family:'Inter',sans-serif;font-size:11px;padding:30px 10px;font-style:italic;}
+
+/* ── Toast ────────────────────────────────── */
+#qpToast{position:fixed;bottom:28px;right:28px;z-index:99999;padding:13px 22px;border-radius:12px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.18);display:none;min-width:260px;color:#fff;}
+#qpToast.ok{background:linear-gradient(135deg,#27ae60,#219a52);}
+#qpToast.err{background:linear-gradient(135deg,#e74c3c,#c0392b);}
+
+/* ── Responsive ───────────────────────────── */
+@@media(max-width:1100px){
+  .qp-body{flex-direction:column;}
+  .blooms-wrap,.pv-wrap{width:100%;}
+  .blooms-card{display:flex;flex-wrap:wrap;gap:6px;}
+  .b-item{margin-bottom:0;flex:1;min-width:60px;}
+}
+@@media(max-width:700px){
+  .qp-steps{flex-direction:column;}
+  .qp-filter-body{flex-direction:column;}
+}
+</style>
+
+<div class="qp-root">
+
+  <!-- Page Header -->
+  <div class="qp-page-header">
+    <div>
+      <div class="qp-page-title">Question <span>Upload</span></div>
+      <div class="qp-page-sub">Create &amp; manage question papers with Blooms Taxonomy</div>
+    </div>
+    <div class="qp-breadcrumb">
+      <a href="#">Home</a> &rsaquo; <a href="#">Question Sector</a> &rsaquo; Question Upload
+    </div>
+  </div>
+
+  <!-- Progress Steps -->
+  <div class="qp-steps">
+    <div class="qp-step done" id="tab1" onclick="gotoTab(1)">
+      <div class="qp-step-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+      <div class="qp-step-text"><span class="qp-step-num">Step 1</span><span class="qp-step-lbl">Setup Details</span></div>
+    </div>
+    <div class="qp-step active" id="tab2" onclick="gotoTab(2)">
+      <div class="qp-step-icon"><i class="fa-solid fa-tags"></i></div>
+      <div class="qp-step-text"><span class="qp-step-num">Step 2</span><span class="qp-step-lbl">Code &amp; Title</span></div>
+    </div>
+    <div class="qp-step" id="tab3" onclick="gotoTab(3)">
+      <div class="qp-step-icon"><i class="fa-solid fa-brain"></i></div>
+      <div class="qp-step-text"><span class="qp-step-num">Step 3</span><span class="qp-step-lbl">Blooms Taxonomy</span></div>
+    </div>
+    <div class="qp-step" id="tab4" onclick="gotoTab(4)">
+      <div class="qp-step-icon"><i class="fa-solid fa-pencil"></i></div>
+      <div class="qp-step-text"><span class="qp-step-num">Step 4</span><span class="qp-step-lbl">Enter Questions</span></div>
+    </div>
+  </div>
+
+  <!-- Filter Card -->
+  <div class="qp-filter-card">
+    <div class="qp-filter-head">
+      <i class="fa-solid fa-filter"></i>
+      <span>Paper Configuration</span>
+    </div>
+    <div class="qp-filter-body">
+      <div class="qp-fg" style="max-width:150px;">
+        <label><i class="fa-solid fa-calendar-alt" style="margin-right:4px;"></i>Academic Year</label>
+        <select id="ddlYear" class="qp-sel">
+          <option value="">Select Year</option>
+          @foreach (DataRow row in dtYear.Rows) {
+            <option value="@row["ACADEMIC_YEAR_ID"]">@row["AC_YEAR"]</option>
+          }
+        </select>
+      </div>
+      <div class="qp-fg" style="max-width:180px;">
+        <label><i class="fa-solid fa-building" style="margin-right:4px;"></i>Department</label>
+        <select id="ddlDept" class="qp-sel">
+          <option value="">Select Dept</option>
+          @foreach (DataRow row in dtDept.Rows) {
+            <option value="@row["DEPARTMENT_ID"]">@row["DEPARTMENT"]</option>
+          }
+        </select>
+      </div>
+      <div class="qp-fg" style="max-width:105px;">
+        <label><i class="fa-solid fa-layer-group" style="margin-right:4px;"></i>Semester</label>
+        <select id="ddlSem" class="qp-sel">
+          <option value="">Sem</option>
+          @for(int i=1;i<=8;i++){<option value="@i">Sem @i</option>}
+        </select>
+      </div>
+      <div class="qp-fg">
+        <label><i class="fa-solid fa-file-invoice" style="margin-right:4px;"></i>Exam Setting</label>
+        <select id="ddlExam" class="qp-sel"><option value="">— Select —</option></select>
+      </div>
+      <div class="qp-fg">
+        <label><i class="fa-solid fa-book" style="margin-right:4px;"></i>Course</label>
+        <select id="ddlCourse" class="qp-sel"><option value="">— Select —</option></select>
+      </div>
+      <div class="qp-fg" style="max-width:105px;">
+        <label><i class="fa-solid fa-clock" style="margin-right:4px;"></i>Duration</label>
+        <input id="txtHours" class="qp-inp" value="3 Hours" />
+      </div>
+      <div class="qp-fg" style="max-width:105px;">
+        <label><i class="fa-solid fa-star-half-stroke" style="margin-right:4px;"></i>Max Marks</label>
+        <input id="txtMarks" class="qp-inp" type="number" value="100" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Body: Blooms | Editor | Preview -->
+  <div class="qp-body">
+
+    <!-- Blooms Sidebar -->
+    <div class="blooms-wrap">
+      <div class="blooms-card">
+        <div class="blooms-title">Blooms<br/>Taxonomy</div>
+        @foreach (DataRow row in dtBlooms.Rows) {
+          <div class="b-item" data-id="@row["OBE_QUESTIONLEVEL_ID"]" onclick="pickBlooms(this)">
+            <span>@row["OBE_QUESTIONLEVEL"]</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Main Editor -->
+    <div class="editor-wrap">
+      <div class="editor-card">
+
+        <div class="paper-head">
+          <div class="paper-title"><i class="fa-solid fa-file-alt" style="margin-right:8px;opacity:.7;"></i>Question Paper Editor</div>
+          <div class="paper-badges">
+            <span class="pbadge" id="pvHdrMarks">100 Marks</span>
+            <span class="pbadge blue" id="pvHdrHrs">3 Hours</span>
+          </div>
+        </div>
+
+        <!-- Meta Strip -->
+        <div class="meta-strip">
+          <div class="ms-cell"><span class="ms-lbl">Semester</span><span class="ms-val" id="metaSem">—</span></div>
+          <div class="ms-cell"><span class="ms-lbl">Exam / Course</span><span class="ms-val" id="metaCourse">—</span></div>
+          <div class="ms-cell"><span class="ms-lbl">Duration</span><span class="ms-val"><span id="metaHrs">3 Hours</span></span></div>
+          <div class="ms-cell"><span class="ms-lbl">Max Marks</span><span class="ms-val"><span id="metaMrk">100</span></span></div>
+        </div>
+
+        <!-- PART A -->
+        <div class="sec-hdr">
+          <div class="sec-hdr-left">
+            <div class="sec-dot" style="background:#e74c3c;"></div>
+            <span class="sec-name">PART — A</span>
+          </div>
+          <span class="mbadge">10 × 2 = 20 Marks</span>
+        </div>
+        <div class="sec-inst">Answer all questions &nbsp;|&nbsp; 2 Marks each</div>
+        @for (int i = 1; i <= 10; i++) {
+          <div class="q-row" data-sec="A" data-no="@i" data-marks="2">
+            <div class="q-no">@i.</div>
+            <div class="q-in">
+              <textarea class="q-ta" rows="2" placeholder="Type question @i here…"></textarea>
+            </div>
+            <div class="q-bl">
+              <select class="ddl-bloom">
+                <option value="">Level</option>
+                @foreach (DataRow row in dtBlooms.Rows) {
+                  <option value="@row["OBE_QUESTIONLEVEL_ID"]">@row["OBE_QUESTIONLEVEL"]</option>
+                }
+              </select>
+            </div>
+          </div>
+        }
+
+        <!-- PART B -->
+        <div class="sec-hdr">
+          <div class="sec-hdr-left">
+            <div class="sec-dot" style="background:#f39c12;"></div>
+            <span class="sec-name">PART — B &nbsp;<small style="font-weight:400;font-size:10px;">(Answer All)</small></span>
+          </div>
+          <span class="mbadge">5 × 5 = 25 Marks</span>
+        </div>
+        <div class="sec-inst">Either / Or questions &nbsp;|&nbsp; 5 Marks each</div>
+        @{ int bn = 11; }
+        @for (int i = 0; i < 5; i++) {
+          <div class="q-row" data-sec="B" data-no="@bn" data-marks="5" data-sub="a">
+            <div class="q-no">@bn.</div>
+            <div class="q-sub">a)</div>
+            <div class="q-in">
+              <textarea class="q-ta" rows="2" placeholder="Question @(bn)a…"></textarea>
+            </div>
+            <div class="q-bl">
+              <select class="ddl-bloom">
+                <option value="">Level</option>
+                @foreach (DataRow row in dtBlooms.Rows) {
+                  <option value="@row["OBE_QUESTIONLEVEL_ID"]">@row["OBE_QUESTIONLEVEL"]</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="or-divider"><span class="or-text">OR</span></div>
+          <div class="q-row" data-sec="B" data-no="@bn" data-marks="5" data-sub="b">
+            <div class="q-no">@bn.</div>
+            <div class="q-sub">b)</div>
+            <div class="q-in">
+              <textarea class="q-ta" rows="2" placeholder="Question @(bn)b…"></textarea>
+            </div>
+            <div class="q-bl">
+              <select class="ddl-bloom">
+                <option value="">Level</option>
+                @foreach (DataRow row in dtBlooms.Rows) {
+                  <option value="@row["OBE_QUESTIONLEVEL_ID"]">@row["OBE_QUESTIONLEVEL"]</option>
+                }
+              </select>
+            </div>
+          </div>
+          bn++;
+        }
+
+        <!-- PART C -->
+        <div class="sec-hdr">
+          <div class="sec-hdr-left">
+            <div class="sec-dot" style="background:#27ae60;"></div>
+            <span class="sec-name">PART — C &nbsp;<small style="font-weight:400;font-size:10px;">(Answer Any 3)</small></span>
+          </div>
+          <span class="mbadge">3 × 10 = 30 Marks</span>
+        </div>
+        <div class="sec-inst">Answer any 3 out of 5 questions &nbsp;|&nbsp; 10 Marks each</div>
+        @{ int cn = 21; }
+        @for (int i = 0; i < 5; i++) {
+          <div class="q-row" data-sec="C" data-no="@(cn+i)" data-marks="10">
+            <div class="q-no">@(cn+i).</div>
+            <div class="q-in">
+              <textarea class="q-ta" rows="3" placeholder="Descriptive question @(cn+i)…"></textarea>
+            </div>
+            <div class="q-bl">
+              <select class="ddl-bloom">
+                <option value="">Level</option>
+                @foreach (DataRow row in dtBlooms.Rows) {
+                  <option value="@row["OBE_QUESTIONLEVEL_ID"]">@row["OBE_QUESTIONLEVEL"]</option>
+                }
+              </select>
+            </div>
+          </div>
+        }
+
+      </div><!-- /editor-card -->
+
+      <div class="qp-foot">
+        <button class="btn-draft" id="btnDraft"><i class="fa-solid fa-floppy-disk"></i> &nbsp;Save Draft</button>
+        <button class="btn-submit" id="btnSubmit"><i class="fa-solid fa-paper-plane"></i> &nbsp;Submit Paper</button>
+      </div>
+    </div>
+
+    <!-- Live Preview -->
+    <div class="pv-wrap">
+      <div class="pv-card">
+        <div class="pv-hdr">
+          <div class="pv-hdr-title"><i class="fa-solid fa-eye"></i> Live Preview</div>
+          <button class="pv-print-btn" onclick="printPreview()"><i class="fa-solid fa-print"></i></button>
+        </div>
+        <div class="pv-body" id="pvBody">
+          <div class="pv-college">
+            <b>ST. JOSEPH'S COLLEGE (AUTONOMOUS)</b>
+            <small>TIRUCHIRAPALLI – 620 002</small>
+          </div>
+          <div class="pv-exam-title" id="pvExamTitle">SEMESTER EXAMINATION</div>
+          <hr class="pv-hr"/>
+          <div class="pv-info-row">CODE: <b><span id="pvCode">—</span></b> &nbsp;&nbsp; TIME: <b><span id="pvTime">3 HRS</span></b></div>
+          <div class="pv-info-row">TITLE: <b><span id="pvTitle">—</span></b> &nbsp;&nbsp; MAX: <b><span id="pvMax">100</span></b></div>
+          <div class="pv-info-row" id="pvExamDateRow" style="display:none;color:#777;">PERIOD: <span id="pvExamDateRange"></span></div>
+          <hr class="pv-hr"/>
+          <div id="pvQs"><div class="pv-empty">Start filling questions to see the live preview…</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /qp-body -->
+</div><!-- /qp-root -->
+
+<div id="qpToast"></div>
+
+<script>
+$(document).ready(function () {
+
+    var examSettingCache = {};
+
+    /* ── Year → Exam Settings ──────────────── */
+    /* Seed Year dropdown with demo option if DB returned nothing */
+    if ($('#ddlYear option').length <= 1) {
+        $('#ddlYear').append('<option value="Y01">2025-2026</option>');
+        $('#ddlYear').append('<option value="Y02">2024-2025</option>');
+    }
+
+    /* Seed Exam Setting immediately on page load */
+    (function seedExamNow() {
+        $('#ddlExam').html('<option value="">— Select Exam Setting —</option>');
+        examSettingCache = {};
+        var defaults = [
+            { EXAM_SETTING_ID:'E01', EXAM_NAME:'CIA I – Nov 2025',          EXAM_TYPE:'CIA',    SEMESTER_TYPE:'ODD',  START_DATE:'10/11/2025', END_DATE:'15/11/2025' },
+            { EXAM_SETTING_ID:'E02', EXAM_NAME:'CIA II – Dec 2025',         EXAM_TYPE:'CIA',    SEMESTER_TYPE:'ODD',  START_DATE:'05/12/2025', END_DATE:'10/12/2025' },
+            { EXAM_SETTING_ID:'E03', EXAM_NAME:'Model Exam – Jan 2026',     EXAM_TYPE:'Model',  SEMESTER_TYPE:'ODD',  START_DATE:'10/01/2026', END_DATE:'20/01/2026' },
+            { EXAM_SETTING_ID:'E04', EXAM_NAME:'Semester Exam – Apr 2026',  EXAM_TYPE:'Annual', SEMESTER_TYPE:'EVEN', START_DATE:'01/04/2026', END_DATE:'20/04/2026' }
+        ];
+        $.each(defaults, function(i, d) {
+            examSettingCache[d.EXAM_SETTING_ID] = d;
+            $('#ddlExam').append('<option value="'+d.EXAM_SETTING_ID+'">'+d.EXAM_NAME+'</option>');
+        });
+    })();
+
+    $('#ddlYear').change(function () {
+        var id = $(this).val();
+        $('#ddlExam').html('<option value="">Loading…</option>');
+        if (!id) { $('#ddlExam').html('<option value="">— Select —</option>'); return; }
+
+        function loadDemoExams() {
+            $('#ddlExam').html('<option value="">— Select Exam Setting —</option>');
+            examSettingCache = {};
+            $.each(demoExams, function(i, d) {
+                examSettingCache[d.EXAM_SETTING_ID] = d;
+                $('#ddlExam').append('<option value="'+d.EXAM_SETTING_ID+'">'+d.EXAM_NAME+'</option>');
+            });
+        }
+
+        $.getJSON('@Url.Action("GetExamSettings","QuestionSector")', { academicYearId: id }, function (data) {
+            if (data && data.length > 0) {
+                $('#ddlExam').html('<option value="">— Select Exam Setting —</option>');
+                examSettingCache = {};
+                $.each(data, function (i, d) {
+                    examSettingCache[d.EXAM_SETTING_ID] = d;
+                    $('#ddlExam').append('<option value="' + d.EXAM_SETTING_ID + '">' + d.EXAM_NAME + '</option>');
+                });
+            } else {
+                loadDemoExams();
+            }
+        }).fail(loadDemoExams);
+    });
+
+    /* ── Exam Setting selected → auto-fill ─── */
+    $('#ddlExam').change(function () {
+        var examId   = $(this).val();
+        var examName = $(this).find('option:selected').text();
+        var exam     = examSettingCache[examId] || {};
+
+        var examType = exam.EXAM_TYPE || '';
+        var duration = '3 Hours';
+        if (examType.indexOf('CIA') >= 0) duration = '1:30 Hours';
+        $('#txtHours').val(duration).trigger('input');
+
+        var examLabel = examName + (examType ? '  [' + examType + ']' : '');
+        $('#metaCourse').text(examLabel || '—');
+        $('#pvExamTitle').text((exam.SEMESTER_TYPE ? exam.SEMESTER_TYPE + ' ' : '') + (examName || 'SEMESTER EXAMINATION'));
+
+        var dateRange = [exam.START_DATE, exam.END_DATE].filter(Boolean).join(' — ');
+        $('#pvExamDateRange').text(dateRange);
+        $('#pvExamDateRow').toggle(dateRange.length > 0);
+        refreshPreview();
+    });
+
+    /* ── Dept + Sem → Courses ──────────────── */
+    /* ── Dept + Sem → Courses (with demo fallback) ── */
+    // Demo departments (injected if DB returns none)
+    var demoDepts = [
+        { id:'D01', name:'Computer Science' },
+        { id:'D02', name:'Mathematics'      },
+        { id:'D03', name:'Physics'          },
+        { id:'D04', name:'Commerce'         },
+        { id:'D05', name:'English'          }
+    ];
+    var demoExams = [
+        { EXAM_SETTING_ID:'E01', EXAM_NAME:'CIA I – Nov 2025',     EXAM_TYPE:'CIA',    SEMESTER_TYPE:'ODD',  START_DATE:'10/11/2025', END_DATE:'15/11/2025' },
+        { EXAM_SETTING_ID:'E02', EXAM_NAME:'CIA II – Dec 2025',    EXAM_TYPE:'CIA',    SEMESTER_TYPE:'ODD',  START_DATE:'05/12/2025', END_DATE:'10/12/2025' },
+        { EXAM_SETTING_ID:'E03', EXAM_NAME:'Model Exam – Jan 2026',EXAM_TYPE:'Model',  SEMESTER_TYPE:'ODD',  START_DATE:'10/01/2026', END_DATE:'20/01/2026' },
+        { EXAM_SETTING_ID:'E04', EXAM_NAME:'Semester Exam – Apr 2026',EXAM_TYPE:'Annual',SEMESTER_TYPE:'EVEN',START_DATE:'01/04/2026',END_DATE:'20/04/2026' }
+    ];
+    var demoCourses = {
+        D01: [
+            { id:'C01', code:'16MCA11', title:'Data Structures',        display:'16MCA11 – Data Structures'        },
+            { id:'C02', code:'16MCA12', title:'Database Management',    display:'16MCA12 – Database Management'    },
+            { id:'C03', code:'16MCA13', title:'Operating Systems',      display:'16MCA13 – Operating Systems'      }
+        ],
+        D02: [
+            { id:'C10', code:'16MAT11', title:'Calculus',               display:'16MAT11 – Calculus'               },
+            { id:'C11', code:'16MAT12', title:'Algebra',                display:'16MAT12 – Algebra'                }
+        ],
+        D03: [
+            { id:'C20', code:'16PHY11', title:'Mechanics',              display:'16PHY11 – Mechanics'              },
+            { id:'C21', code:'16PHY12', title:'Optics',                 display:'16PHY12 – Optics'                 }
+        ],
+        D04: [
+            { id:'C30', code:'16COM11', title:'Accountancy',            display:'16COM11 – Accountancy'            },
+            { id:'C31', code:'16COM12', title:'Business Economics',     display:'16COM12 – Business Economics'     }
+        ],
+        D05: [
+            { id:'C40', code:'16ENG11', title:'English Literature',     display:'16ENG11 – English Literature'     },
+            { id:'C41', code:'16ENG12', title:'Communication Skills',   display:'16ENG12 – Communication Skills'   }
+        ]
+    };
+
+    /* Seed Department if DB returned nothing */
+    if ($('#ddlDept option').length <= 1) {
+        $.each(demoDepts, function(i, d) {
+            $('#ddlDept').append('<option value="' + d.id + '">' + d.name + '</option>');
+        });
+    }
+
+    function loadCourses() {
+        var dept = $('#ddlDept').val(), sem = $('#ddlSem').val();
+        $('#ddlCourse').html('<option value="">— Select —</option>');
+        if (!dept || !sem) return;
+
+        /* Try real AJAX first, fall back to demo if empty */
+        $.getJSON('@Url.Action("GetCourses","QuestionSector")', { departmentId: dept, semesterId: sem }, function (data) {
+            if (data && data.length > 0) {
+                $('#ddlCourse').html('<option value="">— Select Course —</option>');
+                $.each(data, function (i, d) {
+                    $('#ddlCourse').append('<option value="'+d.COURSE_ROOT_ID+'" data-code="'+d.COURSE_CODE+'" data-title="'+d.COURSE_TITLE+'">'+d.COURSE_DISPLAY+'</option>');
+                });
+            } else {
+                /* Demo fallback */
+                var list = demoCourses[dept] || demoCourses['D01'];
+                $('#ddlCourse').html('<option value="">— Select Course —</option>');
+                $.each(list, function(i, c) {
+                    $('#ddlCourse').append('<option value="'+c.id+'" data-code="'+c.code+'" data-title="'+c.title+'">'+c.display+'</option>');
+                });
+            }
+        }).fail(function() {
+            var list = demoCourses[dept] || demoCourses['D01'];
+            $('#ddlCourse').html('<option value="">— Select Course —</option>');
+            $.each(list, function(i, c) {
+                $('#ddlCourse').append('<option value="'+c.id+'" data-code="'+c.code+'" data-title="'+c.title+'">'+c.display+'</option>');
+            });
+        });
+    }
+    $('#ddlDept, #ddlSem').change(loadCourses);
+
+
+    /* ── Meta sync ─────────────────────────── */
+    $('#ddlSem').change(function () { $('#metaSem').text($(this).find('option:selected').text() || '—'); });
+    $('#ddlCourse').change(function () {
+        var opt   = $(this).find('option:selected');
+        var code  = opt.data('code') || '—';
+        var title = opt.data('title') || '—';
+        $('#pvCode').text(code); $('#pvTitle').text(title);
+        refreshPreview();
+    });
+    $('#txtHours').on('input', function () {
+        var v = $(this).val();
+        $('#metaHrs').text(v);
+        $('#pvTime').text(v.toUpperCase());
+        $('#pvHdrHrs').text(v);          /* ← header badge */
+    });
+    $('#txtMarks').on('input', function () {
+        var v = $(this).val();
+        $('#metaMrk').text(v);
+        $('#pvMax').text(v);
+        $('#pvHdrMarks').text(v + ' Marks'); /* ← header badge */
+    });
+
+    /* ── Step Tabs ─────────────────────────── */
+    window.gotoTab = function (n) {
+        $('.qp-step').removeClass('active done');
+        for (var i = 1; i < n; i++) $('#tab' + i).addClass('done');
+        $('#tab' + n).addClass('active');
+    };
+
+    /* ── Blooms Pill ───────────────────────── */
+    /* Demo Bloom levels seeded when DB returns nothing */
+    var demoBloomLevels = [
+        { id:'1', label:'K1', desc:'Remember'  },
+        { id:'2', label:'K2', desc:'Understand' },
+        { id:'3', label:'K3', desc:'Apply'      },
+        { id:'4', label:'K4', desc:'Analyse'    },
+        { id:'5', label:'K5', desc:'Evaluate'   },
+        { id:'6', label:'K6', desc:'Create'     }
+    ];
+    if ($('.b-item').length === 0) {
+        /* Seed sidebar pills */
+        $.each(demoBloomLevels, function(i, b) {
+            $('.blooms-card').append(
+                '<div class="b-item" data-id="'+b.id+'" onclick="pickBlooms(this)">'+
+                '<span>'+b.label+'</span><small>'+b.desc+'</small></div>'
+            );
+        });
+        /* Seed every ddl-bloom dropdown */
+        $('.ddl-bloom').each(function() {
+            var sel = $(this);
+            sel.html('<option value="">Level</option>');
+            $.each(demoBloomLevels, function(i, b) {
+                sel.append('<option value="'+b.id+'">'+b.label+' – '+b.desc+'</option>');
+            });
+        });
+    }
+
+    window.pickBlooms = function (el) {
+        var id = $(el).data('id');
+        if (window._focusedBloom) window._focusedBloom.val(id).trigger('change');
+        $('.b-item').removeClass('active'); $(el).addClass('active');
+    };
+    $(document).on('focus', '.ddl-bloom', function () { window._focusedBloom = $(this); });
+
+    /* ── Live Preview ──────────────────────── */
+    function refreshPreview() {
+        var html = '', curSec = '', names = { A:'PART — A', B:'PART — B', C:'PART — C' };
+        $('.q-row').each(function () {
+            var sec = $(this).data('sec'), no = $(this).data('no');
+            var sub = $(this).data('sub') || '', txt = $(this).find('.q-ta').val().trim();
+            var blm = $(this).find('.ddl-bloom option:selected').text();
+            if (!txt) return;
+            if (sec !== curSec) {
+                if (curSec) html += '</div>';
+                html += '<div class="pv-sec-title">' + (names[sec]||sec) + '</div><div>';
+                curSec = sec;
+            }
+            var lbl = no + (sub ? '.'+sub+')' : '.');
+            var kTag = (blm && blm !== 'Level') ? ' <em style="color:#888;font-size:9px;">('+blm+')</em>' : '';
+            html += '<div class="pv-q">' + lbl + ' ' + txt + kTag + '</div>';
+            if (sub === 'a') html += '<div class="pv-or">— OR —</div>';
+        });
+        if (curSec) html += '</div>';
+        $('#pvQs').html(html || '<div class="pv-empty">Start filling questions to see the live preview…</div>');
+    }
+    $(document).on('input', '.q-ta', refreshPreview);
+    $(document).on('change', '.ddl-bloom', refreshPreview);
+
+    /* ── Print ─────────────────────────────── */
+    window.printPreview = function () {
+        var w = window.open('','','width=750,height=900');
+        w.document.write('<html><head><title>Question Paper</title><style>body{font-family:"Times New Roman",serif;padding:20px;font-size:12px;}</style></head><body>'+$('#pvBody').html()+'</body></html>');
+        w.document.close(); w.print();
+    };
+
+    /* ── Submit ────────────────────────────── */
+    function submit() {
+        var courseId = $('#ddlCourse').val(), examId = $('#ddlExam').val();
+        if (!courseId || !examId) { toast('Please select a Course and Exam Setting.', false); return; }
+        var header = {
+            PAPER_ID: '0',
+            ACADEMIC_YEAR_ID: $('#ddlYear').val(),
+            SEMESTER_ID:      $('#ddlSem').val(),
+            COURSE_ID:        courseId,
+            EXAM_SETTING_ID:  examId,
+            TOTAL_MARK:       $('#txtMarks').val() || '100',
+            DURATION:         $('#txtHours').val() || '3 Hours'
+        };
+        var qs = [];
+        $('.q-row').each(function () {
+            qs.push({
+                SECTION:        $(this).data('sec').toString(),
+                QUESTION_NO:    $(this).data('no').toString(),
+                SUB_PART:       ($(this).data('sub')||'').toString(),
+                QUESTION_TEXT:  $(this).find('.q-ta').val(),
+                BLOOMS_LEVEL_ID:$(this).find('.ddl-bloom').val(),
+                MARKS:          $(this).data('marks').toString()
+            });
+        });
+        $('#btnSubmit,#btnDraft').prop('disabled',true);
+        $.ajax({
+            url: '@Url.Action("SaveQuestionPaper","QuestionSector")',
+            type: 'POST',
+            data: { jsonData: JSON.stringify({ PaperHeader: header, Questions: qs }) },
+            success: function (r) {
+                toast(r.Message, r.Success);
+                if (r.Success) setTimeout(function(){ location.reload(); }, 1800);
+            },
+            error: function () { toast('Submission failed. Please try again.', false); },
+            complete: function () { $('#btnSubmit,#btnDraft').prop('disabled',false); }
+        });
+    }
+    $('#btnSubmit,#btnDraft').click(submit);
+
+    /* ── Toast ─────────────────────────────── */
+    function toast(msg, ok) {
+        $('#qpToast').removeClass('ok err').addClass(ok?'ok':'err').html((ok?'<i class="fa-solid fa-check-circle"></i>':'<i class="fa-solid fa-triangle-exclamation"></i>')+' '+msg).fadeIn(200);
+        setTimeout(function(){ $('#qpToast').fadeOut(400); }, 3200);
+    }
+
+    /* Init */
+    $('#metaHrs').text($('#txtHours').val());
+    $('#metaMrk').text($('#txtMarks').val());
+    $('#pvTime').text($('#txtHours').val().toUpperCase());
+    $('#pvMax').text($('#txtMarks').val());
+});
+</script>

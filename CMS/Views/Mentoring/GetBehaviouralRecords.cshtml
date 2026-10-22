@@ -1,0 +1,287 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+    int n = 0;
+}
+
+<input type="hidden" id="BEHAVIOURAL_STUDENT_ID" value="@ViewBag.StudentId" />
+
+<div class="container mt-3">
+    <h4 class="text-center mb-3"><b>Behavioural & Conduct Record</b></h4>
+
+    <div class="text-right mb-2">
+        <button class="btn btn-success btn-sm" id="btnOpenAddBehavioural">
+            <i class="fa fa-plus"></i> Add Record
+        </button>
+    </div>
+
+    <table class="table table-bordered" id="tblBehavioural">
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Level</th>
+                <th>Date</th>
+                @*<th>Time</th>*@
+                <th>Incident</th>
+                <th>Action</th>
+                <th>Remarks</th>
+                <th width="80">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.liBehaviouralRecords)
+            {
+                n++;
+                <tr>
+                    <td>@n</td>
+                    <td>@item.LEVEL_NAME</td>
+                    <td>@DateTime.Parse(item.INCIDENT_DATE).ToString("dd-MM-yyyy")</td>
+                    @*<td>@item.INCIDENT_TIME</td>*@
+                    <td>@item.INCIDENT_DETAILS</td>
+                    <td>@item.ACTION_TAKEN</td>
+                    <td>@item.REMARKS</td>
+                    <td class="text-center">
+                        <button class="btn btn-warning btn-xs behaviour-edit" data-id="@item.RECORD_ID">
+                            <i class="fa fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-xs behaviour-delete" data-id="@item.RECORD_ID">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<div class="modal fade" id="BehaviourModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info text-white">
+                <h5 id="behaviouralModalTitle">Add Behavioural Record</h5>
+                <button class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="BEHAVIOURAL_RECORD_ID" />
+
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label>Level <span class="text-danger">*</span></label>
+                        <select id="BEHAVIOURAL_LEVEL_ID" class="form-control">
+                            <option value="">-- Select Level --</option>
+                            @foreach (var l in Model.BehaviourLevelList)
+                            {
+                                <option value="@l.Value">@l.Text</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 form-group">
+                        <label>Date <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" id="BEHAVIOURAL_INCIDENT_DATE" class="form-control" autocomplete="off" />
+                            <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    @*<div class="col-md-6 form-group">
+                        <label>Time</label>
+                        <input type="time" id="BEHAVIOURAL_INCIDENT_TIME" class="form-control" />
+                    </div>*@
+
+                    <div class="col-md-6 form-group">
+                        <label>Incident Details <span class="text-danger">*</span></label>
+                        <textarea id="BEHAVIOURAL_INCIDENT_DETAILS" class="form-control" rows="1"></textarea>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label>Action Taken</label>
+                        <textarea id="BEHAVIOURAL_ACTION_TAKEN" class="form-control" rows="1"></textarea>
+                    </div>
+
+                    <div class="col-md-6 form-group">
+                        <label>Remarks</label>
+                        <textarea id="BEHAVIOURAL_REMARKS" class="form-control" rows="1"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-success" id="btnSaveBehaviour">Save</button>
+                <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+    $(document).ready(function () {
+
+        if (!$.fn.DataTable.isDataTable('#tblBehavioural')) {
+            $('#tblBehavioural').DataTable();
+        }
+
+        $('#BEHAVIOURAL_INCIDENT_DATE').datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            format: "dd/mm/yyyy",
+            orientation: "bottom"
+        });
+
+        // Open datepicker on icon click
+        $('#BEHAVIOURAL_INCIDENT_DATE').closest('.input-group').find('.input-group-addon').on('click', function(){
+            $('#BEHAVIOURAL_INCIDENT_DATE').focus();
+        });
+
+        // OPEN MODAL
+        $('#btnOpenAddBehavioural').click(function () {
+            $('#behaviouralModalTitle').text('Add Behavioural Record');
+            $('#BEHAVIOURAL_RECORD_ID').val('');
+            $('#BehaviourModal input, #BehaviourModal textarea, #BehaviourModal select').val('');
+            $('#BEHAVIOURAL_INCIDENT_DATE').datepicker('update', '');
+            $('#BehaviourModal').modal('show');
+        });
+
+        // EDIT
+        $('#tblBehavioural').on('click', '.behaviour-edit', function () {
+            var id = $(this).data('id');
+
+            $.get('@Url.Action("GetBehaviouralRecordById","Mentoring")', { recordId: id }, function (res) {
+                if (res) {
+                    $('#behaviouralModalTitle').text('Edit Behavioural Record');
+                    $('#BEHAVIOURAL_RECORD_ID').val(res.RECORD_ID);
+                    $('#BEHAVIOURAL_LEVEL_ID').val(res.LEVEL_ID);
+                    $('#BEHAVIOURAL_INCIDENT_DETAILS').val(res.INCIDENT_DETAILS);
+                    $('#BEHAVIOURAL_ACTION_TAKEN').val(res.ACTION_TAKEN);
+                    $('#BEHAVIOURAL_REMARKS').val(res.REMARKS);
+                    // Handle Date
+                     if (res.INCIDENT_DATE) {
+                        // Depending on format, usually yyyy-MM-dd is needed for input type="date"
+                        // Assuming res.INCIDENT_DATE comes in a parseable format
+                         var d = new Date(res.INCIDENT_DATE);
+                         if(!isNaN(d.getTime())){
+                             var day = ("0" + d.getDate()).slice(-2);
+                             var month = ("0" + (d.getMonth() + 1)).slice(-2);
+                             var year = d.getFullYear();
+                             //$('#BEHAVIOURAL_INCIDENT_DATE').val(year + "-" + month + "-" + day);
+                             $('#BEHAVIOURAL_INCIDENT_DATE').datepicker('update', d);
+                         } else {
+                              //$('#BEHAVIOURAL_INCIDENT_DATE').val(res.INCIDENT_DATE);
+                              $('#BEHAVIOURAL_INCIDENT_DATE').datepicker('update', ''); 
+                         }
+                    }
+                    
+                    $('#BEHAVIOURAL_INCIDENT_TIME').val(res.INCIDENT_TIME);
+                    
+                    $('#BehaviourModal').modal('show');
+                }
+            });
+        });
+
+        // SAVE
+        $('#btnSaveBehaviour').click(function () {
+            var iDate = $('#BEHAVIOURAL_INCIDENT_DATE').val();
+            if(iDate) iDate = iDate.split("/").reverse().join("-");
+
+            var data = {
+                RECORD_ID: $('#BEHAVIOURAL_RECORD_ID').val(),
+                STUDENT_ID: $('#BEHAVIOURAL_STUDENT_ID').val(),
+                LEVEL_ID: $('#BEHAVIOURAL_LEVEL_ID').val(),
+                INCIDENT_DATE: iDate,
+                INCIDENT_TIME: $('#BEHAVIOURAL_INCIDENT_TIME').val(),
+                INCIDENT_DETAILS: $('#BEHAVIOURAL_INCIDENT_DETAILS').val(),
+                ACTION_TAKEN: $('#BEHAVIOURAL_ACTION_TAKEN').val(),
+                REMARKS: $('#BEHAVIOURAL_REMARKS').val()
+            };
+
+            if (!data.LEVEL_ID || !data.INCIDENT_DATE || !data.INCIDENT_DETAILS) {
+                swal('Warning', 'Please fill required fields (*)', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("SaveBehaviouralRecord", "Mentoring")',
+                type: 'POST',
+                data: data,
+                success: function (res) {
+                    if (res.success) {
+                        $('#BehaviourModal').modal('hide');
+                        swal('Success', res.message || 'Saved Successfully', 'success');
+                        setTimeout(function () {
+                            if (typeof BindBehavioural === 'function') {
+                                BindBehavioural();
+                            } else {
+                                location.reload();
+                            }
+                        }, 500);
+                    } else {
+                        swal('Error', res.message || 'Error saving record', 'error');
+                    }
+                },
+                error: function () {
+                    swal('Error', 'Server Error', 'error');
+                }
+            });
+        });
+
+        // DELETE
+        $('#tblBehavioural').on('click', '.behaviour-delete', function () {
+            var id = $(this).data('id');
+            swal({
+                title: "Are you sure?",
+                text: "Delete this record?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+                closeOnConfirm: false
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    $.post('@Url.Action("DeleteBehaviouralRecord", "Mentoring")', { recordId: id }, function (res) {
+                        if (res.success) {
+                            swal("Deleted!", "Record deleted.", "success");
+                            setTimeout(function () {
+                                if (typeof BindBehavioural === 'function') {
+                                    BindBehavioural();
+                                } else {
+                                    location.reload();
+                                }
+                            }, 500);
+                        } else {
+                            swal("Error", "Could not delete.", "error");
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+
+
+
+
+
+
+
+
+

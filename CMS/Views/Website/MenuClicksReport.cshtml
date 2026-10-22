@@ -1,0 +1,496 @@
+@model CMS.ViewModel.ViewModel.WebsiteViewModel
+@{
+    ViewBag.Title = "Menu Clicks Report";
+    Layout = null;
+
+    int totalClicksToday = 0;
+    string topMenuToday = "N/A";
+    if (Model.liMenuClicksReport != null && Model.liMenuClicksReport.Count > 0)
+    {
+        totalClicksToday = Model.liMenuClicksReport.Sum(x => Convert.ToInt32(x.CLICK_COUNT));
+        var topObj = Model.liMenuClicksReport.OrderByDescending(x => Convert.ToInt32(x.CLICK_COUNT)).FirstOrDefault();
+        if (topObj != null) { topMenuToday = topObj.MAIN_MENU; }
+    }
+
+    int totalClicksAllTime = 0;
+    if (Model.liMenuWiseTotalClicksReport != null && Model.liMenuWiseTotalClicksReport.Count > 0)
+    {
+        totalClicksAllTime = Model.liMenuWiseTotalClicksReport.Sum(x => Convert.ToInt32(x.CLICK_COUNT));
+    }
+}
+
+<style>
+    /* EXECUTIVE DASHBOARD THEME */
+    @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    .exec-dashboard {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        background: #f8fafc;
+        color: #1e293b;
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    /* CLEAN METRIC CARDS */
+    .metric-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s;
+        position: relative;
+    }
+
+        .metric-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+        }
+
+    .metric-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+    }
+
+        .metric-label i {
+            margin-right: 8px;
+            font-size: 14px;
+        }
+
+    .metric-value {
+        font-size: 32px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 4px;
+        line-height: 1;
+    }
+
+    .metric-sub {
+        font-size: 12px;
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    .border-indigo {
+        border-top: 4px solid #4f46e5 !important;
+    }
+
+    .border-emerald {
+        border-top: 4px solid #10b981 !important;
+    }
+
+    .border-amber {
+        border-top: 4px solid #f59e0b !important;
+    }
+
+    /* PROFESSIONAL TABS */
+    .exec-tabs {
+        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 30px;
+    }
+
+        .exec-tabs > li > a {
+            border: none !important;
+            color: #64748b;
+            font-weight: 600;
+            padding: 12px 24px;
+            background: transparent !important;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .exec-tabs > li.active > a {
+            color: #4f46e5 !important;
+        }
+
+            .exec-tabs > li.active > a:after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                width: 100%;
+                height: 3px;
+                background: #4f46e5;
+                border-radius: 3px;
+            }
+
+    /* DATA PANELS */
+    .data-panel {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 0;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        margin-bottom: 30px;
+    }
+
+    .panel-header {
+        background: #fff;
+        padding: 20px 24px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: flex-end; /* align bottoms so label+input+button line up */
+        justify-content: space-between;
+        flex-wrap: wrap; /* wraps to next line on mobile */
+        gap: 12px;
+    }
+
+    .panel-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    /* PROFESSIONAL TABLES */
+    .table-scroll {
+        max-height: 520px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #e2e8f0 #fff;
+    }
+
+        .table-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+    .table-exec {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .table-exec thead th {
+            background: #f8fafc;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            padding: 16px 24px !important;
+            color: #475569;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+
+        .table-exec tbody td {
+            padding: 16px 24px !important;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .table-exec tbody tr:hover {
+            background: #f8fafc;
+        }
+
+    /* INPUTS & FILTERS */
+    .exec-input {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-size: 13px;
+        height: 40px !important;
+        transition: all 0.2s;
+        color: #1e293b;
+        box-shadow: none !important;
+    }
+
+        .exec-input:focus {
+            border-color: #4f46e5;
+            border-width: 2px;
+        }
+
+    .btn-exec {
+        background: #1e293b;
+        color: #fff;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 13px;
+        padding: 8px 20px;
+        border: none;
+        transition: all 0.2s;
+    }
+
+        .btn-exec:hover {
+            background: #0f172a;
+            transform: translateY(-1px);
+        }
+
+    /* BADGES */
+    .badge-exec {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 10px;
+        display: inline-block;
+    }
+
+    .badge-soft-indigo {
+        background: #eef2ff;
+        color: #4f46e5;
+    }
+
+    .badge-soft-emerald {
+        background: #ecfdf5;
+        color: #059669;
+    }
+</style>
+
+<div id="content" class="content">
+    <div class="exec-dashboard">
+        <!-- Dashboard Header -->
+        <div class="row m-b-30 align-items-center">
+            <div class="col-md-9">
+                <h1 style="font-size: 24px; font-weight: 800; margin: 0; color: #0f172a;">Website Menu Analytics</h1>
+            </div>
+            <div class="col-md-3 text-right">
+            </div>
+        </div>
+
+        <!-- Metric Grid -->
+        @*<div class="row">
+            <div class="col-md-4">
+                <div class="metric-card border-indigo">
+                    <div class="metric-label"><i class="fa fa-chart-line"></i> Total Clicks (Period)</div>
+                    <div class="metric-value">@totalClicksToday</div>
+                    <div class="metric-sub">Range: @Model.sClickDate</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card border-amber">
+                    <div class="metric-label"><i class="fa fa-star"></i> Top Performer</div>
+                    <div class="metric-value" style="font-size: 24px; padding-top: 5px;">@topMenuToday</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card border-emerald">
+                    <div class="metric-label"><i class="fa fa-globe"></i> Over all</div>
+                    <div class="metric-value">@totalClicksAllTime</div>
+                </div>
+            </div>
+        </div>*@
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs exec-tabs">
+            <li class="active"><a href="#daily-tab" data-toggle="tab">Date Wise</a></li>
+            <li><a href="#lifetime-tab" data-toggle="tab">Over all Analysis</a></li>
+        </ul>
+
+        <div class="tab-content" style="background: transparent; border: none; padding: 0;">
+            <!-- DAILY TAB -->
+            <div class="tab-pane fade active in" id="daily-tab">
+                <div class="data-panel">
+                    <div class="panel-header">
+                        <h4 class="panel-title">Date Wise</h4>
+                        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px;">
+                            <div>
+                                <label class="f-s-10 f-w-700 text-uppercase text-muted p-l-5">From Date</label>
+                                <input type="text" id="txtFromDate" class="form-control datepicker exec-input"
+                                       value="@Model.sFromDate" readonly style="cursor: pointer; width: 150px;" />
+                            </div>
+                            <div>
+                                <label class="f-s-10 f-w-700 text-uppercase text-muted p-l-5">To Date</label>
+                                <input type="text" id="txtToDate" class="form-control datepicker exec-input"
+                                       value="@Model.sToDate" readonly style="cursor: pointer; width: 150px;" />
+                            </div>
+                            <button class="btn-exec" onclick="FetchReportByDate()" style="height: 40px; white-space: nowrap;">
+                                <i class="fa fa-sync m-r-5"></i> Get
+                            </button>
+                            <div style="position: relative; min-width: 200px; flex: 1;">
+                                <i class="fa fa-search" style="position: absolute; left: 14px; top: 13px; color: #94a3b8; font-size: 13px;"></i>
+                                <input type="text" id="txtDailySearch" class="form-control exec-input"
+                                       placeholder="Search..." style="padding-left: 36px; width: 100%;" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="table-exec" id="tblDateWiseReport">
+                            <thead>
+                                <tr>
+                                    <th width="60">#</th>
+                                    <th>Menu Hierarchy</th>
+                                    <th class="text-right" width="120">Total Hits</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.liMenuClicksReport != null && Model.liMenuClicksReport.Count > 0)
+                                {
+                                    int dIter = 0;
+                                    foreach (var item in Model.liMenuClicksReport)
+                                    {
+                                        dIter++;
+                                        <tr>
+                                            <td>@dIter</td>
+                                            <td>
+                                                <div class="f-w-800" style="color: #4f46e5; font-size: 14px;">@item.MAIN_MENU</div>
+                                                <div class="f-s-12 text-muted m-t-2" style="font-weight: 500;">
+                                                    @item.SUB_MENU @(!string.IsNullOrEmpty(item.INSIDE_MENU) ? " > " + item.INSIDE_MENU : "")
+                                                </div>
+                                            </td>
+                                            <td class="text-right f-w-800" style="color: #1e293b; font-size: 16px;">@item.CLICK_COUNT</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr><td colspan="3" class="text-center p-40 text-muted">No data available for this range.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIFETIME TAB -->
+            <div class="tab-pane fade" id="lifetime-tab">
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="data-panel">
+                            <div class="panel-header">
+                                <h4 class="panel-title">Over all </h4>
+                            </div>
+                            <div style="padding: 24px; background: #fff;">
+                                <div class="row m-b-20">
+                                    <div class="col-md-6">
+                                        <label class="f-s-11 f-w-700 text-uppercase m-b-8 d-block">Menu Filter</label>
+                                        <select id="ddlMainMenu" class="form-control exec-input">
+                                            <option value="">-- All Departments --</option>
+                                            @if (Model.liMenuWiseTotalClicksReport != null)
+                                            {
+                                                var depts = Model.liMenuWiseTotalClicksReport.Select(m => m.MAIN_MENU).Distinct().OrderBy(m => m).ToList();
+                                                foreach (var d in depts)
+                                                {
+                                                    <option value="@d">@d</option>
+}
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="f-s-11 f-w-700 text-uppercase m-b-8 d-block">Advanced Search</label>
+                                        <input type="text" id="txtLifetimeSearch" class="form-control exec-input" placeholder="Type to filter results..." />
+                                    </div>
+                                </div>
+                                <div class="table-scroll" style="border: 1px solid #e2e8f0; border-radius: 8px;">
+                                    <table class="table-exec" id="tblMenuWiseReport">
+                                        <thead>
+                                            <tr>
+                                                <th width="60">#</th>
+                                                <th>Menu Hierarchy</th>
+                                                <th class="text-right" width="120">Global Hits</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.liMenuWiseTotalClicksReport != null && Model.liMenuWiseTotalClicksReport.Count > 0)
+                                            {
+                                                int lIter = 0;
+                                                foreach (var item in Model.liMenuWiseTotalClicksReport)
+                                                {
+                                                    lIter++;
+                                                    <tr>
+                                                        <td>@lIter</td>
+                                                        <td>
+                                                            <div class="f-w-800" style="color: #10b981; font-size: 14px;">@item.MAIN_MENU</div>
+                                                            <div class="f-s-12 text-muted m-t-2" style="font-weight: 500;">
+                                                                @item.SUB_MENU @(!string.IsNullOrEmpty(item.INSIDE_MENU) ? " > " + item.INSIDE_MENU : "")
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <span class="f-w-800 text-indigo" style="font-size: 16px;">@item.CLICK_COUNT</span>
+                                                            <div class="progress progress-xs m-t-8 m-b-0" style="height: 4px;">
+                                                                <div class="progress-bar" style="background: #1e293b; width: @(totalClicksAllTime > 0 ? (Convert.ToDouble(item.CLICK_COUNT) / totalClicksAllTime * 100).ToString("0") : "0")%"></div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="data-panel" style="padding: 24px;">
+                            <h4 class="panel-title m-b-20">Activity Distribution</h4>
+                            <div id="chartContainer"></div>
+                            @*<div class="m-t-24 p-20 border-radius-12" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                <h6 class="f-w-700 m-b-8">Reporting Methodology</h6>
+                                <p class="m-0 text-muted f-s-12 line-h-18">Distributions are calculated across @(Model.liMenuWiseTotalClicksReport != null ? Model.liMenuWiseTotalClicksReport.Count : 0) monitored endpoints. Percentages reflect global interaction density.</p>
+                            </div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function FetchReportByDate() {
+        var sFrom = $('#txtFromDate').val();
+        var sTo = $('#txtToDate').val();
+        if (sFrom != "" && sTo != "") {
+            var reportUrl = "@Url.Action("MenuClicksReport", "Website")" + "?sFromDate=" + sFrom + "&sToDate=" + sTo;
+            if (window.loadContent) { loadContent(reportUrl); } else { window.location.href = reportUrl; }
+        }
+    }
+
+    function FilterTables(tableId, sSearch, sCategory) {
+        var $rows = $('#' + tableId + ' tbody tr:not(:has(td[colspan]))');
+        $rows.each(function() {
+            var $row = $(this);
+            var text = $row.text().toLowerCase();
+            var cat = $row.find("td:nth-child(2)").text().toLowerCase();
+            var mS = text.indexOf(sSearch.toLowerCase()) !== -1;
+            var mC = sCategory === "" || cat.indexOf(sCategory.toLowerCase()) !== -1;
+            if (mS && mC) { $row.show(); } else { $row.hide(); }
+        });
+    }
+
+    function RenderAnalyticsChart() {
+        if (!document.getElementById("chartContainer")) return;
+        $('#chartContainer').empty();
+        @if (Model.liMenuWiseTotalClicksReport != null && Model.liMenuWiseTotalClicksReport.Count > 0)
+        {
+            var dataPoints = Model.liMenuWiseTotalClicksReport.GroupBy(m => m.MAIN_MENU).Select(g => new { x = g.Key, value = g.Sum(x => Convert.ToInt32(x.CLICK_COUNT)) }).OrderByDescending(x => x.value).ToList();
+            <text>
+            var plotData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(dataPoints));
+            if (window.anychart) {
+                anychart.onDocumentReady(function () {
+                    var chart = anychart.pie(plotData);
+                    chart.innerRadius("75%").animation(true, 800);
+                    chart.labels().position("outside").format("{%x}").fontFamily("'Inter'").fontWeight(600).fontColor("#475569").fontSize(10);
+                    chart.legend().position("bottom").align("center").itemsLayout("horizontal").padding(10).fontFamily("'Inter'").fontSize(11);
+                    chart.palette(["#1e293b", "#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#6366f1"]);
+                    chart.container("chartContainer").draw();
+                });
+            }
+            </text>
+        }
+    }
+
+    function ContentLoad() {
+        if ($.fn.datepicker) { $('.datepicker').datepicker({ format: 'yyyy-mm-dd', autoclose: true, todayHighlight: true }); }
+        $('#txtDailySearch').off('keyup').on('keyup', function() { FilterTables('tblDateWiseReport', $(this).val(), ""); });
+        $('#txtLifetimeSearch, #ddlMainMenu').off('change keyup').on('change keyup', function() { FilterTables('tblMenuWiseReport', $('#txtLifetimeSearch').val(), $('#ddlMainMenu').val()); });
+        RenderAnalyticsChart();
+    }
+    if (!window.loadContent) { $(document).ready(function () { ContentLoad(); }); }
+</script>

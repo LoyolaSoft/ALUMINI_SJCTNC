@@ -1,0 +1,323 @@
+﻿
+@model CMS.ViewModel.ViewModel.SupportDataViewModel
+
+@{
+    ViewBag.Title = "ListUserRolesRights";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<div class="content" id="content">
+
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">User Roles Rights List</li>
+    </ol>
+    <h1 class="page-header">User Roles Rights</h1>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h3 class="panel-title">User Roles Rights</h3>
+        </div>
+        <div class="panel-body">
+
+            <div class="form-group">
+                <a class="btn bg-green pull-right" title="Click to Add" href="#user-roles-rights-dialog" data-toggle="modal" id="Add"><i class="fa fa-plus"></i> Add</a>
+            </div><br /><br />
+
+            <div class="form-group table-responsive">
+                @{ int count = 0;}
+                <table class="table table-hover table-bordered" id="tblMenuItems">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Menu Name</th>
+                            <th>Role Name</th>
+                          
+                            <th>Active</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.liUserRolesRights != null)
+                        {
+                            foreach (var item in Model.liUserRolesRights)
+                            {
+                                <tr>
+                                    <td>@{count++;} @count</td>
+                                    <td>@item.MENU_NAME</td>
+                                    <td>@item.ROLE_NAME</td>
+                                   
+                                    <td>
+                                        @if (item.IS_ACTIVE == "1")
+                                        {
+                                            <a href="javascrip:;" onclick="SetActive(@item.USER_RIGHTS_ID,0)" class="text-success"><i class="fa fa-check"></i></a>             }
+                                        else
+                                        {
+                                            <a href="javascrip:;" onclick="SetActive(@item.USER_RIGHTS_ID,1)" class="text-danger"><i class="fa fa-times"></i></a>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="#user-roles-rights-dialog" onclick="FetchUserRolesRightsById(@item.USER_RIGHTS_ID)" data-toggle="modal"><i class="fa fa-edit text-primary" title="Edit"></i></a>
+                                        <a href="javascript:;" onclick="GetConfirm(@item.USER_RIGHTS_ID)" title="Click To Delete"><i class="fa fa-trash text-danger"></i></a>
+                                    </td>
+                                </tr>
+                                            }
+                                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="user-roles-rights-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit User Roles Rights</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal" id="pBody" data-parsley-validate="true">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                <input type="hidden" id="txtUserRoelsRightsId" />
+                               
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Module</label>
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.MenuItemList, (Model.MenuItemList != null) ? Model.MenuItemList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true" })
+                                    </div>
+                                </div>
+                               
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Role</label>
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.RoleList, (Model.RoleList != null) ? Model.RoleList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true" })
+                                    </div>
+                                </div>
+                                
+
+
+                                <div class="form-group">
+                                    <div class="checkbox checkbox-css col-md-10 pull-right">
+                                        <input type="checkbox" id="IsActive" />
+                                        <label for="IsActive">Active</label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+        $('.selectpicker').selectpicker('refresh');
+
+        var tbl = $('#tblMenuItems').DataTable();
+
+
+        function FetchUserRolesRightsById(UserRoelsRightsId)
+        {
+            $('#pBody').parsley().destroy();
+
+            if (UserRoelsRightsId != null)
+            {
+                $.ajax({
+                    url: "/SupportData/FetchUserRolesRightsById",
+                    type:"post",
+                    data: { sUserRightsId: UserRoelsRightsId },
+                    success:function(data)
+                    {
+                        if(data.Message!=null)
+                        {
+                            alert(data.Message);
+                        }
+                        else {
+                            if (data.oResult[0] != null)
+                            {
+                               
+                                $('#MenuItemList option[value="' + data.oResult[0].MENU_ITEM_ID + '"]').attr("selected", "selected");
+                                $('#RoleList option[value="' + data.oResult[0].ROLE_ID + '"]').attr("selected", "selected");
+                                $('#txtUserRoelsRightsId').attr('value', data.oResult[0].USER_RIGHTS_ID);
+                                if (data.oResult[0].IS_ACTIVE == "1") {
+                                    $('#IsActive').attr("checked", true);
+                                }
+                                $('.selectpicker').selectpicker('refresh');
+                            }
+                        }
+
+                    },
+                    error:function(ex)
+                    {
+                        alert(ex.Message);
+                    }
+                });
+            }
+        }
+
+        $('#btnSubmit').click(function () {
+
+            var isValid = true;
+            if ($('#pBody').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //gritter-info,danger,success,warning,default
+                //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+
+            var UserRolesRightsId = $('#txtUserRoelsRightsId').val();
+            var MenuItemId = $('#MenuItemList').val();
+            var RoleId = $('#RoleList').val();
+            var isActive = 0;
+            if ($('#IsActive').is(':checked')) {
+                isActive = 1;
+            }
+
+            var jsonData = '{"USER_RIGHTS_ID":"' + UserRolesRightsId + '","MENU_ITEM_ID":"' + MenuItemId + '","ROLE_ID":"' + RoleId + '","IS_ACTIVE":"' + isActive + '"}';
+
+
+              var req=  $.ajax({
+                    url: "/SupportData/SaveorUpdateUserRolesRights",
+                    type: "post",
+                    data: { sJsonData: jsonData },
+                    success: function (data) {
+                        if (data.Message != null && data.Message != "")
+                        {
+                            if (data.ErrorCode == "200")
+                            {
+                                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                                loadContent('/SupportData/ListUserRolesRights');
+                            }
+                            if (data.ErrorCode == "417") {
+                                swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                            }
+                            if (data.ErrorCode == "503" || data.ErrorCode == "208") {
+                                swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                            }
+
+
+                        }
+                    },
+                    error: function (ex) {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+
+              });
+        });
+
+
+    function SetActive(UserRolesId,Mode)
+    {
+        swal({
+            title: "Are you sure want to Activate/Deactivate?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+        function () {
+            $.ajax({
+                url: "/SupportData/ActivateorDeactivateUserRolesRightsById",
+                type: "post",
+                data: { sUserRightsId: UserRolesId, sMode: Mode },
+                success: function (data) {
+                    if (data.Message != null && data.Message != "") {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                        loadContent('/SupportData/ListUserRolesRights');
+                    }
+                },
+                error: function (ex) {
+                    swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+                }
+
+            });
+        });
+
+    }
+
+
+    GetConfirm = function (UserRolesRightsId)
+        {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+
+function () {
+    $.ajax({
+        url: "/SupportData/DeleteUserRolesRightsById",
+        type: "post",
+        data: { sUserRightsId: UserRolesRightsId },
+        success: function (data) {
+            if (data.Message != null && data.Message != "") {
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/SupportData/ListUserRolesRights');
+            }
+        },
+        error: function (ex) {
+            swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+        }
+    });
+});
+
+        }
+
+        $('#Add').click(function () {
+
+            $('#pBody').parsley().destroy();
+            if ($('#IsActive').is(':checked')) {
+                $('#IsActive').attr('checked', false);
+            }
+            $('#RoleList option[value=""]').attr("selected", "selected");
+            $('#MenuItemList option[value=""]').attr("selected", "selected");
+            $('#txtUserRoelsRightsId').attr('value', '');
+            $('.selectpicker').selectpicker('refresh');
+
+
+        });
+
+
+
+
+        
+</script>
+

@@ -1,0 +1,187 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "ExternalEvaluationStudentMarksForCOE";   
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">ExternalEvaluationStudentMarksForCOE</li>
+    </ol>
+    <h1 class="page-header">ExternalEvaluationStudentMarksForCOE</h1>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h3 class="panel-title">ExternalEvaluationStudentMarksForCOE</h3>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-horizontal">
+                    <div class="form-group col-lg-12">
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.ExamType, "Date", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.EvaluationDate, (Model.EvaluationDate != null) ? Model.EvaluationDate : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.EvaluationDate, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.ExamType, "Course", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.EvaluationCourse, (Model.EvaluationCourse != null) ? Model.EvaluationCourse : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.EvaluationCourse, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.Evaluators, "Evalauators", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.Evaluators, (Model.Evaluators != null) ? Model.Evaluators : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.Evaluators, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group col-lg-12">
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.CalculationType, "Calculation", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.CalculationType, (Model.CalculationType != null) ? Model.CalculationType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.CalculationType, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-1">
+                            <a href="#" class="btn btn-primary" id="btnGet">Get</a>                            
+                        </div> 
+                        <div class="form-group col-md-1">
+                            <a href="#" class="btn btn-success pull-right" id="btnPrint" onclick="printDiv('dvCourseWiseReport')">Print</a>
+                        </div>
+                        <div class="form-group col-md-1">
+                            <a href="#" class="btn btn-primary pull-right" id="btnSubmit" >Save</a>
+                        </div>                                               
+                    </div>
+                </div>
+                <div class="col-md-12 table-responsive">
+                    <div id="dvEvaluationStudentBind"></div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+    function ContentLoad()
+    {
+
+    }
+    $('.selectpicker').selectpicker({
+        size: 4
+    });
+    //ExamType OnChange
+    $('#EvaluationDate').on('change', function () {
+        var vEvaluationDate = $('#EvaluationDate option:selected').text();
+        $.ajax({
+            url: '@Url.Action("BindEvaluationCourseByEvaluationDate", "Examination")',
+            data: { sEvalationDate: vEvaluationDate },
+            success: function (objResult) {
+                $('#EvaluationCourse').empty();
+                $('#EvaluationCourse').append('<option value="0">-- Select --</option>' + objResult.sResult);
+                $('.selectpicker').selectpicker('refresh');
+            },
+            error: function (xhr, textStatus, error) {
+                alert(error + "\n");
+            }
+        });
+    });
+
+    SelectOrUnselect = function () {
+        if (AllchkID.checked == true) {
+            $('#tblEvStudentList tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').each(function () {
+                    $('input[type="checkbox"]').attr("checked", true);
+                });
+            });
+        }
+        else {
+            $('#tblEvStudentList tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').each(function () {
+                    $('input[type="checkbox"]').attr("checked", false);
+                });
+            });
+        }
+    }
+
+
+    //This to Load the table
+    function loadGird() {
+        var vEvaluationDate = $('#EvaluationDate option:selected').text();
+        var vEvaluationCourse = $('#EvaluationCourse').val();
+        var vEvaluators = $('#Evaluators').val();
+        var vCalculation = $('#CalculationType').val();
+        if (vEvaluationCourse != 0) {
+            $.ajax({
+                url: '@Url.Action("BindExternalEvaluationStudentMarksForCOE", "Examination")',
+                data: { sEvaluationDate: vEvaluationDate, sCourseId: vEvaluationCourse, sEvaluatorId: vEvaluators, sCalculationType: vCalculation },
+                success: function (option) {
+                    var BindEvalationStudent = $('#dvEvaluationStudentBind');
+                    BindEvalationStudent.empty();
+                    if (option.Message != null && option.Message != '') {
+                        alert(option.Message);
+                    } else {
+                        BindEvalationStudent.append(option);
+                    }
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+        } else {
+            $('#dvEvalationStudentBind').empty();
+            $('.selectpicker').selectpicker('refresh');
+            return false;
+        }
+    }
+    $('#btnGet').on('click', function () {
+        loadGird();
+    });
+    function printDiv(divName) {
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        loadContent('/Examination/ListExternalEvaluationStudent');
+    }
+
+
+    $('#btnSubmit').on('click', function () {
+        var jsonObject;
+        if (jsonObject == null) {
+            jsonObject = '{"JSON_EVSTUDENTMARK":[';
+            $('#tblEvStudentMark tbody tr').each(function () {
+                jsonObject += '{"EXAM_EV_STU_MARK_ID":"' + $(this).attr("cms-evmarkid") + '","STUDENT_ID":"' + $(this).attr("cms-studentId") + '","COURSE_ID":"' + ($('#EvaluationCourse').val()) + '","EVALUATION_1":"' + ($(this).find('td:eq(2) input[type="text"]').val()) + '","EVALUATION_1":"' + ($(this).find('td:eq(2) input[type="text"]').val()) + '","IS_EXTERNAL_INTERNAL":"' + $(this).attr("cms-studentId") + '","PROGRAMME_LEVEL_ID":"' + $(this).attr("cms-programmeLevel") + '"},';
+            });
+            jsonObject = jsonObject.slice(0, -1);
+            jsonObject += ']}';
+        }
+        $.ajax({
+            url: "@Url.Action("SaveExternalEvaluationStudentMarksForCOE", "Examination")",
+            method: "post",
+        content: "application/json; charset=utf-8",
+        data: { sJsonEvalauationStudentMark: jsonObject },
+        success: function (data) {
+            alert(data.Message);
+            loadGird();
+        }, error: function (e) {
+            alert('Internal Server Error !');
+        }
+    });
+    });
+</script>
+

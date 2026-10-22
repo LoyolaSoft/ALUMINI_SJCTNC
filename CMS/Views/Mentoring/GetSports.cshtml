@@ -1,0 +1,220 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{ 
+    Layout = null;
+    int n = 0;
+}
+
+<input type="hidden" id="STUDENT_ID" value="@ViewBag.StudentId" />
+
+<div class="container mt-3">
+    <h4 class="text-center mb-3"><b>Sports & Club Activities</b></h4>
+
+    <div class="text-right mb-2">
+        <button class="btn btn-success btn-sm"
+                data-toggle="modal" data-target="#sportsModal"
+                id="btnOpenAddSports">
+            <i class="fa fa-plus"></i> Add
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover" id="tblSports">
+            <thead>
+                <tr>
+                    <th>S.NO</th>
+                    <th>Semester</th>
+                    <th>Category</th>
+                    <th>Activity</th>
+                    <th width="100">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.liSports != null && Model.liSports.Any())
+                {
+                    foreach (var item in Model.liSports)
+                    {
+                        n++;
+                        <tr>
+                            <td>@n</td>
+                            <td>@item.SEMESTER_NAME</td>
+                            <td>@item.CATEGORY</td>
+                            <td>@item.ACTIVITY</td>
+                            <td class="text-center">
+                                <button class="btn btn-warning btn-xs sport-edit"
+                                        data-id="@item.SPORTS_ID">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger btn-xs sport-delete"
+                                        data-id="@item.SPORTS_ID">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="sportsModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="sportsModalTitle">Sports / Club Activity</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="SPORT_RECORD_ID" />
+
+                <div class="form-group">
+                    <label>Semester <span class="text-danger">*</span></label>
+                    @Html.DropDownList(
+                        "SPORT_SEMESTER_ID",
+                        Model.SemesterList,
+                        "-- Select --",
+                        new { @class = "form-control", id = "SPORT_SEMESTER_ID" }
+                    )
+                </div>
+
+                <div class="form-group">
+                    <label>Category <span class="text-danger">*</span></label>
+                    <select id="SPORT_CATEGORY" class="form-control">
+                        <option>Sports / Games</option>
+                        <option>Clubs / Associations (SLP)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Activity <span class="text-danger">*</span></label>
+                    <input type="text" id="SPORT_ACTIVITY" class="form-control" />
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-success" id="btnSaveSport">Save</button>
+                <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function () {
+    // Initialize DataTable - Check if already initialized
+    if (!$.fn.DataTable.isDataTable('#tblSports')) {
+        $('#tblSports').DataTable({
+            "pageLength": 10,
+            "ordering": true,
+            "searching": true
+        });
+    }
+
+    // Add - Clear Form
+    $('#btnOpenAddSports').click(function () {
+        $('#sportsModalTitle').text('Add Sports / Club Activity');
+        $('#SPORT_RECORD_ID').val('');
+        $('#SPORT_SEMESTER_ID').val('');
+        $('#SPORT_CATEGORY').val('Sports / Games');
+        $('#SPORT_ACTIVITY').val('');
+    });
+
+    // Edit - Load Data via AJAX
+    $('#tblSports').on('click', '.sport-edit', function () {
+        var id = $(this).data('id');
+        $('#sportsModalTitle').text('Edit Sports / Club Activity');
+
+        $.get('@Url.Action("GetSportById","Mentoring")', { id: id }, function (res) {
+            if (!res) {
+                swal('Error', 'Unable to load data', 'error');
+                return;
+            }
+
+            $('#SPORT_RECORD_ID').val(res.SPORTS_ID);
+            $('#SPORT_SEMESTER_ID').val(res.SEMESTER_ID);
+            $('#SPORT_CATEGORY').val(res.CATEGORY);
+            $('#SPORT_ACTIVITY').val(res.ACTIVITY);
+            $('#sportsModal').modal('show');
+        }).fail(function () {
+            swal('Error', 'Server error', 'error');
+        });
+    });
+
+    // Save/Update
+    $('#btnSaveSport').click(function () {
+        var data = {
+            SPORTS_ID: $('#SPORT_RECORD_ID').val(),
+            STUDENT_ID: $('#STUDENT_ID').val(),
+            SEMESTER_ID: $('#SPORT_SEMESTER_ID').val(),
+            CATEGORY: $('#SPORT_CATEGORY').val(),
+            ACTIVITY: $('#SPORT_ACTIVITY').val()
+        };
+
+        if (!data.SEMESTER_ID || !data.CATEGORY || !data.ACTIVITY) {
+            swal('Warning', 'All fields are required', 'warning');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("SaveSports","Mentoring")',
+            type: 'POST',
+            data: data,
+            success: function (res) {
+                if (res && res.success) {
+                    $('#sportsModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
+
+                    swal('Success', res.message || 'Saved successfully', 'success');
+
+                    setTimeout(function () {
+                        if (typeof BindSports === 'function') {
+                            BindSports();
+                        } else {
+                            $('#stuSports').click();
+                        }
+                    }, 300);
+                } else {
+                    swal('Error', res.message || 'Error occurred', 'error');
+                }
+            },
+            error: function () {
+                swal('Error', 'Server error', 'error');
+            }
+        });
+    });
+
+    // Delete
+    $('#tblSports').on('click', '.sport-delete', function () {
+        var id = $(this).data('id');
+
+        swal({
+            title: 'Delete this record?',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }, function (isConfirm) {
+            if (isConfirm) {
+                $.post('@Url.Action("DeleteSport", "Mentoring")', { id: id }, function (res) {
+                    swal('Deleted', 'Deleted successfully', 'success');
+
+                    // Wait for alert to close before reload
+                    setTimeout(function () {
+                        if (typeof BindSports === 'function') {
+                            BindSports();
+                        } else {
+                            $('#stuSports').click();
+                        }
+                    }, 300);
+                }).fail(function () {
+                    swal('Error', 'Server error', 'error');
+                });
+            }
+        });
+    });
+});
+</script>

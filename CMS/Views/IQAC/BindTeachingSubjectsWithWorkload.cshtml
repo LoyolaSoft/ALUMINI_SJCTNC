@@ -1,0 +1,83 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+
+@{ 
+    Layout = null;
+    int nCount = 0;
+    string sDomData = string.Empty;
+}
+
+<div class="form-group  table-responsive col-md-12">
+    <table  class="table table-bordered" id="tblIQAC">
+        <thead>
+            <tr>
+                <th>#</th>
+                @*<th>Name of the staff</th>*@
+                @*<th>Dept</th>*@
+                <th>Class</th>
+                <th>Sem</th>
+                @*<th>Subject Taught</th>
+                <th>Subject Code</th>*@
+                <th>Lecture_Allotted</th>
+                <th>Lecture_Taken</th>
+                <th>Practical_Allotted</th>
+                <th>Practical_Taken</th>
+                <th>Casual_Leave</th>
+                <th>On_Duty</th>
+                <th>Medical_Leave</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+           @functions{
+               public string BindWorload()
+               {
+                   string sDom = string.Empty;
+                   sDom = @"<td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-type='number'/></td>
+                            <td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-type='number'/> </td>
+                            <td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-type='number'/> </td>
+                            <td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-type='number'/> </td>
+                            <td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-type='number'/> </td>
+                            <td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-type='number'/> </td>
+                            <td><input type='text' cms-IQACID='' class='form-control' value='' data-parsley-required='true' data-parsley-type='number'/> </td><td></td>";
+                   return sDom;
+               }
+        }
+           @if (Model.liClassCourseStaff!=null && Model.liClassCourseStaff.Count>0)
+           {
+               foreach (var item in Model.liClassCourseStaff)
+               {
+                   <tr cms-ClassId="@item.CLASS_ID">
+                       <td>@{nCount++;} @nCount</td>
+                       <td>@item.CLASS_CODE</td>
+                       <td>@item.SEMESTER_ID</td>
+                       @if (Model.liTeachingSubjectWorkload != null && Model.liTeachingSubjectWorkload.Count > 0)
+                       {
+                           var liWorkload = Model.liTeachingSubjectWorkload.Where(x => x.CLASS_ID == item.CLASS_ID && x.COURSE_ID==item.COURSE_ID).ToList();
+                           if (liWorkload != null && liWorkload.Count > 0)
+                           {
+                                <td><input type="text" class="form-control" cms-IQACID="@liWorkload.FirstOrDefault().WORKLOAD_ID" data-parsley-type="number" data-parsley-required="true" value="@liWorkload.FirstOrDefault().LECTURE_ALLOTTED" /> </td>
+                                <td><input type="text" class="form-control" cms-IQACID="@liWorkload.FirstOrDefault().WORKLOAD_ID" data-parsley-type="number" data-parsley-required="true" value="@liWorkload.FirstOrDefault().LECTURE_TAKEN" /> </td>
+                                <td><input type="text" class="form-control" cms-IQACID="@liWorkload.FirstOrDefault().WORKLOAD_ID" data-parsley-type="number" data-parsley-required="true" value="@liWorkload.FirstOrDefault().PRACTICAL_ALLOTTED" /> </td>
+                                <td><input type="text" class="form-control" cms-IQACID="@liWorkload.FirstOrDefault().WORKLOAD_ID" data-parsley-type="number" data-parsley-required="true" value="@liWorkload.FirstOrDefault().PRACTICAL_TAKEN" /> </td>
+                                <td><input type="text" class="form-control" cms-IQACID="@liWorkload.FirstOrDefault().WORKLOAD_ID" data-parsley-type="number" data-parsley-required="true" value="@liWorkload.FirstOrDefault().CASUAL_LEAVE" /> </td>
+                                <td><input type="text" class="form-control" cms-IQACID="@liWorkload.FirstOrDefault().WORKLOAD_ID" data-parsley-type="number" data-parsley-required="true" value="@liWorkload.FirstOrDefault().ON_DUTY" /> </td>
+                                <td><input type="text" class="form-control" cms-IQACID="@liWorkload.FirstOrDefault().WORKLOAD_ID" data-parsley-type="number" data-parsley-required="true" value="@liWorkload.FirstOrDefault().MEDICAL_LEAVE" /> </td>
+                                <td><a onclick="GetConfrim(@liWorkload.FirstOrDefault().WORKLOAD_ID)" href="javascript:;"><i class="fa fa-trash text-danger" title="Click To Delete"></i></a></td>
+                           }
+                           else
+                           {
+                               sDomData = BindWorload();
+                               @Html.Raw(sDomData)
+                           }
+                       }
+                       else
+                       {
+                           sDomData=BindWorload();
+                           @Html.Raw(sDomData)
+                       }
+                   </tr>
+               }
+           }
+        </tbody>
+    </table>
+</div>

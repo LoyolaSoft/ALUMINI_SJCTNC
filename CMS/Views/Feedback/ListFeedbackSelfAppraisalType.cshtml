@@ -1,0 +1,330 @@
+﻿
+
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+
+@{
+    ViewBag.Title = "ListFeedbackSelfAppraisalType";
+}
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">ListFeedbackSelfAppraisalType</li>
+    </ol>
+    <h1 class="page-header">List Feedback SelfAppraisal Type</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Feedback SelfAppraisal Type</h4>
+        </div>
+        <div class="panel-body noPadding">
+
+            <div class="form-group col-md-12">
+                <a class="btn btn-success pull-right form-group m-b-5" href="#FbSAppraisal-dialog" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add"> Add</i></a>
+            </div>
+
+            <div class="col-md-12 form-horizontal">
+                <div class="form-group col-md-12 table-responsive">
+                    <table class="table table-hover table-bordered" id="tblLiFbFacultySelfAppraisalType">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Appraisal Type</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            @if (Model.liSupFacultyAppraisalType != null && Model.liSupFacultyAppraisalType.Count > 0)
+                            {
+                                var count = 0;
+                                foreach (var item in Model.liSupFacultyAppraisalType)
+                                {
+                                    count = count + 1;
+                                    <tr>
+                                        <td>@count</td>
+
+                                        <td>@item.APPRAISAL_TYPE</td>
+                                        <td>
+                                            <a href="#FbSAppraisal-dialog" onclick="FetchLiFeedBackAppraisalTypeById(@item.FACULTY_SELF_APPRAISAL_TYPE_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+
+                                            <a href="javascrip:;" onclick="GetConfirm(@item.FACULTY_SELF_APPRAISAL_TYPE_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+
+                                        </td>
+                                    </tr>
+                                }
+
+                            }
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-md-12" id="divBind">
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="FbSAppraisal-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit Feedback Appraisal Type</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Appraisal Type</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="txtAppraisalType" class="form-control" placeholder="Appraisal Type" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+        <input type="hidden" id="SupFSelfAppraisalTypeId" value="" />
+    </div>
+</div>
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+
+    function ContentLoad() {
+        // Document Ready Function .
+    }
+
+
+      @*var sAcademicStatus=@Html.Raw(Json.Encode(FeedbackViewModel.sAcademicAttempt));
+
+             if(sAcademicStatus>0)
+             {
+                 if(sAcademicStatus==1)
+                 {
+                     changeAcademicYear(@Session["ACADEMIC_YEAR"]);
+                 }
+
+             }
+             else
+             {
+
+
+             }*@
+
+    var tbl = $('#tblLiFbFacultySelfAppraisalType').DataTable();
+
+
+
+
+    function FetchLiFeedBackAppraisalTypeById(FeedBackAppraisalTypeId)
+    {
+        $('#pBody').parsley().destroy();
+
+        if (FeedBackAppraisalTypeId != null)
+        {
+            $.ajax({
+                url: "/FeedBack/FetchLiFeedBackAppraisalTypeById",
+                type:"post",
+                data: { sFeedBackAppraisalTypeId: FeedBackAppraisalTypeId },
+                success:function(data)
+                {
+                    if(data.Message!=null)
+                    {
+                        alert(data.Message);
+                    }
+                    else {
+                        if (data.oResult[0] != null)
+                        {
+
+                            $('#txtAppraisalType').attr('value', data.oResult[0].APPRAISAL_TYPE);
+                            $('#SupFSelfAppraisalTypeId').attr('value', data.oResult[0].FACULTY_SELF_APPRAISAL_TYPE_ID);
+                            $('.selectpicker').selectpicker('refresh');
+                        }
+
+
+                    }
+
+                },
+                error:function(ex)
+                {
+                    alert(ex.Message);
+                }
+            });
+        }
+    }
+
+    $('#btnSubmit').click(function () {
+
+        var isValid = true;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            //gritter-info,danger,success,warning,default
+            //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+            return false;
+        }
+
+        var FeedBackAppraisalTypeId = $('#SupFSelfAppraisalTypeId').val();
+        var FeedbackAppraisalType = $('#txtAppraisalType').val();
+
+        //var QuestionType = $('#QuestionTypeList').val();
+        //var NoofQuestion = $('#txtNoOfQuestion').val();
+        //var FeedBAckCategory = $('#sQuestionGroupList').val();
+        //var AutoReneval;
+        //if ($('#AutoReneval').is(":checked"))
+        //{
+        //     AutoReneval = 1;
+        //}
+        //else
+        //{
+        //    AutoReneval = 0;
+        //}
+        //var ExtraBook = $('#txtExtraBooks').val();
+
+
+        var jsonData = '{"FACULTY_SELF_APPRAISAL_TYPE_ID":"' + FeedBackAppraisalTypeId + '","APPRAISAL_TYPE":"' + FeedbackAppraisalType + '"}';
+
+
+        var req=  $.ajax({
+            url: "/FeedBack/SaveorUpdateFeedBackAppraisalType",
+            type: "post",
+            data: { sJsonData: jsonData },
+            success: function (data) {
+                if (data.Message != null && data.Message != "")
+                {
+                    if (data.ErrorCode == "200")
+                    {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                        loadContent('/FeedBack/ListFeedbackSelfAppraisalType');
+                    }
+                    if (data.ErrorCode == "417") {
+                        swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                    if (data.ErrorCode == "201") {
+                        swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                    }
+
+
+                }
+            },
+            error: function (ex) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+
+        });
+          @*req.done(function (response) {
+              var item = @Html.Raw(Json.Encode(Model.liRules));
+              alert(item[0].MAX_BOOKS);
+              tbl.rows().remove().draw();
+              for(var i=0;i<item.length;i++)
+              {
+
+                  //alert(item[i].MAX_BOOKS);
+                  var result=[];
+                  result.push(i);
+                  result.push(item[i].CATEGORY_NAME);
+                  result.push(item[i].MAX_BOOKS);
+                  result.push(item[i].LOAN_PERIOD);
+                  result.push(item[i].FINE_AMOUNT);
+                  result.push(item[i].DEPOSIT);
+                  result.push(item[i].AUTORENEVAL);
+                  result.push(item[i].EXTRA_BOOKS);
+                  result.push(item[i].EXTRA_BOOKS);
+
+              }
+              tbl.rows.add(result);
+              tbl.draw();
+          });*@
+
+
+          });
+
+    GetConfirm = function (FeedBackAppraisalTypeId) {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+       function(){ $.ajax({
+            url: "/FeedBack/DeleteLiFeedBackAppraisalType",
+            type: "post",
+            data: { sFeedBackAppraisalTypeId: FeedBackAppraisalTypeId },
+            success: function (data) {
+                if (data.Message != null && data.Message != "") {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                    loadContent('/FeedBack/ListFeedbackSelfAppraisalType');
+                }
+            },
+            error: function (ex) {
+                swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+            }
+
+
+       });
+           });
+
+    }
+
+    $('#Add').click(function () {
+
+        $('#pBody').parsley().destroy();
+        $('#txtAppraisalType').attr('value', '');
+        $('#SupFSelfAppraisalTypeId').attr('value', '');
+        $('.selectpicker').selectpicker('refresh');
+    });
+
+
+
+
+
+
+
+
+
+</script>
+
+
+
+
+

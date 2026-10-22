@@ -1,0 +1,96 @@
+﻿@model CMS.ViewModel.ViewModel.FeedbackViewModel
+
+@{ 
+    Layout = null;
+    int nCount = 0;
+}
+
+@if (Model.liExternalUserCourseMapping != null && Model.liExternalUserCourseMapping.Count > 0)
+{
+    var liStaffInfo = Model.liExternalUserCourseMapping.GroupBy(x => x.STAFF_ID).ToList();
+
+    foreach (var item in liStaffInfo)
+    {
+        var liQuestionAnswers = Model.liExternalUserCourseMapping.Where(x => x.STAFF_ID == item.FirstOrDefault().STAFF_ID).ToList();
+        <div class="form-group table-bordered" style="page-break-after: always!important; page-break-before: avoid!important;">
+            <center>
+                <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO)" width="100" height="100" />
+                <h4>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME - @Model.liCollegeDetails.FirstOrDefault().PLACE </h4>
+                <h4>@Model.liCollegeDetails.FirstOrDefault().UNIVERSITY</h4>
+                <h4>@Html.Raw(Model.liCollegeDetails.FirstOrDefault().GRADE.Replace("rd", "<sup>rd</sup>"))</h4>
+            </center>
+            <table border="0" width="100%">
+                <tr>
+                    <td> Name : </td>
+                    <td><b>@item.FirstOrDefault().FIRST_NAME</b></td>
+                    <td>College : </td>
+                    <td><b>@item.FirstOrDefault().COLLEGE_NAME</b></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Mobile No :</td>
+                    <td><b>@item.FirstOrDefault().MOBILE_NO</b></td>
+                    <td>Department : </td>
+                    <td><b>@item.FirstOrDefault().DEPARTMENT</b></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Course Code : </td>
+                    <td><b>@item.FirstOrDefault().COURSE_CODE</b></td>
+                    <td>Course Title : </td>
+                    <td><b>@item.FirstOrDefault().COURSE_TITLE</b></td>
+                </tr>
+            </table>
+            <br />
+            @if (liQuestionAnswers!=null && liQuestionAnswers.Count>0)
+            {
+                var liQuestionGroup = liQuestionAnswers.GroupBy(x => x.QUESTION_GROUP_ID).ToList();
+                <table class="table table-bordered" border="1">
+                    <thead>
+                        <tr>
+                            <th colspan="1%">#</th>
+                            <th>Question</th>
+                            <th>Remark</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ 
+                            nCount = 0;
+                            if (liQuestionGroup!=null && liQuestionGroup.Count>0)
+                            {
+                                foreach (var QuestionGroupitem in liQuestionGroup)
+                                {
+                                    <tr>
+                                        <td colspan="3">@QuestionGroupitem.FirstOrDefault().GROUP_TITLE</td>
+                                    </tr>
+                                    var liQuestions = liQuestionAnswers.Where(x => x.QUESTION_GROUP_ID == QuestionGroupitem.FirstOrDefault().QUESTION_GROUP_ID).ToList();
+                                    if (liQuestions!=null && liQuestions.Count>0)
+                                    {
+                                        foreach (var Questionitem in liQuestions)
+                                        {
+                                            <tr>
+                                                <td>@{nCount++;} @nCount</td>
+                                                <td>@Questionitem.QUESTION</td>
+                                                <td>@Questionitem.REMARK</td>
+                                            </tr>
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
+}

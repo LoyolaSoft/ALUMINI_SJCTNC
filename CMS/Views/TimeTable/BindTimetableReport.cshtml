@@ -1,0 +1,77 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+
+@{
+    Layout = null;
+    string CourseCode = string.Empty;
+    string CourseTitle = string.Empty;
+    string ttTimeTable = string.Empty;
+}
+
+<div class="row table-responsive" id="event">
+    @if (Model.lstTimeTable != null && Model.lstTimeTable.Count > 0)
+    {
+        var liGroupShift = Model.lstTimeTable.GroupBy(x => x.SHIFT).OrderBy(x => x.FirstOrDefault().SHIFT).ToList();
+        foreach (var Groupitem in liGroupShift)
+        {
+            var liTimeTable = Model.lstTimeTable.Where(x => x.SHIFT == Groupitem.FirstOrDefault().SHIFT).ToList();
+            <div id="dvTimeTable" class="col-md-12 text-center"><b id="lblStaff"></b></div>
+            <div class="col-md-12"> Time Table For SHIFT - @Groupitem.FirstOrDefault().SHIFT  </div>
+            <table class="table table-bordered text-center" id="TimeTableClassWiseList">
+                <thead>
+                    <tr>
+                        <th></th>
+                        @if (Model.lstHours != null && Model.lstHours.Count > 0)
+                        {
+                            foreach (var dataitem in Model.lstHours)
+                            {
+                                <th><b> Hour- @dataitem.HOUR</b></th>
+                            }
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.lstDayOrders != null && Model.lstDayOrders.Count > 0)
+                    {
+                        foreach (var dataitem in Model.lstDayOrders)
+                        {
+                            <tr>
+                                <td><b> Day- @dataitem.DAY</b></td>
+                                @foreach (var item in Model.lstHours)
+                                {
+                                    if (liTimeTable != null && liTimeTable.Count > 0)
+                                    {
+                                        var TimeTableList = liTimeTable.Where(s => s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                                        var TimeTable = TimeTableList.Where(s => s.Hour_Id == item.HOUR_ID && s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                                        if (TimeTable != null && TimeTable.Count > 0)
+                                        {
+                                            ttTimeTable = string.Join(",", TimeTable.Select(x => x.CLASS_CODE.ToString()).ToArray());
+                                            <td>
+                                                @{ CourseCode = "(" + @TimeTable.FirstOrDefault().COURSE_CODE + ")";}
+                                                @TimeTable.FirstOrDefault().hourType<br />
+                                                @{ CourseTitle = @TimeTable.FirstOrDefault().COURSE_TITLE; }
+                                                @CourseTitle - @CourseCode <br />
+                                                @ttTimeTable
+                                            </td>
+                                          }
+                                          else
+                                          {
+                                              <td></td>
+                                          }
+                                     }
+                                     else
+                                     {
+                                         <td></td>
+                                     }
+                             }
+                            </tr>
+                         }
+                     }
+                </tbody>
+            </table>
+         }
+     }
+     else
+     {
+         <div class="alert alert-danger"> No Records Found !</div>
+     }
+</div>

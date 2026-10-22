@@ -1,0 +1,107 @@
+﻿@model CMS.ViewModel.ViewModel.PayrollViewModel
+    @{ 
+        Layout = null;
+        int count = 0;
+    }
+<div class="col-md-12">
+
+    <br><br><br>
+    <table class="table table-bordered" id="tblstaffattendance">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Staff Code</th>
+                <th>Staff Name</th>
+                <th>Date</th>
+                <th>Time In& Time Out</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.listaffattendance != null && Model.listaffattendance.Count > 0)
+            {
+                foreach (var item in Model.listaffattendance)
+                {
+                    count++;
+                    <tr>
+                        <td>@count</td>
+                        <td>@item.STAFF_CODE</td>
+                        <td>@item.FIRST_NAME</td>
+                        <td>@item.DATE</td>
+                        <td>@(item.TIME_IN + "" + item.IN_TIME + "&" + item.TIME_OUT + "" + item.OUT_TIME)</td>
+                        <td>@item.STATUS_NAME</td>
+                        <td><a href="#staffattendance" onclick="FetchStaffAttendance(@item.STF_ATT_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a></td>
+
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+    $('#timein').timepicki();
+    $('#timeout').timepicki();
+    
+
+    function FetchStaffAttendance(ID)
+    {
+        if (ID!=null)
+        {
+            $.ajax({
+             url: "@Url.Action("FetchLateComersDetails", "Payroll")",
+            type: "post",
+            data: { sStaffAttendanceId:ID },
+            success: function (data)
+            {
+                $('#staffattid').val(data.STF_ATT_ID);
+                $('#datein').val(data.TIME_IN);
+                $('#timein').val(data.IN_TIME);
+                $('#dateout').val(data.TIME_OUT);
+                $('#timeout').val(data.OUT_TIME);
+                $('#LEAVE_STATUS').val(data.STATUS_ID);
+                $('.selectpicker').selectpicker('refresh');
+
+            },
+            error: function (ex)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+    else
+    {
+            swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+    }
+    }
+
+    $('#btnSubmit').click(function ()
+    {
+        var isValid = true;
+        var JsonData = null;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            return false;
+        }
+        JsonData = '{"STF_ATT_ID":"' + $('#staffattid').val() + '","TIME_IN":"' + $('#datein').val() + '","IN_TIME":"' + $('#timein').val() + '","TIME_OUT":"' + $('#dateout').val() + '","OUT_TIME":"' + $('#timeout').val() + '","STATUS_ID":"' + $('#LEAVE_STATUS').val() + '"}';
+
+        $.ajax({
+            url: "@Url.Action("UpdateStaffAttendance", "Payroll")",
+            type: "post",
+            data: { sJsonData: JsonData },
+            success: function (data)
+            {
+
+                swal({ title: "Message", text:data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                loadContent('/Payroll/ListLateComers');
+            },
+            error: function (ex) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+
+
+</script>

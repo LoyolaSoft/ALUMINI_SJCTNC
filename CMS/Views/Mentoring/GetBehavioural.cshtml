@@ -1,0 +1,264 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+
+<link href="~/Content/assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+
+<h3 class="text-center mb-3">
+    <b>Leadership, Service & Contributions</b>
+</h3>
+
+<input type="hidden" id="STUDENT_ID" value="@ViewBag.StudentId" />
+
+<!-- ADD BUTTON -->
+<div class="text-right mb-2">
+    <a href="javascript:;" class="text-success"
+       data-toggle="modal"
+       data-target="#ContributionModal">
+        <i class="fa fa-plus-circle fa-2x"></i>
+    </a>
+</div>
+
+
+
+<!-- TABLE -->
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead class="table-light text-center">
+            <tr>
+                <th>S.No</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Event</th>
+                <th>Place</th>
+                <th>Nature</th>
+                <th>Remarks</th>
+                <th width="90">Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @if (Model.liContributions != null && Model.liContributions.Any())
+            {
+                for (int i = 0; i < Model.liContributions.Count; i++)
+                {
+                    var item = Model.liContributions[i];
+                    <tr data-id="@item.CONTRIBUTION_ID"
+                        data-typeid="@item.CONTRIBUTION_TYPE_ID"
+                        data-date="@Convert.ToDateTime(item.EVENT_DATE).ToString("yyyy-MM-dd")"
+                        data-event="@item.EVENT_NAME"
+                        data-place="@item.PLACE"
+                        data-nature="@item.NATURE_OF_CONTRIBUTION"
+                        data-remarks="@item.REMARKS">
+
+                        <td class="text-center">@(i + 1)</td>
+                        <td>@item.CONTRIBUTION_TYPE_NAME</td>
+                        <td>@Convert.ToDateTime(item.EVENT_DATE).ToString("dd-MM-yyyy")</td>
+                        <td>@item.EVENT_NAME</td>
+                        <td>@item.PLACE</td>
+                        <td>@item.NATURE_OF_CONTRIBUTION</td>
+                        <td>@item.REMARKS</td>
+
+                        <td class="text-center">
+                            <button class="btn btn-xs btn-warning edit"
+                                    data-id="@item.CONTRIBUTION_ID"
+                                    data-toggle="modal"
+                                    data-target="#ContributionModal">
+                                <i class="fa fa-edit"></i>
+                            </button>
+
+
+                            <button class="btn btn-xs btn-danger delete"
+                                    data-id="@item.CONTRIBUTION_ID">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="text-center text-muted">
+                        No contributions added yet
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="ContributionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Contribution Details</h5>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="CONTRIBUTION_ID" />
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label>Contribution Type</label>
+                        @Html.DropDownList(
+                            "CONTRIBUTION_TYPE_ID",
+                            Model.ContributionTypeList,
+                            "-- Select --",
+                            new { @class = "form-control", id = "CONTRIBUTION_TYPE_ID" }
+                        )
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Date</label>
+                        <input type="date" id="EVENT_DATE" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Event</label>
+                        <input type="text" id="EVENT_NAME" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Place</label>
+                        <input type="text" id="PLACE" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Nature</label>
+                        <input type="text" id="NATURE_OF_CONTRIBUTION" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Remarks</label>
+                        <input type="text" id="REMARKS" class="form-control" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-success" id="btnSaveContribution">Save</button>
+                <button type="button" class="btn btn-danger  pull-right" data-dismiss="modal">
+                    Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+$(document).ready(function () {
+
+    /* CLEAR FORM ON ADD */
+    $('[data-target="#ContributionModal"]').on('click', function () {
+        $('#ContributionModal input, #ContributionModal select').val('');
+        $('#CONTRIBUTION_ID').val('');
+    });
+
+    $(document).on('click', '.edit', function () {
+
+    var contributionId = $(this).data('id');
+
+    $.get('@Url.Action("GetContributionById", "Mentoring")',
+        { contributionId: contributionId },
+        function (res) {
+
+            $('#CONTRIBUTION_ID').val(res.CONTRIBUTION_ID);
+            $('#CONTRIBUTION_TYPE_ID').val(String(res.CONTRIBUTION_TYPE_ID));
+            $('#EVENT_NAME').val(res.EVENT_NAME);
+            $('#EVENT_DATE').val(res.EVENT_DATE);
+            $('#PLACE').val(res.PLACE);
+            $('#NATURE_OF_CONTRIBUTION').val(res.NATURE_OF_CONTRIBUTION);
+            $('#REMARKS').val(res.REMARKS);
+        });
+});
+
+
+    /* SAVE */
+    $('#btnSaveContribution').on('click', function () {
+
+    const data = {
+        CONTRIBUTION_ID: $('#CONTRIBUTION_ID').val(),
+        STUDENT_ID: $('#STUDENT_ID').val(),
+        CONTRIBUTION_TYPE_ID: $('#CONTRIBUTION_TYPE_ID').val(),
+        EVENT_DATE: $('#EVENT_DATE').val(),
+        EVENT_NAME: $('#EVENT_NAME').val(),
+        PLACE: $('#PLACE').val(),
+        NATURE_OF_CONTRIBUTION: $('#NATURE_OF_CONTRIBUTION').val(),
+        REMARKS: $('#REMARKS').val()
+    };
+
+    if (!data.CONTRIBUTION_TYPE_ID || !data.EVENT_NAME) {
+        Swal.fire('Warning', 'Please fill required fields', 'warning');
+        return;
+    }
+
+    $.ajax({
+        url: '@Url.Action("SaveContribution","Mentoring")',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function (res) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: res.message
+            }).then(function () {
+                // loadContent('/Mentoring/GetContributions');
+                BindContribution();
+                $('.modal-backdrop').hide();
+                $('body').removeClass('modal-open');
+            });
+        }
+    });
+});
+
+
+    /* DELETE */
+$(document).on('click', '.delete', function () {
+
+    var contributionId = $(this).data('id');
+
+    Swal.fire({
+        title: 'Are you sure?',
+        icon: 'warning',
+        showCancelButton: true
+    }).then(result => {
+        if (result.isConfirmed) {
+
+            $.post(
+                '@Url.Action("DeleteContribution","Mentoring")',
+                { contributionId: contributionId },
+                function () {
+                    Swal.fire('Deleted', 'Contribution removed successfully', 'success')
+                        .then(function () {
+                            BindContribution();
+                            $('.modal-backdrop').hide();
+                            $('body').removeClass('modal-open');
+                        });
+                }
+            );
+
+        }
+    });
+});
+
+
+});
+</script>
+<script>
+    function toISODate(dateStr) {
+        // expects dd/MM/yyyy or dd-MM-yyyy
+        if (!dateStr) return '';
+        const parts = dateStr.includes('/') ? dateStr.split('/') : dateStr.split('-');
+        return parts[2] + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
+    }
+</script>

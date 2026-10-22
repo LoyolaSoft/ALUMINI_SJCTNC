@@ -1,0 +1,603 @@
+@{
+    ViewBag.Title = "Student Consolidated Report";
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+
+<style>
+    /* Global Font Scaling for Premium Dashboard */
+    .dashboard-container,
+    .dashboard-container input,
+    .dashboard-container button,
+    .dashboard-container table,
+    .dashboard-container th,
+    .dashboard-container td,
+    .dashboard-container select,
+    .dashboard-container option {
+        font-size: 1.15rem !important;
+    }
+
+    #modalAbsentDatesBody .m-b-15,
+    #modalAbsentDatesBody h4 {
+        display: none !important;
+    }
+
+    /* Premium Dashboard Styles */
+    .dashboard-container {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #1e293b;
+        margin-top: 15px;
+    }
+
+    .premium-card {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        padding: 24px;
+        margin-bottom: 24px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .search-section {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: #ffffff;
+        border: none;
+    }
+
+    .search-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .form-control-premium {
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        padding: 10px 16px;
+        height: auto;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+
+        .form-control-premium:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+    .btn-premium {
+        background-color: #2563eb;
+        color: #ffffff;
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-weight: 600;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+        .btn-premium:hover {
+            background-color: #1d4ed8;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+    .btn-premium-search {
+        background-color: #ffffff;
+        color: #1e3a8a;
+    }
+
+        .btn-premium-search:hover {
+            background-color: #f1f5f9;
+            color: #2563eb;
+        }
+
+    /* Student Profile Summary Card */
+    .profile-card {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .profile-img-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid #f1f5f9;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        background-color: #f8fafc;
+        flex-shrink: 0;
+    }
+
+    .profile-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-details {
+        flex-grow: 1;
+    }
+
+    .profile-name {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 8px 0;
+    }
+
+    .profile-meta-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+    }
+
+    .profile-meta-item {
+        font-size: 1.25rem;
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+        .profile-meta-item strong {
+            color: #1e3a8a;
+            font-weight: 800;
+        }
+
+    /* Modern Tabs Customization */
+    .premium-tabs {
+        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+        .premium-tabs .nav-link {
+            border: none !important;
+            color: #334155;
+            font-weight: 700;
+            font-size: 1.3rem;
+            padding: 14px 22px;
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+
+            .premium-tabs .nav-link:hover {
+                color: #2563eb;
+                background-color: #f1f5f9;
+            }
+
+        .premium-tabs .nav-item.active .nav-link,
+        .premium-tabs .nav-item.active .nav-link:focus,
+        .premium-tabs .nav-item.active .nav-link:hover {
+            color: #1e3a8a !important;
+            font-weight: 800 !important;
+            background-color: #eff6ff !important;
+        }
+
+            .premium-tabs .nav-item.active .nav-link::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background-color: #2563eb;
+                border-radius: 3px 3px 0 0;
+            }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .profile-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .profile-meta-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Student</a></li>
+        <li class="active">Consolidated Report</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">
+        Consolidated Report
+    </h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">
+                Student Consolidated 360° Dashboard
+            </h4>
+        </div>
+        <div class="panel-body">
+            <div class="row align-items-center" style="margin-top: 15px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <div>
+                    <label style="font-weight: bold; font-size: 14px; margin-bottom: 0;">Roll No</label>
+                </div>
+                <div style="width: 320px;">
+                    <input type="text" id="txtRollNo" class="form-control" placeholder="Enter Roll No" style="border-radius: 4px; border: 1px solid #cbd5e1; height: 36px;" autocomplete="off" />
+                </div>
+                <div>
+                    <button type="button" id="btnGetReport" class="btn btn-primary" style="background-color: #007bff; border-color: #007bff; border-radius: 4px; padding: 6px 20px; font-weight: bold; height: 36px; display: flex; align-items: center; justify-content: center;">
+                        Get
+                    </button>
+                </div>
+            </div>
+            <hr style="border-top: 1px solid #e2e8f0; margin-bottom: 25px;" />
+
+            <!-- Consolidated Dashboard Content -->
+            <div id="divConsolidatedDashboard" style="display: none;">
+
+                <!-- Header summary Profile Card -->
+                <div class="premium-card" id="divStudentHeaderProfile">
+                    <!-- Profile template loaded dynamically -->
+                </div>
+
+                <!-- Dashboard Navigation Tabs -->
+                <ul class="nav nav-tabs premium-tabs" role="tablist">
+                    <li class="nav-item active">
+                        <a class="nav-link active" data-toggle="tab" href="#tabPersonal" role="tab"><i class="fa fa-user m-r-5"></i> Personal Details</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#tabAcademic" role="tab"><i class="fa fa-graduation-cap m-r-5"></i> Academic Details</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#tabCIAMarks" role="tab"><i class="fa fa-pencil-square-o m-r-5"></i> CIA Marks</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#tabLateEntry" role="tab"><i class="fa fa-clock-o m-r-5"></i> Late Entry Details</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#tabAbsent" role="tab"><i class="fa fa-calendar-times-o m-r-5"></i> Absent Report</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#tabFee" role="tab"><i class="fa fa-money m-r-5"></i> Fee Details</a>
+                    </li>
+                </ul>
+
+                <!-- Tabs Content Panels -->
+                <div class="tab-content" style="background: transparent; border: none; padding: 0;">
+
+                    <!-- Personal Details Panel -->
+                    <div class="tab-pane fade active in" id="tabPersonal" role="tabpanel">
+                        <div class="premium-card">
+                            <div id="divPersonalContent"></div>
+                        </div>
+                    </div>
+
+                    <!-- Academic Details Panel -->
+                    <div class="tab-pane fade" id="tabAcademic" role="tabpanel">
+                        <div class="premium-card">
+                            <div id="divAcademicContent"></div>
+                        </div>
+                    </div>
+
+                    <!-- CIA Marks Panel -->
+                    <div class="tab-pane fade" id="tabCIAMarks" role="tabpanel">
+                        <div class="premium-card">
+                            <div id="divCIAContent"></div>
+                        </div>
+                    </div>
+
+                    <!-- Late Entry Panel -->
+                    <div class="tab-pane fade" id="tabLateEntry" role="tabpanel">
+                        <div class="premium-card">
+                            <div id="divLateEntryContent"></div>
+                        </div>
+                    </div>
+
+                    <!-- Absent Report Panel -->
+                    <div class="tab-pane fade" id="tabAbsent" role="tabpanel">
+                        <div class="premium-card">
+                            <div id="divAbsentContent"></div>
+                        </div>
+                    </div>
+
+                    <!-- Fee Details Panel -->
+                    <div class="tab-pane fade" id="tabFee" role="tabpanel">
+                        <div class="premium-card">
+                            <div id="divFeeContent"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+    </div>
+</div>
+
+<!-- Modal for displaying absent dates -->
+<div class="modal fade" id="modalAbsentDates" tabindex="-1" role="dialog" aria-labelledby="modalAbsentDatesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="background-color: #1e3a8a; color: white; padding: 15px 20px;">
+                <h5 class="modal-title" id="modalAbsentDatesLabel" style="font-weight: 700; font-size: 1.2rem; display: inline-block;">
+                    <i class="fa fa-calendar-minus-o"></i> Absent Dates Detail
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8; font-size: 1.5rem; float: right; background: none; border: none; margin-top: -3px;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalAbsentDatesBody" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+                <!-- Content loaded dynamically via AJAX -->
+            </div>
+            <div class="modal-footer" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 10px 20px;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="font-weight: 600; border-radius: 6px; padding: 6px 16px;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!--<div class="content dashboard-container" id="content">-->
+    <!-- begin breadcrumb -->
+    <!--<ol class="breadcrumb pull-right">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Student</a></li>
+        <li class="active">Consolidated Report</li>
+    </ol>-->
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <!--<h1 class="page-header">Student Consolidated Report</h1>-->
+    <!-- end page-header -->
+    <!-- Search Section -->
+ 
+<!--</div>-->
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+        $("#btnGetReport").click(function () {
+            var rollNo = $("#txtRollNo").val().trim();
+            if (!rollNo) {
+                alert("Please enter a student Roll Number.");
+                return;
+            }
+            LoadConsolidatedReport(rollNo);
+        });
+
+        // Trigger load on enter key
+        $("#txtRollNo").keypress(function (e) {
+            if (e.which == 13) {
+                $("#btnGetReport").click();
+            }
+        });
+
+        // Load correct tab dynamically on click
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            var targetTab = $(e.target).attr("href");
+            var rollNo = $("#txtRollNo").val().trim();
+            if (!rollNo) return;
+
+            if (targetTab === "#tabPersonal") {
+                LoadPersonalInfo(rollNo);
+            } else if (targetTab === "#tabAcademic") {
+                LoadAcademicInfo(rollNo);
+            } else if (targetTab === "#tabCIAMarks") {
+                LoadCIAMarksInfo(rollNo);
+            } else if (targetTab === "#tabLateEntry") {
+                LoadLateEntryInfo(rollNo);
+            } else if (targetTab === "#tabAbsent") {
+                LoadAbsentInfo(rollNo);
+            } else if (targetTab === "#tabFee") {
+                LoadFeeInfo(rollNo);
+            }
+        });
+
+    });
+
+    function LoadConsolidatedReport(rollNo) {
+        // Show loading or transition
+        $("#divConsolidatedDashboard").hide();
+
+        // 1. Fetch personal details first to verify student existence
+        $.ajax({
+            url: '@Url.Action("GetConsolidatedPersonalInfo", "Student")',
+            type: 'GET',
+            data: { sRollNo: rollNo },
+            success: function (data) {
+                if ($(data).find('.no-records').length > 0 || data.trim() === "" || $(data).find('#hdnStudentExists').val() === "false") {
+                    alert("No student record found for Roll Number: " + rollNo);
+                    $("#divConsolidatedDashboard").hide();
+                    return;
+                }
+
+                // Show dashboard wrapper
+                $("#divConsolidatedDashboard").show();
+
+                // Load Personal info content
+                $("#divPersonalContent").html(data);
+
+                // Set up the Header Profile Card from the personal info model
+                var name = $("#hdnStudentName").val();
+                var roll = $("#hdnStudentRollNo").val();
+                var reg = $("#hdnStudentRegisterNo").val();
+                var classname = $("#hdnStudentClassName").val();
+                var dept = $("#hdnStudentDept").val();
+                var shift = $("#hdnStudentShift").val();
+                var photo = $("#hdnStudentPhoto").val();
+                var isLeft = $("#hdnStudentIsLeft").val();
+                var isRejoined = $("#hdnStudentIsRejoined").val();
+                var mobile = $("#hdnStudentMobile").val();
+                var fatherMobile = $("#hdnStudentFatherMobile").val();
+                var isCourseCompleted = $("#hdnStudentIsCourseCompleted").val();
+
+                if (!photo) {
+                    photo = "/Content/assets/img/transparent/e-user.jpg"; // Default image
+                }
+
+                var statusBadge = "";
+                if (isLeft === "1") {
+                    statusBadge = ' <span class="badge" style="background-color: #ef4444 !important; color: #ffffff !important; padding: 5px 12px; font-size: 0.8rem; border-radius: 20px; font-weight: 700; margin-left: 15px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px;"><i class="fa fa-sign-out"></i> LEFT STUDENT</span>';
+                } else if (isRejoined === "1") {
+                    statusBadge = ' <span class="badge" style="background-color: #f59e0b !important; color: #ffffff !important; padding: 5px 12px; font-size: 0.8rem; border-radius: 20px; font-weight: 700; margin-left: 15px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px;"><i class="fa fa-refresh"></i> REJOINED STUDENT</span>';
+                } else if (isCourseCompleted === "1") {
+                    statusBadge = ' <span class="badge" style="background-color: #3b82f6 !important; color: #ffffff !important; padding: 5px 12px; font-size: 0.8rem; border-radius: 20px; font-weight: 700; margin-left: 15px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px;"><i class="fa fa-graduation-cap"></i> COURSE COMPLETED</span>';
+                } else {
+                    statusBadge = ' <span class="badge" style="background-color: #22c55e !important; color: #ffffff !important; padding: 5px 12px; font-size: 0.8rem; border-radius: 20px; font-weight: 700; margin-left: 15px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px;"><i class="fa fa-check-circle"></i> CURRENTLY STUDYING</span>';
+                }
+
+                var headerHtml = '<div class="profile-card">' +
+                    '   <div class="profile-img-container">' +
+                    '       <img class="profile-img" src="' + photo + '" alt="Student Photo" onerror="this.onerror=null;this.src=\'/Content/assets/img/transparent/e-user.jpg\'" />' +
+                    '   </div>' +
+                    '   <div class="profile-details">' +
+                    '       <h2 class="profile-name" style="margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">' + name + statusBadge + '</h2>' +
+                    '       <div class="profile-meta-grid">' +
+                    '           <div class="profile-meta-item"><strong>Roll No:</strong> ' + roll + '</div>' +
+                    '           <div class="profile-meta-item"><strong>Register No:</strong> ' + reg + '</div>' +
+                    '           <div class="profile-meta-item"><strong>Class:</strong> ' + classname + '</div>' +
+                    '           <div class="profile-meta-item"><strong>Department:</strong> ' + dept + '</div>' +
+                    '           <div class="profile-meta-item"><strong>Shift:</strong> ' + shift + '</div>' +
+                    '           <div class="profile-meta-item"><strong>Mobile No:</strong> ' + (mobile || '-') + '</div>' +
+                    '           <div class="profile-meta-item"><strong>Father Mobile:</strong> ' + (fatherMobile || '-') + '</div>' +
+                    '       </div>' +
+                    '   </div>' +
+                    '</div>';
+
+                $("#divStudentHeaderProfile").html(headerHtml);
+
+                // Default switch to Personal Details tab
+                $('.premium-tabs a[href="#tabPersonal"]').tab('show');
+            },
+            error: function () {
+                alert("Error searching student details. Please try again.");
+            }
+        });
+    }
+
+    function LoadPersonalInfo(rollNo) {
+        // Already loaded during verification, but refresh if needed
+    }
+
+    function LoadAcademicInfo(rollNo) {
+        $("#divAcademicContent").html('<div class="text-center p-5 text-muted"><i class="fa fa-spinner fa-spin fa-2x"></i><br/>Loading academic details...</div>');
+        $.ajax({
+            url: '@Url.Action("GetConsolidatedAcademicInfo", "Student")',
+            type: 'GET',
+            data: { sRollNo: rollNo },
+            success: function (html) {
+                $("#divAcademicContent").html(html);
+            },
+            error: function () {
+                $("#divAcademicContent").html('<div class="text-danger">Failed to load academic records.</div>');
+            }
+        });
+    }
+
+    function LoadCIAMarksInfo(rollNo) {
+        $("#divCIAContent").html('<div class="text-center p-5 text-muted"><i class="fa fa-spinner fa-spin fa-2x"></i><br/>Loading CIA marks...</div>');
+        $.ajax({
+            url: '@Url.Action("GetConsolidatedCIAMarks", "Student")',
+            type: 'GET',
+            data: { sRollNo: rollNo },
+            success: function (html) {
+                $("#divCIAContent").html(html);
+            },
+            error: function () {
+                $("#divCIAContent").html('<div class="text-danger">Failed to load CIA marks.</div>');
+            }
+        });
+    }
+
+    function LoadLateEntryInfo(rollNo) {
+        $("#divLateEntryContent").html('<div class="text-center p-5 text-muted"><i class="fa fa-spinner fa-spin fa-2x"></i><br/>Loading late entry logs...</div>');
+        $.ajax({
+            url: '@Url.Action("GetConsolidatedLateEntryInfo", "Student")',
+            type: 'GET',
+            data: { sRollNo: rollNo },
+            success: function (html) {
+                $("#divLateEntryContent").html(html);
+            },
+            error: function () {
+                $("#divLateEntryContent").html('<div class="text-danger">Failed to load late entry logs.</div>');
+            }
+        });
+    }
+
+    function LoadAbsentInfo(rollNo) {
+        LoadSemesterAttendance("");
+    }
+
+    function LoadSemesterAttendance(semesterId, academicYear) {
+        var rollNo = $("#txtRollNo").val().trim();
+        $("#divAbsentContent").html('<div class="text-center p-5 text-muted"><i class="fa fa-spinner fa-spin fa-2x"></i><br/>Loading attendance details...</div>');
+        $.ajax({
+            url: '@Url.Action("GetConsolidatedAttendanceInfo", "Student")',
+            type: 'GET',
+            data: { sRollNo: rollNo, semesterId: semesterId, academicYear: academicYear || '' },
+            success: function (html) {
+                $("#divAbsentContent").html(html);
+            },
+            error: function () {
+                $("#divAbsentContent").html('<div class="text-danger">Failed to load absent details.</div>');
+            }
+        });
+    }
+
+    function ShowAbsentDatesModal(semesterId, academicYear) {
+        var rollNo = $("#txtRollNo").val().trim();
+        $("#modalAbsentDatesBody").html('<div class="text-center p-5 text-muted"><i class="fa fa-spinner fa-spin fa-2x"></i><br/>Loading absent dates...</div>');
+        $("#modalAbsentDates").modal('show');
+        $.ajax({
+            url: '@Url.Action("GetConsolidatedAttendanceInfo", "Student")',
+            type: 'GET',
+            data: { sRollNo: rollNo, semesterId: semesterId, academicYear: academicYear || '' },
+            success: function (html) {
+                $("#modalAbsentDatesBody").html(html);
+            },
+            error: function () {
+                $("#modalAbsentDatesBody").html('<div class="text-danger p-3">Failed to load absent dates.</div>');
+            }
+        });
+    }
+
+    function LoadFeeInfo(rollNo) {
+        $("#divFeeContent").html('<div class="text-center p-5 text-muted"><i class="fa fa-spinner fa-spin fa-2x"></i><br/>Loading fee summary...</div>');
+        $.ajax({
+            url: '@Url.Action("GetConsolidatedFeeInfo", "Student")',
+            type: 'GET',
+            data: { sRollNo: rollNo },
+            success: function (html) {
+                $("#divFeeContent").html(html);
+            },
+            error: function () {
+                $("#divFeeContent").html('<div class="text-danger">Failed to load fee summaries.</div>');
+            }
+        });
+    }
+</script>

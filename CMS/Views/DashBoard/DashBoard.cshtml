@@ -1,0 +1,245 @@
+﻿@model CMS.ViewModel.ViewModel.DashboardViewModel
+@using CMS.Utility
+@using CMS.ViewModel.ViewModel
+@{
+    ViewBag.Title = Model.liDashBoardModel.FirstOrDefault().ROLE_NAME;
+    Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    //Layout = null;
+    string CourseCode = string.Empty;
+    string ttTimeTable = string.Empty;
+    string sDayOrder = string.Empty;
+    // int nCourses = 0;
+}
+
+<style>
+    #ourmanna-verse {
+        padding: 10px;
+        margin: 10px;
+        /*background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(0, 0, 0, 0.3);*/
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+    }
+
+    #mannaverse {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    #mannaverse-reference:before {
+        content: "- ";
+    }
+
+    #mannaverse-reference {
+        text-align: right;
+        font-size: 12px;
+    }
+
+    #mannaverse-version {
+        color: #ddd;
+    }
+</style>
+
+
+
+<link href="~/Content/assets/plugins/fullcalendar/fullcalendar.print.css" rel="stylesheet" media='print' />
+<link href="~/Content/assets/plugins/fullcalendar/fullcalendar.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/morris/morris.css" rel="stylesheet" />
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <input hidden id="vRole" value="@Model.liDashBoardModel.FirstOrDefault().ROLE_ID" />
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">@Model.liDashBoardModel.FirstOrDefault().ROLE_NAME DashBoard</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">@Model.liDashBoardModel.FirstOrDefault().ROLE_NAME Dashboard</h1>
+
+    <!-- begin col-3 -->
+    <div class="col-lg-12">
+        <div class="widget widget-stats bg-gradient-blue">
+            <div class="stats-icon"><i class="fa fa-inbo"></i></div>
+            <div class="stats-info">
+                <h4>Word Of The Day</h4>
+                <p><div id="ourmanna-verse">Loading...</div></p>
+            </div>
+            <div class="stats-link">
+                <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.liDashBoardModel != null && Model.liDashBoardModel.Count > 0)
+    {
+        var groupmenu = Model.liDashBoardModel.Where(x => x.IS_GROUP == "1").GroupBy(x => x.ACTION_NAME).ToList();
+
+        var singlerow = Model.liDashBoardModel.Where(x => x.IS_GROUP != "1").GroupBy(x => x.ACTION_NAME).ToList();
+        <div class="row">
+            @{
+                foreach (var item in groupmenu)
+                {
+                    Html.RenderAction(item.FirstOrDefault().ACTION_NAME, item.FirstOrDefault().CONTROLLER_NAME);
+                }
+            }
+        </div>
+        <div>
+            @foreach (var item in singlerow)
+            {
+                Html.RenderAction(item.FirstOrDefault().ACTION_NAME, item.FirstOrDefault().CONTROLLER_NAME);
+            }
+        </div>
+    }
+
+</div>
+
+<div class="modal" id="modal-dialog" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">IIC Course Registration </h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        @if (Model.liStudent != null && Model.liStudent.Count > 0)
+                        {
+                            if (!string.IsNullOrEmpty(Model.liStudent.FirstOrDefault().STU_IIC_ID))
+                            {
+                                <div class="alert alert-success"><p class="text-center">Thank you for IIC Course Registration..!</p></div>
+                            }
+                            else
+                            {
+                                <div class="col-md-12" style="display:flex;align-content:center;">
+
+                                    <div class="col-md-12">
+                                        <input hidden id="sStudentid" value="@Model.liStudent.FirstOrDefault().STUDENT_ID" />
+                                        <div>
+                                            <table class="table table-responsive" style="font-size:15px;">
+                                                <tbody>
+                                                    <tr>
+                                                        <td><b>Student Name</b></td>
+                                                        <td>: @Model.liStudent.FirstOrDefault().FIRST_NAME</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><b>Register No./Admission No.</b></td>
+                                                        <td>: @Model.liStudent.FirstOrDefault().REGISTER_NO</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><b>Class Name</b></td>
+                                                        <td>: @Model.liStudent.FirstOrDefault().CLASS_NAME</td>
+                                                    </tr>
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div style="font-family:'Times New Roman';">
+                                    <h3 style="text-align:center;"><b>IIC Course Details :</b></h3>
+                                    <ul style="font-size:15px;">
+                                        <li>70 hours should be conducted through online classes</li>
+                                        <li>30 hours should be conducted through offline classes</li>
+                                        <li>The cost of the course is Rs.1950.</li>
+                                        <li>More details <a href="\Content\assets\img\iic.jpeg" target="_blank">Click here..</a></li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-12">
+
+                                    <div class="col-md-10 d-flex text-center" style="align-content:center;">
+                                        <a id="btnSubmit" value="Submit" class="btn btn-primary">Submit</a>
+                                        <a id="btnCancel" value="Submit" data-dismiss="modal" aria-hidden="true" class="btn btn-danger">Cancel</a>
+                                    </div>
+
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger"><p class="text-center">You are not allowed for IIC Course Registration. If any Query, Please Meet Office...!!!</p></div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script src="~/Content/assets/plugins/morris/raphael.min.js"></script>
+    <script src="~/Content/assets/plugins/morris/morris.js"></script>
+    <script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap.min.js"></script>
+    <script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap-world-merc-en.js"></script>
+    <script src="~/Content/assets/plugins/fullcalendar/lib/moment.min.js"></script>
+    <script src="~/Content/assets/plugins/fullcalendar/fullcalendar.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="~/Content/assets/js/calendar.demo.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="~/Content/assets/js/dashboard.min.js"></script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <script src="http://www.ourmanna.com/verses/api/js/" type="text/javascript"></script>
+    <script>
+
+        $(document).ready(function () {
+
+            var vRole = $('#vRole').val();
+            //console.log(vRole);
+            //if (vRole=="5") {
+            //    $('#modal-dialog').modal('show');
+            //}
+            var events = [];
+            //   Dashboard.init();
+            handleDashboardDatepicker = function () {
+                "use strict";
+                $("#datepicker-inline").datepicker({
+                    todayHighlight: !0
+                }
+                )
+            }
+            var refreshTimerId;
+
+            function startTimer() {
+                refreshTimerId = setInterval(function () {
+                    if (document.getElementById("currenttime")) {
+                        document.getElementById("currenttime").innerHTML = new Date().toLocaleTimeString();
+                    }
+                }, 1000);
+            }
+
+            startTimer();
+            handleDashboardDatepicker();
+
+
+        });
+
+        $('#btnSubmit').on('click', function () {
+
+            $.ajax({
+                    url: "@Url.Action("SaveIICStudentInfo", "SupportData")",
+                    method: "POST",
+                    datatype: "json",
+                data: { sStudentId: $('#sStudentid').val()},
+                // async: false,
+                success: function (ObjJsonData) {
+                    debugger;
+                    //myAlert(ObjJsonData.Message, 'gritter-success', '');
+                    $('#modal-dialog').hide();
+                    window.location.reload();
+
+                }, error: function (error) {
+                    myAlert('Internal Server Error !', 'gritter-danger', '');
+                }
+               });
+        });
+
+    </script>
+
+
+
+}
+

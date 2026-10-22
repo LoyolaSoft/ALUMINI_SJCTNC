@@ -1,0 +1,337 @@
+@model CMS.ViewModel.ViewModel.OBEViewModel
+@using System.Data
+@{
+    ViewBag.Title = "Exam Staff Mapping";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+        --glass-bg: rgba(255, 255, 255, 0.9);
+        --glass-border: rgba(255, 255, 255, 0.3);
+    }
+
+    .page-header-premium {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        margin-bottom: 25px;
+        font-size: 2.5rem;
+    }
+
+    .card-premium {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--glass-border);
+        margin-bottom: 30px;
+        transition: transform 0.3s ease;
+    }
+
+    .card-premium:hover {
+        transform: translateY(-5px);
+    }
+
+    .card-header-premium {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: white;
+        border-radius: 20px 20px 0 0 !important;
+        padding: 15px 25px;
+        font-weight: 600;
+    }
+
+    .btn-premium {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 10px 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s;
+    }
+
+    .btn-premium:hover {
+        transform: scale(1.05);
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    .table-premium thead th {
+        background: #f8f9fa;
+        color: #2a5298;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        border: none;
+        padding: 15px;
+    }
+
+    .table-premium tbody td {
+        padding: 12px 15px;
+        vertical-align: middle;
+        border-top: 1px solid #eee;
+    }
+
+    .select2-container--default .select2-selection--multiple {
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        padding: 5px;
+    }
+
+    .staff-select {
+        width: 100% !important;
+    }
+
+    #courseListArea {
+        min-height: 200px;
+    }
+
+    .loader-overlay {
+        display: none;
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(255,255,255,0.7);
+        z-index: 100;
+        justify-content: center;
+        align-items: center;
+        border-radius: 20px;
+    }
+</style>
+
+<div id="content" class="content">
+    <h1 class="page-header-premium"><i class="fa fa-user-plus"></i> Exam Staff Mapping</h1>
+
+    <div class="card card-premium">
+        <div class="card-header-premium">
+            <i class="fa fa-filter"></i> Selection Filters
+        </div>
+        <div class="card-body" style="padding: 30px;">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="control-label">Academic Year</label>
+                    <div class="dropdown-container">
+                        @Html.DropDownListFor(model => model.AcademicYear, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @id = "ddlAcYear", @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="control-label">Exam Setting</label>
+                    <div class="dropdown-container">
+                        @Html.DropDownListFor(model => model.ExamSetting, (Model.ExamSetting != null) ? Model.ExamSetting : Enumerable.Empty<SelectListItem>(), "--Select--", new { @id = "ddlExamSetting", @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <label class="control-label">Select Majors (Multi-Select)</label>
+                    <div class="dropdown-container">
+                        @Html.DropDownListFor(model => model.ProgrammeList, (Model.ProgrammeList != null) ? Model.ProgrammeList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @id = "ddlMajors", @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", @multiple = "multiple", @data_actions_box = "true" })
+                    </div>
+                </div>
+            </div>
+            <div class="row m-t-20 text-center">
+                <button class="btn btn-premium" onclick="LoadCourses()">
+                    <i class="fa fa-search"></i> Load Courses
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-premium" id="courseListCard" style="display:none;">
+        <div class="card-header-premium">
+            <i class="fa fa-list"></i> Course Mapping List
+        </div>
+        <div class="card-body" style="position:relative;">
+            <div class="loader-overlay" id="tableLoader">
+                <i class="fa fa-spinner fa-spin fa-3x" style="color: #2a5298;"></i>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-premium" id="tblCourses">
+                    <thead>
+                        <tr>
+                            <th width="5%">#</th>
+                            <th width="25%">Major Name</th>
+                            <th width="15%">Course Code</th>
+                            <th width="30%">Course Title</th>
+                            <th width="25%">Staff Assignment</th>
+                        </tr>
+                    </thead>
+                    <tbody id="courseBody">
+                        @* Dynamic Data *@
+                    </tbody>
+                </table>
+            </div>
+            <div class="row m-t-25 text-right" style="padding-right: 20px;">
+                <button class="btn btn-success btn-workflow" style="border-radius: 30px;" onclick="SaveMapping()">
+                    <i class="fa fa-save"></i> Final Save Mapping
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    var globalStaffData = [];
+
+    $(document).ready(function() {
+   
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+
+        // Change event for Academic Year to load Exam Settings
+        $('#ddlAcYear').on('change', function() {
+            var acYearId = $('#ddlAcYear option:selected').text();
+            if (acYearId) {
+                $.ajax({
+                    url: '@Url.Action("GetExamSettingByAcademicYear", "QuestionSector")',
+                    type: 'POST',
+                    data: { acYearId: acYearId },
+                    success: function(data) {
+                        var ddlExam = $('#ddlExamSetting');
+                        ddlExam.empty();
+                        ddlExam.append('<option value="">--Select--</option>');
+                        if (data && data.length > 0) {
+                            $.each(data, function(i, item) {
+                                ddlExam.append('<option value="' + item.Value + '">' + item.Text + '</option>');
+                            });
+                        }
+                        ddlExam.selectpicker('refresh');
+                    },
+                    error: function() {
+                        swal("Error", "Failed to load exam settings", "error");
+                    }
+                });
+            } else {
+                $('#ddlExamSetting').empty().append('<option value="">--Select--</option>').selectpicker('refresh');
+            }
+        });
+
+        // Store staff list for dynamic row generation
+        @if (Model.StaffList != null)
+        {
+            foreach (var item in Model.StaffList)
+            {
+                <text>globalStaffData.push({ id: '@item.Value', text: '@item.Text' });</text>
+            }
+        }
+    });
+
+    function LoadCourses() {
+        var majorIds = $('#ddlMajors').val();
+        var examId = $('#ddlExamSetting').val();
+
+        if (!examId) {
+            swal("Warning", "Please select an Exam Setting", "warning");
+            return;
+        }
+        if (!majorIds || majorIds.length == 0) {
+            swal("Warning", "Please select at least one Major", "warning");
+            return;
+        }
+
+        $('#courseListCard').show();
+        $('#tableLoader').css('display', 'flex');
+        $('#courseBody').empty();
+
+        $.ajax({
+            url: '@Url.Action("GetCoursesByMajors", "QuestionSector")',
+            type: 'POST',
+            data: { majorIds: majorIds.join(','), examSettingId: examId },
+            success: function(data) {
+                $('#tableLoader').hide();
+                if (data && data.length > 0) {
+                    $.each(data, function(i, item) {
+                        var staffHtml = '<select class="staff-select js-example-basic-single" data-course="' + item.COURSE_ROOT_ID + '"><option value="">-- Not Assigned --</option>';
+                        $.each(globalStaffData, function(idx, staff) {
+                            var selected = (item.STAFF_ID == staff.id) ? 'selected' : '';
+                            staffHtml += '<option value="' + staff.id + '" ' + selected + '>' + staff.text + '</option>';
+                        });
+                        staffHtml += '</select>';
+
+                        var row = '<tr>' +
+                            '<td>' + (i + 1) + '</td>' +
+                            '<td><b>' + item.MAJOR_NAME + '</b></td>' +
+                            '<td><code>' + item.COURSE_CODE + '</code></td>' +
+                            '<td>' + item.COURSE_TITLE + '</td>' +
+                            '<td>' + staffHtml + '</td>' +
+                            '</tr>';
+                        $('#courseBody').append(row);
+                    });
+
+                    $('.staff-select').select2({
+                        dropdownParent: $('#courseListCard')
+                    });
+                } else {
+                    $('#courseBody').append('<tr><td colspan="5" class="text-center">No courses found for selected majors.</td></tr>');
+                }
+            },
+            error: function() {
+                $('#tableLoader').hide();
+                swal("Error", "Failed to load courses", "error");
+            }
+        });
+    }
+
+    function SaveMapping() {
+        var mappingList = [];
+        var examId = $('#ddlExamSetting').val();
+
+        $('.staff-select').each(function() {
+            var staffId = $(this).val();
+            var courseId = $(this).data('course');
+            
+            if (staffId && staffId != "") {
+                mappingList.push({
+                    EXAM_SETTING_ID: examId,
+                    COURSE_ID: courseId,
+                    STAFF_ID: staffId
+                });
+            }
+        });
+
+        if (mappingList.length == 0) {
+            swal("Warning", "No staff assignments made.", "warning");
+            return;
+        }
+
+        swal({
+            title: "Confirm Save",
+            text: "Are you sure you want to save this staff mapping?",
+            type: "info",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Save it!",
+            closeOnConfirm: false
+        }, function() {
+            $.ajax({
+                url: '@Url.Action("SaveStaffMapping", "QuestionSector")',
+                type: 'POST',
+                data: JSON.stringify({ mappingList: mappingList }),
+                contentType: 'application/json',
+                success: function(res) {
+                    if (res.Success) {
+                        swal("Success", res.Message, "success");
+                    } else {
+                        swal("Error", res.Message, "error");
+                    }
+                },
+                error: function() {
+                    swal("Error", "An unexpected error occurred", "error");
+                }
+            });
+        });
+    }
+</script>

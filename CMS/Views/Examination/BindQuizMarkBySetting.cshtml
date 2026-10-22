@@ -1,0 +1,190 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "BindQuizMarkBySetting";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+@if (Model.liQuizMarkList != null && Model.liQuizMarkList.Count > 0 && Model.liStudentPersonalInfo != null && Model.liStudentPersonalInfo.Count > 0)
+{
+    <br />
+    <div class="row">
+        <!-- begin lg-12 -->
+        <div class="col-lg-12 table-responsive">
+
+            <table class="table table-bordered table-hover" id="tblQuizMarkList">
+                <thead>
+                    <tr>
+
+                        <td>#</td>
+
+                        <th>
+                            <div class="checkbox checkbox-css">
+                                <input type="checkbox" id="AllchkID" onchange="SelectOrUnselect()" />
+                                <label for="AllchkID"> &nbsp; &nbsp;</label>
+                            </div>
+                        </th>
+
+                        <td>Roll No</td>
+                        <td>Register No</td>
+                        <td>Name</td>
+                        <td>Mark</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ var Count = 0;}
+                    @foreach (var liStu in Model.liStudentPersonalInfo)
+                    {
+
+                        var liGroup = Model.liQuizMarkList.Where(x => x.STUDENT_ID == liStu.STUDENT_ID).ToList();
+                        Count += 1;
+                        <tr>
+                            <td>@Count</td>
+                            <td>
+                                <div class="checkbox checkbox-css">
+
+                                    <input type="checkbox" id="cbx_@liStu.STUDENT_ID" />
+                                    <label for="cbx_@liStu.STUDENT_ID"></label>
+
+                                </div>
+                            </td>
+                            <td>@liStu.ROLL_NO</td>
+                            <td>@liStu.REGISTER_NO</td>
+                            <td>@liStu.FIRST_NAME</td>
+
+                            @if (liGroup != null && liGroup.Count > 0)
+                            {
+                                var QuestionCount = liGroup.Sum(x => Convert.ToDouble(x.QUESTION_COUNT));
+                                var mark = liGroup.Sum(x => Convert.ToDouble(x.MARK));
+
+                                <td>@mark/@Model.liQuizSetting.FirstOrDefault().TOTAL_MARK</td>
+
+                            }
+                            else
+                            {
+                                <td>0</td>
+                                @*<td>0</td>*@
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="form-group">
+                <a class="btn btn-primary pull-right" href="javascript:;" id="btnSubmit"> Submit </a>
+            </div>
+        </div>
+
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">No Record(s) Found !</div>
+}
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+    $('#tblQuizMarkList').DataTable({
+        "paging": false
+    });
+
+
+    SelectOrUnselect = function ()
+    {
+        if (AllchkID.checked == true) {
+            isHeadCheckBoxClicked = true;
+            $('#tblQuizMarkList tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').each(function () {
+                    $('input[type="checkbox"]').attr("checked", true);
+                });
+            });
+        }
+        else {
+            isHeadCheckBoxClicked = false;
+            $('#tblQuizMarkList tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').each(function () {
+                    $('input[type="checkbox"]').attr("checked", false);
+                });
+            });
+        }
+    }
+
+
+      $('#btnSubmit').on('click', function ()
+     {
+        var nCount = 0;
+        var sStatus=0;
+        var mode = "";
+        var JsonData = "";
+
+        var isValid = true;
+          JsonData = '{"liQuizMark":[';
+
+          $('#tblQuizMarkList tbody tr').each(function ()
+          {
+              if ($(this).find('input[type="checkbox"]').is(':checked'))
+              {
+                  nCount++;
+
+                  JsonData += '{"ISSUE_ID":"' + $(this).find('input[type="checkbox"]').attr('cms-row-id') + '","BOOK_STATUS":"' + $(this).find('select[name="sStatusDDL"]').val() + '","FINE":"' + $(this).find('input[type="number"]').val() + '"},';
+                  sStatus = 0;
+              }
+        });
+
+        if (nCount != 0 && sStatus==0)
+        {
+            JsonData = JsonData.slice(0, -1);
+            JsonData = JsonData + "]}";
+            $.ajax({
+                url: '@Url.Action("SaveBookIssuedTransaction", "Library")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sJsonTransactionDetails: JsonData},
+                success: function (data)
+                {
+                    if (data.Message != null && data.Message != '') {
+                        if (data.ErrorCode == "204") {
+                            swal({ title: "Info!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                        if (data.ErrorCode == "406") {
+                            swal({ title: "Failed!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                        }
+                        if (data.ErrorCode == "200") {
+                            swal({ title: "Success!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                             loadContent('/Library/IssuedTransaction');
+                           // ContentLoad();
+                        }
+                    }
+                    else {
+
+                        //if (data.liGridClass != null && data.liGridClass.length > 0) {
+                        //    $('#thStatus').removeClass("hidden");
+                        //    //$('#bAppend > .ms-lastCell').removeClass("hidden");
+
+                        //    for (var i = 0; i < data.liGridClass.length; i++) {
+                        //        $('#tblIssuedTransaction tbody').find('tr[cms-issue_id=' + data.liGridClass[i].ISSUE_ID + ']').find('td.ms-lastCell').removeClass('hidden');
+                        //        $('#tblIssuedTransaction tbody').find('tr[cms-issue_id=' + data.liGridClass[i].ISSUE_ID + ']').find('td.ms-lastCell').text(data.liGridClass[i].STATUS);
+                        //    }
+                        //}
+                    }
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error !", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+        else if(sStatus!=0)
+        {
+
+        }
+        else
+        {
+            swal({ title: "Alert !", text: "Please Select Any One To Continue !", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+        }
+
+    });
+</script>

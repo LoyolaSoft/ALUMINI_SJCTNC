@@ -1,0 +1,304 @@
+﻿@model CMS.ViewModel.ViewModel.AcademicsViewModel
+
+@{
+    ViewBag.Title = "ListSemesterRoot";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">List Academic Semester </li>
+    </ol>
+    <h1 class="page-header">List Academic Semester </h1>
+   
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Academic Semester </h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="form-group col-md-12 pull-right">
+                <a class="btn btn-success pull-right col-md-1" @*href="@Url.Action("SemesterRootInfo","Academics")"*@ href="javascript:;" onclick="loadContent('/Academics/SemesterRootInfo')"><i class="fa fa-plus" title="Click To Add"> Add</i></a>
+                <a class="btn btn-primary pull-right col-md-1" href="#ActiveSemester-dialog" data-toggle="modal"><i class="fa fa-check text-white" title="Active Semester"> Active</i></a>
+            </div>
+            <br />
+
+            @{ int count = 0;}
+            @if (Model.liSemesterRoot != null && Model.liSemesterRoot.Count > 0)
+            {
+                <div class="form-group col-md-12 table-responsive">
+                    <table class="table table-hover table-bordered" id="SemesterRootList">
+                        <thead>
+                            <tr>
+                                <th>
+                                    #
+                                </th>
+                                <th>
+                                    @*@Html.DisplayNameFor(model => model.BATCH)*@
+                                    Batch
+                                </th>
+                                <th>
+                                    @*@Html.DisplayNameFor(model => model.PROGRAMME)*@
+                                    Programme
+                                </th>
+                                <th>
+                                    @*@Html.DisplayNameFor(model => model.SEMESTER)*@
+                                    Semester
+                                </th>
+                                <th>
+                                    @*@Html.DisplayNameFor(model => model.DATE_FROM)*@
+                                    Date From
+                                </th>
+                                <th>
+                                    @*@Html.DisplayNameFor(model => model.DATE_TO)*@
+                                    Date To
+                                </th>
+                                <th>
+                                    @*@Html.DisplayNameFor(model => model.IS_ACTIVE)*@
+                                    Active
+                                </th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.liSemesterRoot)
+                            {
+                                <tr>
+                                    <td>
+                                        @{ count++;}
+                                        @count
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.BATCH)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.PROGRAMME)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.SEMESTER)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.DATE_FROM)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.DATE_TO)
+                                    </td>
+                                    <td>
+                                        @if (item.IS_ACTIVE == "0")
+                                        {
+                                            <i class="fa fa-close text-danger" onclick="ActiveAcademic(@item.SEMESTER_ID);"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa fa-check text-success" onclick="ActiveAcademic(@item.SEMESTER_ID);"></i>
+                                        }
+                                    </td>
+                                    <td>
+
+                                        @if (item.IS_ACTIVE == "0")
+                                        { 
+                                            <a href="javascript:;" onclick="GetConfrim(@item.SEMESTER_ID);" @*href="@Url.Action("DeleteSemesterRootInfo","Academics",new { id=@item.SEMESTER_ID})" oncl onclick="return confirm('Are you sure want to delete ?');"*@><i class="fa fa-trash text-danger" title="Delete"></i></a>
+                                        }
+                                        else
+                                        {
+                                            <span> Is Active</span>
+                                        }
+                                    </td>
+
+                                </tr>
+                              }
+                        </tbody>
+                    </table>
+                </div>
+         }
+         else
+         {
+               <br /><br />
+               <div class="alert alert-danger"> No Records Available ! ....</div>
+         }
+
+        </div>
+    </div>
+</div>
+
+
+<div class="modal" id="ActiveSemester-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Active Semester</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Ac Year</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model=> model.AcademicYear,(Model.AcademicYear != null)?Model.AcademicYear : Enumerable.Empty<SelectListItem>(),"-- Select -- ", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true" } )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Programme Level</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model => model.ProgrammeLevel, (Model.ProgrammeLevel != null) ? Model.ProgrammeLevel : Enumerable.Empty<SelectListItem>(), "-- Select -- ", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true" } )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Programme</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model => model.Programme, (Model.Programme != null) ? Model.Programme : Enumerable.Empty<SelectListItem>(), null,  new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true",@data_actions_box="true",multiple="multiple" } )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Batch</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model => model.Batch, (Model.Batch != null) ? Model.Batch : Enumerable.Empty<SelectListItem>(), "-- Select --",  new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true" } )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Semester</label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(model => model.Semester, (Model.Semester != null) ? Model.Semester : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true" } )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-3 col-form-label"></label>
+                        <div class="col-md-9">
+                            <div class="checkbox checkbox-css">
+                                <input type="checkbox" id="IsActive"/>
+                                <label for="IsActive">Is Active</label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" id="btnActiveSubmit" class="btn btn-default" data-dismiss="modal">Submit</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+        $("#SemesterRootList").DataTable();
+        $('.selectpicker').selectpicker({
+            size: 5
+        });
+        $('.selectpicker').selectpicker('refresh');
+
+        $('#ProgrammeLevel').on('change', function ()
+        {
+            $.ajax({
+                url: '@Url.Action("FetchProgrammeByProgrammeLevel", "Academics")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sProgrammeLevelId: $('#ProgrammeLevel').val()},
+                success: function (data)
+                {
+                    $('#Programme').empty();
+                    if (data.Message != null && data.Message != '')
+                    {
+                        alert(data.Message);
+                    } else
+                    {
+                        $('#Programme').append(data.sResult);
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+
+        $('#btnActiveSubmit').on('click', function ()
+        {
+            var Programme = String($('#Programme').val());
+            var IsActive=0;
+            if ($('#IsActive').is(':checked')) 
+            {
+                IsActive=1;
+            }
+            var JsonData = null;
+            if (Programme != 0 && $('#ProgrammeLevel').val() && $('#Semester').val() && $('#Batch').val() && $('#AcademicYear').val())
+            {
+                JsonData = '{"PROGRAMME_GROUP_ID":"' + Programme + '","PROGRAMME_LEVEL":"' + $('#ProgrammeLevel').val() + '","SEMESTER":"' + $('#Semester').val() + '","BATCH":"' + $('#Batch').val() + '","ACADEMIC_YEAR":"' + $('#AcademicYear Option:Selected').text() + '","IS_ACTIVE":"' + IsActive + '"}';
+            } else
+            {
+                alert('Please Select All The Options !...');
+                return false;
+            }
+
+            $.ajax({
+                url:'@Url.Action("UpdateActiveSemester", "Academics")',
+                method:'POST',
+                datatype:'json',
+                data: { sJsonData: JsonData },
+                success: function (data)
+                {
+                    alert(data.Message);
+                    LoadList();
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+
+        
+    </script>
+
+    <script>
+        function GetConfrim(ID) {
+            if (!confirm('Are you sure to delete ?')) {
+                return false;
+            }
+            $.ajax({
+                url: "@Url.Action("DeleteSemesterRootInfo", "Academics")",
+                method: "POST",
+                datatype: "json",
+                data: { id: ID },
+                success: function (data)
+                {
+                    alert(data.Message);
+                    if (data.sResult != 'False')
+                    {
+                        LoadList();
+                    } 
+                }
+            });
+        }
+        function LoadList() {
+            loadContent('/Academics/ListSemesterRoot');
+        }
+    </script>

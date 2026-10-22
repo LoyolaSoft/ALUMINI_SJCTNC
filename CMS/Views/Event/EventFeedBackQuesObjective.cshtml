@@ -1,0 +1,285 @@
+﻿@model CMS.ViewModel.Model.EventFeedbackViewModel
+@using CMS.ViewModel.ViewModel
+@{
+    ViewBag.Title = "Event FeedBack Question and Objective Mapping";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap/bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/intro-js/introjs.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Events</a></li>
+        <li class="active">Event Feedback Questions</li>
+    </ol>
+
+    <h1 class="page-header">Event Feedback Question And Objective Mapping</h1>
+
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand">
+                    <i class="fa fa-expand"></i>
+                </a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload">
+                    <i class="fa fa-repeat"></i>
+                </a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse">
+                    <i class="fa fa-minus"></i>
+                </a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove">
+                    <i class="fa fa-times"></i>
+                </a>
+            </div>
+            <h4 class="panel-title">Select Event</h4>
+        </div>
+
+        <div class="panel-body">
+            <div class="form-horizontal">
+                <div class="form-group col-md-4">
+                    @Html.Label("Event Name", htmlAttributes: new { @class = "col-md-4 control-label" })
+                    <div class="col-md-8">
+                        @Html.DropDownListFor(
+                            m => m.SelectedEventId,
+                            Model.EventSelectList ?? Enumerable.Empty<SelectListItem>(),
+                            "--- Select Event ---",
+                            new { @class = "form-control selectpicker show-menu-arrow show-tick", @id = "ddlEvent", @data_live_search = "true" }
+                        )
+                        @Html.ValidationMessageFor(m => m.SelectedEventId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group col-md-4">
+                    @Html.Label("Role", htmlAttributes: new { @class = "col-md-4 control-label" })
+                    <div class="col-md-8">
+                        @Html.DropDownListFor(
+                            m => m.SelectedRoleId,
+                            Enumerable.Empty<SelectListItem>(),
+                            "--- Select Role ---",
+                            new { @class = "form-control selectpicker show-menu-arrow show-tick", @id = "ddlRole", @data_live_search = "true" }
+                        )
+                        @Html.ValidationMessageFor(m => m.SelectedRoleId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <br />
+
+            <div id="page-loader-index" class="fade in hide">
+                <span class="spinner"></span>
+            </div>
+
+            <div id="divQuestionView"></div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/jquery/jquery.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<!-- Swal -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+$(document).ready(function () {
+
+    
+    $('.selectpicker').selectpicker();
+
+
+   
+
+
+    $('#ddlEvent').on('change', function () {
+
+        var selectedEventId = $(this).val();
+
+        if (selectedEventId) {
+
+            $.ajax({
+                url: '@Url.Action("GetRolesByEvent", "Event")',
+                type: 'GET',
+                data: { eventId: selectedEventId },
+                success: function (roles) {
+                    $('#ddlRole').empty()
+                        .append('<option value="">--- Select Role ---</option>');
+
+                    $.each(roles, function (i, role) {
+                        $('#ddlRole').append('<option value="' + role.Value + '">' + role.Text + '</option>');
+                    });
+
+                    $('#ddlRole').selectpicker('refresh');
+                }
+            });
+
+        } else {
+            $('#ddlRole').empty()
+                .append('<option value="">--- Select Role ---</option>')
+                .selectpicker('refresh');
+
+            $('#divQuestionView').html('');
+        }
+    });
+
+
+
+    $('#ddlRole').on('change', function () {
+        loadQuestions();
+    });
+
+
+
+    function loadQuestions() {
+
+        var eventId = $('#ddlEvent').val();
+        var roleId = $('#ddlRole').val();
+
+        if (eventId && roleId) {
+
+            $('#divQuestionView').html("<p>Loading questions...</p>");
+
+            $.ajax({
+                url: '@Url.Action("GetQuestionsobjective", "Event")',
+                type: 'GET',
+                data: { eventId, roleId },
+                success: function (data) {
+                    $('#divQuestionView').html(data);
+                },
+                error: function () {
+                    Swal.fire("Error", "Failed to load questions!", "error");
+                }
+            });
+
+        } else {
+            $('#divQuestionView').html('');
+        }
+    }
+
+
+
+    $(document).off("click", "#btnAddQuestion").on("click", "#btnAddQuestion", function () {
+
+        var eventId = $('#ddlEvent').val();
+        var roleId = $('#ddlRole').val();
+
+        $.get('@Url.Action("AddObjective", "Event")',
+            { eventId, roleId },
+            function (data) {
+
+
+                $('#objectiveModal').remove();
+
+
+                $("body").append(data);
+
+                $("#objectiveModal").modal("show")
+                    .on('hidden.bs.modal', function () {
+                        $(this).remove();
+                    });
+            }
+        );
+    });
+
+
+
+    $(document).on('shown.bs.modal', '#objectiveModal', function () {
+        $('.selectpicker').selectpicker('refresh');
+
+    });
+
+
+
+    $(document).off("submit", "#objectiveForm").on("submit", "#objectiveForm", function (e) {
+
+        e.preventDefault();
+
+        $.post($(this).attr("action"), $(this).serialize(), function (res) {
+
+            if (res.success) {
+
+                Swal.fire("Success", res.message, "success");
+                $("#objectiveModal").modal("hide");
+                loadQuestions();
+
+            } else {
+                Swal.fire("Error", res.message, "error");
+            }
+        });
+
+    });
+
+    $(document).off("click", ".btn-edit").on("click", ".btn-edit", function () {
+
+        var qid = $(this).data("id");
+        var eventId = $(this).data("event");
+
+        $.get("/Event/EditObjective",
+            { eventId: eventId, questionObjectId: qid },
+            function (html) {
+
+                $("#objectiveModal").remove();
+                $("body").append(html);
+
+                $("#objectiveModal")
+                    .find('.selectpicker')
+                    .selectpicker();
+
+                $("#objectiveModal").modal("show");
+            }
+        );
+    });
+
+
+
+
+
+
+$(document).off("click", ".btn-delete").on("click", ".btn-delete", function () {
+    var qObjId = $(this).data("id");
+
+    Swal.fire({
+        title: "Are you sure?",
+        text: "This mapping will be deleted!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '@Url.Action("DeleteObjective", "Event")',
+                type: 'POST',
+                data: { questionObjectId: qObjId },
+                success: function (res) {
+                    if (res.success) {
+                        Swal.fire("Deleted!", res.message, "success");
+                        loadQuestions();
+                    } else {
+                        Swal.fire("Error!", res.message, "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "Failed to delete mapping!", "error");
+                }
+            });
+        }
+    });
+});
+
+
+
+
+
+});
+
+
+   
+
+
+
+
+</script>

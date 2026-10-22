@@ -1,0 +1,103 @@
+﻿@model CMS.ViewModel.ViewModel.AcademicsViewModel
+@*@using System.Linq;*@
+@{ Layout = null; int count = 0;}
+<table class="table table-hover table-bordered" id="tblAddCoursePatternList">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Semester</th>
+            <th>Part</th>
+            <th>Credit</th>
+            @*<th>Marks</th>*@
+            <th>UGC @*Course*@ Type</th>
+            <th>Courses</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.liCourseStructure != null && Model.liCourseStructure.Count > 0)
+        {
+            //string sOldAttribute = string.Empty;
+            //string coursepatternid = string.Empty;
+            string sCourseId = string.Empty;
+            string sCoursePatternId = string.Empty;
+            foreach (var csItem in Model.liCourseStructure)
+            {
+                if (Model.liCoursePattern != null && Model.liCoursePattern.Count > 0)
+                {
+                    var  CpCourses = Model.liCoursePattern.Where(o => o.COURSE_STRUCTURE_ID == csItem.COURSE_STRUCTURE_ID).ToList();
+                    if (CpCourses != null && CpCourses.Count > 0)
+                    {                        
+                        sCourseId = CpCourses.FirstOrDefault().COURSE_ID.ToString();
+                        sCoursePatternId = CpCourses.FirstOrDefault().COURSE_PATTERN_ID.ToString();
+                    }
+                    else
+                    {       
+                        sCourseId = string.Empty;
+                        sCoursePatternId = string.Empty;
+                    }
+                }
+                else
+                {
+                    sCourseId = string.Empty;
+                    sCoursePatternId = string.Empty;
+                }
+                    <tr cms-coursepatternid="@sCoursePatternId" @*cms-oldAttributecourse="@sOldAttribute"*@ cms-coursestrutureid="@csItem.COURSE_STRUCTURE_ID" cms-isoptional="0">
+                        <td>
+                            @{ count++;}@count
+                        </td>
+
+                        <td>@csItem.SEMESTER_ID</td>
+
+                        <td>@csItem.PART_ID</td>
+
+                        <td>@csItem.CREDIT</td>
+
+                        @*<td>@csItem.MARKS</td>*@
+
+                        <td>@csItem.UGC_COURSE_TYPE</td>
+
+                        <td>
+                            @*<div class="col-xs-3 form-group">*@
+                                @if (Model.liCourseRoot != null && Model.liCourseRoot.Count > 0)
+                                {
+                                    var Selcourses = sCourseId.Split(',').ToList();
+                                    var liCourses = Model.liCourseRoot.Where(o => o.UGC_COURSE_TYPE == csItem.UGC_TYPE_ID).ToList();
+                                    string sSelected = string.Empty;
+                                    
+                                    <select class="selectpicker form-control show-menu-arrow show-tick" id="cpCourses" multiple data-selected-text-format="count" data-live-search="true" data-actions-box="true">
+                                        @{
+                                            foreach (var icourses in liCourses)
+                                            {
+                                                if (icourses.SEMESTER_ID == csItem.SEMESTER_ID)
+                                                {
+                                                    foreach (var ugcItem in Selcourses)
+                                                    {
+                                                        if (ugcItem == icourses.COURSE_ROOT_ID)
+                                                        {
+                                                            sSelected = "selected";
+                                                        }
+                                                    }
+                                                    <option value="@icourses.COURSE_ROOT_ID" @sSelected>@icourses.COURSE_TITLE</option>
+                                                    sSelected = string.Empty;
+                                                }
+                                            }
+                                        }
+                                     </select>
+                                   }
+                        </td>
+                    </tr>
+                  }
+              
+          }
+
+    </tbody>
+</table>
+
+<div>
+    <script>
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+    </script>
+</div>

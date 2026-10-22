@@ -1,0 +1,324 @@
+
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.ViewModel.ViewModel
+@{
+    ViewBag.Title = "Index1";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/intro-js/introjs.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<!-- begin #content -->
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Index1</a></li>
+        <li class="active">Feedback Answer</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Feedback Answer <small></small></h1>
+    <!-- end page-header -->
+
+ 
+
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Feedback Answer</h4>
+        </div>
+        <div class="panel-body">
+
+         
+            <div class="form-horizontal">
+                <div class="form-group  col-md-12">
+                    <div class="form-group col-md-6">
+                        @Html.Label("Feedback", htmlAttributes: new { @class = "col-md-4 control-label " })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(m => m.FeedBackSettingList, (Model.FeedBackSettingList != null) ? Model.FeedBackSettingList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control   selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(m => m.FeedBackSettingList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-6">
+                        @Html.Label("Feedback Role Setting", htmlAttributes: new { @class = "col-md-4 control-label " })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(m => m.FeedBackRoleSettingList, (Model.FeedBackRoleSettingList != null) ? Model.FeedBackRoleSettingList : Enumerable.Empty<SelectListItem>(), new { @class = "form-control   selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(m => m.FeedBackRoleSettingList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="page-loader-index" class="fade in hide"><span class="spinner"></span></div>
+            <div id="divAnswerView">
+
+            </div>
+
+            <div id="divAnswerView1">
+
+            </div>
+
+           
+
+        </div>
+    </div>
+</div>
+<!-- end #content -->
+<input type="hidden" id="FbRating" value="1" />
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<script>
+        ContentLoad = function ()
+        {
+            //Ready Function()
+        }
+
+        var sErrorMessage=@Html.Raw(Json.Encode(Model.sErrorMessage));
+    if(sErrorMessage!=null && sErrorMessage!="")
+    {
+        swal({ title: "Info !", text: sErrorMessage, showConfirmButton: false, timer: 3000, type: 'info', animation: true });
+    }
+    else{
+
+    }
+
+        var sAcademicStatus=@Html.Raw(Json.Encode(FeedbackViewModel.sAcademicAttempt));
+
+        if(sAcademicStatus>0)
+        {
+            if(sAcademicStatus==1)
+            {
+                //changeAcademicYear(@Session["ACADEMIC_YEAR"]);
+            }
+
+        }
+        else
+        {
+
+
+        }
+
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('Refresh');
+
+
+       // this is for fetching feedback role based on the feedback
+        $("#FeedBackSettingList").on('change', function () {
+
+            var divAppend = $("#divAnswerView1");
+            divAppend.html('');
+            $("#divAnswerView").empty();
+            //$("#btnReload").click();
+            if ($("#FeedBackSettingList").val() != '') {
+
+
+                $.ajax({
+                    url: "@Url.Action("FetchFeedBackRoleSettingByFeedBackAndRole", "Feedback")",
+                    async: false,
+                    data: { sFeedBackId: $("#FeedBackSettingList").val() },
+                    success: function (data) {
+                        if (data!=null && data!="")
+                        {
+
+                            var select = $("#FeedBackRoleSettingList");
+                            select.empty();
+                            // selectbox.html(list);
+                            select.append('<option value=""> -- Select -- </option>' + data);
+                            //select.html(data);
+                            $("#FeedBackRoleSettingList").selectpicker('refresh');
+                        }
+                        else
+                        {
+                            swal({ title: "Info !", text: "FeedBack role is not added please meet feedback incharge or admin!", showConfirmButton: false, timer: 3000, type: 'info', animation: true });
+                        }
+
+                    }, error: function (ex) {
+                        alert('Failed to retrieve .' + ex);
+                    }
+                });
+            }
+            else
+            {
+                var select = $("#FeedBackRoleSettingList");
+                select.empty();
+            }
+        });
+
+
+
+    // this is for fetching ui based on the feedback and feedback role id
+    $("#FeedBackRoleSettingList").on('change', function () {
+
+        $("#divAnswerView").empty();
+        var supFeedBackRoleId = $('#FeedBackRoleSettingList option:selected').attr('cms-sup-fb-role-id');
+
+        if ($("#FeedBackSettingList").val() != '' && $("#FeedBackRoleSettingList").val() != '' && supFeedBackRoleId!='') {
+            $.ajax({
+                url: "@Url.Action("BindFeedBackAnswerFields", "Feedback")",
+                async: false,
+                data: { sSupFeedBackRoleId: supFeedBackRoleId},
+                success: function (data) {
+                    var select = $("#divAnswerView1");
+                    select.empty();
+                    $("#divAnswerView").html(data);
+                    $('.selectpicker').selectpicker('Refresh');
+                }, error: function (ex) {
+
+                    var select = $("#divAnswerView1");
+                    select.empty();
+                swal({ title: "Error !", text: "Internal Server Error!", showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+            }
+        });
+        }
+        else {
+            swal({ title: "Info !", text: "Please Select All The Fields!", showConfirmButton: false, timer: 3000, type: 'info', animation: true });
+        }
+    });
+
+
+
+    // this is common for all the feedback member change event
+    // this is for fetching the question based  on the feedback ,assessor and assesse
+    $("#FeedbackMember").live('change', function () {
+        //$("#btnReload").click();
+
+        var ClassId = "0";
+        var CourseId = "0";
+        var attrClass = $('#FeedbackMember option:selected').attr('cms-class-id');
+
+        //check if the element has attribute or not
+        if (typeof attrClass !== typeof undefined && attrClass !== false) {
+            // Element has this attribute
+            ClassId = $('#FeedbackMember option:selected').attr("cms-class-id") != "" ? $('#FeedbackMember option:selected').attr("cms-class-id") : "0";
+        }
+        var valCourse = $('#StudentCourseList').val();
+        if (typeof valCourse !== typeof undefined && valCourse !== false) {
+            // Element has this attribute
+            CourseId = $('#StudentCourseList').val() != "" ? $('#StudentCourseList').val() : "0";
+        }
+
+
+        var FeedBackId = $("#FeedBackSettingList").val();
+        var Assessee = $("#FeedbackMember").val();
+        var AssesseeRole = $("#FeedBackRoleSettingList option:selected").attr("cms-assessee-role");
+        var AssessorRole = $("#FeedBackRoleSettingList option:selected").attr("cms-assessor-role");
+        var supFbRoleId = $("#FeedBackRoleSettingList option:selected").attr("cms-sup-fb-role-id");
+
+        if ($("#FeedbackMember").val() != '') {
+            $.ajax({
+                url: "@Url.Action("FeedBackQuestionView", "Feedback")",
+                async: false,
+                data: { sFeedBackId: FeedBackId, sAssesee_role: AssesseeRole,sAssesor_role:AssessorRole, sAssesee: Assessee, sSupFbRoleId: supFbRoleId, sClassId: ClassId, sCourseId: CourseId },
+            success: function (data) {
+                if (data.Message != null && data.Message != "") {
+                    swal({ title: "error !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+                    //loadContent('/Library/LiUserList');
+                }
+                else {
+
+
+                        var divAppend = $("#divAnswerView1");
+                        divAppend.html('');
+                        divAppend.append(data);
+                        var val = $('#FbRating').val();
+                        $('#FbRating').attr('value', '');
+                        val = parseInt(val) + 1;
+                        $('#FbRating').attr('value', val);
+                        //$('#btnSubmit').removeClass("hidden");
+                        //$('#btnCancel').removeClass("hidden");
+
+                }
+
+            }, error: function (ex) {
+                //alert('Failed to retrieve .' + ex);
+                swal({ title: "Error !", text: "Intetrnal Server Error!", showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+            }
+        });
+    }
+    else
+        {
+
+                var divAppend = $("#divAnswerView1");
+                divAppend.html('');
+    }
+    });
+    $("#FeedbackMemberNew").live('change', function () {
+    //$("#btnReload").click();
+
+    var ClassId = "0";
+    var CourseId = "0";
+        var attrClass = $('#FeedbackMemberNew option:selected').attr('cms-class-id');
+
+    //check if the element has attribute or not
+    if (typeof attrClass !== typeof undefined && attrClass !== false) {
+        // Element has this attribute
+        ClassId = $('#FeedbackMemberNew option:selected').attr("cms-class-id") != "" ? $('#FeedbackMemberNew option:selected').attr("cms-class-id") : "0";
+    }
+    var valCourse = $('#StudentCourseList').val();
+    if (typeof valCourse !== typeof undefined && valCourse !== false) {
+        // Element has this attribute
+        CourseId = $('#StudentCourseList').val() != "" ? $('#StudentCourseList').val() : "0";
+    }
+
+
+    var FeedBackId = $("#FeedBackSettingList").val();
+        var Assessee = $("#FeedbackMemberNew").val();
+    var AssesseeRole = $("#FeedBackRoleSettingList option:selected").attr("cms-assessee-role");
+    var AssessorRole = $("#FeedBackRoleSettingList option:selected").attr("cms-assessor-role");
+    var supFbRoleId = $("#FeedBackRoleSettingList option:selected").attr("cms-sup-fb-role-id");
+
+        if ($("#FeedbackMemberNew").val() != '') {
+        $.ajax({
+            url: "@Url.Action("FeedBackQuestionViewNew", "Feedback")",
+            async: false,
+            data: { sFeedBackId: FeedBackId, sAssesee_role: AssesseeRole,sAssesor_role:AssessorRole, sAssesee: Assessee, sSupFbRoleId: supFbRoleId, sClassId: ClassId, sCourseId: CourseId },
+        success: function (data) {
+            if (data.Message != null && data.Message != "") {
+                swal({ title: "error !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+                //loadContent('/Library/LiUserList');
+            }
+            else {
+
+
+                    var divAppend = $("#divAnswerView1");
+                    divAppend.html('');
+                    divAppend.append(data);
+                    var val = $('#FbRating').val();
+                    $('#FbRating').attr('value', '');
+                    val = parseInt(val) + 1;
+                    $('#FbRating').attr('value', val);
+                    //$('#btnSubmit').removeClass("hidden");
+                    //$('#btnCancel').removeClass("hidden");
+
+            }
+
+        }, error: function (ex) {
+            //alert('Failed to retrieve .' + ex);
+            swal({ title: "Error !", text: "Intetrnal Server Error!", showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+        }
+    });
+}
+else
+    {
+
+            var divAppend = $("#divAnswerView1");
+            divAppend.html('');
+}
+});
+
+</script>
+
+<script src="~/Content/assets/plugins/intro-js/intro.js"></script>
+
+
+
+

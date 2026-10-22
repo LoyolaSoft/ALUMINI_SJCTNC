@@ -1,0 +1,278 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+
+@{
+    ViewBag.Title = "TimeTableTemplateList";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a @*href="@Url.Action("Admin", "Dashboard")"*@ href="javascript:;">Home</a></li>
+        <li class="active">List Timetable Template </li>
+    </ol>
+    <h1 class="page-header">Timetable Template </h1>
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Timetable Template </h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="col-md-12">
+                <div class="form-group col-md-3">
+                    @Html.LabelFor(model => model.SettingList, htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.DropDownListFor(model => model.SettingList, (Model.SettingList != null) ? Model.SettingList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker  form-control ", @data_live_search = "true" })
+                        @Html.ValidationMessageFor(model => model.SettingList, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group col-md-3">
+                    @Html.LabelFor(model => model.FacultyLIst, htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.DropDownListFor(model => model.FacultyLIst, (Model.FacultyLIst != null) ? Model.FacultyLIst : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker  form-control ", @data_live_search = "true" })
+                        @Html.ValidationMessageFor(model => model.FacultyLIst, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group col-md-3">
+                    @Html.LabelFor(model => model.GraduationType, htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.DropDownListFor(model => model.GraduationType, (Model.GraduationType != null) ? Model.GraduationType : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker  form-control ", @data_live_search = "true" })
+                        @Html.ValidationMessageFor(model => model.GraduationType, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group col-md-3">
+                    @Html.LabelFor(model => model.ClassYearList, htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.DropDownListFor(model => model.ClassYearList, (Model.ClassYearList != null) ? Model.ClassYearList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker  form-control ", @data_live_search = "true" })
+                        @Html.ValidationMessageFor(model => model.ClassYearList, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div class="table-responsive" id="divTimeTableTemplateInfo">
+                    <!--Need to use this fied to bind Timetable List-->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+    <script>
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        function ContentLoad() {
+            // Document Ready Function .
+            GetDropDown();
+        }
+        //$(document).ready(function () {
+        //    GetDropDown();
+        //});
+        function GetConfirm(ID) {
+            if (!confirm('Are you sure to delete ?')) {
+                return false;
+            } else {
+                $.ajax({
+                    url: "@Url.Action("DeleteTimeTableTemplate", "TimeTable")",
+                    method: "POST",
+                    datatype: "json",
+                    data: { sTemplateId: ID },
+                    success: function (data) {
+                        alert(data);
+                        BindTimetableTemplate();
+                    }, error: function (error) {
+                        alert('Internal Server Error ! ');
+                    }
+                });
+            }
+        }
+        $('#SettingList').on('change', function () {
+            $("#FacultyLIst").val($("#FacultyLIst option:first").val());
+            $("#GraduationType").val($("#GraduationType option:first").val());
+            $("#ClassYearList").val($("#ClassYearList option:first").val());
+            $('#divTimeTableTemplateInfo').empty();
+            $('.selectpicker').selectpicker('refresh');
+        });
+        $('#FacultyLIst').on('change', function () {
+            $("#GraduationType").val($("#GraduationType option:first").val());
+            $("#ClassYearList").val($("#ClassYearList option:first").val());
+            $('#divTimeTableTemplateInfo').empty();
+            $('.selectpicker').selectpicker('refresh');
+        });
+        $('#GraduationType').on('change', function () {
+            $("#ClassYearList").val($("#ClassYearList option:first").val());
+            $('#divTimeTableTemplateInfo').empty();
+            $('.selectpicker').selectpicker('refresh');
+        });
+        $('#ClassYearList').on('change', function () {
+            BindTimetableTemplate();
+        });
+        BindTimetableTemplate = function () {
+            var FacultyId = $("#FacultyLIst").val();
+            var SettingId = $("#SettingList").val();
+            var GraduationType = $("#GraduationType").val();
+            var ClassYear = $("#ClassYearList").val();
+            if (FacultyId != '' && SettingId != '' && GraduationType != '' && ClassYear != '') {
+                $.ajax({
+                    url: "@Url.Action("BindTimeTableTemplate", "TimeTable")",
+                    method: "POST",
+                    datatype: "json",
+                    data: { sSettingId: SettingId, sFacultyId: FacultyId, sGraduationType: GraduationType, sClassYear: ClassYear },
+                    success: function (option) {
+                        var dvTimeTableTemplateInfo = $('#divTimeTableTemplateInfo');
+                        dvTimeTableTemplateInfo.empty();
+                        dvTimeTableTemplateInfo.append(option);
+                    }, error: function (error) {
+                        alert('Internal Server Error ..!');
+                    }
+                });
+            }
+            else {
+                alert('Please Choose All The Values...!!!');
+                $("#SettingList").val($("#SettingList option:first").val());
+                $("#FacultyLIst").val($("#FacultyLIst option:first").val());
+                $("#GraduationType").val($("#GraduationType option:first").val());
+                $("#ClassYearList").val($("#ClassYearList option:first").val());
+                $('.selectpicker').selectpicker('refresh');
+                return false;
+            }
+        }
+    </script>
+    <script>
+        GetDropDown = function () {
+            $.ajax({
+                url: "@Url.Action("GetCourseAndStaff", "TimeTable")",
+                method: "POST",
+                datatype: "json",
+                success: function (data) {
+                    var ddl = JSON.parse(data);
+                    $('#ddlPaperType').empty();
+                    $('#ddlPaperType').append('<option value="0">-- select --</option>' + ddl.PAPER_TYPE);
+                }, error: function (error) {
+                    alert('Internal Server Error ..!');
+                }
+            });
+        }
+        $("table.table td.editable").live("click", function () {
+            var SettingId = $("#SettingList").val();
+            var FacultyId = $("#FacultyLIst").val();
+            var GraduationTypeId = $("#GraduationType").val();
+            var ClassYearId = $("#ClassYearList").val();
+            var HourId = $(this).attr('cms-hourid');
+            var DayId = $(this).attr('cms-dayid');
+            var HourType = $(this).attr('cms-hourtype');
+            var TemplateId = $(this).attr('cms-timetalbetemplateid');
+            var IsStatic = $(this).attr('cms-isstatic');
+            var PaperType = $(this).attr('cms-papertype');
+            $('#EditModal-dialog').modal();
+            $('#ddlPaperType').val(PaperType);
+            $('#txtTimeTableTemplateId').val(TemplateId);
+            $('#txtDayOrder').val(DayId);
+            $('#txtHour').val(HourId);
+            if (IsStatic == "1")
+                $('#chkIsStatic').attr('checked', true);
+            else
+                $('#chkIsStatic').attr('checked', false);
+            $('.selectpicker').selectpicker('refresh');
+        });
+        $('#btnSubmit').on('click', function () {
+            var TemplateId = $('#txtTimeTableTemplateId').val();
+            var SettingId = $("#SettingList").val();
+            var FacultyId = $("#FacultyLIst").val();
+            var GraduationTypeId = $("#GraduationType").val();
+            var ClassYearId = $("#ClassYearList").val();
+            var DayOrderId = $('#txtDayOrder').val();
+            var HourId = $('#txtHour').val();
+            var PaperType = $('#ddlPaperType').val();
+            var IsStatic;
+            if ($('#chkIsStatic').is(":checked"))
+                IsStatic = 1;
+            else
+                IsStatic = 0;
+            var sJson;
+            sJson = '{"Setting_Id":"' + SettingId + '","TT_Temp_Id":"' + TemplateId + '","Day_Order_Id":"' + DayOrderId + '","Hour_Id":"' + HourId + '","Paper_Type_Id":"' + PaperType + '","Is_Static":"' + IsStatic + '","Faculty_Id":"' + FacultyId + '","Year":"' + ClassYearId + '","GraduationType":"' + GraduationTypeId + '"}';
+            $.ajax({
+                url: '@Url.Action("SaveOrUpdateTimeTableTemplate", "TimeTable")',
+                method: "POST",
+                datatype: "json",
+                data: { sTemplate: sJson },
+                success: function (data) {
+                    myAlert(data.Message, 'gritter-success', '');
+                    BindTimetableTemplate();
+                },
+                error: function (xhr, textStatus, error) {
+                    alert('Internal Server Error ..!');
+                }
+            });
+        });
+    </script>
+
+<div class="modal fade" id="EditModal-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Edit Timetable Template</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="col-md-12">
+                        <div class="form-group hidden">
+                            <label class="control-label col-md-3">Time Table Id</label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" disabled id="txtTimeTableTemplateId" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Paper Type</label>
+                            <div class="col-md-9">
+                                <select id="ddlPaperType" class="selectpicker  form-control " data_live_search="true">
+                                    <option value="0">-- select --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Day Order</label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" disabled id="txtDayOrder" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Hour</label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" disabled id="txtHour" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Is Static</label>
+                            <div class="col-md-9">
+                                <div class="checkbox checkbox-css checkbox-inline">
+                                    <input type="checkbox" value="" id="chkIsStatic" />
+                                    <label for="chkIsStatic"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" id="btnSubmit" class="btn btn-default" data-dismiss="modal">Submit</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

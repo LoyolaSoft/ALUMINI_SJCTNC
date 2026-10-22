@@ -1,0 +1,513 @@
+﻿@model CMS.ViewModel.ViewModel.LibraryViewModel
+@{ Layout = null; int count = 0;}
+
+
+<style>
+    .review-card {
+        background-color: #f9f9f9;
+        border-left: 4px solid #007bff;
+        border-right: 4px solid #007bff;
+        border-radius: 10px;
+    }
+
+    .modal-body input {
+        width: 100%;
+        max-width: 200px;
+        padding: 6px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .custom-switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 24px;
+    }
+
+        .custom-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 24px;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+    input:checked + .slider {
+        background-color: #28a745;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+    .checkbox-on {
+        background-color: #d4edda;
+        border: 1px solid #28a745;
+        padding: 4px;
+        border-radius: 5px;
+    }
+
+    .checkbox-off {
+        background-color: #f8d7da;
+        border: 1px solid #dc3545;
+        padding: 4px;
+        border-radius: 5px;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 576px) {
+        .review-card {
+            font-size: 14px;
+        }
+
+        .custom-switch {
+            width: 40px;
+            height: 20px;
+        }
+
+        .slider:before {
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+    }
+</style>
+
+<div class="table-responsive col-md-12">
+    <table class="table table-bordered table-hover" id="tblStuCourseRemark">
+        <thead>
+            <tr>
+                <th>
+                    #
+                </th>
+                <th>
+                    Roll No
+                </th>
+
+                <th>
+                    Name
+                </th>
+                <th>Count</th>
+                <th>Total Mark</th>
+                <th>Sec Mark</th>
+                <th>View</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liStudentDetails != null && Model.liStudentDetails.Count > 0)
+            {
+                foreach (var item in Model.liStudentDetails)
+                {
+                    <tr >
+                        <td>
+                            @{ count++;}
+                            @count
+                        </td>
+                        <td>
+                            @Html.DisplayFor(m => item.ROLL_NO)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(m => item.STUDENT_NAME)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(m => item.COUNT)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(m => item.MAX_MARK)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(m => item.SEC_MARK)
+                        </td>
+                        <td>
+                            @if (@item.SUBMITED == "1")
+                            {
+                                <a href="#StuAssignment" onclick="FetchStusubmission(@item.STUDENT_ID,@item.COMPONENT_ID,@item.COURSE_ID)" class="btn btn-theme pull-right" data-toggle="modal"><i class="fa fa-eye"> </i></a>
+                            }
+
+                        </td>
+                    </tr>
+                }
+            }
+
+        </tbody>
+    </table>
+</div>
+<div class="modal " id="StuAssignment" @*data-bs-backdrop="false" tabindex="0" aria-hidden="true"*@>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body d-block">
+                <div class="modal-header">
+                    <h5 class="modal-title text-center w-100" id="AddnewtdLabel">
+                        <button type="button" id="btncolseModal2" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+                        <span class="text-gradient">View &Aacute; Edit Writing Component Mark</span>
+                    </h5>
+                </div>
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div id="cms-head" class="p-2">
+                        <div id="AppendBindData">
+
+
+                        </div>
+                        <hr />
+                        
+                        <div class="row px-2 mt-3">
+                            <div class="col-md-6 mb-2">
+                                <label><strong>Total Mark</strong></label>
+                                <input id="total_mark" class="form-control" disabled />
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label><strong>Secured Mark</strong></label>
+                                <input id="Sec_mark" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer d-flex justify-content-between">
+                   
+                    <a href="javascript:;" id="btncolseModal" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+
+
+        function bindStuReviewStatusafterSave() {
+           var sComponent = $('#Component').val();
+   if (sComponent == '' || sComponent == '0') {
+    alert('Please Choose Course...!!!');
+    return false;
+}
+$.ajax({
+    url: "@Url.Action("FetchStuBookReviewByCourseID", "Library")",
+    method: "POST",
+    datatype: "json",
+    data: { sCourseId: $('#CourseList').val(), sClassId: $('#liLCasslist').val(), sComponent: $('#Component').val() },
+    success: function (data) {
+        $("#dvStuCourseRemark").empty();
+        $("#dvStuCourseRemark").append(data);
+        $("#tblStuCourseRemark").DataTable({});
+    }, error: function (error) {
+        alert('Internal Server Error !');
+    }
+})
+    }
+
+    $('#btncolseModal').on('click', function () {
+        bindStuReviewStatusafterSave();
+    });
+    $('#btncolseModal2').on('click', function () {
+        bindStuReviewStatusafterSave();
+    });
+     // Fetch Settin Info ...
+   function FetchStusubmission(ID, comID, CourseID) {
+    $.ajax({
+        url: "@Url.Action("FetchStuReviewSubmission", "Library")",
+        method: "POST",
+        datatype: "json",
+        data: { sStusubid: ID, sComponentID: comID, sCourseID: CourseID },
+        success: function (data) {
+            if (data.Message != null && data.Message !== '') {
+                swal({
+                    title: "info !",
+                    text: data.Message,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    type: 'error',
+                    animation: true
+                });
+            } else if (Array.isArray(data) && data.length > 0) {
+                $('#AppendBindData').empty();
+                $('#Sec_mark').val('');
+                let totalMark = "";
+                let SecMark = 0;
+
+                for (let i = 0; i < data.length; i++) {
+                    let item = data[i];
+                    let perBookMark = parseFloat(item.PER_BOOK_MARK) || 0;
+                    let groupMark = parseFloat(item.MAX_MARK) || 0;
+                    let isChecked = item.ERA_COMPONENT_ID !== null && item.ERA_COMPONENT_ID !== "" && item.COURSE_GROUP_MARK !="0.00";
+
+                    // Compute current SecMark *before* rendering the toggle
+                    if (isChecked) {
+                        SecMark += perBookMark;
+                    }
+
+                    let disableToggle = !isChecked && SecMark >= groupMark;
+
+                    let totalMarkHTML = '';
+                    if (perBookMark * (i + 1) <= groupMark) {
+                        totalMarkHTML = `<p><strong>Total Mark:</strong> ${item.PER_BOOK_MARK}</p>`;
+                    }
+
+                    let switchHTML = `
+        <label class="custom-switch ${isChecked ? 'checkbox-on' : 'checkbox-off'}">
+            <input type="checkbox" class="book_mark_toggle"
+                ${isChecked ? 'checked' : ''}
+                ${disableToggle ? 'disabled' : ''}
+                value="${item.PER_BOOK_MARK}"
+                data-total-mark="${item.PER_BOOK_MARK}"
+                data-review-id="${item.REVIEW_ID}"
+                data-era-setting="${item.ERA_SETTING_ID}"
+                data-student-id="${item.STUDENT_ID}"
+                data-component-id="${item.CIA_GROUP_COMPONENT_ID}"
+                data-comp-id="${item.COMPONENT_ID}"
+                data-eracomponent-id="${item.ERA_COMPONENT_ID}"
+                data-index="${i}"
+                onchange="handleToggleChange(this)">
+            <span class="slider"></span>
+            <span> Sec Mark ${isChecked ? item.PER_BOOK_MARK : '0'}</span>
+        </label>
+    `;
+
+
+                    let html = `
+<div class="review-card card shadow-sm mb-4 p-3">
+    <div class="row">
+        <div class="col-12 mb-2">
+            <h6 class="text-primary text-center mb-2">Review #${i + 1}</h6>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <p><strong>Roll No:</strong> ${item.ROLL_NO}</p>
+            <p><strong>Component:</strong> ${item.COMPONENT}</p>
+            <p><strong>Access No:</strong> ${item.ACCESS_NO}</p>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <p><strong>Document Title:</strong> ${item.DOC_TITLE}</p>
+            <p><strong>Personal Author:</strong> ${item.PERSONAL_AUTHOR1}</p>
+        </div>
+        <div class="col-md-12 col-sm-12">
+            <p><strong>Review:</strong> ${item.REVIEW}</p>
+        </div>
+        <div class="col-md-4 col-sm-6 mt-2">
+            ${totalMarkHTML}
+        </div>
+        <div class="col-md-4 col-sm-6 mt-2 d-flex align-items-center">
+            ${switchHTML}
+        </div>
+         <p style="display:none;">${totalMark = item.MAX_MARK}</p>
+    </div>
+</div>
+`;
+
+                    $('#AppendBindData').append(html);
+                }
+
+                $("#total_mark").val(totalMark);
+                $("#Sec_mark").val(SecMark);
+
+            }
+        },
+        error: function (error) {
+            swal({
+                title: "Internal Server Error!",
+                text: "Sorry for the inconvenience",
+                showConfirmButton: false,
+                timer: 3000,
+                type: 'error',
+                animation: true
+            });
+        }
+    });
+}
+
+
+
+
+    function handleToggleChange(elem) {
+        const $el = $(elem);
+        const isChecked = $el.is(':checked');
+        const mark = parseFloat($el.val()) || 0;
+
+        let totalAllowed = parseFloat($("#total_mark").val()) || 0;
+
+        // Calculate SecMark after this toggle change
+        let currentSecMark = 0;
+        $(".book_mark_toggle:checked").each(function () {
+            currentSecMark += parseFloat($(this).val()) || 0;
+        });
+
+        // 🔒 Limit check — reject change if it exceeds total allowed
+        if (isChecked && currentSecMark > totalAllowed) {
+            $el.prop('checked', false);
+            swal({
+                title: "Limit Exceeded",
+                text: "You cannot select more marks than allowed.",
+                type: "warning",
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        // ✅ Update Sec_mark display
+        $("#Sec_mark").val(currentSecMark.toFixed(2));
+
+        // ✅ Enable/disable toggles based on limit
+        $(".book_mark_toggle").each(function () {
+            const $checkbox = $(this);
+            const alreadyChecked = $checkbox.is(":checked");
+            if (!alreadyChecked) {
+                $checkbox.prop("disabled", currentSecMark >= totalAllowed);
+            }
+        });
+
+
+        // Fetch attributes
+        const reviewID = $el.data('review-id');
+        const eraSetting = $el.data('era-setting');
+        const studentID = $el.data('student-id');
+        const  CourseID = $el.data('course-id');
+        const groupComponentId = $el.data('component-id');
+        const comID = $el.data('comp-id');
+
+        // Trigger save
+        saveReviewMarkComponentWise(reviewID, eraSetting, studentID, groupComponentId, comID, CourseID);
+    }
+
+
+
+
+    function saveReviewMarkComponentWise(reviewID, eraSetting, studentID, groupComponentId, comID, CourseID) {
+        let isValid = true;
+        let allMarks = [];
+
+        $('.book_mark_toggle').each(function () {
+            const $toggle = $(this);
+            const isChecked = $toggle.is(':checked');
+            const secureMark = isChecked ? parseFloat($toggle.val()) || 0 : 0;
+            const totalMark = parseFloat($toggle.data('total-mark')) || 0;
+            const reviewedID = $toggle.data('review-id');
+            const ERA_Com_ID = $toggle.data('eracomponent-id');
+            const index = parseInt($toggle.data('index')) || 0;
+
+            if (secureMark > totalMark) {
+                swal({
+                    title: 'Invalid Mark!',
+                    text: `Secure Mark in Review #${index + 1} exceeds Total Mark (${totalMark}).`,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    type: 'warning',
+                    animation: true
+                });
+
+                isValid = false;
+                return false; // Exit loop
+            }
+
+            allMarks.push({
+                INDEX: index,
+                SEC_MARK: secureMark,
+                TOTAL_MARK: totalMark,
+                ERA_COMPONENT_ID: ERA_Com_ID,
+                REVIEW_ID: reviewedID
+            });
+        });
+
+        if (!isValid) return;
+
+        const jsonList = allMarks.map(x => ({
+            SEC_MARK: x.SEC_MARK,
+            TOTAL_MARK: x.TOTAL_MARK,
+            ERA_COMPONENT_ID: x.ERA_COMPONENT_ID,
+            REVIEW_ID: x.REVIEW_ID
+        }));
+
+        const JsonData = JSON.stringify(jsonList);
+        var sCourseID = $('#CourseList').val();
+        $.ajax({
+            url: '/Library/SaveStuReviewMark',
+            method: 'post',
+            data: {
+                sJsonData: JsonData,
+                sReviewID: reviewID,
+                sERASeting: eraSetting,
+                sStudentID: studentID,
+                sGroupComponetId: groupComponentId,
+                sComponentID: comID,
+                sCourseID: sCourseID
+            },
+            success: function (data) {
+                if (data.ErrorCode === "200") {
+
+                    swal({
+                        title: "Success!",
+                        text: data.Message,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        type: 'success',
+                        animation: true
+                    });
+                    //setTimeout(() => window.location.reload(), 3200);
+                    FetchStusubmission(studentID, comID,sCourseID);
+
+                } else {
+                    swal({
+                        title: "Error",
+                        text: data.Message,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        type: 'error',
+                        animation: true
+                    });
+                }
+            },
+            error: function () {
+                swal({
+                    title: "Internal Server Error!",
+                    text: "Sorry for the inconvenience",
+                    showConfirmButton: false,
+                    timer: 3000,
+                    type: 'error',
+                    animation: true
+                });
+            }
+        });
+    }
+
+
+
+
+
+
+
+</script>

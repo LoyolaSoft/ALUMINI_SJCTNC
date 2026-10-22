@@ -1,0 +1,128 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+@using CMS.Utility;
+
+@{
+    ViewBag.Title = "Student Wise Mentor Details";
+    Layout = null; // Usually loaded via AJAX in this ERP if not specified otherwise, or it might need _AdminLayoutPage.cshtml. 
+                   // Based on ClassWiseMentorList.cshtml, it sets Layout = null.
+}
+
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Mentoring</a></li>
+        <li class="active"> Student Wise Mentor Details </li>
+    </ol>
+    <h1 class="page-header">Student Wise Mentor Details <small></small></h1>
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title"> Student Wise Mentor Details </h4>
+        </div>
+     
+        <div class="panel-body">
+            <div class="form-horizontal">
+                <div class="form-group col-md-12">
+                    <div class="col-md-3" id="divClassList">
+                        @Html.Label("Class List", htmlAttributes: new { @class = "col-md-4 control-label p-l-0" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.liLCasslist, (Model.liLCasslist != null) ? Model.liLCasslist : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @id = "liLCasslist", @data_live_search = "true", @data_size = "5" })
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-sm btn-primary" id="btnGet">Get</button>
+                    </div>
+                    <div class="col-md-6 text-right" id="divActions" style="display:none;">
+                        <button type="button" class="btn btn-sm btn-success" onclick="Export()">Export</button>
+                        <button type="button" class="btn btn-sm btn-info" onclick="printDiv()">Print</button>
+                    </div>
+                </div>
+                <div id="bindData" class="col-md-12">
+                    @* Partial view content will be loaded here *@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+    $('#btnGet').on('click', function () {
+        var classId = $('#liLCasslist').val();
+        if (classId) {
+            $.ajax({
+                url: '@Url.Action("BindClassWiseMentorStudentList", "Mentoring")',
+                method: 'POST',
+                data: { objInput: classId },
+                success: function (sResult) {
+                    $('#bindData').empty().append(sResult).show();
+                    $('#divActions').show();
+                    $('#tblTagMapping').DataTable({
+                        responsive: true
+                    });
+                },
+                error: function (error) {
+                    alert('Internal Server Error !');
+                }
+            });
+        } else {
+            alert('Please select a class!');
+        }
+    });
+
+    function Export() {
+        if ($('#tblTagMapping').length > 0) {
+            $('#tblTagMapping').DataTable().destroy();
+            var title = "Student_Wise_Mentor_Details";
+            let file = new Blob([$('#bindData').html()], { type: "application/vnd.ms-excel" });
+            let url = URL.createObjectURL(file);
+            let a = $("<a />", {
+                href: url,
+                download: title + ".xls"
+            }).appendTo("body").get(0).click();
+            $('#tblTagMapping').DataTable({ responsive: true });
+        }
+    }
+
+    function printDiv() {
+        if ($('#tblTagMapping').length > 0) {
+            $('#tblTagMapping').DataTable().destroy();
+            var divContents = document.getElementById('bindData').innerHTML;
+            var printWindow = window.open('', '', 'height=600,width=800');
+            printWindow.document.write('<html><head><title>Print</title>');
+            $('link[rel=stylesheet]').each(function () {
+                printWindow.document.write('<link rel="stylesheet" href="' + $(this).attr('href') + '" />');
+            });
+            printWindow.document.write('<style>table { width: 100% !important; border-collapse: collapse !important; } th, td { border: 1px solid #ddd !important; padding: 8px !important; text-align: left !important; font-size: 12px !important; } .table-responsive { overflow-x: visible !important; }</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<h3 style="text-align:center;">Student Wise Mentor Details</h3>');
+            printWindow.document.write(divContents);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(function () {
+                printWindow.print();
+                printWindow.close();
+                $('#tblTagMapping').DataTable({ responsive: true });
+            }, 500);
+        }
+    }
+
+    $('.selectpicker').selectpicker('refresh');
+</script>

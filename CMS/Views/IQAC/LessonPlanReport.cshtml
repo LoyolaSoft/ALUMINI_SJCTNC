@@ -1,0 +1,327 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+
+@{
+    Layout = null;
+}
+
+
+<!-- ================== BEGIN PAGE LEVEL STYLE ================== -->
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<!-- ================== END PAGE LEVEL STYLE ================== -->
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">IQAC</a></li>
+        <li class="active">IQAC  Report </li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">IQAC  Report<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">IQAC  Report</h4>
+        </div>
+        <div class="panel-body">
+
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+                    <div class="col-md-12 form-horizontal">
+                        <ul class="nav nav-tabs">
+                            <li class="nav-items " id="liYearWisePlan">
+                                <a href="#bindYearWisePlan" data-toggle="tab" class="nav-link">
+                                    <span class="d-sm-none">Year Wise Report</span>
+                                </a>
+                            </li>
+                            <li class="nav-items active" id="liStaffAndYearWiseLessonPlan">
+                                <a href="#bindStaffAndYearWiseLessonPlan" data-toggle="tab" class="nav-link active">
+                                    <span class="d-sm-none">Staff Wise Report</span>
+                                </a>
+                            </li>
+
+
+                        </ul>
+                        <div class="tab-content">
+                            @* Year Wise Report *@
+
+                            <div class="tab-pane fade" id="bindYearWisePlan">
+                                <div class="col-md-12 form-group">
+                                    <div class="col-md-4 form-group">
+                                        <label class="col-md-3 control-label">Year</label>
+                                        <div class="col-md-9">
+                                            @Html.DropDownListFor(m => m.sAcademicYearList, (Model.sAcademicYearList != null) ? Model.sAcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @id = "Yyear" })
+                                            @Html.ValidationMessageFor(m => m.sAcademicYearList, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 form-group">
+                                        <label class="col-md-3 control-label">Semester</label>
+                                        <div class="col-md-9">
+                                            @Html.DropDownListFor(m => m.sSemesterType, (Model.sSemesterType != null) ? Model.sSemesterType : Enumerable.Empty<SelectListItem>(), null, new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @id = "YsemesterType", @multiple = "multiple", @data_actions_box = "true" })
+                                            @Html.ValidationMessageFor(m => m.sSemesterType, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button class="btn btn-success btnPrint hidden" onclick="printDiv('dvIQACBind')"> Print </button>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button class="btn btn-primary btnExport hidden" onclick="Export()"> Export </button>
+                                    </div>
+                                </div>
+                            </div>
+                            @*Staff  Report*@
+
+                            <div class="tab-pane fade" id="bindStaffAndYearWiseLessonPlan">
+                                <div class="col-md-12 form-group">
+                                    <div class="col-md-3 form-group">
+                                        <label class="col-md-3 control-label">Year</label>
+                                        <div class="col-md-9">
+                                            @Html.DropDownListFor(m => m.sAcademicYearList, (Model.sAcademicYearList != null) ? Model.sAcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.sAcademicYearList, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3 form-group">
+                                        <label class="col-md-3 control-label">Semester</label>
+                                        <div class="col-md-9">
+                                            @Html.DropDownListFor(m => m.sSemesterType, (Model.sSemesterType != null) ? Model.sSemesterType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.sSemesterType, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3 form-group">
+                                        <label class="col-md-3 control-label">Staff</label>
+                                        <div class="col-md-9">
+                                            @Html.DropDownListFor(m => m.sStaffList, (Model.sStaffList != null) ? Model.sStaffList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.sStaffList, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3 form-group">
+                                        <label class="col-md-3 control-label">Course</label>
+                                        <div class="col-md-9">
+                                            @Html.DropDownListFor(m => m.sCourseList, (Model.sCourseList != null) ? Model.sCourseList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.sCourseList, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button class="btn btn-success btnPrint hidden" onclick="printDiv('dvIQACBind')"> Print </button>
+                                    </div> 
+                                    <div class="col-md-1">
+                                        <button class="btn btn-primary btnExport hidden" onclick="Export()"> Export </button>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="col-md-12 form-group">
+                                <div id="dvIQACBind"></div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+
+<script>
+    $(document).ready(function () {
+        $('#bindStaffAndYearWiseLessonPlan').addClass("active in");
+        $('.nav-items').on("click", function () {
+
+            $('#dvIQACBind').html('');
+
+        });
+    });
+    handleDatepicker = function ()
+    {
+        "use strict";
+        $(".date").datepicker({
+            todayHighlight: !0,
+            autoclose: !0,
+            endDate: new Date,
+            format: "dd/mm/yyyy",
+            orientation: "left"
+            // 'top': top,
+            // 'left': left
+        });
+    }
+    handleDatepicker();
+
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+
+        $('#sAcademicYearList').on('change', function () {
+            $('#sCourseList').val(0);
+        });
+
+        $('#sSemesterType').on('change', function () {
+            $('#sCourseList').val(0);
+        });
+
+        $('#sStaffList').on('change', function ()
+        {
+            $('#sCourseList').empty();
+
+            if ($('#sAcademicYearList').val() && $('#sSemesterType').val() && $('#sStaffList').val())
+            {
+                $.ajax({
+                    url: '@Url.Action("FetchCourseByStaffIdAndSemesterTypeId", "SupportData")',
+                    method: 'POST',
+                    datatype: 'json',
+                    data: { sAcYear: $('#sAcademicYearList option:selected').text(), sSemesterTypeId: $('#sSemesterType').val(), sStaffId: $('#sStaffList').val() },
+                    success: function (data)
+                    {
+                         
+                        if (data.Message != null && data.Message != '')
+                        {
+                            swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                        } else
+                        {
+                            $('#sCourseList').append(data.sResult);
+                            $('.selectpicker').selectpicker('refresh');
+                            
+                        }
+                    }, error: function (error)
+                    {
+                        swal({ title: "Error !", text: "Internal Server Error !", showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                    }
+                });
+            } else
+            {
+                myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+            }
+        });
+
+        $('#sCourseList').on('change', function ()
+        {
+            if ($('#sAcademicYearList').val() && $('#sSemesterType').val() && $('#sStaffList').val() && $('#sCourseList').val())
+            {
+                $('#dvIQACBind').empty();
+                $.ajax({
+                    url:'@Url.Action("BindlessonPlanReport", "IQAC")',
+                    method:'POST',
+                    datatype:'json',
+                    data: { sAcYear: $('#sAcademicYearList  option:selected').text(), sStaffId: $('#sStaffList').val(), sCourseId: $('#sCourseList').val() },
+                    success: function (data)
+                    {
+                        if (data.Message != null && data.Message != '')
+                        {
+                            swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                        } else
+                        {
+                            $('#dvIQACBind').append(data);
+                            $('.btnPrint').removeClass('hidden');
+                            $('.btnExport').removeClass('hidden');
+
+                        }
+                    }, error: function (error)
+                    {
+                        swal({ title: "Error !", text: "Internal Server Error !", showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                    }
+                });
+            } else
+            {
+                myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+            }
+        });
+         function YearWiseReport() {
+     if ($('#Yyear').val() && $('#YsemesterType').val()) {
+         $('#dvIQACBind').empty();
+         $.ajax({
+             url: '@Url.Action("BindLessonPlanYearWise", "IQAC")',
+             method: 'POST',
+             datatype: 'json',
+             data: { sAcYear: $('#Yyear  option:selected').text(), sSemestType:String($('#YsemesterType').val())},
+             success: function (data) {
+                 if (data.Message != null && data.Message != '') {
+                     swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                 } else {
+                     $('#dvIQACBind').append(data);
+                     $('.btnPrint').removeClass('hidden');
+                     $('.btnExport').removeClass('hidden');
+                 }
+             }, error: function (error) {
+                 swal({ title: "Error !", text: "Internal Server Error !", showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+             }
+         });
+     } else {
+         myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+     }
+ }
+    $('#Yyear').on('change', function ()
+    {
+        YearWiseReport()
+
+    });
+    $('#YsemesterType').on('change', function () {
+        YearWiseReport()
+
+    });
+    function printDiv(divName) {
+        var table = $('#tbltpmReport').DataTable();
+        table.destroy();
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+
+        loadContent('/IQAC/LessonPlanReport');
+    }
+    function Export() {
+        var title = "";
+        var sAcademicYear = $('#Yyear option:selected').text();
+       
+        //var sSatff = $('#StaffListByDepartmet option:selected').text();
+        title = sAcademicYear + "_LessonPlanReport";
+        let file = new Blob([$('#dvIQACBind').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: title + ".xls"
+        }).appendTo("body").get(0).click();
+        //$('#btnGet').click();
+        loadContent('/IQAC/LessonPlanReport');
+        //e.preventDefault();
+        // loadContent('/IQAC/IQACDateWiseReportForIncharge');
+    }
+</script>
+
+
+

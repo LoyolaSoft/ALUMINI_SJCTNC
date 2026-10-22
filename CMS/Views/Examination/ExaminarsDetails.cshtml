@@ -1,0 +1,417 @@
+﻿
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "ExaminarsDetails";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li class="active">Examinar Info</li>
+        </ol>
+        <h2 class="page-header">Examinar Info</h2>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Examinar Info</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="col-md-12">
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.Programme, "Major", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.Programme, (Model.Programme != null) ? Model.Programme : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.Programme, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <a class="btn btn-success pull-right hidden" onclick="Additem()" id="Additem" href="#ExaminarsDetails-dialog" data-toggle="modal"><i class="fa fa-plus" title="Add"> Add</i></a>
+                    </div>
+                    <div class="col-md-12 m-b-5">
+                        <div id="divBindExaminar" class="table-responsive">
+                            <!--Need to use this field to bind Course Structure-->
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <a href="#" id="btnExport" class="btn btn-success m-b-20 pull-right">Export</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    }
+</div>
+<div class="modal" id="ExaminarsDetails-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Examinar Details</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div>
+                                <input class="hidden col-md-3" type="text" id="examinarid" />
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Major</label>
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(m => m.Programme, (Model.Programme != null) ? Model.Programme : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @id = "sProgammeList", @class = " form-control input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(m => m.Programme, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Examinar Name</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control " id="Examinarname" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Examinar Code</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control " id="Examinarcode" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Mobile No</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control " id="Mobileno" placeholder=" Ex : 1234567890" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Email Id</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control " id="Emailid" placeholder=" Ex : Axxxx@sjctnc.edu.in" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">College Name</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control" id="Collegename" rows="4"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Place</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control" id="place" rows="4"></textarea>
+                                </div>
+                            </div><div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Purpose</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control" id="Purpose" rows="5"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Experience UG</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control " id="experienceug" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Experience PG</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control " id="experiencepg" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Experience Mphil</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control " id="experiencemphil" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Subject 1</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control " id="Subject1" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Subject 2</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control " id="Subject2" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Subject 3</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control " id="Subject3" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Subject 4</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control " id="Subject4" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Designation</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control " id="Designation" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <label class="col-md-4 control-label">Qualification</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control" id="Qualification" rows="1"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group pull-right" id="yesorno1">
+                                <label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Is Examinar &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label><input type="radio" name="examiner" id="examineryes">
+                                <label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                <input type="radio" name="examiner" id="examinerno">
+                                <label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No</label>
+                            </div>
+                            <div class="col-md-12 form-group pull-right" id="yesorno2">
+                                <label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Is QuestionSetter &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label><input type="radio" name="questionsetter" id="questionsetteryes">
+                                <label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                <input type="radio" name="questionsetter" id="questionsetterno">
+                                <label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No</label>
+                            </div>
+                            <div class="col-md-12 form-group pull-right" id="yesorno3">
+                                <label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Is Practical &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label><input type="radio" name="Practical" id="Practicalyes">
+                                <label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                <input type="radio" name="Practical" id="Practicalno">
+                                <label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary">Submit</a>
+                <a href="javascript:;" id="btnCancel" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+
+<script>
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+   function Additem () {
+       $('#examinarid').val("");
+       $('#sProgammeList').val("");
+        $('#Examinarname').val("");
+        $('#Examinarcode').val("");
+        $('#Mobileno').val("");
+        $('#Emailid').val("");
+        $('#Collegename').val("");
+        $('#place').val("");
+       $('#Purpose').val("");
+        $('#experienceug').val("");
+        $('#experiencepg').val("");
+        $('#experiencemphil').val("");
+        $('#Subject1').val("");
+        $('#Subject2').val("");
+        $('#Subject3').val("");
+        $('#Subject4').val("");
+        $('#Designation').val("");
+        $('#Qualification').val("");
+       $('#examineryes').attr('checked', false);
+       $('#examinerno').attr('checked', false);
+       $('#questionsetteryes').attr('checked', false);
+      $('#questionsetterno').attr('checked', false);
+      $('#Practicalyes').attr('checked', false);
+      $('#Practicalno').attr('checked', false);
+    }
+    $('#Programme').on('change', function () {
+        BindExaminarDetails();
+    });
+    $('#examinerno').on('click', function () {
+        $("input[#examinerno]:checked").css('color', 'green');
+    });
+    function BindExaminarDetails() {
+        var dvExaminar = $('#divBindExaminar');
+        dvExaminar.empty();
+        if ($('#Programme').val())
+            {
+                $.ajax({
+                    url: "@Url.Action("BindExaminarDetails", "Examination")",
+                    method: "POST",
+                    datatype: "html",
+                    data: { sProgramme: $('#Programme').val() },
+                    success: function (option)
+                    {
+                        dvExaminar.append(option);
+                        $("#tblCoursePatternList").DataTable({ "bPaginate": false });
+                       // $('#btnExport').removeClass('hidden');
+                        $('#Additem').removeClass('hidden');
+                        $('.selectpicker').selectpicker('refresh');
+                    }, error: function (error)
+                    {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+        }
+        function GetConfirm(ID) {
+            if (!confirm('Are you sure to delete ?')) {
+                return false;
+            }
+            else {
+                $.ajax({
+                    url: "@Url.Action("DeleteExaminarDetails", "Examination")",
+                    method: "POST",
+                    datatype: "json",
+                    data: { Id: ID },
+                    success: function (data) {
+                        swal({ title: " Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                        BindExaminarDetails();
+                        $('.selectpicker').selectpicker('refresh');
+                    }, error: function (error) {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+        }
+
+    function FetchExaminarDetails(ID)
+    {
+        $.ajax({
+            url:"@Url.Action("FetchExaminarDetails", "Examination")",
+            method: "POST",
+            datatype:"json",
+            data: { ID : ID },
+            success:function(data)
+            {
+                if (data.Message != null && data.Message != '') {
+                    alert(data.Message);
+                } else {
+                    $('#sProgammeList').val(data[0].PROGRAMME_ID);
+                    $('#examinarid').val(data[0].EXAMINAR_ID);
+                    $('#Examinarname').val(data[0].EXAMINAR_NAME);
+                    $('#Examinarcode').val(data[0].EXAMINAR_CODE);
+                    $('#Mobileno').val(data[0].MOBILE_NO);
+                    $('#Emailid').val(data[0].EMAIL_ID);
+                    $('#Collegename').val(data[0].COLLEGE_NAME);
+                    $('#place').val(data[0].PLACE);
+                    $('#Purpose').val(data[0].PURPOSE);
+                    $('#experienceug').val(data[0].EXPERIENCE_UG);
+                    $('#experiencepg').val(data[0].EXPERIENCE_PG);
+                    $('#experiencemphil').val(data[0].EXPERIENCE_MPHIL);
+                    $('#Subject1').val(data[0].SUBJECT1);
+                    $('#Subject2').val(data[0].SUBJECT2);
+                    $('#Subject3').val(data[0].SUBJECT3);
+                    $('#Subject4').val(data[0].SUBJECT4);
+                    $('#Designation').val(data[0].DESIGNATION);
+                    $('#Qualification').val(data[0].QUALIFICATION);
+                    var IS_EXAMINAR = data[0].IS_EXAMINAR;
+                    var IS_QUESTIONSETTER = data[0].IS_QUESTIONSETTER;
+                    var IS_PRACTICAL = data[0].IS_PRACTICAL;
+                    if (IS_EXAMINAR == '1')
+                    {
+                        $('#examineryes').attr('checked', true);
+                    }
+                    else
+                    {
+                        $('#examinerno').attr('checked', true);
+                        $('#examinerno').css('color', 'green');
+                    }
+                    if (IS_QUESTIONSETTER == '1')
+                    {
+                        $('#questionsetteryes').attr('checked', true);
+                    }
+                    else
+                    {
+                        $('#questionsetterno').attr('checked', true);
+                    }
+                    if (IS_PRACTICAL == '1') {
+                        $('#Practicalyes').attr('checked', true);
+                    }
+                    else {
+                        $('#Practicalno').attr('checked', true);
+                    }
+
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            },error:function(error)
+            {
+                alert('Internal Server Error ! ');
+            }
+        });
+    }
+
+    $('#btnSubmit').on('click', function () {
+        var PROGRAMME = $('#sProgammeList').val();
+        var EXAMINAR_NAME = $('#Examinarname').val();
+        var sJsonData = null;
+        var examiner = "";
+        var questionsetter = "";
+        var Practical = "";
+        if ($("#examineryes").is(':checked')) {
+            examiner = '1';
+        }
+        if ($("#questionsetteryes").is(':checked')) {
+            questionsetter = '1';
+        }
+        if ($("#Practicalyes").is(':checked')) {
+            Practical = '1';
+        }
+        sJsonData = '{"EXAMINAR_ID":"' + $('#examinarid').val() + '","EXAMINAR_NAME":"' + $('#Examinarname').val() + '","MOBILE_NO":"' + $('#Mobileno').val() + '","EMAIL_ID":"' + $('#Emailid').val() + '","COLLEGE_NAME":"' + $('#Collegename').val() + '","PLACE":"' + $('#place').val() + '","PURPOSE":"' + $('#Purpose').val() + '","EXPERIENCE_UG":"' + $('#experienceug').val() + '","EXPERIENCE_PG":"' + $('#experiencepg').val() + '","EXPERIENCE_MPHIL":"' + $('#experiencemphil').val() + '","SUBJECT1":"' + $('#Subject1').val() + '","SUBJECT2":"' + $('#Subject2').val() + '","SUBJECT3":"' + $('#Subject3').val() + '","SUBJECT4":"' + $('#Subject4').val() + '","EXAMINAR_CODE":"' + $('#Examinarcode').val() + '","DESIGNATION":"' + $('#Designation').val() + '","QUALIFICATION":"' + $('#Qualification').val() + '","IS_EXAMINAR":"' + examiner + '","IS_QUESTIONSETTER":"' + questionsetter + '","IS_PRACTICAL":"' + Practical + '","PROGRAMME_ID":"' + $('#sProgammeList').val() + '"}';
+        if (PROGRAMME != "" && PROGRAMME != null && EXAMINAR_NAME != "" && EXAMINAR_NAME != null) {
+            $.ajax({
+                url: '@Url.Action("SaveExaminarDetails", "Examination")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sJsonData : sJsonData },
+                success: function (data) {
+                    if (data.ErrorCode == "200") {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                        $('#ExaminarsDetails-dialog').modal('hide');
+                        BindExaminarDetails();
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                    else {
+                        swal({
+                            title: data.Message, text: "", showConfirmButton: false, timer: 1500, type: 'error', animation: true
+                        });
+                    }
+                }, error: function (error) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+    });
+        $("#btnExport").click(function (e) {
+            let file = new Blob([$('#divBindExaminar').html()], { type: "application/vnd.ms-excel" });
+            let url = URL.createObjectURL(file);
+            var Pname = $('#Programme option:selected').text();
+            let a = $("<a />", {
+                href: url,
+                download: Pname + "CoursePattern.xls"
+            }).appendTo("body").get(0).click();
+            e.preventDefault();
+        });
+</script>

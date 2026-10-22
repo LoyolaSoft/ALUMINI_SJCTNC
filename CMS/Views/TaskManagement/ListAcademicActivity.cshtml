@@ -1,0 +1,428 @@
+﻿@model CMS.ViewModel.ViewModel.TaskManagementViewModel
+@{
+    ViewBag.Title = "ListAcademicActivity";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+    <link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">List Activity</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Activity</h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Activity</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+
+                    <div class="form-group  col-md-12">
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.AcademicYear, "AcYear", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.AcademicYear, (Model.AcademicYear != null) ? Model.AcademicYear : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.AcademicYear, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-5">
+                            @Html.LabelFor(model => model.ActivityLevelList, "Activity Level", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.ActivityLevelList, (Model.ActivityLevelList != null) ? Model.ActivityLevelList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.ActivityLevelList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-1">
+                            <a class="btn btn-primary" id="btnGet" >Get</a>
+                        </div>
+
+                        <div class="col-md-2 pull-right">
+                            <a class="btn btn-success pull-right form-group m-b-5" @*href="@Url.Action("AcademicActivity","TaskManagement")"*@ href="javascript:;" onclick="loadContent('/TaskManagement/AcademicActivity')"><i class="fa fa-plus" title="Add"> Add</i></a>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div id="dvActivityBind"></div>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="modal-correction" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add or Edit File Correction</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="smodalcorrection">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="control-label col-md-3">File Correction</label>
+                                <div class="col-md-7">
+                                    <textarea class="form-control" style="" rows="5" data-parsley-required="true" id="txtFileCorrection"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" value="" id="txtActivityId" />
+            <div class="modal-footer">
+                <button type="submit" id="btnModalSubmit" class="btn btn-default" data-dismiss="modal">Submit</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-correction_return" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">File Correction </h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="smodalcorrection">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="control-label col-md-3">File Correction</label>
+                                <div class="col-md-7">
+                                    <textarea class="form-control" style="" rows="5" data-parsley-required="true" id="txtsFileCorrection"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                @*<button type="submit" id="btnModalSubmit" class="btn btn-default" data-dismiss="modal">Submit</button>*@
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+    <script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+    <script>
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+
+        // On Get Click ...
+        $('#btnGet').on('click', function ()
+        {
+            FethActivityList();
+            
+        });
+
+        function FethActivityList()
+        {
+            if ($('#AcademicYear').val() && $('#ActivityLevelList').val())
+            {
+                $.ajax({
+                    url: "@Url.Action("BindActivity", "TaskManagement")",
+                    method:'POST',
+                    datatype:'json',
+                    data: { Academicyear: $('#AcademicYear option:selected').text(), ActivityLevel: $('#ActivityLevelList').val() },
+                    success: function (option)
+                    {
+                        var divActivityBind = $('#dvActivityBind');
+                        divActivityBind.empty();
+                        divActivityBind.append(option);
+                        $('#tblActivityList').DataTable();
+                    },
+                    error: function (xhr, textStatus, error)
+                    {
+                        alert('Internal Server Error !');
+                    }
+
+                });
+            } else {
+                    alert('Please Select All Option To Continue !');
+            }
+        }
+    </script>
+    <script>
+        $('#AcademicYear').on('change', function ()
+        {
+            $("#ActivityLevelList").val($("#ActivityLevelList option:first").val());
+            $('.selectpicker').selectpicker('refresh');
+        });
+       
+    </script>
+    <script>
+
+        function Deleteconfirm(ID) {
+            swal({
+                title: "Are you sure to delete ?",
+                text: "Your will not be able to recover this file!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "Yes, I agree!",
+                closeOnConfirm: false
+            },
+
+           function () {
+               $.ajax({
+                   url: "@Url.Action("DeleteActvity", "TaskManagement")",
+                   method: "POST",
+                   datatype: "json",
+                   data: { sActivityId: ID },
+                   success: function (objResult) {
+                       swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                       FethActivityList();
+                   }, error: function (error) {
+                       swal({ title: "Error !", text: "Internal Server Error !", showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                   }
+               });
+           });
+        }
+
+        // Approve Activity ...
+        function ApproveActivity(ActivityId,File,Status)
+        {
+            swal({
+                title: "Are you sure want to approve?",
+                text: "Your will not be able to recover this file!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "Yes, I agree!",
+                closeOnConfirm: false
+            },
+              function () {
+
+                  $.ajax({
+                      url: '@Url.Action("ApproveAcademicActivity", "TaskManagement")',
+                      method: 'POST',
+                      datatype: 'json',
+                      data: { sActivityId: ActivityId },
+                      success: function (data) {
+
+                          swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                        
+                        
+                          FethActivityList();
+                      }, error: function (error) {
+                          swal({ title: "Error !", text: "Internal Server Error !", showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                          
+                      }
+                  });
+              });
+
+            //if (Status != "3")
+            //{
+            //    if (File != null && File != '')
+            //    {
+            //        if (Status != "2")
+            //        {
+            //            alert('Please Approve Submitted Activity !');
+            //            return false;
+            //        }
+
+                    
+                    
+            //    } else
+            //    {
+            //        alert('Please Approve Submitted Activity !');
+            //        return false;
+            //    }
+            //}
+            
+        }
+
+        function SendCorrection(ActivityId)
+        {
+            $('#txtActivityId').val(ActivityId);
+
+            if(ActivityId!="" && ActivityId!=null)
+            {
+                $.ajax({
+                    url: "@Url.Action("FetchActivityFileCorrectionByActivityId", "TaskManagement")",
+                    method: "POST",
+                async: false,
+                cache: false,
+                datatype: "json",
+                data: { sActivityId: $('#txtActivityId').val() },
+                success: function (data)
+                {
+                    if(data.Message!="" && data.Message!=null)
+                    {
+                        $('#txtFileCorrection').val('');
+                        swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+                    }
+                    else{
+
+                        $('#txtFileCorrection').val('');
+                        $('#txtFileCorrection').val(data[0].FILE_CORRECTION);
+
+
+                    }
+
+                }, error: function (error)
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+                }
+            });
+        }
+        else
+        {
+            swal({ title: "Info !", text: "Something went wrong please try later!", showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+        }
+        }
+
+
+
+    
+
+        $('#btnModalSubmit').on("click", function () {
+
+            var isValid = true;
+            if($('#smodalcorrection').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //myAlert('Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+            $.ajax({
+                url: "@Url.Action("SaveFileCorrectionByActivity", "TaskManagement")",
+                method: "POST",
+            datatype: "json",
+            data: { sActivityId: $('#txtActivityId').val(), sFileCorrection: $('#txtFileCorrection').val() },
+            success: function (objResult)
+            {
+                if(objResult.ErrorCode == "200")
+                {
+                    swal({ title: "Success !", text: objResult.Message, showConfirmButton: false, timer: 2000, type: 'success', animation: true });
+                    FethActivityList();
+                }
+                if (objResult.ErrorCode == "417")
+                {
+                    swal({ title: "Failed !", text: objResult.Message, showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+                }
+              
+               
+            }, error: function (error)
+            {
+                swal({ title: "Error !", text: objResult.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+            }
+        });
+      
+        });
+ 
+
+        
+        function FetchCorrectionReturn(ActivityId)
+        {
+            var Status = 0;
+
+            //update file correction status
+            $.ajax({
+                url: "@Url.Action("UpdateFileCorrectionReturnStatus", "TaskManagement")",
+                method: "POST",
+            async: false,
+            cache: false,
+            datatype: "json",
+            data: { sActivityId: ActivityId, sStatus: Status },
+            success: function (data)
+            {
+                if(data.ErrorCode=="200")
+                {
+                    $('#sRemainder_' + ActivityId + '').text('');
+                }
+                else
+                {
+
+                }
+
+            }, error: function (error)
+            {
+
+            }
+        });
+
+
+        //for fetch file correction text by academic activity id
+
+        if(ActivityId!="" && ActivityId!=null)
+        {
+            $.ajax({
+                url: "@Url.Action("FetchActivityFileCorrectionReturnByActivityId", "TaskManagement")",
+                method: "POST",
+            async: false,
+            cache: false,
+            datatype: "json",
+            data: { sActivityId: ActivityId },
+            success: function (data)
+            {
+                if(data.Message!="" && data.Message!=null)
+                {
+                    $('#txtsFileCorrection').val('');
+
+                }
+                else{
+
+                    $('#txtsFileCorrection').val('');
+                    $('#txtsFileCorrection').val(data[0].FILE_CORRECTION_RETURN);
+
+
+
+                }
+
+            }, error: function (error)
+            {
+
+            }
+        });
+        }
+        else
+        {
+
+        }
+        }
+
+    </script>

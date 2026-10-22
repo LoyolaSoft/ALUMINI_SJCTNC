@@ -1,0 +1,249 @@
+﻿@model CMS.ViewModel.ViewModel.SupportDataViewModel
+
+<style>
+    .mentor-table-container {
+        margin-top: 25px;
+        margin-bottom: 25px;
+        padding: 15px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    th {
+        background: #007bff;
+        color: white;
+        padding: 12px;
+        font-size: 15px;
+    }
+
+    td {
+        padding: 10px;
+        vertical-align: middle;
+    }
+
+    tr:nth-child(even) {
+        background: #f9f9f9;
+    }
+
+    td, th {
+        border: 1px solid #ddd;
+    }
+
+    .no-record {
+        text-align: center;
+        padding: 45px;
+        font-size: 20px;
+        color: #a94442;
+        font-weight: bold;
+    }
+
+        .no-record i {
+            font-size: 28px;
+            margin-right: 10px;
+            color: #d9534f;
+        }
+</style>
+
+<div class="mentor-table-container">
+    <h4 class="text-danger">Students Not Allocated (Missing Mentor)</h4>
+    @if (Model.liUnallocatedMentorList != null && Model.liUnallocatedMentorList.Count > 0)
+    {
+        <table>
+            <thead>
+                <tr>
+                    
+                    <th>S.No</th>
+                    <th>Roll No</th>
+                    <th>Student Name</th>
+                    <th>Gender</th>
+                    <th>Class</th>
+                    <th>Staff Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int i = 1; }
+                @foreach (var item in Model.liUnallocatedMentorList)
+                {
+                    <tr>
+                        <td>@i</td>
+                        <td style="text-align:left;">@item.ROLL_NO</td>
+                        <td style="text-align:left;">@item.STUDENT_NAME</td>
+                        <td style="text-align:left;">@item.STUDENT_GENDER</td>
+                        <td style="text-align:left;">@item.CLASS_NAME</td>
+                        <td style="text-align:left;">
+                            <select class="form-control selectpicker show-menu-arrow show-tick" data-live-search="true" id="ddlStaff_@item.ROLL_NO" name="ddlStaff_@item.ROLL_NO">
+                                <option value="">-- Select Staff --</option>
+                                @if (Model.liMentorForStaff != null)
+                                {
+                                    foreach (var staff in Model.liMentorForStaff)
+                                    {
+                                        <option value="@staff.STAFF_ID">@staff.STAFF_NAME (@staff.COUNT)</option>
+                                    }
+                                }
+                            </select>
+                        </td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    }
+   
+    @*else
+    {
+        <div class="no-record" style="padding: 20px; font-size: 16px; color: green;">
+            <i class="fa fa-check-circle"></i> All Students Allocated!
+        </div>
+    }*@
+</div>
+
+@if (Model.liUnallocatedMentorList != null && Model.liUnallocatedMentorList.Count > 0)
+{
+    <div class="text-center" style="margin-top: 15px;">
+        <button type="button" id="btnManualSubmit" class="btn btn-primary btn-lg"><i class="fa fa-save"></i> Submit Allocations</button>
+    </div>
+
+    <script>
+        $("#btnManualSubmit").on("click", function () {
+            // Gather Allocations
+            var allocationList = [];
+            var academicYear = $("#AcademicYear option:selected").text(); // Get from parent scope or hidden field if available. Using Parent scope ID.
+
+             // Fallback if AcademicYear dropdown is not found (should be in parent)
+            if (!academicYear || academicYear === "--select--") {
+                 academicYear = '@Model.liUnallocatedMentorList.FirstOrDefault()?.ACADEMIC_YEAR'; 
+                 // Note: Ideally pass AcademicYear in Model, but list item has it too usually.
+            }
+
+            $("#bindData table tbody tr").each(function () {
+                var studentId = $(this).find(".hdnStudentId").val();
+                var classId = $(this).find(".hdnClassId").val();
+                var staffId = $(this).find("select").val(); // Get selected staff
+
+                if (staffId && staffId !== "" && staffId !== "0") {
+                    allocationList.push({
+                        STUDENT_ID: studentId,
+                        CLASS_ID: classId,
+                        STAFF_ID: staffId,
+                        BATCH: academicYear
+                    });
+                }
+            });
+
+            if (allocationList.length === 0) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Validation Error",
+                    text: "Please select at least one staff for allocation!"
+                });
+                return false;
+            }
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to submit " + allocationList.length + " allocations?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Yes, submit",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+                    $("#btnManualSubmit").prop("disabled", true).text("Saving...");
+
+                    $.ajax({
+                        url: '@Url.Action("ManualMentoringAllocation", "Mentor")',
+                        type: "POST",
+                        contentType: 'application/json',
+                        data: JSON.stringify({ allocationList: allocationList }),
+                        success: function (response) {
+                             Swal.fire({
+                                icon: response.Status ? "success" : "info",
+                                title: response.Status ? "Success" : "Info",
+                                text: response.Message
+                            }).then(() => {
+                                if (response.Status) {
+                                     // Refresh the list by triggering the Get button on parent page
+                                     if($("#BtnGet").length){
+                                        $("#BtnGet").click();
+                                     } else {
+                                         // Or reload page if BtnGet not found
+                                         location.reload();
+                                     }
+                                }
+                            });
+                            $("#btnManualSubmit").prop("disabled", false).text("Submit Allocations");
+                        },
+                        error: function () {
+                            Swal.fire({ icon: "error", title: "Error", text: "Internal Server Error" });
+                            $("#btnManualSubmit").prop("disabled", false).text("Submit Allocations");
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
+
+
+@*<div class="mentor-table-container">
+    @if (Model.liAllotedMentorList != null && Model.liAllotedMentorList.Count > 0)
+    {
+        <table>
+            <thead>
+                <tr>
+
+                    <th>S.No</th>
+                    <th>Roll No</th>
+                    <th>Student Name</th>
+                    <th>Class</th>
+                    <th>Staff Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int j = 1; }
+                @foreach (var staffGroup in Model.liAllotedMentorList.GroupBy(g => new { g.STAFF_ID, g.STAFF_NAME, g.STAFF_GENDER }))
+                {
+                    var rowCount = staffGroup.Count();
+                    bool firstRow = true;
+
+                    foreach (var item in staffGroup)
+                    {
+                        <tr>
+
+                            <td>@j</td>
+                            <td style="text-align:left;">@item.ROLL_NO</td>
+                            <td style="text-align:left;">@item.STUDENT_NAME</td>
+                            <td style="text-align:left;">@item.CLASS_NAME</td>
+                            @if (firstRow)
+                            {
+                                <td rowspan="@rowCount" style="font-weight:bold; background:#eef5ff;">@item.STAFF_NAME</td>
+                                firstRow = false;
+                            }
+                        </tr>
+                        j++;
+                    }
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="no-record">
+            <i class="fa fa-exclamation-circle"></i> No Records Found
+        </div>
+    }
+</div>*@
+<script>
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker('refresh');
+    });
+</script>
+
+

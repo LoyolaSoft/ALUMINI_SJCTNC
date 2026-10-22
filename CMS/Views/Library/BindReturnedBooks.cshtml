@@ -1,0 +1,199 @@
+@model CMS.ViewModel.ViewModel.LibraryViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "BindReturnedBooks";
+    Layout = null;
+    int count = 0;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<style>
+    .dt-buttons .btn {
+        padding: 4px 10px;
+        font-size: 12px;
+        margin-right: 4px;
+        border-radius: 3px;
+    }
+    #tbllibReport th {
+        text-align: center;
+        vertical-align: middle !important;
+        background-color: #f8fafc;
+        font-weight: 600;
+    }
+    #tbllibReport td {
+        vertical-align: middle !important;
+    }
+    @@media print {
+        #tbllibReport {
+            border-collapse: collapse !important;
+            width: 100% !important;
+        }
+        #tbllibReport, #tbllibReport th, #tbllibReport td {
+            border: 1px solid #333 !important;
+        }
+        #tbllibReport th {
+            background-color: #f1f5f9 !important;
+            font-weight: bold !important;
+            text-align: center !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        #tbllibReport td, #tbllibReport th {
+            padding: 5px 8px !important;
+        }
+    }
+</style>
+
+@if (Model.liReportFields != null && Model.liReportFields.Count > 0)
+{
+    var college = Model.liCollegeDetails != null ? Model.liCollegeDetails.FirstOrDefault() : null;
+    var fromDate = ViewBag.FromDate as string ?? "";
+    var toDate = ViewBag.ToDate as string ?? "";
+    var rangeText = string.IsNullOrEmpty(fromDate) ? "" : ((fromDate == toDate || string.IsNullOrEmpty(toDate)) ? fromDate : (fromDate + " to " + toDate));
+
+    <div class="col-md-12 table-responsive">
+        @if (college != null)
+        {
+            <div class="text-center">
+                @if (!string.IsNullOrEmpty(college.COLLEGE_LOGO))
+                {
+                    <img src="@Url.Content(college.COLLEGE_LOGO)" style="width:100px; height:100px" />
+                }
+            </div>
+            <div class="text-center">
+                <h3>@college.COLLEGE_NAME &nbsp;&nbsp; @college.PLACE .</h3>
+                <h4>@college.UNIVERSITY .</h4>
+                <h5>
+                    LIBRARY REPORT FOR <label id="lblReportName">RETURNED BOOKS</label> &nbsp;-(@{if (Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] != null)
+                    { @Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] } })
+                    @if (!string.IsNullOrEmpty(rangeText))
+                    {
+                        <br /><span class="badge badge-primary" style="font-size: 13px; font-weight: normal; margin-top: 5px;">Date Range: @rangeText</span>
+                    }
+                </h5>
+            </div>
+        }
+        <br />
+        <hr />
+
+        <div style="page-break-after:avoid !important;page-break-inside:avoid !important;">
+            <table class="table table-bordered table-striped table-hover" id="tbllibReport" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width:40px;">#</th>
+                        <th>User Name</th>
+                        <th class="text-center">User Code</th>
+                        <th class="text-center">User Type</th>
+                        <th class="text-center">Access No</th>
+                        <th class="text-center">Book No</th>
+                        <th>Book Title</th>
+                        <th>Author</th>
+                        <th class="text-center">Issue Date</th>
+                        <th class="text-center">Returned Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.liReportFields)
+                    {
+                        <tr>
+                            <td class="text-center">@{count++;}@count</td>
+                            <td>@item.FIRST_NAME</td>
+                            <td class="text-center">@item.USERNAME</td>
+                            <td class="text-center">@item.USER_TYPE_NAME</td>
+                            <td class="text-center">@item.ACCESS_NO</td>
+                            <td class="text-center">@item.BOOK_NO</td>
+                            <td>@item.BOOK_TITLE</td>
+                            <td>@item.AUTHOR</td>
+                            <td class="text-center">@item.ISSUE_DATE</td>
+                            <td class="text-center">@item.ACTUAL_RETURNED_DATE</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <hr />
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger text-center">No Record(s) Found !</div>
+}
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+    $(document).ready(function () {
+        var reportTitle = "Returned Books Report";
+        var collegeName = "@Html.Raw(HttpUtility.JavaScriptStringEncode(Model.liCollegeDetails != null && Model.liCollegeDetails.Count > 0 ? Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME : ""))";
+        var fromDate = "@ViewBag.FromDate";
+        var toDate = "@ViewBag.ToDate";
+        var dateRangeStr = (fromDate && toDate && fromDate !== toDate) ? (fromDate + " to " + toDate) : (fromDate || "");
+
+        var t = $("#tbllibReport").DataTable({
+            "aaSorting": [],
+            dom: "lBfrtip",
+            buttons: [
+                {
+                    extend: "excelHtml5",
+                    className: "btn btn-success btn-sm",
+                    text: "<i class='fa fa-file-excel-o'></i> Excel",
+                    title: reportTitle + (dateRangeStr ? " (" + dateRangeStr + ")" : "")
+                },
+                {
+                    extend: "pdfHtml5",
+                    className: "btn btn-danger btn-sm",
+                    text: "<i class='fa fa-file-pdf-o'></i> PDF",
+                    title: reportTitle,
+                    orientation: "landscape",
+                    pageSize: "A4",
+                    customize: function (doc) {
+                        if (window.splitPdfDateWise) {
+                            window.splitPdfDateWise(doc, 9, reportTitle, collegeName, fromDate, toDate);
+                        }
+                    }
+                },
+                {
+                    extend: "print",
+                    className: "btn btn-primary btn-sm",
+                    text: "<i class='fa fa-print'></i> Print",
+                    title: "",
+                    customize: function (win) {
+                        if (window.formatDataTablePrint) {
+                            window.formatDataTablePrint(win, reportTitle, collegeName, dateRangeStr, 9);
+                        } else {
+                            $(win.document.body).find('h1').remove();
+                            $(win.document.head).append(
+                                '<style>' +
+                                'table { border-collapse: collapse !important; width: 100% !important; margin-top: 10px !important; }' +
+                                'table, th, td { border: 1px solid #333 !important; }' +
+                                'th { background-color: #f1f5f9 !important; font-weight: bold !important; text-align: center !important; padding: 6px 8px !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }' +
+                                'td { padding: 5px 8px !important; }' +
+                                '</style>'
+                            );
+                            $(win.document.body).find('table, th, td').css({ 'border': '1px solid #333' });
+                        }
+                    }
+                }
+            ]
+        });
+
+        // Dynamic sequential serial numbers on frontend
+        t.on('draw.dt', function () {
+            var info = t.page.info();
+            t.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                cell.innerHTML = info.start + i + 1;
+            });
+        });
+    });
+</script>

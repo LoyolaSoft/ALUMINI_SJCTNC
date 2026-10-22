@@ -1,0 +1,142 @@
+﻿@model CMS.ViewModel.ViewModel.FeedbackViewModel
+
+@{
+    ViewBag.Title = "FeedbackPricipalViewForDepartment";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/intro-js/introjs.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<!-- begin #content -->
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Feedback</a></li>
+        <li class="active">Feedback Result</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Feedback <small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Feedback Result</h4>
+        </div>
+        <div class="panel-body">
+
+
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-horizontal">
+                    <div class=" ">
+                        <div class="col-md-6" data-step="1" data-intro="Choose Course" data-position="bottom-right-aligned">
+                            @Html.Label("Shift List", htmlAttributes: new { @class = "col-md-4 control-label " })
+                            <div class="col-md-8">
+                                @if (Model.ShiftList != null)
+                                {
+                                    @Html.DropDownListFor(m => m.ShiftList, Model.ShiftList, "---Select---", new { @class = "form-control  selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(m => m.ShiftList, "", new { @class = "text-danger" })
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-6" data-step="2" data-intro="Choose Staff">
+                            @Html.Label("Department List", htmlAttributes: new { @class = "col-md-4 control-label " })
+                            <div class="col-md-8">
+
+                                @if (Model.DepartmentList != null)
+                                {
+                                @Html.DropDownList("DepartmentList", Model.DepartmentList, "---Select---", new { @class = "form-control  selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                }
+
+                                @* <a href="#" class="btn btn-warning " id="btnSearch" data-original-title="Click to search" title="Click to search"> <i class="ion-ios-search-strong"> </i></a>*@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-horizontal">
+                    <iframe id="iReport" class="col-lg-12 rounded m-t-5" style="height:450px;"></iframe>
+                </div>
+
+            }
+        </div>
+    </div>
+</div>
+<!-- end #content -->
+
+
+
+    <script src="~/Content/assets/plugins/intro-js/intro.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+    <script type="text/javascript">
+        ContentLoad = function ()
+        {
+            //Ready Function()
+            setTimeout(function () {
+                introJs().start();
+            }, 1000);
+        }
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+
+        $('.selectpicker').selectpicker('refresh');
+
+        $("#ShiftList").on('change', function () {
+            //$("#btnReload").click();
+
+            if ($("#ShiftList").val() != '') {
+                $.ajax({
+                    url: "/Feedback/DepartmentListByShift",
+                    async: false,
+                    data: { sShiftId: $("#ShiftList").val() },
+                    success: function (list) {
+                        var select = $("#DepartmentList");
+                        select.empty();
+                        var option = '<option value="0" >---Select---</option>';
+                        option = option + list;
+                        select.html(option);
+                        $('.selectpicker').selectpicker('refresh');
+                        //select.append(data);
+                        //$("#StaffListByDepartmet").html(list).multiselect("destroy").multiselect(
+                        //    {
+                        //        includeSelectAllOption: true, maxHeight: 200, numberDisplayed: 1, enableFiltering: true, nonSelectedText: 'Select Staff'
+                        //    });
+                    }, error: function (ex) {
+                        alert('Failed to retrieve .' + ex);
+                    }
+                });
+            }
+        });
+
+
+
+        $("#DepartmentList").on('change', function () {
+            //$("#btnReload").click();
+            $('#iReport').attr('src', '../RDLCPages/DepartmentWiseFBReport.aspx?sDepartId=' + $('#DepartmentList').val() + '&sShiftId=' + $("#ShiftList").val());
+
+        });
+
+
+
+
+
+
+
+
+    </script>
+
+    
+
+
+

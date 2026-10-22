@@ -1,0 +1,175 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{ 
+    Layout = null;
+    int nCount = 0; int nRowCount = 0;
+    //bool sFalg = true;
+    string sOddString = string.Empty;
+    string sEvenString = string.Empty;
+    string sRow = string.Empty;
+    string sTable = string.Empty; bool sFalg = false;
+    string sStartStrike = string.Empty;
+    string sEndStrike = string.Empty;
+}
+
+
+<div class="col-md-12 form-horizontal">
+    @{
+        if (Model.liStudentList != null && Model.liStudentList.Count > 0)
+        {
+            foreach (var item in Model.liStudentList)
+            {
+                nRowCount++;
+                if (nRowCount % 2 != 0)
+                {
+                    sRow = " <div style = 'page-break-after:always !important;page-break-inside:avoid !important;' id='" + nRowCount + "'>";
+                }
+                else
+                {
+                    sRow = "<div id='" + nRowCount + "'></div>";
+                }
+                @Html.Raw(sRow)
+                <div class="row">
+                    <div style="height:120px !important;">
+                        <div class="col-md-12 form-group">
+                            <div class="col-xs-2">
+                                <img src="~/Content/assets/img/hcc-img/SJCLOGO.png" width="40%" alt="College Logo" />
+                            </div>
+                            <div class="col-xs-8">
+                                <div style="text-align:center"><b>St. JOSEPH'S COLLEGE OF ARTS & SCIENCE(Autonomous) :: CUDDALORE - 1</b></div>
+                                <div style="text-align:center"><b>November 2019 Examinations</b></div>
+                                <h5 style="text-align:center"><b> HALL TICKET</b> </h5>
+                                @*<div> TIMING: &nbsp; &nbsp; FORENOON : <span> 9:30 to 12:30</span> &nbsp; &nbsp; AFTERNOON : <span> 1:30 to 4:30 </span></div>*@
+                            </div>
+
+                            <div class="col-xs-2">
+                                 @*<img src="~/Content/assets/10715U18030.jpg" width="40%" alt="Student Img" />*@
+                                 <img src="@item.PHOTO" width="40%" alt="AFFIX HERE YOUR PASSPORT SIZE PHOTOGRAPH TAKEN WITHIN A PERIOD OF THREE MONTHS" />
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <div class="col-xs-3"> Reg No : <span>@item.REGISTER_NO</span></div>
+                            <div class="col-xs-6"> Name : @item.LAST_NAME ( @item.DATE_OF_BIRTH )</div>
+                            <div class="col-xs-3"> Roll No : <span>@item.ROLL_NO</span></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 form-group" style="height:280px !important;">
+                        @{
+                            if (Model.liFetchHallTicket != null && Model.liFetchHallTicket.Count > 0)
+                            {
+                                var liExamRegistration = Model.liFetchHallTicket.Where(x => x.STUDENT_ID == item.STUDENT_ID).ToList();
+                                if (liExamRegistration != null && liExamRegistration.Count > 0)
+                                {
+                                    sTable = string.Empty;
+                                    nCount=0; sFalg = false;
+                                    foreach (var Examitem in liExamRegistration)
+                                    {
+                                        sStartStrike = string.Empty;
+                                        sEndStrike = string.Empty;
+                                        if (Model.liCIA_Total!=null && Model.liCIA_Total.Count>0)
+                                        {
+                                            var liFail = Model.liCIA_Total.Where(x=>x.STUDENT_ID==Examitem.STUDENT_ID && x.COURSE_ID==Examitem.COURSE_ID).ToList();
+                                            sFalg = (liFail != null && liFail.Count > 0) ? true : false;
+                                            if (sFalg)
+                                            {
+                                                sStartStrike = "<strike class='text-danger'>"; sEndStrike = "</strike>";
+                                            }
+                                        }
+                                        sOddString = string.Empty;
+                                        sEvenString = string.Empty;
+                                        nCount++;
+                                        if (nCount % 2 == 0)
+                                        {
+                                            sEvenString = @"
+                                                             <td> &nbsp; " + @sStartStrike + @Examitem.EXAM_DATE + @sEndStrike+ @"&nbsp;</td>"
+                                                             + @"<td>&nbsp;" + @sStartStrike + @Examitem.EXAM_TIME + @sEndStrike + @"&nbsp;</td>"
+                                                             + @"<td>&nbsp;" + @sStartStrike + @Examitem.COURSE_CODE + @sEndStrike + @"&nbsp;</td>"
+                                                             + @"<td>&nbsp;" + @sStartStrike + @Examitem.SEAT_CODE + @sEndStrike + @"&nbsp;</td>";
+                                            sTable += sEvenString + "</tr>";
+                                        }
+                                        else
+                                        {
+                                            sOddString = @"
+                                                            <td> &nbsp; " + @sStartStrike + @Examitem.EXAM_DATE + @sEndStrike + @"&nbsp;</td>"
+                                                             + @"<td>&nbsp;" + @sStartStrike + @Examitem.EXAM_TIME + @sEndStrike + @"&nbsp;</td>"
+                                                             + @"<td>&nbsp;" + @sStartStrike + @Examitem.COURSE_CODE + @sEndStrike + @"&nbsp;</td>"
+                                                             + @"<td>&nbsp;" + @sStartStrike + @Examitem.SEAT_CODE + @sEndStrike + @"&nbsp;</td>"
+                                                             + @"<td></td>";
+                                            sTable += "<tr>" + sOddString;
+                                        }
+                                    }
+                                    if (string.IsNullOrEmpty(sEvenString))
+                                    {
+                                        sTable += "<td></td><td></td><td></td><td></td></tr>";
+                                    }
+
+                                        <table border="1" style="width:910px; margin-left:15px;" cellpadding="5" cellspacing="5">
+                                            <thead>
+                                                <tr>
+                                                    <th>&nbsp; Date &nbsp;</th>
+                                                    <th>&nbsp; Session &nbsp;</th>
+                                                    <th>&nbsp; Course &nbsp;</th>
+                                                    <th>&nbsp; Block :&nbsp; Room :&nbsp; Seat &nbsp;</th>
+                                                    <th width="10%">&nbsp; &nbsp; &nbsp; &nbsp; </th>
+                                                    <th>&nbsp; Date &nbsp;</th>
+                                                    <th>&nbsp; Session &nbsp;</th>
+                                                    <th>&nbsp; Course &nbsp;</th>
+                                                    <th>&nbsp; Block :&nbsp; Room :&nbsp; Seat &nbsp;</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                               @Html.Raw(sTable)
+                                            </tbody>
+                                        </table>
+                                }
+                            }
+                        }
+                    </div>
+
+                    <div class="col-md-12 form-group">
+                        <small style="font-size:xx-small"> &nbsp; &nbsp; NB : The examination schedule listed above is only for instantaneous reference,it is <b> Subject to be altered when and where needed</b> it is advised to <b>refer the notice board/college website</b> for final versions</small>
+                    </div>
+
+                    <div class="col-md-12 form-group">
+                        <label class="col-xs-3"></label>
+                        <label class="col-xs-3"></label>
+                        <label class="col-xs-3 text-center"><img src="~/Content/hcc_img/sign/SJC_PRINCIPAL_SIGN.jpg" width="150"/></label>
+                        <label class="col-xs-3 text-center"><sub><img src="~/Content/hcc_img/sign/SJC_COE_SIGN1.jpg" width="150"/></sub></label>
+                    </div>
+
+                    <div class="col-md-12 form-group" style="height:50px !important;">
+                        <label class="col-xs-3">Date : @DateTime.Today.ToString("dd-MM-yyyy") </label>
+                        <label class="col-xs-3">Student</label>
+                        <label class="col-xs-3 text-center">Principal</label>
+                        <label class="col-xs-3 text-center">Controller Of Examinations</label>
+                        <label class="col-xs-12">&nbsp; <small>1. VB: Venmani Block  &nbsp; &nbsp; &nbsp; 2. TB: Terbes Block &nbsp; &nbsp; &nbsp; 3. SB (MB) : South Block (Micro Biology) &nbsp; &nbsp; &nbsp; 4. SB (CS) : South Block (Computer Science) &nbsp; &nbsp; &nbsp; 5. AL : Arul Block </small></label>
+                    </div>
+                    @{
+                        if (nRowCount % 2 != 0)
+                        {
+                            <div class="col-md-12 form-group"></div>
+                            <div class="col-md-12 form-group"></div>
+                            <div class="col-md-12 form-group"></div>
+                            <div class="col-md-12 form-group"></div>
+                            <div class="col-md-12 form-group"></div>
+                            <div class="col-md-12 form-group"></div>
+                            <div class="col-md-12 form-group"></div>
+                            <div class="col-md-12 form-group"></div>
+                            <div class="col-md-12 form-group"></div>
+                            <div class="col-md-12 form-group"></div>
+                            <div class="col-md-12 form-group"></div> 
+                        }
+                    }
+                    
+                </div>
+                if (nRowCount % 2 == 0)
+                {
+                   @Html.Raw("</div>")
+                    @*<div style="page-break-after:always !important;page-break-inside:avoid !important;"></div>*@
+                }
+            }
+        }
+    }
+</div>
+

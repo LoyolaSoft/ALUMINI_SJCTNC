@@ -1,0 +1,115 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+
+
+@{
+    Layout = null;
+    int nCount = 0;
+
+}
+
+
+
+<div class="form-horizontal">
+    <div class="form-group col-md-12">
+        <a class="btn btn-primary text-white pull-right" onclick="AddNewColumn()" href="javascript:;"><i class="fa fa-plus"></i> Click To Add New Row </a>
+    </div>
+
+    <div class="form-group col-md-12">
+        <table class="table table-bordered" id="tblIQAC">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Dept Code</th>
+                    <th>Title Of The Book</th>
+                    <th>Volume , Number Of Pages</th>
+                    <th>Name Of The Publisher And Place</th>
+                    <th>ISBN</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            @if (Model.liResearchAcademicContributionE != null && Model.liResearchAcademicContributionE.Count > 0)
+            {
+                foreach (var item in Model.liResearchAcademicContributionE)
+                {
+                        <tr cms-IQACID="@item.IQAC_ID">
+                            <td>@{nCount++;} @nCount</td>
+                            <td><input type="text" class="form-control" value="@item.DEPT_CODE" maxlength="10" data-parsley-required="true"/> </td>
+                            <td><input type="text" class="form-control" maxlength="60" value="@item.BOOK_TITLE" data-parsley-required="true"/> </td>
+                            <td><input type="text" class="form-control" maxlength="60" value="@item.VOLUME_PAGES" data-parsley-required="true"/> </td>
+                            <td><textarea rows="3" style="margin: 0px 4px 0px 0px; width: 156px; height: 53px;" data-parsley-required="true" class="form-control" maxlength="300">@item.PUBLISHER_PLACE</textarea> </td>
+                            <td><input type="text" class="form-control" maxlength="60" value="@item.ISBN_NO" data-parsley-required="true"/> </td>
+                            <td><a onclick="GetConfrim(@item.IQAC_ID)" href="javascript:;"><i class="fa fa-trash text-danger" title="Click To Delete"></i></a></td>
+                        </tr>
+                  }
+              }
+              else
+              {
+                  <tr cms-IQACID="">
+                      <td>@{nCount++;} @nCount</td>
+                      <td><input type="text" class="form-control" value="" maxlength="10" data-parsley-required="true"/> </td>
+                      <td><input type="text" class="form-control" maxlength="60" value="" data-parsley-required="true"/> </td>
+                      <td><input type="text" class="form-control" maxlength="60" value="" data-parsley-required="true"/> </td>
+                      <td><textarea rows="3" style="margin: 0px 4px 0px 0px; width: 156px; height: 53px;" data-parsley-required="true" class="form-control" maxlength="300"></textarea></td>
+                      <td><input type="text" class="form-control" maxlength="60" value="" data-parsley-required="true" /> </td>
+                      <td></td>
+                  </tr>
+              }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<input type="hidden" name="name" value="@nCount" id="hdNumber" />
+
+<script>
+
+    function AddNewColumn()
+    {
+        var nCount = 0;
+        nCount=$('#hdNumber').val();
+        nCount++;
+        $('#hdNumber').val(nCount);
+        var sDom = '<tr cms-IQACID="">\
+                      <td>' + nCount + '</td>\
+                      <td><input type="text" class="form-control" value="" maxlength="10" data-parsley-required="true"/></td>\
+                      <td><input type="text" class="form-control" maxlength="60" value="" data-parsley-required="true"/></td>\
+                      <td><input type="text" class="form-control" maxlength="60" value="" data-parsley-required="true"/></td>\
+                      <td><textarea rows="3" style="margin: 0px 4px 0px 0px; width: 156px; height: 53px;" data-parsley-required="true" class="form-control" maxlength="300"></textarea></td>\
+                      <td><input type="text" class="form-control" maxlength="50" value="" data-parsley-required="true" /> </td>\
+                      <td></td>\
+                    </tr>';
+        $('tbody').append(sDom);
+    }
+
+    function GetConfrim(ID)
+    {
+        if (!confirm('Are You Sure To Delete ?'))
+        {
+            return false;
+        }
+        $.ajax({
+            url: '@Url.Action("DeleteResearchAndAcademicContributionE", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sIQACID: ID },
+            success: function (data)
+            {
+                if (data.ErrorCode == "200")
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    BindList();
+                } else
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+</script>

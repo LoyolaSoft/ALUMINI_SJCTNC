@@ -1,0 +1,277 @@
+﻿
+@model CMS.ViewModel.ViewModel.CertificateCoursesViewModel
+
+@{
+    ViewBag.Title = "BindAssociationGroupsBySettingId";
+}
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<div class="col-md-12">
+    <a class="btn btn-success pull-right form-group m-b-5" href="#Course-dialog" data-toggle="modal"><i class="fa fa-plus" title="Add" id="btnAdd"> Add</i></a>
+</div>
+<br />
+@{ int count = 0;}
+<div class="table-responsive col-md-12">
+    <table class="table table-hover table-bordered" id="tblCourses">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Group Name</th>
+                <th>Group Code</th>
+                <th>Academic Year</th>
+                <th>Total Quota</th>
+                <th>Used Quota</th>
+                <th>Active</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liAssociation != null && Model.liAssociation.Count > 0)
+            {
+                foreach (var item in Model.liAssociation)
+                {
+                    <tr>
+                        <td>@{ count++;}@count</td>
+                        <td>@item.ASSOCIATION_GROUP</td>
+                        <td>@item.ASSOCIATION_GROUP_CODE</td>
+                        <td>@item.ACADEMIC_YEAR</td>
+                        <td>@item.QUOTA</td>
+                        <td>@item.USED_QUOTA</td>
+                        <td>
+                            @if (item.IS_ACTIVE == "0")
+                            {
+                                <a href="#" onclick="ActiveClassCourse(@item.ASSOCICATION_GROUP_ID,'1');" title="Activate This Course"><i class="fa fa-close text-danger"></i></a>
+                            }
+                            else
+                            {
+                                <a href="#" onclick="ActiveClassCourse(@item.ASSOCICATION_GROUP_ID,'0');" title="DeActivate This Course"><i class="fa fa-check text-success"></i></a>
+                            }
+                        </td>
+                        <td>
+                            <a href="#Course-dialog" onclick="FetchCourses(@item.ASSOCICATION_GROUP_ID);" data-toggle="modal"><i class="fa fa-edit text-primary" title="Update"></i></a>
+                            <a onclick="DeleteCourses(@item.ASSOCICATION_GROUP_ID);"><i class="fa fa-trash text-danger" title="Delete"></i></a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Begin Modal -->
+
+<div class="modal" id="Course-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit CertificateCourse</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.liAssociationgroups.ASSOCIATION_GROUP, "Course Code", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.EditorFor(model => model.liAssociationgroups.ASSOCIATION_GROUP, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Enter Course Code", @data_parsley_required = "true" } })
+                                        @Html.ValidationMessageFor(model => model.liAssociationgroups.ASSOCIATION_GROUP, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.liAssociationgroups.ASSOCIATION_GROUP_CODE, "Course Title", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.EditorFor(model => model.liAssociationgroups.ASSOCIATION_GROUP_CODE, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Enter Course Title", @data_parsley_required = "true" } })
+                                        @Html.ValidationMessageFor(model => model.liAssociationgroups.ASSOCIATION_GROUP_CODE, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.liAssociationgroups.QUOTA, "Quota", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.EditorFor(model => model.liAssociationgroups.QUOTA, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Enter Quota", @data_parsley_required = "true" } })
+                                        @Html.ValidationMessageFor(model => model.liAssociationgroups.QUOTA, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="checkbox checkbox-css col-md-10 pull-right">
+                                        <input type="checkbox" id="IsActive" />
+                                        <label for="IsActive">Active</label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" value="" id="txtCourseRootId" />
+<!-- End Modal -->
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+    $("#tblCourses").DataTable({ "bPaginate": false });
+</script>
+<script>
+    function DeleteCourses(ID)
+    {
+        if (!confirm('Are you sure to delete ?')) {
+            return false;
+        }
+        else
+        {
+            $.ajax({
+                url: "@Url.Action("DeleteAssociationGroups", "Association")",
+                method: "POST",
+            datatype: "json",
+            data: { sCertificateCourseId: ID },
+            success: function (data) {
+                if (data.ErrorCode == "200") {
+                    //swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                    alert(data.Message);
+                    loadContent('/Association/BindAssociationGroupsBySettingId?sSettingId=' + $('#SettingList').val() + '', "divQuestionView");
+                }
+                if (data.ErrorCode == "417") {
+                    swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+                if (data.ErrorCode == "503") {
+                    swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                }
+            }, error: function (error) {
+
+                swal({ title: "Info", text: "Internal Server Error !", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+            }
+        });
+        }
+
+    }
+
+    function FetchCourses(ID)
+    {
+        $.ajax({
+            url:'@Url.Action("FetchAssociationGroupsById", "Association")',
+            method:'POST',
+            datatype:'json',
+            data: { sCertificateCourseId: ID },
+            success: function (data)
+            {
+                if (data.Message != null && data.Message != '')
+                {
+                    alert(data.Message);
+                } else
+                {
+                    $('#liAssociationgroups_ASSOCIATION_GROUP').val(data[0].ASSOCIATION_GROUP);
+                    $('#liAssociationgroups_ASSOCIATION_GROUP_CODE').val(data[0].ASSOCIATION_GROUP_CODE);
+                   // $('#Semester').val(data[0].SEMESTER_ID);
+                    $('#liAssociationgroups_QUOTA').val(data[0].QUOTA);
+                    $('#txtCourseRootId').val(data[0].ASSOCICATION_GROUP_ID);
+
+
+                    if (data[0].IS_ACTIVE == "1")
+                    {
+                        $('#IsActive').attr("checked", true);
+                    }
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+
+
+    $('#btnSubmit').on('click', function ()
+    {
+
+        var isValid = true;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            //gritter-info,danger,success,warning,default
+            //   alert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+            return false;
+        }
+
+        var isActive = 0;
+        if ($('#IsActive').is(':checked'))
+        {
+            isActive = 1;
+        }
+        var JsonData = '{"ASSOCICATION_GROUP_ID":"' + $('#txtCourseRootId').val() + '","ASSOCIATION_GROUP":"' + $('#liAssociationgroups_ASSOCIATION_GROUP').val() + '","ASSOCIATION_GROUP_CODE":"' + $('#liAssociationgroups_ASSOCIATION_GROUP_CODE').val() + '","SETTING_ID":"' + $('#SettingList').val() + '","QUOTA":"' + $('#liAssociationgroups_QUOTA').val() + '","IS_ACTIVE":"' + isActive + '"}';
+        $.ajax({
+            url:'@Url.Action("SaveAssociationGroups", "Association")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sCertificateCourses :JsonData},
+            success: function (data)
+            {
+                if (data.ErrorCode == "200") {
+                    //swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                    alert(data.Message);
+                    loadContent('/Association/BindAssociationGroupsBySettingId?sSettingId=' + $('#SettingList').val() + '', "divQuestionView");
+                }
+                if (data.ErrorCode == "417") {
+                    swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+                if (data.ErrorCode == "503" || data.ErrorCode == "208") {
+                    swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                }
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+    });
+
+
+    // Active  Course ...
+    function ActiveClassCourse(ID, sMode) {
+        if (!confirm('Are you sure to Activate/Deactivate This Course ?')) {
+            return false;
+        }
+        $.ajax({
+            url: '@Url.Action("ActivateAssociationGroups", "Association")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sCourseId: ID, sIsActive: sMode },
+            success: function (data) {
+                alert(data.Message);
+                loadContent('/Association/BindAssociationGroupsBySettingId?sSettingId=' + $('#SettingList').val() + '', "divQuestionView");
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+
+
+    $('#btnAdd').click(function () {
+
+        $('#liAssociationgroups_ASSOCIATION_GROUP').val('');
+        $('#liAssociationgroups_ASSOCIATION_GROUP_CODE').val('');
+        $('#liAssociationgroups_QUOTA').val('');
+        $('#IsActive').prop('checked', false);
+        $('#txtCourseRootId').val('');
+    });
+
+    LoadCertificateCourseList = function () {
+        loadContent('/Association/ListAssociationGroups');
+    }
+</script>

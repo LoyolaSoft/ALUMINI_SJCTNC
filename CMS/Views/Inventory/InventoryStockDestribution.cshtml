@@ -1,0 +1,463 @@
+﻿@model CMS.ViewModel.ViewModel.InventoryViewModel
+@{
+    ViewBag.Title = "InventoryStockDestribution";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/css/jquery.jqGauges.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/morris/morris.css" rel="stylesheet" />
+<link href="~/Content/assets/css/timepicki.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="#" onclick="loadContent('@Url.Action("ADMIN","DashBoard")')"></a></li>
+
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <!-- end page-header -->
+    <!-- begin panel -->
+    <div class="panel panel-default panel-with-tabs" data-sortable-id="ui-unlimited-tabs-2">
+        <div class="panel-heading p-0">
+            <div class="panel-heading-btn m-r-10 m-t-10">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-inverse" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+            </div>
+            <!-- begin nav-tabs -->
+            <div class="tab-overflow" data-parsley-validate="true" name="form-wizard">
+                <ul class="nav nav-tabs">
+                    @*<li class="prev-button"><a href="javascript:;" data-click="prev-tab" aria-controls="first" class="text-inverse"><i class="fa fa-arrow-left"></i></a></li>*@
+
+                    <li class="nav-item active" id="bookedlist"><a href="#nav-tab1-1" class="nav-link active" data-toggle="tab">Stock Distribution</a></li>
+                    <li class="" id=""><a href="#nav-tab1-2" data-toggle="tab">Stock Requested</a></li>
+
+                </ul>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="tab-content">
+                <div class="tab-pane fade active in" id="nav-tab1-1" data-parsley-validate="true">
+                    <div class="form-group col-md-12">
+                        <a class="btn btn-success pull-right form-group m-b-5" href="#stockdis" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add">Add</i></a>
+                    </div>
+                    <div class="col-md-12" id="stockdistributed">
+
+                        <table class="table table-hover table-bordered" id="tblstockdistributed">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Department</th>
+                                    <th>Item</th>
+                                    <th>Vendor</th>
+                                    <th>Quantity</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @if (Model.listockdistribution != null && Model.listockdistribution.Count > 0)
+                                {
+                                    var count = 0;
+                                    foreach (var item in Model.listockdistribution)
+                                    {
+                                        count = count + 1;
+
+                                <tr>
+                                    <td>@count</td>
+                                    <td>@item.DEPARTMENT_NAME</td>
+                                    <td>@item.ITEM_NAME</td>
+                                    <td>@item.VENDOR_NAME</td>
+                                    <td>@item.QUANTITY</td>
+                                    <td>
+                                        <a href="#stockdis" onclick="FetchStockDistribution(@item.STOCK_DESTRIBUTION_ID)" data-toggle="modal" class="btn btn-primary text-primary"><i style="color:white" class="glyphicon glyphicon-edit" title="EDIT"></i></a>
+                                    </td>
+
+
+                                </tr>
+                                    }
+
+                                }
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-tab1-2" data-parsley-validate="true">
+
+                    <div class="col-md-12" id="">
+                        <table class="table table-hover table-bordered" id="tblstockrequest">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Department</th>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @if (Model.listockrequest != null && Model.listockrequest.Count > 0)
+                                {
+                                    var count = 0;
+                                    foreach (var item in Model.listockrequest)
+                                    {
+                                        count = count + 1;
+
+                                        <tr>
+                                            <td>@count</td>
+                                            <td>@item.DEPARTMENT_NAME</td>
+                                            <td>@item.ITEM_NAME</td>
+                                            <td>@item.APPROVED_QUANTITY</td>
+                                            <td>@item.STATUS_NAME</td>
+                                            <td>
+                                                <a href="#stockrequestdistribution" onclick="FetchStockRequestDetails(@item.STOCK_REQUEST_ID)" data-toggle="modal" class="btn btn-primary text-primary"><i style="color:white" class="glyphicon glyphicon-edit" title="EDIT"></i></a>
+                                            </td>
+
+
+                                        </tr>
+                                    }
+
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- end panel -->
+</div>
+<div class="modal" id="stockdis">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <input type="text" id="stockdisid" class="hidden">
+                                    <div class="form-group col-md-12">
+                                        @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-4" })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(model => model.DEPARTMENT, (Model.DEPARTMENT != null) ? Model.DEPARTMENT : Enumerable.Empty<SelectListItem>(), new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @multiple = "multiple", @data_selected_text_format = "count", @data_action_box = "true" })
+                                            @Html.ValidationMessageFor(model => model.DEPARTMENT, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        @Html.Label("Item", htmlAttributes: new { @class = "control-label col-md-4" })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(model => model.ITEMS, (Model.ITEMS != null) ? Model.ITEMS : Enumerable.Empty<SelectListItem>(), new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @multiple = "multiple", @data_selected_text_format = "count", @data_action_box = "true" })
+                                            @Html.ValidationMessageFor(model => model.ITEMS, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        @Html.Label("Vendor", htmlAttributes: new { @class = "control-label col-md-4" })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(model => model.VENDOR, (Model.VENDOR != null) ? Model.VENDOR : Enumerable.Empty<SelectListItem>(), new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @multiple = "multiple", @data_selected_text_format = "count", @data_action_box = "true" })
+                                            @Html.ValidationMessageFor(model => model.VENDOR, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Available Stock</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="avistock" class="form-control" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Quantity</label>
+
+                                        <div class="col-md-8">
+                                            <input type="number" id="quantity" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="modal" id="stockrequestdistribution">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="ppBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <input type="text" id="stockrequestid" class="hidden">
+                                    <input type="text" id="itemid" class="hidden">
+                                    <input type="text" id="depid" class="hidden">
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Item</label>
+
+                                        <div class="col-md-8">
+                                            <input type="text" id="approveditem" class="form-control" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Quantity</label>
+
+                                        <div class="col-md-8">
+                                            <input type="number" id="approvedquantity" class="form-control" data-parsley-required="true">
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        @Html.Label("Item", htmlAttributes: new { @class = "control-label col-md-4" })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(model => model.ITEMS, (Model.ITEMS != null) ? Model.ITEMS : Enumerable.Empty<SelectListItem>(),"--Select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @id = "itemddl", @data_selected_text_format = "count", @data_action_box = "true" })
+                                            @Html.ValidationMessageFor(model => model.ITEMS, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-12" id="bindvendors">
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnsub" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script src="~/Content/assets/plugins/morris/raphael.min.js"></script>
+<script src="~/Content/assets/plugins/morris/morris.js"></script>
+<script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap.min.js"></script>
+<script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap-world-merc-en.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="~/Content/assets/js/timepicki.js"></script>
+
+<script>
+    $('.selectpicker').selectpicker({});
+    $('#tblstockrequest').DataTable({});
+    $('#tblstockdistributed').DataTable({});
+
+
+    function FetchStockDistribution(ID) {
+        if (ID != null) {
+            $.ajax({
+                url: "@Url.Action("FetchStockDistributedById", "Inventory")",
+                type: "post",
+                data: { sStockDestributionId: ID },
+                success: function (data) {
+                    if (data != null) {
+                        $('#stockdisid').val(data.STOCK_DESTRIBUTION_ID);
+                        $('#quantity').val(data.QUANTITY);
+                        $('#DEPARTMENT').val(data.DEP_ID);
+                        $('#ITEMS').val(data.ITEM_ID);
+                        $('#VENDOR').val(data.VENDOR_ID);
+                        FetchAvailableStock(data.ITEM_ID, data.VENDOR_ID);
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                },
+                error: function (ex) {
+                    alert(ex.Message);
+                }
+            });
+        }
+    }
+    $('#VENDOR').on('change', function () {
+        var itemid = $('#ITEMS').val();
+        var vendorid = $('#VENDOR').val();
+
+        FetchAvailableStock(itemid, vendorid);
+    });
+    function FetchAvailableStock(ITEM, VENDOR) {
+        $.ajax({
+            url: "@Url.Action("FetchAvailableStocks", "Inventory")",
+            type: "post",
+            data: { sItemId: ITEM, sVendorId: VENDOR },
+            success: function (data) {
+                $('#avistock').val(data.QUANTITY);
+
+                $('#avistock').attr('max', data.QUANTITY);
+            },
+            error: function (ex) {
+                alert(ex.Message);
+            }
+        });
+    }
+    $('#btnSubmit').on('click', function () {
+
+        var isValid = true;
+        var JsonData = null;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            return false;
+        }
+        JsonData = '{"STOCK_DESTRIBUTION_ID":"' + $("#stockdisid").val() + '","DEP_ID":"' + $("#DEPARTMENT").val() + '","ITEM_ID":"' + $("#ITEMS").val() + '","VENDOR_ID":"' + $("#VENDOR").val() + '","QUANTITY":"' + $("#quantity").val() + '"}';
+        $.ajax({
+            url: "@Url.Action("SaveorUpdateStockDistribution", "Inventory")",
+            type: "post",
+            data: { sJsonData: JsonData },
+            success: function (data) {
+
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/Inventory/InventoryStockDestribution');
+
+            },
+            error: function (ex) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+
+
+
+    GetConfirm = function (ID) {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+
+function () {
+    $.ajax({
+        url: "@Url.Action("DeletePurchaseDetails", "Inventory")",
+        type: "post",
+        data: { sPurchaseId: ID },
+        success: function (data) {
+            if (data.Message != null && data.Message != "") {
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/Inventory/InventoryStockDestribution');
+            }
+        },
+        error: function (ex) {
+            swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+        }
+
+
+    });
+});
+
+    }
+    function FetchStockRequestDetails(ID) {
+      
+        $.ajax({
+            url: "@Url.Action("FetchStockRequestDetailsById", "Inventory")",
+            type: "post",
+            data: { sStockRequesId: ID },
+            success: function (data) {
+                if (data != null) {
+                    $('#stockrequestid').val(data.STOCK_REQUEST_ID);
+                    $('#approveditem').val(data.ITEM_NAME);
+                    $('#itemid').val(data.ITEM_ID);
+                    $('#depid').val(data.DEP_ID);
+                    $('#approvedquantity').val(data.APPROVED_QUANTITY);
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            },
+            error: function (ex) {
+                alert(ex.Message);
+            }
+        });
+
+    }
+    $('#itemddl').on('change', function () {
+
+        $.ajax({
+            url: "@Url.Action("BindVendorsItemDetails", "Inventory")",
+            type: "post",
+            data: { sItemId: $(this).val() },
+            success: function (data) {
+                $('#bindvendors').empty();
+                $('#bindvendors').append(data);
+
+            },
+            error: function (ex) {
+                alert(ex.Message);
+            }
+        });
+    });
+
+    $('#btnsub').on('click', function () {
+        var isValid = true;
+        var JsonData = null;
+        if ($('#ppBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            return false;
+        }
+        var departmentid = $('#depid').val();
+        var itemid = $('#itemid').val();
+        var stockrequestid = $('#stockrequestid').val();
+
+        JsonData = "{LiStockRequest:[";
+        $('#tblvendoritems tbody tr').each(function () {
+            if ($(this).find('.vendorddl').val() != "") {
+                JsonData += '{"STOCK_REQUEST_ID":"' + stockrequestid + '","DEP_ID":"' + departmentid + '","ITEM_ID":"' + itemid + '","VENDOR_ID":"' + $(this).find('input[type="number"]').attr("vendorid") + '","QUANTITY":"' + $(this).find('.destriquantity').val() + '"},';
+            }
+
+        });
+        JsonData = JsonData.slice(0, -1);
+        JsonData += ']}';
+
+        $.ajax({
+            url: "@Url.Action("SaveStockDestribution", "Inventory")",
+            type: "post",
+            data: { sJsonData: JsonData },
+            success: function (data) {
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/Inventory/InventoryStockDestribution');
+
+            },
+            error: function (ex) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+
+
+</script>

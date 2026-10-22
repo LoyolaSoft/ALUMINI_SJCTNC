@@ -1,0 +1,330 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+@using CMS.Utility
+@{
+    double dGpa = 0;
+    double dwam = 0;
+    double dmulti = 0;
+    double wam = 0;
+    double max = 0;
+    //double dGpaS = 0;
+    var MphillCourse = Model.LiMphillStudentProject;
+}
+
+@if (Model.liSemestermark != null && Model.liSemestermark.Count > 0)
+{
+    //List<CMS.ViewModel.Model.SEMESTER_MARKS>liSemesterMark = new List<CMS.ViewModel.Model.SEMESTER_MARKS>();
+    var StudentList = Model.liSemestermark.GroupBy(s => s.STUDENT_ID).ToList();
+    var StudentListForOverAll = Model.liOverAllSemestermark.GroupBy(s => s.STUDENT_ID).ToList();
+    if (StudentList.Count > 0 && StudentList != null)
+    {
+        foreach (var item in StudentList)
+        {
+            var Ind = Model.liSemestermark.Where(s => s.STUDENT_ID == item.FirstOrDefault().STUDENT_ID).ToList();
+            var CumulativeIndividual = Model.liOverAllSemestermark.Where(s => s.STUDENT_ID == item.FirstOrDefault().STUDENT_ID).ToList();
+            var Partlist = Model.liSemestermark.GroupBy(s => s.PART).ToList();
+            var CumulativePartlist = Model.liOverAllSemestermark.GroupBy(s => s.PART).ToList();
+            var Individual = Ind.OrderByDescending(x => x.SEMESTER).ToList();
+            if (Individual != null && Individual.Count > 0)
+            {
+                <div style="page-break-after:always !important;page-break-inside:avoid !important;">
+                    <div style="height: 570px;  width: 793px;">
+                        <div class="form-group col-xs-12">
+                            <div class="form-group col-xs-10 text-center ">
+                             </div>
+                                <div class="form-group col-xs-2">
+                                    @{
+                                        if (!string.IsNullOrEmpty(@Individual.FirstOrDefault().PHOTO))
+                                        {
+                                            <img src="@Individual.FirstOrDefault().PHOTO" alt="Photo" style="width:100px; height:110px" />
+                                        }
+                                        else
+                                        {
+                                            <div src="" style="border:2px solid gray;width:100px; height:110px;"><p style="text-align:center;">AFFIX HERE YOUR PASSPORT SIZE </p></div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <br /><br /><br /><br />
+                            <div class="col-md-12">
+
+                            </div>
+                            <br />
+                            @if (Individual.FirstOrDefault().APPLICATION_TYPE_ID == "2")
+                            {
+                                Partlist.OrderBy(S => S.FirstOrDefault().PART);
+                                <center><h3><strong><u>PASS CERTIFICATE</u></strong></h3></center>
+                                <br>
+                                <div class="">
+                                    <h4 style="font-weight:350 !important">This is to certify that &nbsp;&nbsp;&nbsp;<span style="font-size:14px;font-weight:800"><u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@Individual.FirstOrDefault().NAME  [ @Individual.FirstOrDefault().REGISTER_NO ]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u></span>&nbsp;&nbsp;&nbsp; was a student </h4>
+                                    <h4 style="font-weight:350 !important">of our college and studied &nbsp;&nbsp;&nbsp;<span style="font-size:14px;font-weight:800"><u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@Individual.FirstOrDefault().PROGRAMME_NAME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; She has successfully</h4>
+                                    <h4 style="font-weight:350 !important">completed the course in the examination held in&nbsp;&nbsp;&nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="completemonth" style="font-size:14px;font-weight:800"></span>&nbsp;&nbsp;</u>&nbsp;&nbsp;&nbsp; </h4>
+                                    <br><br>
+                                    <label><h4 style="font-weight:350 !important">The Class obtained is as follows:</h4></label>
+
+                                    @if (Partlist.Count > 0 && Partlist != null)
+                                    {
+                                        <table align="center" style="width:95%;">
+
+                                            @foreach (var sitem in Partlist)
+                                    {
+
+                                        var Gpa = Individual.Where(s => s.PART == sitem.FirstOrDefault().PART).ToList();
+                                        Gpa.RemoveAll(S => S.UGC_COURSE_TYPE == "29" && S.UGC_COURSE_TYPE == "128");
+
+                                        dmulti = 0;
+                                        dGpa = 0;
+                                        max = 0;
+                                        wam = 0;
+                                        dwam = 0;
+                                        foreach (var gitem in Gpa)
+                                        {
+                                            dmulti += (Convert.ToDouble(gitem.CREDIT) * Convert.ToDouble(gitem.GRADE_POINT));
+                                            wam += (Convert.ToDouble(gitem.CREDIT) * Convert.ToDouble(gitem.TOTAL));
+
+                                        }
+                                        dGpa = dmulti / Gpa.Sum(o => Convert.ToDouble(o.CREDIT));
+                                        dwam = wam / Gpa.Sum(o => Convert.ToDouble(o.CREDIT));
+                                        max = Gpa.Sum(o => Convert.ToDouble(o.MAXIMUM));
+
+                                                <tr>
+                                                    <td>  &nbsp; &nbsp;&nbsp;<b>Part- @Gpa.FirstOrDefault().PART_NAME</b></td>
+                                                    <td>  &nbsp; &nbsp;&nbsp; <b> @Gpa.FirstOrDefault().DESCRIPTION</b></td>
+
+
+
+                                                    @if (dGpa >= 9.5 && dGpa <= 10.0)
+                                                    {
+
+                                                        <td><b>FIRST CLASS -EXEMPLARY *</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 9.0 && dGpa <= 9.29)
+                                                    {
+
+                                                        <td><b>FIRST CLASS -EXEMPLARY *</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 8.5 && dGpa <= 8.99)
+                                                    {
+
+                                                        <td><b>FIRST CLASS WITH DISTINCTION *</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 8.0 && dGpa <= 8.29)
+                                                    {
+
+                                                        <td><b>FIRST CLASS WITH DISTINCTION *</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 7.5 && dGpa <= 7.99)
+                                                    {
+
+                                                        <td><b>FIRST CLASS WITH DISTINCTION *</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 7.0 && dGpa <= 7.29)
+                                                    {
+
+                                                        <td><b>FIRST CLASS</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 6.5 && dGpa <= 6.99)
+                                                    {
+                                                        <td><b>FIRST CLASS</b></td>
+                                                    }
+                                                    else if (dGpa >= 6.0 && dGpa <= 6.29)
+                                                    {
+
+                                                        <td><b>FIRST CLASS</b></td>
+                                                    }
+                                                    else if (dGpa >= 6.0 && dGpa <= 6.29)
+                                                    {
+
+                                                        <td><b>FIRST CLASS</b></td>
+                                                    }
+                                                    else if (dGpa >= 5.5 && dGpa <= 5.99)
+                                                    {
+
+                                                        <td><b>SECOND  CLASS</b></td>
+                                                    }
+                                                    else if (dGpa >= 5.0 && dGpa <= 5.29)
+                                                    {
+
+                                                        <td><b>SECOND  CLASS</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 2.5 && dGpa <= 2.99)
+                                                    {
+
+                                                        <td><b>THIRD  CLASS</b></td>
+                                                    }
+                                                    else if (dGpa >= 2.0 && dGpa <= 2.29)
+                                                    {
+
+                                                        <td><b>THIRD  CLASS</b></td>
+                                                    }
+
+
+                                                </tr>
+
+
+
+
+                                            }
+                                        </table>
+                                    }
+
+                                </div>
+                            }
+                            else if (Individual.FirstOrDefault().APPLICATION_TYPE_ID == "1")
+                            {
+                                //Partlist.RemoveAll(s => s.FirstOrDefault().PART == "5" || s.FirstOrDefault().PART == "6" || s.FirstOrDefault().PART ==
+                                //           "0" || s.FirstOrDefault().PART == "4");
+                                Partlist.OrderBy(S => S.FirstOrDefault().PART);
+                                <center><h3><strong><u>PASS CERTIFICATE</u></strong></h3></center>
+                                <br>
+                                <div class="">
+                                    <h4 style="font-weight:350 !important">This is to certify that &nbsp;&nbsp;&nbsp;<span style="font-size:14px;font-weight:800"><u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@Individual.FirstOrDefault().NAME  [ @Individual.FirstOrDefault().REGISTER_NO ]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u></span>&nbsp;&nbsp;&nbsp; was a student </h4>
+                                    <h4 style="font-weight:350 !important">of our college and studied &nbsp;&nbsp;&nbsp;<span style="font-size:14px;font-weight:800"><u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@Individual.FirstOrDefault().PROGRAMME_NAME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; She has successfully</h4>
+                                    <h4 style="font-weight:350 !important">completed the course in the examination held in&nbsp;&nbsp;&nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="completemonth" style="font-size:14px;font-weight:800"></span>&nbsp;&nbsp;</u>&nbsp;&nbsp;&nbsp; </h4>
+                                    <br><br>
+                                    <label><h4 style="font-weight:350 !important">The Class obtained is as follows:</h4></label>
+
+                                    @if (Partlist.Count > 0 && Partlist != null)
+                                    {
+                                        <table align="center" style="width:95%;">
+
+                                            @foreach (var sitem in Partlist)
+                                    {
+
+                                        var Gpa = Individual.Where(s => s.PART == sitem.FirstOrDefault().PART).ToList();
+                                        Gpa.RemoveAll(S => S.UGC_COURSE_TYPE == "29" && S.UGC_COURSE_TYPE == "128");
+
+                                        dmulti = 0;
+                                        dGpa = 0;
+                                        max = 0;
+                                        wam = 0;
+                                        dwam = 0;
+                                        foreach (var gitem in Gpa)
+                                        {
+                                            dmulti += (Convert.ToDouble(gitem.CREDIT) * Convert.ToDouble(gitem.GRADE_POINT));
+                                            wam += (Convert.ToDouble(gitem.CREDIT) * Convert.ToDouble(gitem.TOTAL));
+
+                                        }
+                                        dGpa = dmulti / Gpa.Sum(o => Convert.ToDouble(o.CREDIT));
+                                        dwam = wam / Gpa.Sum(o => Convert.ToDouble(o.CREDIT));
+                                        max = Gpa.Sum(o => Convert.ToDouble(o.MAXIMUM));
+
+                                                <tr>
+                                                    <td>  &nbsp; &nbsp;&nbsp;<b>Part- @Gpa.FirstOrDefault().PART_NAME</b></td>
+                                                    <td>  &nbsp; &nbsp;&nbsp; <b> @Gpa.FirstOrDefault().DESCRIPTION</b></td>
+
+
+
+                                                    @if (dGpa >= 9.5 && dGpa <= 10.0)
+                                                    {
+
+                                                        <td><b>FIRST CLASS -EXEMPLARY *</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 9.0 && dGpa <= 9.29)
+                                                    {
+
+                                                        <td><b>FIRST CLASS -EXEMPLARY *</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 8.5 && dGpa <= 8.99)
+                                                    {
+
+                                                        <td><b>FIRST CLASS WITH DISTINCTION *</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 8.0 && dGpa <= 8.29)
+                                                    {
+
+                                                        <td><b>FIRST CLASS WITH DISTINCTION *</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 7.5 && dGpa <= 7.99)
+                                                    {
+
+                                                        <td><b>FIRST CLASS WITH DISTINCTION *</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 7.0 && dGpa <= 7.29)
+                                                    {
+
+                                                        <td><b>FIRST CLASS</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 6.5 && dGpa <= 6.99)
+                                                    {
+                                                        <td><b>FIRST CLASS</b></td>
+                                                    }
+                                                    else if (dGpa >= 6.0 && dGpa <= 6.29)
+                                                    {
+
+                                                        <td><b>FIRST CLASS</b></td>
+                                                    }
+                                                    else if (dGpa >= 6.0 && dGpa <= 6.29)
+                                                    {
+
+                                                        <td><b>FIRST CLASS</b></td>
+                                                    }
+                                                    else if (dGpa >= 5.5 && dGpa <= 5.99)
+                                                    {
+
+                                                        <td><b>SECOND  CLASS</b></td>
+                                                    }
+                                                    else if (dGpa >= 5.0 && dGpa <= 5.29)
+                                                    {
+
+                                                        <td><b>SECOND  CLASS</b></td>
+                                                    }
+
+                                                    else if (dGpa >= 2.5 && dGpa <= 2.99)
+                                                    {
+
+                                                        <td><b>THIRD  CLASS</b></td>
+                                                    }
+                                                    else if (dGpa >= 2.0 && dGpa <= 2.29)
+                                                    {
+
+                                                        <td><b>THIRD  CLASS</b></td>
+                                                    }
+
+
+                                                </tr>
+
+
+
+
+                                            }
+                                        </table>
+                                    }
+
+                                </div>
+
+                            }
+                            <div class="form-group" style="margin-top:40px">
+                                <br>
+                                <div class="pull-left">
+                                    <br>
+                                    <label style="margin-left:20px"><b>Date :</b>@DateTime.Today.ToString("dd/MM/yyyy")</label>
+                                </div>
+                                <div class="pull-right">
+                                    <br>
+                                    <center>(Dr.(Sr.) Nirmala S.G)</center>
+                                    <b>CONTROLLER OF EXAMINATIONS</b>
+                                </div>
+
+                            </div>
+                        </div>
+
+                </div>
+            }
+
+        }
+    }
+}

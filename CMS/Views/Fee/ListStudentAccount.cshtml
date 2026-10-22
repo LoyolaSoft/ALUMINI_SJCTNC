@@ -1,0 +1,255 @@
+﻿@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+
+@{
+    ViewBag.Title = "ListStudentAccount";
+    // Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/css/style.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    { @Html.AntiForgeryToken()
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+
+            <li class="active">Offline Fee Collection</li>
+        </ol>
+        <h2 class="page-header">Offline Fee Collection </h2>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Offline Fee Collection </h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div class="col-md-12">
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.liSupFeeFrequency, "Frequency", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-7">
+                                @Html.DropDownListFor(model => model.liSupFeeFrequency, (Model.liSupFeeFrequency != null) ? Model.liSupFeeFrequency : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "drop-down form-control  input-sm" })
+                                @Html.ValidationMessageFor(model => model.liSupFeeFrequency, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.liClassList, "Class List", htmlAttributes: new { @class = "control-label col-md-5" })
+                            <div class="col-md-7">
+                                @Html.DropDownListFor(model => model.liClassList, (Model.liClassList != null) ? Model.liClassList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.liClassList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.liStudentPersonalInfo, "Student Name", htmlAttributes: new { @class = "control-label col-md-5" })
+                            <div class="col-md-7">
+                                @Html.DropDownListFor(model => model.liStudentPersonalInfo, (Model.liStudentPersonalInfo!=null)?Model.liStudentPersonalInfo: Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.liStudentPersonalInfo, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    
+
+                    </div>
+                    <div class="col-md-2 pull-right">
+                        <a href="javascript:;" id="sPrint" onclick="printDiv('divFeeReceipt')" class="btn btn-sm btn-success m-b-10 pull-right hidden"><i class="fa fa-print m-r-5"></i> Print</a>
+                    </div>
+
+                </div>
+                <div class="col-lg-12 m-b-5 table-responsive">
+                    <div id="divStudentFeeTransaction">
+                        <!--Need to use this fied to bind Student List-->
+                    </div>
+                </div>
+                <div class="col-lg-12 m-b-5">
+                    <div id="divFeeReceipt">
+                        <!--Need to use this fied to bind Student List-->
+                    </div>
+                </div>
+                <div class="pull-right">
+                    <a id="btnSubmit" class="btn btn-success pull-right form-group">Collect</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script>
+        ContentLoad = function () {
+         
+        }
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+
+
+        LoadListStudentAccount = function () {
+            loadContent('/Fee/ListStudentAccount');
+        }
+    </script>   
+    <script>
+
+        $('#liClassList').change(function () {
+            $('#liStudentPersonalInfo').empty().selectpicker('refresh');
+            var classId = $(this).val();
+            if (classId=='' || classId=='0') {
+                //clear student list
+                return false;
+            }
+            $.ajax({
+                url: '@Url.Action("BindStudentListByClassId", "Fee")',
+                data: { sClassId: classId },
+                success: function (option) {
+                    var dvStudentFeeTransaction = $('#liStudentPersonalInfo');
+                    dvStudentFeeTransaction.empty();
+                    dvStudentFeeTransaction.append(option.sResult).selectpicker('refresh');
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+        });
+        $('#liStudentPersonalInfo').on('change', function () {
+            $('#divStudentFeeTransaction').removeClass('hidden');
+            $('#btnSubmit').removeClass('hidden');
+            $('#divFeeReceipt').addClass('hidden');
+            var FrequencyId = $('#liSupFeeFrequency').val();
+            var StudentId = $('#liStudentPersonalInfo').val();
+            if (FrequencyId != 0 && StudentId != 0) {
+                $.ajax({
+                    url: '@Url.Action("BindStudnetAccountDetails", "Fee")',
+                    data: { sFrequencyId: FrequencyId, sStudentId: StudentId },
+                    success: function (option) {
+                        var dvStudentFeeTransaction = $('#divStudentFeeTransaction');
+                        dvStudentFeeTransaction.empty();
+                        dvStudentFeeTransaction.append(option);
+                    },
+                    error: function (xhr, textStatus, error) {
+                        alert(error + "\n");
+                    }
+                });
+            }
+            else {
+                alert('Please Select Frequency Type And Student');
+            }
+        });
+    </script>
+    @*<script>
+            function Sum() {
+                var Total = 0;
+                $('#StudentAccountList tbody tr').each(function () {
+                    $(this).find('td').each(function () {
+                        if ($(this).find('input[type="number"]').attr('cms-balance')) {
+                            Total +=+ $(this).find('input[type="number"]').val();
+                        }
+                    });
+                });
+            }
+        </script>*@
+    <script>
+        function Sum() {
+            $("#StudentAccountList").find('input').keyup(function () {
+                var calculated_total_sum = 0;
+                $("#StudentAccountList .txtCal").each(function () {
+                    var get_textbox_value = $(this).val();
+                    if ($.isNumeric(get_textbox_value)) {
+                        calculated_total_sum += parseFloat(get_textbox_value);
+                    }
+                });
+                $('#total_sum_value').val(calculated_total_sum);
+            });
+        }
+    </script>
+    <script>
+        $('#btnSubmit').on('click', function () {
+            var FrequencyId = $('#liSupFeeFrequency').val();
+            var StudentId = $('#liStudentPersonalInfo').val();
+            var JsonData;
+            var HeadId;
+            var Debit;
+            var Total;
+            JsonData = '{"StudentAccountList":[';
+            $('#StudentAccountList tbody tr').each(function () {
+                if ($(this).attr('cms-headid')) {
+                    HeadId = $(this).attr('cms-headid');
+                }
+                $(this).find('td').each(function () {
+                    if ($(this).find('input[type="number"]').attr('cms-balance')) {
+                        Debit = $(this).find('input[type="number"]').val();
+                        if (Debit != "" && Debit != "0") {
+                            JsonData += '{"FREQUENCY_ID":"' + FrequencyId + '","STUDENT_ID":"' + StudentId + '","HEAD":"' + HeadId + '","DEBIT":"' + Debit + '"},';
+                        }
+                    }
+                    if (($(this).find('input[type="number"]').attr('disabled'))) {
+                        Total = $(this).find('input[type="number"]').val();
+                    }
+                });
+            });
+            JsonData = JsonData.slice(0, -1);
+            JsonData += ']}';
+            if (Total != null && Total != 0) {
+                $.ajax({
+                    url: "@Url.Action("SaveStudentAccount", "Fee")",
+                    method: "POST",
+                    data: { sStuTransaction: JsonData, sFrequencyId: FrequencyId, sStudentId: StudentId, sTotal: Total },
+                    datatype: "json",
+                    success: function (objResult) {
+                        if (objResult.sResult != null) {
+                            GenerateReceipt(objResult.sResult);
+                            $('#sPrint').removeClass('hidden');
+                        }
+                        else
+                            alert('No Values Found...!!!');
+                    },
+                    error: function (xhr, textStatus, error) {
+                        alert(error + "\n" + textStatus + error);
+                    }
+                });
+            }
+            else {
+                alert('Total Should Not Be Empty...!!!');
+            }
+        });
+    </script>
+    <script>
+        function GenerateReceipt(TransactionId) {
+            $('#divFeeReceipt').removeClass('hidden');
+            var FrequencyId = $('#liSupFeeFrequency').val();
+            var StudentId = $('#liStudentPersonalInfo').val();
+            $.ajax({
+                url: "@Url.Action("GenerateFeeReceipt", "Fee")",
+                method: "POST",
+                data: { sFrequencyId: FrequencyId, sStudentId: StudentId, sTransactionId: TransactionId },
+                datatype: "json",
+                success: function (objResult) {
+                    var dvFeeReceipt = $('#divFeeReceipt');
+                    dvFeeReceipt.empty();
+                    dvFeeReceipt.append(objResult);
+                    $('#divStudentFeeTransaction').addClass('hidden');
+                    $('#btnSubmit').addClass('hidden');
+                    $('.selectpicker').selectpicker('refresh');
+                }, error: function (xhr, textStatus, error) {
+                    alert(error + "\n" + textStatus + error);
+                }
+            });
+        }
+        function printDiv(divName) {
+            var printContents = document.getElementById(divName).innerHTML;
+            var originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            LoadListStudentAccount();
+        }
+    </script>

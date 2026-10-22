@@ -1,0 +1,129 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a @*href="@Url.Action("Staff","Dashboard")"*@ href="javascript:;">Home</a></li>
+        <li class="active">Evaluation Mark List</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Evaluation Mark List</h1>
+    <!-- end page-header -->
+    <!-- begin row -->
+    <div class="row">
+        <!-- begin col-12 -->
+        <div class="col-md-12">
+            <!-- begin panel -->
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h4 class="panel-title">Evaluation Mark List</h4>
+                </div>
+                <div class="panel-body">
+                    <div class="form-horizontal">
+
+                        <div class="col-md-12 form-group">
+                            <div class="col-md-4 form-group">
+                                @Html.Label("Ev.Date", htmlAttributes: new { @class = "control-label col-md-4" })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(model => model.EvaluationDate, (Model.EvaluationDate != null) ? Model.EvaluationDate : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(model => model.EvaluationDate, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-4 form-group">
+                                @Html.Label("Ev Type", htmlAttributes: new { @class = "control-label col-md-4" })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(model => model.EvaluationType, (Model.EvaluationType != null) ? Model.EvaluationType : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(model => model.EvaluationType, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-4 form-group">
+                                @Html.Label("Evaluators", htmlAttributes: new { @class = "control-label col-md-4" })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(model => model.Evaluators, (Model.Evaluators != null) ? Model.Evaluators : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(model => model.Evaluators, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-2 form-group pull-right">
+                                <a class="btn btn-primary m-b-10" href="javascript:;" onclick="loadShuffleStudents()"> Get </a>
+                                <a class="btn btn-success m-b-10" href="javascript:;" onclick="printDiv('BindEvaluationStudentEntry')">Print </a>
+                            </div>
+                        </div>
+                        <div class="col-md-12" id="BindEvaluationStudentEntry"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- end panel -->
+        </div>
+        <!-- end col-6 -->
+    </div>
+    <!-- end row -->
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<script>
+    function ContentLoad() {
+        //
+    }
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $('.selectpicker').selectpicker('refresh');
+
+    $('#EvaluationType').on('change', function ()
+    {
+        var evaluationdate = $('#EvaluationDate').val();
+        var evalutiontype = $('#EvaluationType').val();
+        $.ajax({
+            url: '/Examination/FetchEvaluatorsByDateandtype',
+            method: 'POST',
+            datatype: 'json',
+            data: { sEvaluationDate: $('#EvaluationDate Option:selected').text(), sExamEvaluationType: $('#EvaluationType').val() },
+            success: function (data)
+            {
+             
+                $('#Evaluators').empty();
+                $('#Evaluators').append(data.sResult);
+                $('.selectpicker').selectpicker('refresh');
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+
+    function loadShuffleStudents()
+    {
+        $('#BindEvaluationStudentEntry').empty();
+        $.ajax({
+            url: '/Examination/BindEvaluationMarkForCOE',
+            method: 'POST',
+            datatype: 'json',
+            data: { sEvaluationDate: $('#EvaluationDate Option:selected').text(), sExamEvaluationType: $('#EvaluationType').val(), sEvaluatorId: $('#Evaluators').val() },
+            success: function (data) {
+                $('#BindEvaluationStudentEntry').append(data);
+            }, error: function (error) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+    function printDiv(divName) {
+        var printContents = document.getElementById(divName).innerHTML;
+        myWindow = window.open('', '', 'width=200,height=100');
+        myWindow.document.write(printContents);
+        myWindow.document.close(); //missing code
+        myWindow.focus();
+        myWindow.print();
+
+    }
+</script>

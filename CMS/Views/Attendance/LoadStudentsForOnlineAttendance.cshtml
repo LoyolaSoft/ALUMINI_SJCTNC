@@ -1,0 +1,104 @@
+﻿@model CMS.ViewModel.ViewModel.AttendanceViewModel
+@using CMS.Utility;
+@{ string sSelected = "selected";
+    int count = 0;
+    string sDisabled = string.Empty;
+    string sChecked = string.Empty;
+    if (Model.attendanceEntry != null && Model.attendanceEntry.Count > 0)
+    {
+        var nCount = Model.attendanceEntry.Sum(x => Convert.ToInt32(x.ATT_TYPE_ID));
+        var AttCount = Model.attendanceEntry.Where(x => x.ATT_ID == "0").Count();
+        <div class="row">
+            <input type="hidden" id="hdCourseId" value="@Model.attendanceEntry.FirstOrDefault().COURSE_ID" />
+            <input type="hidden" id="hdClassId" value="@Model.attendanceEntry.FirstOrDefault().CLASS_ID" />
+            <div class="form-horizontal">
+                <div class="col-md-12">
+                    <div class="col-md-6">
+                        <strong for="CourseCode" class="control-label">Course Code : </strong>
+                        <label id="CourseCode">@Model.attendanceEntry.FirstOrDefault().COURSE_CODE</label><br />
+                        <strong for="CourseTitle" class="control-label">Course Title : </strong>
+                        <label id="CourseTitle">@Model.attendanceEntry.FirstOrDefault().COURSE_TITLE</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="pull-right">
+                <div class="checkbox checkbox-css">
+                    <input type="checkbox" id="chNoAbsentees" name="chNoAbsentees" @if (AttCount != 0 && nCount != 0) { sDisabled = "Disabled"; } else if (Model.attendanceEntry.Count == AttCount) { sChecked = "Checked"; } @sDisabled @sChecked>
+                    <label for="chNoAbsentees">
+                        Click Here If All Present
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="tblAttendance">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Class</th>
+                            <th>First Name</th>
+                            <th>Roll No</th>
+                            <th>Attendance Type</th>
+                            <th class="hidden">Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var student in Model.attendanceEntry)
+                        {
+                            <tr cms-attendance-id="@student.ATTENDANCE_ID" cms-student-id="@student.STUDENT_ID" cms-s-class-id="@student.S_CLASS_ID" cms-date="@DateTime.Now.ToString("yyyy-MM-dd")" cms-staff-id="@student.STAFF_ID">
+                                <td>@{count++;}@count</td>
+                                <td>@student.CLASS_NAME</td>
+                                <td>@student.FIRST_NAME</td>
+                                <td>@student.ROLL_NO</td>
+                                <td>
+                                    <select class="form-control" id="attendanceType" onchange="DisableCheckBox();">
+                                        @foreach (var attendanceType in Model.attendanceTypes)
+                                        {
+                                            <option value="@attendanceType.ATTENDANCE_TYPE_ID" @if (attendanceType.ATTENDANCE_TYPE_ID == student.ATTENDANCE_TYPE_ID) { @sSelected    }>
+                                                @attendanceType.ATTENDANCE_TYPE
+                                            </option>
+                                        }
+                                    </select>
+                                </td>
+                                <td class="hidden">
+                                    <select class="form-control" id="reason">
+                                        <option value="0">--Select--</option>
+                                        @foreach (var reason in Model.reasons)
+                                        {
+                                            <option value="@reason.REASON_ID" @if (reason.REASON_ID == student.REASON_ID) { @sSelected    }>
+                                                @reason.REASON
+                                            </option>
+                                        }
+
+                                    </select>
+                                </td>
+
+
+                            </tr>
+                                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+                                    }
+}
+
+<script>
+    function DisableCheckBox() {
+        var sFlag = true;
+        $('#tblAttendance tbody tr').each(function () {
+            if ($(this).find('#attendanceType option:selected').text().toLowerCase().trim() != 'Present'.toLowerCase()) {
+                $('#chNoAbsentees').attr('disabled', true);
+                $('#chNoAbsentees').attr('checked', false);
+                sFlag = false;
+            }
+        });
+
+        if (sFlag) {
+            $('#chNoAbsentees').attr('disabled', false);
+        }
+    }
+</script>

@@ -1,0 +1,147 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{ 
+    Layout = null;
+}
+
+
+
+@if (Model.liExamRegistrationModel != null && Model.liExamRegistrationModel.Count > 0 && Model.liExamRegistrationList != null && Model.liExamRegistrationList.Count>0)
+{
+    foreach (var item in Model.liExamRegistrationModel)
+    {
+        string status = string.Empty;
+        <div style="page-break-after: always!important; page-break-before: avoid!important;">
+
+            <div class="form-horizontal ">
+                <div class="row">
+                    <div class="text-center" style="text-align:center;">
+                        <h4>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME , CUDDALORE - 1</h4>
+                        <h5>
+                            <b>@Model.liExamRegistrationModel.FirstOrDefault().SEMESTER_ID</b> &nbsp; SEMESTER  &nbsp;EXAM APPLICATION FORM  &nbsp; - &nbsp; @Model.liExamRegistrationModel.FirstOrDefault().MONTH
+                        </h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row ">
+                <div class="form-horizontal">
+                    <br /> <br />
+                    <div class="col-md-12">
+                        <div class="form-group col-xs-4">
+                            <label> Name : @item.NAME</label>
+                        </div>
+                        <div class="form-group col-xs-4" style="text-align:center;">
+                            <label>  &nbsp; &nbsp; &nbsp;  Roll No : @item.ROLL_NO</label>
+                        </div>
+                        <div class="form-group col-xs-4" style="text-align:right;">
+                            <label> Register No : @item.REGISTER_NO</label>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        @*<div class="form-group col-xs-4">
+                            <label> Name In Tamil : </label>
+                        </div>*@
+                        <div class="form-group col-xs-3" style="text-align:center;">
+                            <label>  &nbsp; &nbsp; &nbsp; Major : @item.DEPARTMENT</label>
+                        </div>
+                        <div class="form-group col-xs-3" style="text-align:right;">
+                            <label> Date of Birth : @item.DATE_OF_BIRTH</label>
+                        </div>
+                    </div>
+
+                   
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                @{int No = 0;}
+                <table width="1000" class="table table-hover table-bordered" border="1" cellpadding="2" cellspacing="2">
+                    <thead>
+                        <tr>
+                            <th>S.No</th>
+                            <th>Semester</th>
+                            <th>Course Code</th>
+                            <th>Title of the Paper</th>
+                            @*<th>Amount</th>*@
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.liExamRegistrationList != null && Model.liExamRegistrationList.Count > 0)
+                        {
+                            var liCourses = Model.liExamRegistrationList.Where(x => x.STUDENT_ID == item.STUDENT_ID).OrderByDescending(x=>x.STATUS).ToList();
+                            if (liCourses != null && liCourses.Count > 0)
+                            {
+                                foreach (var Courseitem in liCourses)
+                                {
+                                    <tr>
+                                        <td>@{No++; } @No</td>
+                                        <td>@Courseitem.SEMESTER_ID</td>
+                                        <td>@Courseitem.COURSE_CODE</td>
+                                        <td>@Courseitem.COURSE_TITLE </td>
+                                        @*<td>
+                                            <i class="fa fa-inr"></i>  @Courseitem.COST
+                                        </td>*@
+                                        <td>@Courseitem.STATUS</td>
+                                     </tr>
+                                   }
+                                }
+                             }
+                    </tbody>
+                </table>
+                <br />
+            </div>
+
+            @if (Model.feeTransactions != null && Model.feeTransactions.Count > 0)
+            {
+                int nCount = 0;
+                var liFeeDetails = Model.feeTransactions.Where(x => x.STUDENT_ID == item.STUDENT_ID).ToList();
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" width="1000" border="1" cellpadding="3" cellspacing="3">
+                        <thead>
+                            <tr>
+                                <td>#</td>
+                                <td>Particulars</td>
+                                <td>Amount</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (liFeeDetails != null && liFeeDetails.Count > 0)
+                            {
+                                foreach (var Feeitem in liFeeDetails)
+                                {
+                                    <tr>
+                                        <td>@{nCount++;} @nCount</td>
+                                        <td>@Feeitem.HEAD</td>
+                                        <td><i class="fa fa-inr"></i> @Feeitem.CREDIT</td>
+                                    </tr>
+                                 }
+                                     <tr>
+                                         <td></td>
+                                         <td class="pull-right"> Total : </td>
+                                         <td><i class="fa fa-inr"></i> @liFeeDetails.Sum(x => Convert.ToDouble(x.CREDIT))</td>
+                                     </tr>
+                             }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            <div class="form-horizontal" id="Footer">
+                <label><b>Date: </b>&nbsp;&nbsp; @System.DateTime.Today.ToShortDateString()</label>
+                <div class="form-group pull-right" style="text-align:right;">
+                    <label class="col-md-12 pull-right" style="text-align:right;">
+                        R - Regular &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;  A - Arrears  &nbsp;&nbsp;&nbsp; @*Mobile No : @item.MOBILE_NO*@
+                    </label>
+                </div>
+                <br /><br /><br />
+                <lable><b>Signature of the Class Teacher</b></lable>
+                <div class="form-group pull-right" style="text-align:right;">
+                    <label class="col-md-12 pull-right" style="text-align:right;"><b>Signature of the Candidate</b></label>
+                </div>
+                <hr />
+                
+            </div>
+        </div>
+    }
+}

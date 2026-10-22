@@ -1,0 +1,341 @@
+﻿@model IEnumerable<CMS.ViewModel.Model.StaffPublish>
+
+
+
+<div id="dvPublishInfo">
+    <div class="row">
+        <div class="form-group pull-right">
+            <div class="col-md-12 pull-right">
+                <a href="#Publish-dialog" class="btn btn-sm btn-success" data-toggle="modal"><i class="fa fa-plus"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="table-responsive">
+            @{int count = 0; }
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Book Name</th>
+                        <th>Level</th>
+                        <th>Publish Category</th>
+                        <th>Journal Name</th>
+                        <th>Volume</th>
+                        <th>Publisher</th>
+                        <th>Year</th>
+                        <th>Edition</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+            @if (Model != null)
+            {
+                foreach (var item in Model)
+                {
+                            <tr>
+                                <td>
+                                    @{count++;} @count
+                                </td>
+                                <td>@Html.DisplayFor(modelItem => item.BOOKNAME)</td>
+                                <td>@Html.DisplayFor(modelItem => item.PLEVEL)</td>
+                                <td>@Html.DisplayFor(modelItem => item.PPUBLISHINGCATEGORY)</td>
+                                <td>@Html.DisplayFor(modelItem => item.PJOURNALNAME)</td>
+                                <td>@Html.DisplayFor(modelItem => item.PVOLUME)</td>
+                                <td>@Html.DisplayFor(modelItem => item.PUBLISHER)</td>
+                                <td>@Html.DisplayFor(modelItem => item.PYEAR)</td>
+                                <td>@Html.DisplayFor(modelItem => item.EDITION)</td>
+                                <td>
+                                    <a href="#Publish-dialog" onclick="GetPublish(@item.PUBLISHID)" data-toggle="modal"><i class="fa fa-edit text-primary"></i></a>
+                                    <a href="javascript:;" onclick="GetConfirm(@item.PUBLISHID);"><i class="fa fa-trash text-danger"></i></a>
+                                </td>
+                            </tr>
+                         }
+                     }
+                     else
+                     {
+                         <tr>
+                             <td>No Data Found ....!</td>
+                         </tr>
+                     }
+
+                </tbody>
+            </table>
+
+            <script>
+                $(document).ready(function () {
+                    $("#btnEditPublish").hide();
+                    ////FormMultipleUpload.init();
+                    handleDatePicker = function () {
+                        "use strict";
+                        $("#Publishedyear").datepicker({
+                            todayHighlight: true,
+                            autoclose: true,
+                            endDate: new Date(),
+                            format: "dd/mm/yyyy",
+                            orientation: "right bottom"
+                            // 'top': top,
+                            // 'left': left
+                        });
+                    }
+                    handleDatePicker();
+                    GetDropDown = function () {
+                        $.ajax({
+                            url: "@Url.Action("DDLPublish", "Staff")",
+                            method: "POST",
+                            datatype: "json",
+                            success: function (data) {
+                                
+                                var ddl = JSON.parse(data);
+                                $('#volume').empty();
+                                $('#volume').append('<option value="">-- select --</option>' + ddl.Volume);
+
+                                $('#level').empty();
+                                $('#level').append('<option value="">-- select --</option>' + ddl.Level);
+
+                                $('#publish').empty();
+                                $('#publish').append('<option value="">-- select --</option>' + ddl.PublishCategory);
+
+                            }, error: function (error) {
+                                alert('Internal Server Error ..!');
+                            }
+                        });
+                    }
+                    GetDropDown();
+                });
+                // Get Publish Info
+                GetPublishInfo = function ()
+                {
+                    $.ajax({
+                        url: "@Url.Action("StaffPublishInfo", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        success: function (data)
+                        {
+                            $('#dvPublishInfo').empty();
+                            $('#dvPublishInfo').append(data);
+                        }, error: function (error)
+                        {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+
+                // Delete Publish ...
+                function GetConfirm(ID)
+                {
+                    if (!confirm('Are you sure to delete ?'))
+                    {
+                        return false;
+                    } else
+                    {
+                        $.ajax({
+                            url:"@Url.Action("DeletePublish", "Staff")",
+                            method: "POST",
+                            datatype:"json",
+                            data: { sPublishId: ID },
+                            success:function(data)
+                            {
+                                alert(data);
+                                GetPublishInfo();
+                            },error:function(error)
+                            {
+                                alert('Internal Server Error ..!');
+                            }
+                        });
+                    }
+                }
+
+
+                // Bind Publish Infomation ...
+                var GetPublish = function (ID) {
+                    $.ajax({
+                        url: "@Url.Action("BindPublish", "Staff")",
+                        method: "POST",
+                        datatype: "json",
+                        data: { sPublishID: ID },
+                        success: function (data) {
+                            $("#txtBName").val(data.BOOKNAME);
+                            $("#txtJName").val(data.PJOURNALNAME);
+                            $("#txtPublisher").val(data.PUBLISHER);
+                            $("#Publishedyear").val(data.PYEAR);
+                            $("#txtEdition").val(data.EDITION);
+                            $("#level").val(data.PLEVEL);
+                            $("#publish").val(data.PPUBLISHINGCATEGORY);
+                            $("#volume").val(data.PVOLUME);
+                            $("#btnEditPublish").show();
+                            $("#btnPublish").hide();
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                }
+
+                // Update Publish ...
+                $("#btnEditPublish").on("click", function ()
+                {
+                    var isValid = true;
+                    if ($('#nav-tab1-9').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        //gritter-info,danger,success,warning,default
+                        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    var BookName = $("#txtBName").val();
+                    var JournalName = $("#txtJName").val();
+                    var Publisher = $("#txtPublisher").val();
+                    var PYEAR = $("#Publishedyear").val();
+                    var Edition = $("#txtEdition").val();
+                    var Level = $("#level").val();
+                    var Publish = $("#publish").val();
+                    var Volume = $("#volume").val();
+                    var JsonData;
+                    if (JsonData == null) {
+                        JsonData = '{"PVOLUME":"' + Volume + '","PPUBLISHINGCATEGORY":"' + Publish + '","PLEVEL":"' + Level + '","BOOKNAME":"' + BookName + '","PJOURNALNAME":"' + JournalName + '","PUBLISHER":"' + Publisher + '","PYEAR":"' + PYEAR + '","EDITION":"' + Edition + '"}';
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("UpdateStaffPublish", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        data: { JsonPublish: JsonData },
+                        success: function (data) {
+                            alert(data);
+                            GetPublishInfo();
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                });
+
+                // Add Publish ...
+                $("#btnPublish").on("click", function ()
+                {
+                    var isValid = true;
+                    if ($('#nav-tab1-9').parsley().validate() !== true) isValid = false;
+                    if (!isValid) {
+                        //gritter-info,danger,success,warning,default
+                        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                        return false;
+                    }
+                    var BookName = $("#txtBName").val();
+                    var JournalName = $("#txtJName").val();
+                    var Publisher = $("#txtPublisher").val();
+                    var PYEAR = $("#Publishedyear").val();
+                    var Edition = $("#txtEdition").val();
+                    var Level = $("#level").val();
+                    var Publish = $("#publish").val();
+                    var Volume = $("#volume").val();
+                    var JsonData;
+                    if (JsonData == null) {
+                        JsonData = '{"PVOLUME":"' + Volume + '","PPUBLISHINGCATEGORY":"' + Publish + '","PLEVEL":"' + Level + '","BOOKNAME":"' + BookName + '","PJOURNALNAME":"' + JournalName + '","PUBLISHER":"' + Publisher + '","PYEAR":"' + PYEAR + '","EDITION":"' + Edition + '"}';
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("Publish", "Staff")",
+                        method: "POST",
+                        datatype: "html",
+                        data: { JsonPublish: JsonData },
+                        success: function (data) {
+                            alert(data);
+                            GetPublishInfo();
+                        }, error: function (error) {
+                            alert('Internal Server Error ..!');
+                        }
+                    });
+                });
+            </script>
+        </div>
+    </div>
+    <!-- Modal-->
+    <div class="modal" id="Publish-dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Book Publish Information</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-horizontal row">
+                        <div class="col-md-12">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Book Name</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control input-sm" id="txtBName" placeholder="Enter Book Name" data-parsley-required="true" data-parsley-length="[5,250]"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Journal Name</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control input-sm" id="txtJName" placeholder="Enter Journal Name" data-parsley-required="true" data-parsley-length="[5,250]"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Publisher Name</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control input-sm" id="txtPublisher" placeholder="Enter Publisher Name" data-parsley-required="true" data-parsley-length="[5,50]"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Publish Year</label>
+                                <div class="col-md-9">
+                                    <div class="input-group date" id="datetimepicker1">
+                                        <input type="text" class="form-control input-sm" id="Publishedyear" placeholder="Select Date" data-parsley-required="true"/>
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Level</label>
+                                <div class="col-md-9">
+                                    <select id="level" class="form-control input-sm" data-parsley-required="true">
+                                        <option value="">-- select --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Publishing Category</label>
+                                <div class="col-md-9">
+                                    <select id="publish" class="form-control input-sm" data-parsley-required="true">
+                                        <option value="">-- select --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Volume</label>
+                                <div class="col-md-9">
+                                    <select id="volume" class="form-control input-sm" data-parsley-required="true">
+                                        <option value="">-- select --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Edition</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control input-sm" id="txtEdition" placeholder="Enter Edition" data-parsley-required="true" data-parsley-length="[5,50]"/>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="btnPublish" class="btn btn-sm btn-primary"  data-dismiss="modal">Submit</a>
+                    <a id="btnEditPublish" class="btn btn-sm btn-primary"  data-dismiss="modal">Update</a>
+                    <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Modal-->
+</div>

@@ -1,0 +1,429 @@
+﻿@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    /**/
+
+    Layout = null;
+    int Count = 0;
+    int nQusNo = 0;
+    string sUnitSelected = string.Empty;
+    string sQusSelected = string.Empty;
+    string sColevelSelected = string.Empty;
+    string sStrId = string.Empty;
+}
+@if (Model.LiOBEQuestionPaperPattern != null && Model.LiOBEQuestionPaperPattern.Count > 0)
+{
+    var groupSection = Model.LiOBEQuestionPaperPattern.GroupBy(x => x.SECTION_ID).ToList();
+    if (groupSection != null && groupSection.Count > 0)
+    {
+        foreach (var item in groupSection)
+        {
+            <div>
+                <div class="col-md-12" style="font-weight:bold;">
+                    <div class="col-md-3">@item.FirstOrDefault().SECTION_NAME</div>
+                    <div class="col-md-3" style="text-align:center">@item.FirstOrDefault().SECTION_DECRIPTION</div>
+                    <div class="col-md-3 pull-right">MARK: @item.FirstOrDefault().MARK_FOR_EACH_SECTION</div>
+                </div>
+                <br /><br />
+                <table class="table table-responsive table-bordered" id="tblQusStructure">
+                    <thead>
+                        <tr>
+                            <th>Qus.No.</th>
+                            <th>Mark</th>
+                            <th>Unit</th>
+                            <th>K Level</th>
+                            <th>Co Level</th>
+                        </tr>
+                    </thead>
+
+                    @for (int i = 0; i < Convert.ToInt32(item.FirstOrDefault().TOTAL_QUESTION); i++)
+                    {
+                        Count++;
+
+                        <tbody>
+                            @if (item.FirstOrDefault().EITHER_OR == "1")
+                            {
+                                for (int j = 0; j < 2; j++)
+                                {
+                                    if (j == 0)
+                                    {
+                                        nQusNo++;
+                                        var liQusValue = Model.LiOBEQuestionPaperPattern.Where(x => x.OBE_QUESTIONPAPERPATTERNSECTION_ID == item.FirstOrDefault().OBE_QUESTIONPAPERPATTERNSECTION_ID && x.OBE_QUESTIONPAPERPATTERN_ID == item.FirstOrDefault().OBE_QUESTIONPAPERPATTERN_ID && x.QUS_NO == nQusNo.ToString()).ToList();
+                                        if (liQusValue != null && liQusValue.Count > 0)
+                                        {
+                                            sStrId = liQusValue.FirstOrDefault().OBE_QUESTIONPAPERSTRUCTURE_ID;
+                                        }
+                                        else
+                                        {
+                                            sStrId = "";
+                                        }
+                                        <tr cms-patternSection="@item.FirstOrDefault().OBE_QUESTIONPAPERPATTERNSECTION_ID" cms-pattern="@item.FirstOrDefault().OBE_QUESTIONPAPERPATTERN_ID" cms-Setting="@item.FirstOrDefault().EXAM_SETTING_ID" cms-QLevel="@item.FirstOrDefault().QUESTION_LEVEL_ID" cms-QusNo="@nQusNo" cms-StrId="@sStrId">
+                                            <td id="QusNo">@Count .A</td>
+                                            <td id="QusMark">@item.FirstOrDefault().MARK_FOR_EACH_QUESTION</td>
+                                            <td>
+                                                <div class="col-md-8">
+                                                    <select class="form-control m-b-10 selectpicker" id="liObeUnit" data-selected-text-format="count">
+                                                        <option value="0">--Select--</option>
+                                                        @if (Model.LiOBEUnit != null && Model.LiOBEUnit.Count > 0)
+                                                        {
+                                                            foreach (var obeunit in Model.LiOBEUnit)
+                                                            {
+                                                                if (liQusValue != null && liQusValue.Count > 0)
+                                                                {
+                                                                    if (obeunit.OBE_UNIT_ID == liQusValue.FirstOrDefault().OBE_UNIT_ID)
+                                                                    {
+                                                                        sUnitSelected = "Selected";
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        sUnitSelected = string.Empty;
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    sUnitSelected = string.Empty;
+                                                                }
+                                                                <option value="@obeunit.OBE_UNIT_ID" @sUnitSelected>@obeunit.OBE_UNIT</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="col-md-8">
+                                                    <select class="form-control m-b-10 selectpicker" id="liObeQus" data-selected-text-format="count">
+                                                        <option value="0">--Select--</option>
+                                                        @if (Model.LiQuesionLevel != null && Model.LiQuesionLevel.Count > 0)
+                                                        {
+                                                            foreach (var obeQLevel in Model.LiQuesionLevel)
+                                                            {
+                                                                if (liQusValue != null && liQusValue.Count > 0)
+                                                                {
+                                                                    if (obeQLevel.OBE_RBT_LEVEL_ID == liQusValue.FirstOrDefault().OBE_QUESTIONLEVEL_ID)
+                                                                    {
+                                                                        sQusSelected = "Selected";
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        sQusSelected = string.Empty;
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    sQusSelected = string.Empty;
+                                                                }
+                                                                <option value="@obeQLevel.OBE_RBT_LEVEL_ID" @sQusSelected>@obeQLevel.OBE_RBT_LEVEL</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="col-md-8">
+                                                    <select class="form-control m-b-10 selectpicker" id="liObeCoLevel" data-selected-text-format="count">
+                                                        <option value="0">--Select--</option>
+                                                        @if (Model.LiOBECOLevel != null && Model.LiOBECOLevel.Count > 0)
+                                                        {
+                                                            foreach (var obeCoLevel in Model.LiOBECOLevel)
+                                                            {
+                                                                if (liQusValue != null && liQusValue.Count > 0)
+                                                                {
+                                                                    if (obeCoLevel.OBE_COLEVEL_ID == liQusValue.FirstOrDefault().OBE_COLEVEL_ID)
+                                                                    {
+                                                                        sColevelSelected = "Selected";
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        sColevelSelected = string.Empty;
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    sColevelSelected = string.Empty;
+                                                                }
+                                                                <option value="@obeCoLevel.OBE_COLEVEL_ID" @sColevelSelected>@obeCoLevel.OBE_COLEVEL</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        nQusNo++;
+                                        var liQusValue = Model.LiOBEQuestionPaperPattern.Where(x => x.OBE_QUESTIONPAPERPATTERNSECTION_ID == item.FirstOrDefault().OBE_QUESTIONPAPERPATTERNSECTION_ID && x.OBE_QUESTIONPAPERPATTERN_ID == item.FirstOrDefault().OBE_QUESTIONPAPERPATTERN_ID && x.QUS_NO == nQusNo.ToString()).ToList();
+                                        if (liQusValue != null && liQusValue.Count > 0)
+                                        {
+                                            sStrId = liQusValue.FirstOrDefault().OBE_QUESTIONPAPERSTRUCTURE_ID;
+                                        }
+                                        else
+                                        {
+                                            sStrId = "";
+                                        }
+                                        <tr cms-patternSection="@item.FirstOrDefault().OBE_QUESTIONPAPERPATTERNSECTION_ID" cms-pattern="@item.FirstOrDefault().OBE_QUESTIONPAPERPATTERN_ID" cms-Setting="@item.FirstOrDefault().EXAM_SETTING_ID" cms-QLevel="@item.FirstOrDefault().QUESTION_LEVEL_ID" cms-QusNo="@nQusNo" cms-StrId="@sStrId">
+                                            <td id="QusNo">@Count .B</td>
+                                            <td id="QusMark">@item.FirstOrDefault().MARK_FOR_EACH_QUESTION</td>
+                                            <td>
+                                                <div class="col-md-8">
+                                                    <select class="form-control m-b-10 selectpicker" id="liObeUnit" data-selected-text-format="count">
+                                                        <option value="0">--Select--</option>
+                                                        @if (Model.LiOBEUnit != null && Model.LiOBEUnit.Count > 0)
+                                                        {
+                                                            foreach (var obeunit in Model.LiOBEUnit)
+                                                            {
+                                                                if (liQusValue != null && liQusValue.Count > 0)
+                                                                {
+                                                                    if (obeunit.OBE_UNIT_ID == liQusValue.FirstOrDefault().OBE_UNIT_ID)
+                                                                    {
+                                                                        sUnitSelected = "Selected";
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        sUnitSelected = string.Empty;
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    sUnitSelected = string.Empty;
+                                                                }
+                                                                <option value="@obeunit.OBE_UNIT_ID" @sUnitSelected>@obeunit.OBE_UNIT</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="col-md-8">
+                                                    <select class="form-control m-b-10 selectpicker" id="liObeQus" data-selected-text-format="count">
+                                                        <option value="0">--Select--</option>
+                                                        @if (Model.LiQuesionLevel != null && Model.LiQuesionLevel.Count > 0)
+                                                        {
+                                                            foreach (var obeQLevel in Model.LiQuesionLevel)
+                                                            {
+                                                                if (liQusValue != null && liQusValue.Count > 0)
+                                                                {
+                                                                    if (obeQLevel.OBE_RBT_LEVEL_ID == liQusValue.FirstOrDefault().OBE_QUESTIONLEVEL_ID)
+                                                                    {
+                                                                        sQusSelected = "Selected";
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        sQusSelected = string.Empty;
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    sQusSelected = string.Empty;
+                                                                }
+                                                                <option value="@obeQLevel.OBE_RBT_LEVEL_ID" @sQusSelected>@obeQLevel.OBE_RBT_LEVEL</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="col-md-8">
+                                                    <select class="form-control m-b-10 selectpicker" id="liObeCoLevel" data-selected-text-format="count">
+                                                        <option value="0">--Select--</option>
+                                                        @if (Model.LiOBECOLevel != null && Model.LiOBECOLevel.Count > 0)
+                                                        {
+                                                            foreach (var obeCoLevel in Model.LiOBECOLevel)
+                                                            {
+                                                                if (liQusValue != null && liQusValue.Count > 0)
+                                                                {
+                                                                    if (obeCoLevel.OBE_COLEVEL_ID == liQusValue.FirstOrDefault().OBE_COLEVEL_ID)
+                                                                    {
+                                                                        sColevelSelected = "Selected";
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        sColevelSelected = string.Empty;
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    sColevelSelected = string.Empty;
+                                                                }
+                                                                <option value="@obeCoLevel.OBE_COLEVEL_ID" @sColevelSelected>@obeCoLevel.OBE_COLEVEL</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                nQusNo++;
+                                var liQusValue = Model.LiOBEQuestionPaperPattern.Where(x => x.OBE_QUESTIONPAPERPATTERNSECTION_ID == item.FirstOrDefault().OBE_QUESTIONPAPERPATTERNSECTION_ID && x.OBE_QUESTIONPAPERPATTERN_ID == item.FirstOrDefault().OBE_QUESTIONPAPERPATTERN_ID && x.QUS_NO == nQusNo.ToString()).ToList();
+                                if (liQusValue != null && liQusValue.Count > 0)
+                                {
+                                    sStrId = liQusValue.FirstOrDefault().OBE_QUESTIONPAPERSTRUCTURE_ID;
+                                }
+                                else
+                                {
+                                    sStrId = "";
+                                }
+                                <tr cms-patternSection="@item.FirstOrDefault().OBE_QUESTIONPAPERPATTERNSECTION_ID" cms-pattern="@item.FirstOrDefault().OBE_QUESTIONPAPERPATTERN_ID" cms-Setting="@item.FirstOrDefault().EXAM_SETTING_ID" cms-QLevel="@item.FirstOrDefault().QUESTION_LEVEL_ID" cms-QusNo="@nQusNo" cms-StrId="@sStrId">
+                                    <td id="QusNo">@Count</td>
+                                    <td id="QusMark">@item.FirstOrDefault().MARK_FOR_EACH_QUESTION</td>
+                                    <td>
+                                        <div class="col-md-8">
+                                            <select class="form-control m-b-10 selectpicker" id="liObeUnit" data-selected-text-format="count">
+                                                <option value="0">--Select--</option>
+                                                @if (Model.LiOBEUnit != null && Model.LiOBEUnit.Count > 0)
+                                                {
+                                                    foreach (var obeunit in Model.LiOBEUnit)
+                                                    {
+                                                        if (liQusValue != null && liQusValue.Count > 0)
+                                                        {
+                                                            if (obeunit.OBE_UNIT_ID == liQusValue.FirstOrDefault().OBE_UNIT_ID)
+                                                            {
+                                                                sUnitSelected = "Selected";
+                                                            }
+                                                            else
+                                                            {
+                                                                sUnitSelected = string.Empty;
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            sUnitSelected = string.Empty;
+                                                        }
+                                                        <option value="@obeunit.OBE_UNIT_ID" @sUnitSelected>@obeunit.OBE_UNIT</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8">
+                                            <select class="form-control m-b-10 selectpicker" id="liObeQus" data-selected-text-format="count">
+                                                <option value="0">--Select--</option>
+                                                @if (Model.LiQuesionLevel != null && Model.LiQuesionLevel.Count > 0)
+                                                {
+                                                    foreach (var obeQLevel in Model.LiQuesionLevel)
+                                                    {
+                                                        if (liQusValue != null && liQusValue.Count > 0)
+                                                        {
+                                                            if (obeQLevel.OBE_RBT_LEVEL_ID == liQusValue.FirstOrDefault().OBE_QUESTIONLEVEL_ID)
+                                                            {
+                                                                sQusSelected = "Selected";
+                                                            }
+                                                            else
+                                                            {
+                                                                sQusSelected = string.Empty;
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            sQusSelected = string.Empty;
+                                                        }
+                                                        <option value="@obeQLevel.OBE_RBT_LEVEL_ID" @sQusSelected>@obeQLevel.OBE_RBT_LEVEL</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8">
+                                            <select class="form-control m-b-10 selectpicker" id="liObeCoLevel" data-selected-text-format="count">
+                                                <option value="0">--Select--</option>
+                                                @if (Model.LiOBECOLevel != null && Model.LiOBECOLevel.Count > 0)
+                                                {
+                                                    foreach (var obeCoLevel in Model.LiOBECOLevel)
+                                                    {
+                                                        if (liQusValue != null && liQusValue.Count > 0)
+                                                        {
+                                                            if (obeCoLevel.OBE_COLEVEL_ID == liQusValue.FirstOrDefault().OBE_COLEVEL_ID)
+                                                            {
+                                                                sColevelSelected = "Selected";
+                                                            }
+                                                            else
+                                                            {
+                                                                sColevelSelected = string.Empty;
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            sColevelSelected = string.Empty;
+                                                        }
+                                                        <option value="@obeCoLevel.OBE_COLEVEL_ID" @sColevelSelected>@obeCoLevel.OBE_COLEVEL</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+
+                        </tbody>
+                    }
+                </table>
+            </div>
+
+        }
+        <div class="col-md-12 pull-right">
+            <a id="btnsubmit" href="#" class="btn btn-success pull-right">Submit</a>
+        </div>
+    }
+}
+<script>
+ContentLoad = function () {
+        //Ready Function()
+    }
+    handleDatepicker = function () {
+        "use strict";
+        // $("#datepicker-autoClose").datepicker({todayHighlight:!0,autoclose:!0})}
+        $(".date").datepicker({
+            todayHighlight: !0,
+            autoclose: !0,
+            format: "dd/mm/yyyy",
+            orientation: "left"
+            // 'top': top,
+            // 'left': left
+        });
+    }
+    handleDatepicker();
+
+    $('.selectpicker').selectpicker({ size: 6 });
+    $('.selectpicker').selectpicker('refresh');
+
+    $("#btnsubmit").on("click", function ()
+    {
+        var scomplent = $('#OBECOComponent').val();
+        var JsonData = '{"liobeQusPaperStucture":[';
+        $('#tblQusStructure tbody tr').each(function () {
+
+            SettingId = $(this).attr('cms-Setting');
+            PatternSection = $(this).attr('cms-patternSection');
+            Pattern = $(this).attr('cms-pattern');
+            StructureId = $(this).attr('cms-StrId');
+            QLevelId = $(this).attr('cms-QLevel');
+            QusNo = $(this).attr('cms-QusNo');
+            if (($(this).find('#liObeUnit').val()) != '' && ($(this).find('#liObeUnit').val()) != 0 && ($(this).find('#liObeQus').val()) != '' && ($(this).find('#liObeQus').val()) != 0) {
+                JsonData += '{"EXAM_SETTING_ID":"' + SettingId + '","OBE_QUESTIONPAPERSTRUCTURE_ID":"' + StructureId + '","OBE_QUESTIONPAPERPATTERNSECTION_ID":"' + PatternSection + '","OBE_QUESTIONPAPERPATTERN_ID" :"' + Pattern + '","QUS_NO":"' + QusNo + '","QUESTION_NUMBER":"' + String($(this).find('#QusNo').text()) + '","OBE_UNIT_ID":"' + String($(this).find('#liObeUnit').val()) + '","OBE_QUESTIONLEVEL_ID":"' + $(this).find('#liObeQus').val() + '","OBE_COLEVEL_ID":"' + $(this).find('#liObeCoLevel').val() + '","OBE_COMPONENT_ID":"' + scomplent+'","QUESTION_LEVEL_ID":"' + QLevelId +'"},';
+            }
+
+
+        });
+
+        JsonData = JsonData.slice(0, -1) + ']}';
+        $.ajax({
+            url: "@Url.Action("SaveOrUpdateObeQuestionPaperStructure", "OBE")",
+            method: "POST",
+            datatype: "json",
+            data: { sJsonData: JsonData },
+            success: function (data) {
+            swal({ title: "Success !",text: 'Record Save Successfuly!', showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                GetQuestions();
+            }
+            , error: function (error) {
+
+            swal({ title: "Error !", text: 'Internal Server Error !', showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+            });
+    });
+</script>

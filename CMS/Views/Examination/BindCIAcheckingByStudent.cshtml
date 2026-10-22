@@ -1,0 +1,203 @@
+﻿
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+
+
+<div class="col-md-12 form-group table-responsive">
+    @if (Model.liCIA_Total != null && Model.liCIA_Total.Count > 0)
+    {
+        <table class="table table-bordered" id="tblCIACumulative">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Course Code</th>
+                    <th>Course Code</th>
+                    <th>Semester</th>
+                    @*<th>Max Mark</th>*@
+                    <th>Secured Mark</th>
+                    <th>View Component Mark</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.liExamRegistrationList!=null && Model.liExamRegistrationList.Count>0)
+                {
+                    int nCount = 0;
+                    foreach (var item in Model.liExamRegistrationList)
+                    {
+                        var liTotal = Model.liCIA_Total.Where(x => x.COURSE_ID == item.COURSE_ROOT_ID).ToList();
+                        <tr cms-cid="@item.CIA_GROUP_MARK_CHECKING_ID" cms-sid="@item.STUDENT_ID" cms-course-id="@item.COURSE_ID" cms-cg-id="0" cms-cgm="0" cms-sem="@item.SEMESTER_ID">
+                            <td>@{nCount++;} @nCount</td>
+                            <td>@item.COURSE_CODE</td>
+                            <td>@item.COURSE_TITLE</td>
+                            <td>@item.SEMESTER_ID</td>
+                            @if (liTotal != null && liTotal.Count > 0)
+                            {
+                                if (liTotal.FirstOrDefault().TOTAL == "-1")
+                                {
+                                    <td><b>A</b></td>
+                                }
+                                else
+                                {
+                                    <td><b>@liTotal.FirstOrDefault().TOTAL / @item.INTERNAL</b></td>
+                                }
+                                <td><a href="#Modal-Componentmark" data-toggle="modal" onclick="DisplayComponentMark(@item.COURSE_ROOT_ID)"><i class="glyphicon glyphicon-eye-open"></i></a></td>
+                            }
+                            else
+                            {
+                                <td></td>
+                                <td></td>
+                            }
+                            
+                            <td>
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        @*<label class="col-md-3 control-label">Status</label>*@
+                                        <div class="col-md-9">
+                                            <div class="checkbox checkbox-css">
+                                                @if (item.STATUS != null && item.STATUS == "1")
+                                                {
+                                                    <input type="checkbox" id="cbx_@item.COURSE_ID" value="" disabled checked="">
+                                                }
+                                                else
+                                                {
+                                                    <input type="checkbox" id="cbx_@item.COURSE_ID" value="">
+                                                }
+                                                <label for="cbx_@item.COURSE_ID">
+                                                    checked
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <div class="form-group">
+            <a class="btn btn-primary pull-right" href="javascript:;" id="btnSubmit"> Submit </a>
+        </div>
+   }
+</div>
+
+
+
+<div id="Modal-Componentmark" class="modal fade" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLiveLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLiveLabel">Component Wise Mark</h5>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group col-md-12" id="dvBindComponentMarks">
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+    function ContentLoad()
+    {
+
+    }
+</script>
+
+<script>
+
+    $('#btnSubmit').on('click', function ()
+    {
+        var nCount = 0;
+        var sStatus=0;
+        var mode = "";
+        var JsonData = "";
+
+        var isValid = true;
+
+        JsonData = '{"liCiaGroupChecking":[';
+        $('#tblCIACumulative tbody tr').each(function ()
+        {
+            if ($(this).find('input[type="checkbox"]').is(':checked'))
+            {
+                sStatus = 1;
+
+                nCount++;
+
+                JsonData += '{"CIA_GROUP_MARK_CHECKING_ID":"' + $(this).attr('cms-cid') + '","STUDENT_ID":"' + $(this).attr('cms-sid') + '","COURSE_ID":"' + $(this).attr('cms-course-id') + '","COURSE_GROUP_ID":"' + $(this).attr('cms-cg-id') + '","COURSE_GROUP_MARK":"' + $(this).attr('cms-cgm') + '","SEMESTER_ID":"' + $(this).attr('cms-sem') + '","STATUS":"' + sStatus + '","ACADEMIC_YEAR":"' + $('#AcademicYearList option:selected').text() + '"},';
+
+            }
+           
+        });
+
+        if (nCount != 0)
+        {
+            JsonData = JsonData.slice(0, -1);
+            JsonData = JsonData + "]}";
+            $.ajax({
+                url: '@Url.Action("UpdateCIACheckingByStudentId", "Examination")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sJsonData: JsonData },
+                success: function (data)
+                {
+                    if (data.Message != null && data.Message != '')
+                    {
+                       // swal({ title: "Success!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                        alert(data.Message);
+                        loadContent('/Examination/CIAcheckingByStudent');
+                    }
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error !", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+
+        else
+        {
+            swal({ title: "Alert !", text: "Please choose Any One To Continue !", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+        }
+
+    });
+
+</script>
+
+<script>
+    function DisplayComponentMark(CourseId)
+    {
+        $('#dvBindComponentMarks').empty();
+        $.ajax({
+            url: '/Examination/BindComponentWiseMarkByCourseIdForStudent',
+            method:'POST',
+            datatype:'json',
+            data: { sCourseId: CourseId, sAcademicYear: $('#AcademicYearList option:selected').text() },
+            success: function (data)
+            {
+                $('#dvBindComponentMarks').append(data);
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+</script>

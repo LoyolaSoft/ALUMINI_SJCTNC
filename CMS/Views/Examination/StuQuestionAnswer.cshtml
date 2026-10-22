@@ -1,0 +1,114 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+<br /><br />
+<div>@{int count = 0;}</div>
+@if (Model.liQuizQuestion != null)
+{
+    foreach (var item in Model.liQuizQuestion)
+    {
+        <input type="hidden" id="Class_id" value="@item.CLASS_ID" />
+        <input type="hidden" id="Course_id" value="@item.COURSE_ID" />
+       <div class="note note-warning">
+           <h4 style="display:inline-block; padding:1em;"><b>@{count++;}@count . </b>@item.QUESTION</h4>
+           <div class="col-md-offset-1">
+               @foreach (var Q_Option in Model.liQuizOption)
+               {
+                   if (item.QUESTION_ID == Q_Option.QUESTION_ID)
+                   {                       
+                       <input type="radio" id="raOption" name="@item.QUESTION_ID" value="@item.QUESTION_ID , @Q_Option.OPTION_ID" /> @Q_Option.OPTIONS <br />
+                   }
+               }
+           </div>
+       </div>
+     }
+        <div class="form-group pull-right">
+            <div class="col-md-12 pull-right">
+                <a class="btn btn-primary" id="btnSubmit">Submit</a>
+                <input type="hidden" id="txtsubmit"  value="1"/>
+            </div>
+        </div>
+}
+else
+{
+    <div class="alert alert-warning fade in m-b-15">
+        <strong>Error!</strong>
+        <input type="hidden" id="value_01" value="1" />
+           Invalid Course Selected ..!
+        <span class="close" data-dismiss="alert">×</span>
+    </div>
+}
+<script>
+    $('#Submit').addClass('hidden');
+    function GetQuizResult()
+    {
+        $.ajax({
+            url:"@Url.Action("QuizResult", "Examination")",
+            method: "POST",
+            datatype:"json",
+            data: { CourseId: $("#CourseList").val()},
+            success: function (data)
+            {
+                $("#dvQuestionAnswer").empty();
+                $("#dvQuestionAnswer").append(data);
+            }, error: function (error)
+            {
+                alert('Internal Server Error ! ');
+            }
+        });
+    }
+    $("#btnSubmit").on("click", function ()
+    {
+        
+        var names = [];
+        var val = '';
+        var data;
+        //var Class_Id = $('#Class_id').val();
+        //var Course_Id = $('#Course_id').val();
+        $('input[type="radio"]').each(function () {
+            // Creates an array with the names of all the different checkbox group.
+            names[$(this).attr('name')] = true;
+        });
+        // Goes through all the names and make sure there's at least one checked.
+        var JsonData = '{"ObjSaveQuizAnswer":[';
+        for (name in names)
+        {
+            var radio_buttons = $("input[name='" + name + "']");
+            if ($("#txtsubmit").val()!='0') {
+                if (radio_buttons.filter(':checked').length == 0) {
+                    alert('All the answers are not selected ...!');
+                    return false;
+                }
+            }
+            
+                // If you need to use the result you can do so without
+                // another (costly) jQuery selector call:
+                if (radio_buttons.is(':checked')) {
+                    val = $("input[name='" + name + "']:checked").val();
+                    data = val.split(',');
+                    JsonData += '{"QUESTION_ID":"' + data[0] + '","SELECTED_ANSWER":"' + data[1] + '","CLASS_ID":"' + $('#Class_id').val() + '"},';
+                }
+            
+                
+        }
+        JsonData = JsonData.slice(0, -1) + ']}';
+        StopTimer();
+      
+        $('#btnSubmit').attr('disabled', true);
+        $.ajax({
+            url:"@Url.Action("SaveQuestionAnswer", "Examination")",
+            method:"POST",
+            datatype:"json",
+            data:{QuizAnswer:JsonData},
+            success:function (data)
+            {
+                alert(data);
+                GetQuizResult();
+                $("#time").addClass("hidden");
+            },error:function (error)
+            {
+                alert('Internal Server Error ! ');
+            }
+        });
+    })
+</script>
+

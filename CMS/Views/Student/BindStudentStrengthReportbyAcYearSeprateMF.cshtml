@@ -1,0 +1,212 @@
+@{
+    ViewBag.Title = "BindStudentStrengthReportbyAcYear";
+}
+
+@model CMS.ViewModel.ViewModel.StudentViewModel
+
+@{
+    Layout = null;
+    int Count = 0;
+    double grandTotalFirstYearM = 0;
+    double grandTotalFirstYearF = 0;
+    double grandTotalSecondYearM = 0;
+    double grandTotalSecondYearF = 0;
+    double grandTotalThirdYearM = 0;
+    double grandTotalThirdYearF = 0;
+    double grandTotalAllM = 0;
+    double grandTotalAllF = 0;
+    double grandTotalAll = 0;
+    double MaleTotalCount = 0;
+    double FemaleTotalCount = 0;
+}
+<style>
+</style>
+
+<div class="form-group table-responsive" style="page-break-after:always !important;">
+    @if (Model.liStudentList != null && Model.liStudentList.Count > 0)
+    {
+        var groupedByProgrammeLevel = Model.liStudentList
+            .GroupBy(x => x.CLASSLEVELID)
+            .OrderBy(g => g.Key)
+            .ToList();
+
+        <table class="table table-bordered table-responsive table-hover" id="tblStrengthReport">
+            <thead class="sticky-header">
+                <tr>
+                    <th colspan="14"><div class="text-center"><b>ST.JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS), CUDDALORE</b></div></th>
+                </tr>
+                <tr>
+                    <th colspan="14"><div class="text-center"><b>Student Strength Report ( @ViewBag.AcademicYear )</b></div></th>
+                </tr>
+                <tr>
+                    <th><b>S.No</b></th>
+                    <th><b>Programme Name</b></th>
+                    <th colspan="3" class="text-center"><b>I Year</b></th>
+                    <th colspan="3" class="text-center"><b>II Year</b></th>
+                    <th colspan="3" class="text-center"><b>III Year</b></th>
+                    <th colspan="3" class="text-center"><b>Grand Total</b></th>
+                </tr>
+                <tr>
+                    <th colspan="2"></th>
+                    <th><b>Male</b></th>
+                    <th><b>Female</b></th>
+                    <th><b>Total</b></th>
+                    <th><b>Male</b></th>
+                    <th><b>Female</b></th>
+                    <th><b>Total</b></th>
+                    <th><b>Male</b></th>
+                    <th><b>Female</b></th>
+                    <th><b>Total</b></th>
+                    <th><b>Male</b></th>
+                    <th><b>Female</b></th>
+                    <th><b>Total</b></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var levelGroup in groupedByProgrammeLevel)
+                {
+                    <tr>
+                        <th colspan="14" class="text-center">Programme Level:<b>@levelGroup.FirstOrDefault().CLASSLEVEL</b></th>
+                    </tr>
+
+                    var groupedByShift = levelGroup
+                        .GroupBy(x => x.SHIFT)
+                        .OrderBy(g => g.Key)
+                        .ToList();
+
+                    foreach (var shiftGroup in groupedByShift)
+                    {
+                        Count = 0;
+                        <tr>
+                            <th colspan="14">
+                                SHIFT: @(shiftGroup.Key=="1"?"I":"II")
+                            </th>
+                        </tr>
+
+                        var groupedByProgramme = shiftGroup
+                            .GroupBy(x => new { x.PROGRAMME_NAME, x.CLASSLEVELID })
+                            .OrderBy(g => g.Key.CLASSLEVELID)
+                            .ThenBy(g => g.Key.PROGRAMME_NAME)
+                            .ToList();
+
+                        double shiftTotalFirstYearM = 0;
+                        double shiftTotalFirstYearF = 0;
+                        double shiftTotalSecondYearM = 0;
+                        double shiftTotalSecondYearF = 0;
+                        double shiftTotalThirdYearM = 0;
+                        double shiftTotalThirdYearF = 0;
+                        double shiftTotalAllM = 0;
+                        double shiftTotalAllF = 0;
+                        double shiftTotalAll = 0;
+
+                        foreach (var group in groupedByProgramme)
+                        {
+                            Count++;
+                            var firstYearMCount = group.Where(x => x.CLASS_YEAR == "1" && x.GENDER == "1").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+                            var firstYearFCount = group.Where(x => x.CLASS_YEAR == "1" && x.GENDER == "2").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+                            var secondYearMCount = group.Where(x => x.CLASS_YEAR == "2" && x.GENDER == "1").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+                            var secondYearFCount = group.Where(x => x.CLASS_YEAR == "2" && x.GENDER == "2").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+                            var thirdYearMCount = group.Where(x => x.CLASS_YEAR == "3" && x.GENDER == "1").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+                            var thirdYearFCount = group.Where(x => x.CLASS_YEAR == "3" && x.GENDER == "2").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+
+                            var firstYearTotal = firstYearMCount + firstYearFCount;
+                            var secondYearTotal = secondYearMCount + secondYearFCount;
+                            var thirdYearTotal = thirdYearMCount + thirdYearFCount;
+                            var programmeTotal = firstYearTotal + secondYearTotal + thirdYearTotal;
+                            MaleTotalCount = firstYearMCount + secondYearMCount + thirdYearMCount;
+                            FemaleTotalCount = firstYearFCount + secondYearFCount + thirdYearFCount;
+                            shiftTotalFirstYearM += firstYearMCount;
+                            shiftTotalFirstYearF += firstYearFCount;
+                            shiftTotalSecondYearM += secondYearMCount;
+                            shiftTotalSecondYearF += secondYearFCount;
+                            shiftTotalThirdYearM += thirdYearMCount;
+                            shiftTotalThirdYearF += thirdYearFCount;
+                            shiftTotalAllM += firstYearMCount + secondYearMCount + thirdYearMCount;
+                            shiftTotalAllF += firstYearFCount + secondYearFCount + thirdYearFCount;
+                            shiftTotalAll += programmeTotal;
+
+                            <tr>
+                                <td>@Count</td>
+                                <td><b>@group.FirstOrDefault().PROGRAMME_NAME</b></td>
+
+
+                                <td>@firstYearMCount</td>
+                                <td>@firstYearFCount</td>
+                                <td><b>@firstYearTotal</b></td>
+
+                                <td>@secondYearMCount</td>
+
+                                <td>@secondYearFCount</td>
+                                <td><b>@secondYearTotal</b></td>
+
+                                <td>@thirdYearMCount</td>
+                                <td>@thirdYearFCount</td>
+                                <td><b>@thirdYearTotal</b></td>
+                                <td>@MaleTotalCount</td>
+                                <td>@FemaleTotalCount</td>
+                                <td><b>@programmeTotal</b></td>
+                            </tr>
+                        }
+
+                        // Shift totals
+                        <tr>
+                            <th colspan="2"> SHIFT : @(shiftGroup.Key == "1" ?"I":"II")  TOTAL</th>
+
+                            <th>@shiftTotalFirstYearM</th>
+                            <th>@shiftTotalFirstYearF</th>
+                            <th>@(shiftTotalFirstYearF + shiftTotalFirstYearM)</th>
+
+                            <th>@shiftTotalSecondYearM</th>
+                            <th>@shiftTotalSecondYearF</th>
+                            <th>@(shiftTotalSecondYearF + shiftTotalSecondYearM)</th>
+
+                            <th>@shiftTotalThirdYearM</th>
+                            <th>@shiftTotalThirdYearF</th>
+                            <th>@(shiftTotalThirdYearF + shiftTotalThirdYearM)</th>
+                            <th>@shiftTotalAllM</th>
+                            <th>@shiftTotalAllF</th>
+                            <th>@shiftTotalAll</th>
+                        </tr>
+
+                        // Add shift totals to grand totals
+                        grandTotalFirstYearM += shiftTotalFirstYearM;
+                        grandTotalFirstYearF += shiftTotalFirstYearF;
+                        grandTotalSecondYearM += shiftTotalSecondYearM;
+                        grandTotalSecondYearF += shiftTotalSecondYearF;
+                        grandTotalThirdYearM += shiftTotalThirdYearM;
+                        grandTotalThirdYearF += shiftTotalThirdYearF;
+                        grandTotalAllM += shiftTotalAllM;
+                        grandTotalAllF += shiftTotalAllF;
+                        grandTotalAll += shiftTotalAll;
+                    }
+                }
+
+
+                <tr style="font-weight:bold;">
+                    <td colspan="2">Grand Total</td>
+
+                    <td>@grandTotalFirstYearM</td>
+                    <td>@grandTotalFirstYearF</td>
+                    <td>@(grandTotalFirstYearF + grandTotalFirstYearM)</td>
+
+                    <td>@grandTotalSecondYearM</td>
+                    <td>@grandTotalSecondYearF</td>
+                    <td>@(grandTotalSecondYearF + grandTotalSecondYearM)</td>
+
+                    <td>@grandTotalThirdYearM</td>
+                    <td>@grandTotalThirdYearF</td>
+                    <td>@(grandTotalThirdYearF + grandTotalThirdYearM)</td>
+                    <td>@grandTotalAllM</td>
+                    <td>@grandTotalAllF</td>
+                    <td>@grandTotalAll</td>
+                </tr>
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="bg-warning text-center">
+            <h4>No Records Found</h4>
+        </div>
+    }
+</div>

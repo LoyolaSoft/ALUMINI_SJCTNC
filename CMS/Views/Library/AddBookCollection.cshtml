@@ -1,0 +1,252 @@
+﻿
+@model CMS.ViewModel.ViewModel.LibraryViewModel
+@{
+    ViewBag.Title = "AddBookCollection";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<div class="content" id="content">
+
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Opac</li>
+    </ol>
+    <h1 class="page-header">Add Book Collection</h1>
+
+    <div class="panel panel-primary" data-sortable-id="ui-widget-1" data-init="true">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Add Book Collection</h4>
+        </div>
+        <div class="panel-body">
+            <div class="form-horizontal">
+                <div class="col-md-12 form-group">
+                    @{
+                        if (Model.liCollegeDetails != null && Model.liCollegeDetails.Count > 0)
+                        {
+                            <div class="col-md-2 form-group">
+                                <h4 class="lead"><img src="~/Content/assets/img/hcc-img/SJCLOGO.PNG" width="70px;" style="box-shadow:1px 1px #eee;" class="img-circle img" alt="HCC Logo" /></h4>
+                                @*<img alt="@Model.liCollegeDetails.FirstOrDefault().COLLEGE_CODE" src="@Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO">*@
+                            </div>
+                            <div class="col-md-10  form-group">
+                                <h3 style="text-align:center;">
+                                    @Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME <br /> <br />
+
+                                    Library Book Details
+                                </h3>
+                            </div>
+                        }
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Message))
+                {
+                    <div class="alert alert-danger alert-dismissable">
+                        @Model.Message
+                    </div>
+                }
+                else
+                {
+                    <div class="col-md-12 form-group">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>
+                                    <div class="col-md-3">
+                                        @Html.DropDownListFor(m => m.sSearch, (Model.sSearch != null) ? Model.sSearch : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @id = "ddlCategory" })
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <select class="selectpicker form-control" id="ddlLibrary">
+                                            <option value="0"> -- Select -- </option>
+                                            <option value="1"> College Library </option>
+                                            <option value="2"> Online Book (E-Book) </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" placeholder="Search Your Text" id="txtSearch" />
+                                    </div>
+
+                                    <div class="col-md-2 pull-right">
+                                        <a class="btn btn-primary" onclick="BindData()" href="javascript:;" id="btnSearch"><i class="fa fa-search-plus"></i> Search</a>
+                                    </div>
+                                </th>
+                            </tr>
+                        </table>
+                    </div>
+                    <hr />
+                    <div class="col-md-5" style="padding: 10px; background: antiquewhite;">
+                        <div class="col-md-6 col-sm-5">
+                            <label class="">Collection</label>
+                        </div>
+                        <div class="col-md-6 col-sm-6">
+                            <select class="selectpicker form-control input-sm" id="ddlCollection">
+                                <option value=""> --- Select --- </option>
+                                @if (Model.licollection != null)
+                                {
+                                    foreach (var item in Model.licollection)
+                                    {
+                                        <option value="@item.COLLECTION_ID">@item.COLLECTION_NAME</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                }
+            </div>
+           
+            <div id="dvSearchList"></div>
+        </div>
+    </div>
+</div>
+
+@if (Model.liRules != null && Model.liRules.Count > 0)
+{
+    <!-- Hidden -->
+    <input type="hidden" id="hdUserType" value="@Model.liRules.FirstOrDefault().USER_TYPE" />
+    <input type="hidden" id="hdProgrammeLevel" value="@Model.liRules.FirstOrDefault().PROGRAMME_LEVEL" />
+    <input type="hidden" id="hdNoOfBooks" value="@Model.liRules.FirstOrDefault().NO_OF_BOOKS" />
+    <input type="hidden" id="hdNoOfDays" value="@Model.liRules.FirstOrDefault().NO_OF_DAYS" />
+    <input type="hidden" id="hdRole" value="@Model.liRules.FirstOrDefault().ROLE" />
+    <!-- Hidden -->
+}
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+    function ContentLoad() {
+        // Document Ready Function .
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+
+        $('.selectpicker').selectpicker('refresh');
+    }
+</script>
+
+<script>
+
+
+    $('#txtSearch').on("keypress", function ()
+    {
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if (keycode == '13')
+        {
+
+            BindData();
+        }
+
+    });
+
+
+    function BindData()
+    {
+        if ($('#ddlLibrary').val() != "1")
+        {
+            return false;
+        }
+
+        if ($('#ddlCategory').val() && $('#txtSearch').val())
+        {
+            //loadContent('/Library/BindBooksBySearch?sCategory=' + $('#ddlCategory').val() + '&sSearchText=' + $('#txtSearch').val() + '');
+            $.ajax({
+                url: '@Url.Action("BindBooksBySearchVal", "Library")',
+                method: 'POST',
+                datatype: 'Json',
+                data: { sCategory: $('#ddlCategory').val(), sSearchText: $('#txtSearch').val() },
+                success: function (data)
+                {
+                    $('#dvHome').addClass('hidden');
+                    $('#dvSearchList').empty();
+                    $('#dvSearchList').append(data);
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        } else
+        {
+            swal({ title: "Warning !", text: "Something went wrong try again !", showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+        }
+    }
+
+
+
+    function SubmitData()
+    {
+        var collectionID = $("#ddlCollection").val();
+        if (collectionID == null || collectionID == "") {
+            swal({ title: "Warning !", text: "Please Select Book Collection !", showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+return false
+        }
+        var sJsonData = '{liBookReserve:['; var sBookId = ''; var nCount = 0; var sReserveId = "";
+        $('#tblSearchView tbody tr').each(function ()
+        {
+            sBookId = $(this).attr('cms-BookId');
+            sReserveId = $(this).attr('cms-ReserveId');
+            $(this).find('td').each(function ()
+            {
+                var chkBox = $(this).find('input[type="checkbox"]');
+                if (chkBox.is(':checked'))
+                {
+                    nCount = nCount + 1;
+                    sJsonData += '{"RESERVE_ID":"' + sReserveId + '","BOOK_ID":"' + sBookId + '"},';
+                    //sReserveId = null;
+                }
+            });
+        });
+
+        if (nCount!=0)
+        {
+            sJsonData.slice(0, -1);
+            sJsonData = sJsonData + "]}";
+        } else
+        {
+            swal({ title: "Warning !", text: "No Changes Made !", showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+
+
+        $.ajax({
+            url:'@Url.Action("UpdateBookCollectionInfo", "Library")',
+            method:'POST',
+            datatype: 'json',
+            data: { sJson: sJsonData, liBookCollectionID: collectionID },
+            success: function (data)
+            {
+                if (data.ErrorCode=="200")
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    BindData();
+                } else
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+    function SelectOrUnselectchenbox() {
+        var Scount = 0;
+        var isChecked = $('#AllCheckboxID').prop('checked');
+
+        $('#tblSearchView tbody input[type="checkbox"]').each(function () {
+            $(this).prop('checked', isChecked);
+            if (isChecked) {
+                Scount++;
+            }
+        });
+
+        $('#lblcount').text('Count: ' + Scount);
+    }
+</script>

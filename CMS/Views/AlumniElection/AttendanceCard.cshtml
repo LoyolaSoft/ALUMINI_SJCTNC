@@ -1,0 +1,1286 @@
+@model CMS.Models.AlumniElectionCardViewModel
+@{
+    Layout = null;
+    var reg = Model != null ? Model.Registration : null;
+    var setting = Model != null ? Model.Setting : null;
+    string errorMsg = ViewBag.ErrorMessage as string;
+
+    string progCode = (reg != null && !string.IsNullOrWhiteSpace(reg.PROGRAMME_CODE)) ? reg.PROGRAMME_CODE.Trim() : "ELEC";
+    string academicYear = (reg != null && !string.IsNullOrWhiteSpace(reg.ACADEMIC_YEAR)) ? reg.ACADEMIC_YEAR.Trim() : (setting != null ? setting.ACADEMIC_YEAR : DateTime.Now.Year.ToString());
+    string serialId = (reg != null) ? reg.ID.ToString("D4") : "0001";
+    string batchNo = (Model != null && !string.IsNullOrWhiteSpace(Model.SerialNo)) ? Model.SerialNo : serialId;
+
+    // PASS NUMBER matches SERIAL NO in report: SJC-ELEC-[ACADEMIC_YEAR]-[ID:D4]
+    string electionPassNo = (Model != null && !string.IsNullOrWhiteSpace(Model.PassNo))
+        ? Model.PassNo
+        : ((reg != null && !string.IsNullOrEmpty(reg.SERIAL_NO))
+            ? reg.SERIAL_NO
+            : string.Format("SJC-ELEC-{0}-{1}", academicYear, serialId));
+
+    // REGISTRATION NO matches REGISTERED NO in report: SJC-[PROGRAMME_CODE]-[ACADEMIC_YEAR]-[SERIAL]
+    string registeredNo = (reg != null && !string.IsNullOrEmpty(reg.REGISTRATION_NO))
+        ? reg.REGISTRATION_NO
+        : string.Format("SJC-{0}-{1}-{2}", progCode, academicYear, batchNo);
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alumni Election Attendance Card - @(reg != null ? reg.NAME : "Attendance Pass") | St. Joseph's College</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 20px 10px;
+            color: #0f172a;
+        }
+
+        /* Top Action Bar (Hidden when printed) */
+        .card-action-bar {
+            max-width: 820px;
+            margin: 0 auto 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-size: 13.5px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: #ffffff;
+        }
+
+        .btn-print:hover {
+            background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+            transform: translateY(-1px);
+        }
+
+        .btn-back {
+            background: #ffffff;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
+
+        .btn-back:hover {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        /* The Printable Attendance Card */
+        .admit-card-container {
+            max-width: 820px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 3px double #1e3a8a;
+            border-radius: 16px;
+            padding: 32px 36px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
+            background-image: radial-gradient(#2563eb0a 1px, transparent 1px);
+            background-size: 18px 18px;
+        }
+
+        /* Watermark */
+        .admit-card-container::before {
+            content: "ST. JOSEPH'S COLLEGE ALUMNI ASSOCIATION";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 40px;
+            font-weight: 800;
+            color: rgba(30, 58, 138, 0.035);
+            pointer-events: none;
+            text-align: center;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .card-header-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #1e3a8a;
+            padding-bottom: 14px;
+            margin-bottom: 18px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .college-crest-logo {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .college-titles {
+            flex: 1;
+            text-align: center;
+            padding: 0 10px;
+            min-width: 0;
+        }
+
+        .college-titles h1 {
+            font-size: 15.5px;
+            font-weight: 800;
+            color: #1e3a8a;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            line-height: 1.25;
+            white-space: nowrap;
+        }
+
+        .college-titles p {
+            font-size: 11.5px;
+            color: #475569;
+            margin: 3px 0 0;
+            font-weight: 600;
+        }
+
+        .card-badge-box {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .card-pass-no {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .card-pass-num-bold {
+            font-size: 14px;
+            font-weight: 800;
+            color: #1e3a8a;
+            letter-spacing: 0.5px;
+        }
+
+        /* Title banner */
+        .card-title-banner {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: #ffffff;
+            text-align: center;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 22px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Alumnus info table */
+        /* Alumnus info table */
+        .info-grid-section {
+            display: grid;
+            grid-template-columns: 1fr 195px;
+            gap: 18px;
+            align-items: center;
+            margin-bottom: 22px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .table-details {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-details td {
+            padding: 7px 4px;
+            font-size: 13.5px;
+            vertical-align: middle;
+            line-height: 1.4;
+        }
+
+        .table-details td.lbl-col {
+            font-weight: 700;
+            color: #334155;
+            white-space: nowrap;
+            width: 1%;
+            padding-right: 2px;
+        }
+
+        .table-details td.colon-col {
+            width: 1%;
+            white-space: nowrap;
+            text-align: center;
+            font-weight: 700;
+            color: #475569;
+            padding: 7px 8px 7px 2px;
+        }
+
+        .table-details td.val-col {
+            color: #0f172a;
+            font-weight: 600;
+            padding-left: 6px;
+            white-space: nowrap;
+        }
+
+        .table-details td.val-name {
+            font-size: 14.5px;
+            font-weight: 800;
+            color: #1e3a8a;
+            white-space: nowrap;
+        }
+
+        .table-details td.val-regno {
+            font-size: 14px;
+            font-weight: 800;
+            color: #1e3a8a;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+        }
+
+        .status-stamp-card {
+            border: 2px dashed #059669;
+            background: #ecfdf5;
+            border-radius: 12px;
+            padding: 12px 14px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 195px;
+            box-sizing: border-box;
+        }
+
+        .stamp-icon {
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stamp-seal-img {
+            width: 119px;
+            height: 100px;
+            max-width: 117px;
+            max-height: 100px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .stamp-status {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #047857;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stamp-sub {
+            font-size: 11px;
+            color: #065f46;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        /* Election Schedule Box */
+        .election-schedule-box {
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .schedule-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.5fr;
+            gap: 12px;
+            font-size: 12.5px;
+        }
+
+        .schedule-item strong {
+            display: block;
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .schedule-item span {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* Rules & Instructions */
+        .rules-section {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 22px;
+            font-size: 13.5px;
+            color: #78350f;
+            position: relative;
+            z-index: 2;
+        }
+
+        .rules-section strong {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14.5px;
+            font-weight: 800;
+            color: #92400e;
+        }
+
+        .rules-section p {
+            margin: 0;
+            white-space: pre-line;
+            line-height: 1.55;
+            font-size: 13.5px;
+        }
+
+        /* Signature block (Order: 1. Alumnus, 2. Principal, 3. Alumni Coordinator, 4. Secretary) */
+        .signature-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 18px;
+            padding-top: 10px;
+            border-top: 1px dashed #cbd5e1;
+            position: relative;
+            z-index: 2;
+            gap: 12px;
+        }
+
+        .signature-box {
+            text-align: center;
+            flex: 1;
+            max-width: 175px;
+            min-width: 0;
+        }
+
+        .sig-space {
+            height: 38px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            margin-bottom: 3px;
+        }
+
+        .principal-sign-img {
+            max-height: 48px;
+            max-width: 105px;
+            object-fit: contain;
+            display: inline-block;
+        }
+
+        .sig-line {
+            border-top: 1.5px solid #334155;
+            margin-bottom: 4px;
+        }
+
+        .sig-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.1px;
+            white-space: nowrap;
+        }
+
+        .sig-sub {
+            font-size: 8.5px;
+            color: #64748b;
+            font-weight: 500;
+            margin-top: 2px;
+            white-space: nowrap;
+        }
+
+        /* Mobile Specific Screen Styling (Only applies to screen view, not print) */
+        @@media screen and (max-width: 767px) {
+            body {
+                padding: 10px 8px;
+            }
+
+            .card-action-bar {
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            .btn-action {
+                width: 100%;
+                justify-content: center;
+                padding: 9px 14px;
+                font-size: 13px;
+            }
+
+            .admit-card-container {
+                padding: 14px 10px;
+                border-width: 2px;
+                border-radius: 12px;
+            }
+
+            .admit-card-container::before {
+                font-size: 20px;
+            }
+
+            .card-header-section {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 8px;
+                padding-bottom: 10px;
+                margin-bottom: 12px;
+            }
+
+            .college-crest-logo {
+                width: 50px;
+                height: 50px;
+            }
+
+            .college-titles {
+                padding: 0;
+            }
+
+            .college-titles h1 {
+                font-size: clamp(9.5px, 2.9vw, 13px);
+                line-height: 1.25;
+                white-space: nowrap;
+            }
+
+            .college-titles p {
+                font-size: 10px;
+                line-height: 1.3;
+                margin-top: 2px;
+            }
+
+            .card-badge-box {
+                width: 100%;
+                text-align: center;
+                background: #f8fafc;
+                border: 1px dashed #cbd5e1;
+                border-radius: 8px;
+                padding: 6px 10px;
+                margin-top: 2px;
+            }
+
+            .card-pass-no {
+                font-size: 9.5px;
+            }
+
+            .card-pass-num-bold {
+                font-size: 13px;
+            }
+
+            .card-title-banner {
+                font-size: 11.5px;
+                padding: 6px 8px;
+                letter-spacing: 0.3px;
+                margin-bottom: 12px;
+                line-height: 1.3;
+            }
+
+            .info-grid-section {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                margin-bottom: 14px;
+            }
+
+            .table-details td {
+                padding: 5px 3px;
+                font-size: 11.5px;
+            }
+
+            .table-details td.lbl-col {
+                font-size: 11.5px;
+                width: 1%;
+                white-space: nowrap;
+                padding-right: 2px;
+            }
+
+            .table-details td.colon-col {
+                width: 1%;
+                white-space: nowrap;
+                padding: 5px 6px 5px 2px;
+                text-align: center;
+            }
+
+            .table-details td.val-col {
+                font-size: 12px;
+                padding-left: 4px;
+                white-space: nowrap;
+            }
+
+            .table-details td.val-name {
+                font-size: 12.5px !important;
+                white-space: nowrap;
+            }
+
+            .table-details td.val-regno {
+                font-size: 12px !important;
+                white-space: nowrap;
+            }
+
+            .status-stamp-card {
+                width: 100%;
+                padding: 10px 12px;
+                flex-direction: row;
+                justify-content: center;
+                gap: 12px;
+                border-radius: 8px;
+            }
+
+            .stamp-icon {
+                margin-bottom: 0;
+            }
+
+            .stamp-seal-img {
+                width: 52px;
+                height: 52px;
+                max-width: 52px;
+                max-height: 52px;
+                object-fit: contain;
+                display: block;
+            }
+
+            .stamp-status {
+                font-size: 12px;
+            }
+
+            .stamp-sub {
+                font-size: 10px;
+            }
+
+            .election-schedule-box {
+                padding: 10px 12px;
+                border-radius: 10px;
+                margin-bottom: 12px;
+            }
+
+            .schedule-title {
+                font-size: 11.5px;
+                margin-bottom: 6px;
+            }
+
+            .schedule-grid {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .schedule-item {
+                padding-bottom: 6px;
+                border-bottom: 1px dashed #e2e8f0;
+            }
+
+            .schedule-item:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+
+            .schedule-item strong {
+                font-size: 9.5px;
+                margin-bottom: 1px;
+            }
+
+            .schedule-item span {
+                font-size: 11.5px;
+                word-break: break-word;
+            }
+
+            .rules-section {
+                padding: 10px 12px;
+                font-size: 12px;
+                line-height: 1.45;
+                margin-bottom: 14px;
+            }
+
+            .rules-section strong {
+                font-size: 13px;
+                margin-bottom: 4px;
+            }
+
+            .rules-section p {
+                font-size: 12px;
+                line-height: 1.45;
+            }
+
+            .signature-block {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 14px 12px;
+                margin-top: 18px;
+                padding-top: 12px;
+            }
+
+            .signature-box {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .sig-space {
+                height: 30px;
+                margin-bottom: 3px;
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+            }
+
+            .principal-sign-img {
+                max-height: 28px;
+                max-width: 100%;
+                object-fit: contain;
+                display: inline-block;
+            }
+
+            .sig-line {
+                border-top: 1px solid #334155;
+                margin-bottom: 3px;
+            }
+
+            .sig-title {
+                font-size: 10px;
+                line-height: 1.25;
+                font-weight: 700;
+                color: #1e293b;
+                white-space: normal;
+            }
+
+            .sig-sub {
+                font-size: 8.5px;
+                line-height: 1.2;
+                color: #64748b;
+                white-space: normal;
+            }
+        }
+
+        /* Page setup for Print */
+        @@page {
+            size: A4 portrait;
+            margin: 10mm 12mm;
+        }
+
+        /* Print Specific Styling - Preserves the identical card layout and colors */
+        @@media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            html, body {
+                background: #ffffff !important;
+                background-color: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                color: #0f172a !important;
+            }
+
+            .card-action-bar {
+                display: none !important;
+            }
+
+            .admit-card-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
+                padding: 24px 30px !important;
+                border: 3px double #1e3a8a !important;
+                border-radius: 16px !important;
+                box-shadow: none !important;
+                background-color: #ffffff !important;
+                background-image: radial-gradient(#2563eb0a 1px, transparent 1px) !important;
+                background-size: 18px 18px !important;
+                position: relative !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .admit-card-container::before {
+                content: "ST. JOSEPH'S COLLEGE ALUMNI ASSOCIATION" !important;
+                position: absolute !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) rotate(-30deg) !important;
+                font-size: 38px !important;
+                font-weight: 800 !important;
+                color: rgba(30, 58, 138, 0.055) !important;
+                pointer-events: none !important;
+                text-align: center !important;
+                width: 100% !important;
+                z-index: 1 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .card-header-section {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                border-bottom: 2px solid #1e3a8a !important;
+                padding-bottom: 12px !important;
+                margin-bottom: 14px !important;
+                position: relative !important;
+                z-index: 2 !important;
+            }
+
+            .college-crest-logo {
+                width: 65px !important;
+                height: 65px !important;
+                object-fit: contain !important;
+                display: block !important;
+                flex-shrink: 0 !important;
+            }
+
+            .college-titles {
+                flex: 1 !important;
+                text-align: center !important;
+                padding: 0 8px !important;
+                min-width: 0 !important;
+            }
+
+            .college-titles h1 {
+                font-size: 14.5px !important;
+                font-weight: 800 !important;
+                color: #1e3a8a !important;
+                margin: 0 !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.2px !important;
+                line-height: 1.25 !important;
+                white-space: nowrap !important;
+            }
+
+            .college-titles p {
+                font-size: 11px !important;
+                color: #475569 !important;
+                margin: 3px 0 0 !important;
+                font-weight: 600 !important;
+            }
+
+            .college-titles h5 {
+                font-size: 12.5px !important;
+                color: #1e3a8a !important;
+                font-weight: 700 !important;
+                margin: 3px 0 0 !important;
+            }
+
+            .card-badge-box {
+                text-align: right !important;
+                background: transparent !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: auto !important;
+                flex-shrink: 0 !important;
+            }
+
+            .card-pass-no {
+                font-size: 11px !important;
+                font-weight: 700 !important;
+                color: #64748b !important;
+            }
+
+            .card-pass-num-bold {
+                font-size: 14px !important;
+                font-weight: 800 !important;
+                color: #1e3a8a !important;
+                letter-spacing: 0.5px !important;
+            }
+
+            .card-title-banner {
+                background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+                background-color: #1e3a8a !important;
+                color: #ffffff !important;
+                text-align: center !important;
+                padding: 8px 14px !important;
+                border-radius: 8px !important;
+                font-size: 14px !important;
+                font-weight: 800 !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.8px !important;
+                margin-bottom: 18px !important;
+                position: relative !important;
+                z-index: 2 !important;
+            }
+
+            .info-grid-section {
+                display: grid !important;
+                grid-template-columns: 1fr 195px !important;
+                gap: 18px !important;
+                align-items: center !important;
+                margin-bottom: 18px !important;
+                position: relative !important;
+                z-index: 2 !important;
+            }
+
+            .table-details {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+
+            .table-details td {
+                padding: 6px 3px !important;
+                font-size: 12.5px !important;
+                vertical-align: middle !important;
+                line-height: 1.35 !important;
+            }
+
+            .table-details td.lbl-col {
+                font-weight: 700 !important;
+                color: #334155 !important;
+                white-space: nowrap !important;
+                width: 1% !important;
+                padding-right: 2px !important;
+            }
+
+            .table-details td.colon-col {
+                width: 1% !important;
+                white-space: nowrap !important;
+                text-align: center !important;
+                font-weight: 700 !important;
+                color: #475569 !important;
+                padding: 6px 8px 6px 2px !important;
+            }
+
+            .table-details td.val-col {
+                color: #0f172a !important;
+                font-weight: 600 !important;
+                padding-left: 6px !important;
+                white-space: nowrap !important;
+            }
+
+            .table-details td.val-name {
+                font-size: 13.5px !important;
+                font-weight: 800 !important;
+                color: #1e3a8a !important;
+                white-space: nowrap !important;
+            }
+
+            .table-details td.val-regno {
+                font-size: 13px !important;
+                font-weight: 800 !important;
+                color: #1e3a8a !important;
+                letter-spacing: 0.4px !important;
+                white-space: nowrap !important;
+            }
+
+            .status-stamp-card {
+                border: 2px dashed #059669 !important;
+                background-color: #ecfdf5 !important;
+                border-radius: 12px !important;
+                padding: 12px 14px !important;
+                text-align: center !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 195px !important;
+                box-sizing: border-box !important;
+            }
+
+            .stamp-icon {
+                margin-bottom: 6px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+
+            .stamp-seal-img {
+                width: 74px !important;
+                height: 74px !important;
+                max-width: 74px !important;
+                max-height: 74px !important;
+                object-fit: contain !important;
+                display: block !important;
+                margin: 0 auto !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .stamp-status {
+                font-size: 13px !important;
+                font-weight: 800 !important;
+                color: #047857 !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.5px !important;
+            }
+
+            .stamp-sub {
+                font-size: 11px !important;
+                color: #065f46 !important;
+                margin-top: 2px !important;
+                font-weight: 600 !important;
+            }
+
+            .election-schedule-box {
+                background-color: #f8fafc !important;
+                border: 1.5px solid #cbd5e1 !important;
+                border-radius: 12px !important;
+                padding: 12px 18px !important;
+                margin-bottom: 16px !important;
+                position: relative !important;
+                z-index: 2 !important;
+                display: block !important;
+            }
+
+            .schedule-title {
+                font-size: 12.5px !important;
+                font-weight: 800 !important;
+                color: #1e3a8a !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.5px !important;
+                margin-bottom: 8px !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 6px !important;
+            }
+
+            .schedule-grid {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr 1.5fr !important;
+                gap: 12px !important;
+                font-size: 12px !important;
+            }
+
+            .schedule-item {
+                border-bottom: none !important;
+                padding-bottom: 0 !important;
+            }
+
+            .schedule-item strong {
+                display: block !important;
+                color: #64748b !important;
+                font-size: 10.5px !important;
+                text-transform: uppercase !important;
+                margin-bottom: 2px !important;
+            }
+
+            .schedule-item span {
+                font-weight: 700 !important;
+                color: #0f172a !important;
+                font-size: 12px !important;
+            }
+
+            .rules-section {
+                background-color: #fffbeb !important;
+                border-left: 4px solid #f59e0b !important;
+                border-radius: 0 8px 8px 0 !important;
+                padding: 11px 16px !important;
+                margin-bottom: 18px !important;
+                font-size: 13px !important;
+                color: #78350f !important;
+                position: relative !important;
+                z-index: 2 !important;
+            }
+
+            .rules-section strong {
+                display: block !important;
+                margin-bottom: 5px !important;
+                font-size: 13.5px !important;
+                font-weight: 800 !important;
+                color: #92400e !important;
+            }
+
+            .rules-section p {
+                margin: 0 !important;
+                line-height: 1.5 !important;
+                font-size: 13px !important;
+            }
+
+            .signature-block {
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                align-items: flex-end !important;
+                margin-top: 16px !important;
+                padding-top: 8px !important;
+                border-top: 1px dashed #cbd5e1 !important;
+                position: relative !important;
+                z-index: 2 !important;
+                gap: 10px !important;
+            }
+
+            .signature-box {
+                text-align: center !important;
+                flex: 1 !important;
+                max-width: 175px !important;
+                width: auto !important;
+                min-width: 0 !important;
+            }
+
+            .sig-space {
+                height: 34px !important;
+                display: flex !important;
+                align-items: flex-end !important;
+                justify-content: center !important;
+                margin-bottom: 3px !important;
+            }
+
+            .principal-sign-img {
+                max-height: 34px !important;
+                max-width: 95px !important;
+                object-fit: contain !important;
+                display: block !important;
+                margin: 0 auto !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .sig-line {
+                border-top: 1.5px solid #334155 !important;
+                margin-bottom: 3px !important;
+            }
+
+            .sig-title {
+                font-size: 9px !important;
+                font-weight: 700 !important;
+                color: #1e293b !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.1px !important;
+                white-space: nowrap !important;
+            }
+
+            .sig-sub {
+                font-size: 8px !important;
+                color: #64748b !important;
+                margin-top: 2px !important;
+                white-space: nowrap !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    @if (!string.IsNullOrEmpty(errorMsg) || reg == null)
+    {
+        <div style="max-width: 600px; margin: 50px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); text-align: center;">
+            <i class="fa fa-exclamation-triangle fa-3x text-danger" style="color: #ef4444; margin-bottom: 12px;"></i>
+            <h3 style="margin: 0 0 10px; color: #1e293b;">Unable to Display Attendance Card</h3>
+            <p style="color: #64748b; font-size: 14px;">@(errorMsg ?? "No valid registration details found.")</p>
+            <div style="margin-top: 20px;">
+                <a href="/AlumniElection" class="btn-action btn-print" style="text-decoration: none;">
+                    <i class="fa fa-arrow-left"></i> Return to Alumni Election
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Action Toolbar -->
+        <div class="card-action-bar">
+            <a href="/AlumniElection" class="btn-action btn-back">
+                <i class="fa fa-arrow-left"></i> Back to Election Notice
+            </a>
+            <button type="button" class="btn-action btn-print" onclick="window.print()">
+                <i class="fa fa-print"></i> Print / Download Attendance Card
+            </button>
+        </div>
+
+        <!-- Attendance & Admit Pass -->
+        <div class="admit-card-container">
+            
+            <!-- Header with College Crest -->
+            <div class="card-header-section">
+                <img src="/Content/assets/img/hcc-img/SJCLOGO.png" alt="SJC Logo" class="college-crest-logo" onerror="this.style.display='none'" />
+                <div class="college-titles">
+                    <h1>ST. JOSEPH'S COLLEGE OF ARTS & SCIENCE (AUTONOMOUS)</h1>
+                    <p> Re-Accredited by NAAC with 'A' Grade</p>
+                    <p>Cuddalore - 607 001, Tamil Nadu</p>
+                    <h5 style="color: #1e3a8a; font-weight: 700; margin-top: 2px;"> @(setting != null ? setting.SETTING_NAME : "ELECTION 2026")</h5>
+                </div>
+                <div class="card-badge-box">
+                    <div class="card-pass-no">PASS NUMBER</div>
+                    <div class="card-pass-num-bold">@electionPassNo</div>
+                    <div style="font-size: 11px; color: #059669; font-weight: 700; margin-top: 4px;">VERIFIED ENTRY</div>
+                </div>
+            </div>
+
+            <!-- Banner -->
+            <div class="card-title-banner">
+                OFFICIAL ATTENDANCE & ENTRY PASS
+            </div>
+
+            <!-- Alumnus Details & Verification Seal -->
+            <div class="info-grid-section">
+                <div>
+                    <table class="table-details">
+                        <tr>
+                            <td class="lbl-col">Alumnus / Alumna Name</td>
+                            <td class="colon-col">:</td>
+                            <td class="val-col val-name">@reg.NAME.ToUpper()</td>
+
+                        </tr>
+                        <tr>
+                            <td class="lbl-col">Mobile Number</td>
+                            <td class="colon-col">:</td>
+                            <td class="val-col">@reg.MOBILE_NO</td>
+
+                        </tr>
+                        <tr>
+                            <td class="lbl-col">Programme / Degree</td>
+                            <td class="colon-col">:</td>
+                            <td class="val-col">@reg.PROGRAMME_NAME</td>
+
+                        </tr>
+                        <tr>
+                            <td class="lbl-col">Year of Passing</td>
+                            <td class="colon-col">:</td>
+                            <td class="val-col">@reg.YEAR_OF_PASSING</td>
+                        </tr>
+
+                        @*<tr>
+                            <td class="lbl-col">Academic Year</td>
+                            <td class="colon-col">:</td>
+                            <td class="val-col">@reg.ACADEMIC_YEAR</td>
+                        </tr>*@
+                        <tr>
+                            <td class="lbl-col">Registration No</td>
+                            <td class="colon-col">:</td>
+                            <td class="val-col val-regno">@registeredNo</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Green Attendance Confirmed Seal -->
+                <div class="status-stamp-card">
+                    @*<div class="stamp-icon"><i class="fa fa-certificate"></i></div>*@
+                    <div class="stamp-icon">
+                        <img src="@Url.Content("~/Content/hcc_img/sign/SJC_COLLEGE_SEALremovebg.png")" alt="College Seal" class="stamp-seal-img" onerror="this.style.display='none'" />
+                    </div>
+                    <div class="stamp-status">ATTENDANCE CONFIRMED</div>
+                    <div class="stamp-sub">APPROVED VOTER</div>
+                    <div style="margin-top: 8px; font-size: 10px; color: #047857; font-weight: 700;">
+                        VALID ENTRY PASS
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule & Venue Information (from active setting) -->
+            <div class="election-schedule-box">
+                <div class="schedule-title">
+                    <i class="fa fa-calendar-check"></i> Election Schedule & Venue Details
+                </div>
+                <div class="schedule-grid">
+                    <div class="schedule-item">
+                        <strong>Date of Election</strong>
+                        <span>
+                            @(setting != null && setting.ELECTION_DATE.HasValue 
+                                ? setting.ELECTION_DATE.Value.ToString("dddd, dd MMMM yyyy") 
+                                : "Sunday, 27th September 2026")
+                        </span>
+                    </div>
+                    <div class="schedule-item">
+                        <strong>Election Timing</strong>
+                        <span>@(setting != null && !string.IsNullOrEmpty(setting.ELECTION_TIME) ? setting.ELECTION_TIME : "10:00 AM - 01:00 PM")</span>
+                    </div>
+                    <div class="schedule-item">
+                        <strong>Election Venue (Place)</strong>
+                        <span>
+                            @(setting != null && !string.IsNullOrEmpty(setting.ELECTION_PLACE) 
+                                ? setting.ELECTION_PLACE 
+                                : " St. Joseph's College, Cuddalore")
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rules & Notes from Setting -->
+            <div class="rules-section">
+                <strong><i class="fa fa-info-circle"></i> Important Instructions for Entry & Voting:</strong>
+                <p>@(setting != null && !string.IsNullOrWhiteSpace(setting.NOTES) 
+                    ? setting.NOTES 
+                    : "1. This attendance pass is strictly non-transferable.\n2. Please report at least 30 minutes prior to the commencement of the meeting.")</p>
+            </div>
+
+            <!-- Signatures: 1. Signature of Alumnus, 2. Principal, 3. Alumni Coordinator, 4. Secretary -->
+            <div class="signature-block">
+                <!-- 1. Signature of Alumnus -->
+                <div class="signature-box">
+                    <div class="sig-space"></div>
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Sign. of Alumnus / Alumna</div>
+                    <div class="sig-sub">(To be signed at the venue)</div>
+                </div>
+
+                <!-- 2. Principal -->
+                <div class="signature-box">
+                    <div class="sig-space">
+                        <img src="@Url.Content("~/Content/hcc_img/sign/SJC_PRINCIPAL_Singn_RBG.png")" alt="Principal Signature" class="principal-sign-img" onerror="this.style.display='none'" />
+                    </div>
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Principal</div>
+                    @*<div class="sig-sub">St. Joseph's College (Autonomous)</div>*@
+                </div>
+
+                <!-- 3. Alumni Coordinator -->
+                <div class="signature-box">
+                    <div class="sig-space">
+                        <img src="@Url.Content("~/Content/hcc_img/sign/Fr_maria_anandraj.png")" alt="Alumni Coordinator" class="principal-sign-img" onerror="this.style.display='none'" />
+
+                    </div>
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Alumni Coordinator</div>
+                    @*<div class="sig-sub">Alumni Association, SJC</div>*@
+                </div>
+
+                <!-- 4. Secretary -->
+                <div class="signature-box">
+                    <div class="sig-space">
+                        <img src="@Url.Content("~/Content/hcc_img/sign/Secretary_Sign.png")" alt="Secretary" class="principal-sign-img" onerror="this.style.display='none'" />
+
+                    </div>
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Secretary</div>
+                    @*<div class="sig-sub">Alumni Association, SJC</div>*@
+                </div>
+            </div>
+
+        </div>
+    }
+
+</body>
+</html>

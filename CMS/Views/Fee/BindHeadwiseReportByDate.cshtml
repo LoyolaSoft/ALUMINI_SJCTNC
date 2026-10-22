@@ -1,0 +1,204 @@
+﻿@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+@using CMS.ViewModel.Model
+@{
+    Layout = null;
+    string sHeadCount = string.Empty;
+    double total = 0;
+    double Summainhead = 0;
+    int subheadcount = 0; double SubmainheadTotal = 0;
+}
+
+@{
+    if (Model.lstStudentPersonalInfo != null && Model.lstStudentPersonalInfo.Count > 0)
+    {
+        var dategroup = Model.lstStudentPersonalInfo.GroupBy(o => o.SETTLEMENT_DATE).ToList();
+        foreach (var dateitem in dategroup)
+        {
+            if (Model.liFeeReport != null && Model.liFeeReport.Count > 0)
+            {
+                <div class="form-group table-responsive" id="dvPrint">
+                    <table class="table table-bordered table-hover" style="font-family:Cambria; text-align:left;" border="1">
+                        <thead>
+                            @if (Model.lstSupMainHead != null && Model.lstSupMainHead.Count > 0)
+                        {
+                                <tr>
+                                    <th>#</th>
+                                    <th>Roll NO</th>
+                                    <th>Register NO</th>
+                                    <th>Name</th>
+                                    <th>Main</th>
+                                    <th>Date</th>
+                                    <th>Settled Date</th>
+                                    @{
+                                        var main = Model.lstSupHead.GroupBy(x => x.MAIN_HEAD_ID).ToList();
+                                        foreach (var item in main)
+                                        {
+                                            var suphead = Model.lstSupHead.Where(s => s.MAIN_HEAD_ID == item.FirstOrDefault().MAIN_HEAD_ID).ToList();
+                                            if (suphead.Count > 1)
+                                            {
+                                                subheadcount = suphead.Count() + 1;
+                                            }
+                                            else
+                                            {
+                                                subheadcount = suphead.Count();
+                                            }
+                                            <th colspan="@subheadcount">@suphead.FirstOrDefault().MAIN_HEAD</th>
+                                        }
+                                    }
+                                    <th>
+                                        GrandTotal
+                                    </th>
+                                </tr>
+                                <tr>
+                                    @if (Model.lstSupHead != null && Model.lstSupHead.Count > 0)
+                                    {
+                                        <th colspan="7">Sub Head</th>
+                                        foreach (var item in Model.lstSupMainHead)
+                                        {
+                                            var liGroupHeads = Model.lstSupHead.Where(x => x.MAIN_HEAD_ID == item.MAIN_HEAD_ID).ToList();
+                                            if (liGroupHeads != null && liGroupHeads.Count > 0)
+                                            {
+                                                foreach (var GHitem in liGroupHeads)
+                                                {
+                                                    <th>@GHitem.HEAD</th>
+
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <td> - </td>
+                                            }
+                                            if (liGroupHeads != null && liGroupHeads.Count > 1)
+                                            {
+
+                                                <th>Total</th>
+                                            }
+                                        }
+                                        <th> Rs </th>
+                                    }
+                                </tr>
+                                        }
+                        </thead>
+                        <tbody style="border:1px solid black;">
+                            @if (Model.lstSupMainHead != null && Model.lstSupMainHead.Count > 0 && Model.lstStudentPersonalInfo != null && Model.lstStudentPersonalInfo.Count > 0)
+                            {
+                                int count = 0;
+                                foreach (var stuitem in Model.lstStudentPersonalInfo)
+                                {
+                                    var liCheckStudent = Model.liFeeReport.Where(x => x.STUDENT_ID == stuitem.STUDENT_ID && x.SETTLEMENT_DATE == dateitem.FirstOrDefault().SETTLEMENT_DATE).ToList();
+                                    if (liCheckStudent != null && liCheckStudent.Count > 0)
+                                    {
+
+                                        <tr>
+                                            <td>@{count++;} @count</td>
+                                            <td>@stuitem.ROLL_NO</td>
+                                            <td>@stuitem.REGISTER_NO</td>
+                                            <td>@stuitem.FIRST_NAME</td>
+                                            <td>@stuitem.PROGRAMME_NAME</td>
+                                            <td>@stuitem.PAYMENT_DATE</td>
+                                            <td>@stuitem.SETTLEMENT_DATE</td>
+                                            @foreach (var item in Model.lstSupMainHead)
+                                            {
+                                                var liGroupHeads = Model.lstSupHead.Where(x => x.MAIN_HEAD_ID == item.MAIN_HEAD_ID).ToList();
+                                                if (liGroupHeads != null && liGroupHeads.Count > 0)
+                                                {
+                                                    foreach (var GHitem in liGroupHeads)
+                                                    {
+                                                        Summainhead = 0;
+                                                        var liFeeDetails = Model.liFeeReport.Where(x => x.MAIN_HEAD_ID == GHitem.MAIN_HEAD_ID && x.HEAD_ID == GHitem.HEAD_ID && x.STUDENT_ID == stuitem.STUDENT_ID).ToList();
+                                                        var MainHeadTotal = Model.liFeeReport.Where(x => x.MAIN_HEAD_ID == GHitem.MAIN_HEAD_ID && x.STUDENT_ID == stuitem.STUDENT_ID);
+                                                        Summainhead = MainHeadTotal.Sum(o => Convert.ToDouble(o.BALANCE));
+                                                        if (liFeeDetails != null && liFeeDetails.Count > 0)
+                                                        {
+                                                            foreach (var Fee in liFeeDetails)
+                                                            {
+                                                                if (liGroupHeads.Count > 1)
+                                                                {
+                                                                    <td>@Fee.BALANCE</td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td><b>@Fee.BALANCE</b></td>
+                                                                }
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <td> - </td>
+                                                        }
+                                                    }
+                                                    if (liGroupHeads.Count > 1)
+                                                    {
+                                                        <td><b>@Summainhead</b></td>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <td> - </td>
+                                                }
+                                            }
+                                            <td>
+                                                <b>
+                                                    @{
+                                                        var liSum = Model.liFeeReport.Where(x => x.STUDENT_ID == stuitem.STUDENT_ID).ToList();
+                                                    }
+                                                    @liSum.Sum(o => Convert.ToDouble(o.BALANCE))
+                                                </b>
+                                            </td>
+                                        </tr>
+                                                            }
+
+                                                        }
+                                                        <tr>
+                                                            <td colspan="7"><b>Total</b></td>
+                                                            @foreach (var item in Model.lstSupMainHead)
+                                                            {
+                                                                var liGroupHeads = Model.lstSupHead.Where(x => x.MAIN_HEAD_ID == item.MAIN_HEAD_ID).ToList();
+                                                                if (liGroupHeads != null && liGroupHeads.Count > 0)
+                                                                {
+                                                                    foreach (var GHitem in liGroupHeads)
+                                                                    {
+                                                                        SubmainheadTotal = 0;
+                                                                        var liFeeDetails = Model.liFeeReport.Where(x => x.MAIN_HEAD_ID == GHitem.MAIN_HEAD_ID && x.HEAD_ID == GHitem.HEAD_ID && x.SETTLEMENT_DATE == dateitem.FirstOrDefault().SETTLEMENT_DATE).ToList();
+                                                                        var MainHeadTotal = Model.liFeeReport.Where(x => x.MAIN_HEAD_ID == item.MAIN_HEAD_ID  && x.SETTLEMENT_DATE == dateitem.FirstOrDefault().SETTLEMENT_DATE);
+                                                                        SubmainheadTotal = MainHeadTotal.Sum(o => Convert.ToDouble(o.BALANCE));
+                                                                        if (liFeeDetails != null && liFeeDetails.Count > 0)
+                                                                        {
+                                                                            total = liFeeDetails.Sum(o => Convert.ToDouble(o.BALANCE));
+                                                                            <td><b>@total</b></td>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <td> - </td>
+                                                                        }
+                                                                    }
+                                                                    if (liGroupHeads.Count > 1)
+                                                                    {
+                                                                        <td><b>@SubmainheadTotal</b></td>
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td> - </td>
+                                                                }
+                                                            }
+                                                            <td>
+                                                                <b>
+                                                                    @{
+                                                                        var liSums = Model.liFeeReport.Where(x => x.SETTLEMENT_DATE == dateitem.FirstOrDefault().SETTLEMENT_DATE).ToList();
+                                                                    }
+                                                                    @liSums.Sum(o => Convert.ToDouble(o.BALANCE))
+                                                                </b>
+                                                            </td>
+
+                                                        </tr>
+                                                        <tr></tr>
+                                                                        }
+                        </tbody>
+                    </table>
+                </div>
+                                                                                }
+                                                                            }
+                                                                        }
+
+}

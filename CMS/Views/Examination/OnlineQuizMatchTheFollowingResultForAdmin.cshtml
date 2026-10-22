@@ -1,0 +1,175 @@
+﻿
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "OnlineQuizMatchTheFollowingResultForAdmin";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+
+   
+                    <div class="form-group col-md-12">
+                        
+                            <div class="col-md-3 form-group">
+                                @Html.Label("Class", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                </div>
+                            </div>
+
+                            <div class="col-md-3 form-group">
+                                @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                </div>
+                            </div>
+
+                            <div class="col-md-3 form-group">
+                                @Html.Label("Setting", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-9">
+                                    <select class="form-control selectpicker show-menu-arrow show-tick" data-live-search="true" id="ddlSetting">
+                                        <option value="0"> -- Select -- </option>
+                                    </select>
+                                    @*@Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })*@
+                                </div>
+                            </div>
+
+                            @*<div class="col-md-2 form-group">
+                                   <a href="javascript:;" id="btnGet" class="btn btn-primary">Get</a>
+                                </div>*@
+                            <div class="col-md-2 form-group">
+                                <a href="javascript:;" id="btnPrint" class="btn btn-success hidden">Print</a>
+                            </div>
+                       
+                        <br />
+
+                        <div class="col-md-12 form-horizontal">
+                            <div id="dvOnlineQuiz"></div>
+                        </div>
+
+                        <input type="hidden" value="@Model.StaffId" id="StaffId" />
+                    </div>
+         
+
+
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+
+        $('.selectpicker').selectpicker({
+            size: 5
+        });
+        $('.selectpicker').selectpicker('refresh');
+
+        // On Class Change .
+         $("#ClassList").on("change", function () {
+             var Class = $("#ClassList").val();
+        $.ajax({
+            url: "@Url.Action("FethCourseByClassIdAndStaffId", "Examination")",
+            method: "POST",
+            datatype: "json",
+            data: { Class_Id: Class, Staff_Id: $('#StaffId').val() },
+            success: function (data) {
+                $("#CourseList").empty();
+                $("#CourseList").append('<option value=""> -- Select -- </option>' + data);
+                $('.selectpicker').selectpicker('refresh');
+               
+            }, error: function (error) {
+                alert('Internal Server Error .....!');
+            }
+        });
+    });
+
+    $("#CourseList").on("change", function ()
+    {
+        if ($("#CourseList").val() != 0)
+        {
+            $.ajax({
+                url: "@Url.Action("FetchSettingInfoByClassAndCourseIdsAndStaff", "Examination")",
+                method: "POST",
+            datatype: "json",
+            data: { sClassId: $("#ClassList").val(), sCourseId: $("#CourseList").val(), sStaffId: $('#StaffId').val() },
+            success: function (data)
+            {
+                $("#ddlSetting").empty();
+                if (data.Message != null && data.Message != '')
+                {
+                    alert(data.Message);
+                } else
+                {
+                    $("#ddlSetting").append(data.sResult);
+                    $('.selectpicker').selectpicker('refresh');
+                    
+                }
+            }, error: function (error)
+            {
+                alert('Internal Server Error .!');
+            }
+        });
+    }
+    });
+    // On Get Click .
+    $('#ddlSetting').on('change', function ()
+    {
+        GetQuizResult();
+    });
+
+
+    function GetQuizResult()
+    {
+        if ($("#CourseList").val() && $("#ClassList").val() && $("#ddlSetting").val() != 0 && $('#StaffId').val())
+        {
+            $.ajax({
+                url:'@Url.Action("BindOnlineQuizMatchTheFollowingResultForAdmin", "Examination")',
+                method:'POST',
+                datatype:'json',
+                data: { sClassId: $("#ClassList").val(), sCourseId: $("#CourseList").val(), sSettingId: $("#ddlSetting").val(), sStaffId: $('#StaffId').val() },
+                success: function (data)
+                {
+                    $('#dvOnlineQuiz').empty();
+                    if (data.Message != null && data.Message != '')
+                    {
+                        alert(data.Message);
+                    } else
+                    {
+                        $('#dvOnlineQuiz').append(data);
+                        $('#btnPrint').removeClass('hidden');
+                    }
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        } else
+        {
+
+            alert('Please Select All Options To Continue !');
+            return false;
+        }
+    }
+    // On Print Click .
+    $('#btnPrint').on('click', function ()
+    {
+        var printContents = document.getElementById('dvOnlineQuiz').innerHTML;
+        var originalContents = document.body.innerHTML;
+
+        document.body.innerHTML = printContents;
+
+        window.print();
+
+        document.body.innerHTML = originalContents;
+        loadContent('/Examination/QuizResultForAdmin');
+    });
+</script>
+

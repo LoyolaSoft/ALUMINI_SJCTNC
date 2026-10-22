@@ -1,0 +1,79 @@
+﻿
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@{
+    ViewBag.Title = "FeedBackStaffToHod";
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<div class="form-horizontal">
+    <div class="form-group  col-md-12">
+        <div class="form-group col-md-6">
+            @Html.Label(" Programme", htmlAttributes: new { @class = "col-md-4 control-label " })
+            <div class="col-md-8">
+                @Html.DropDownListFor(m => m.ProgrammeList, (Model.ProgrammeList != null) ? Model.ProgrammeList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control   selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                @Html.ValidationMessageFor(m => m.ProgrammeList, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group col-md-6">
+            @Html.Label("Staff", htmlAttributes: new { @class = "col-md-4 control-label " })
+            <div class="col-md-8">
+                @Html.DropDownListFor(m => m.FeedbackMember, (Model.FeedbackMember != null) ? Model.FeedbackMember : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control   selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                @Html.ValidationMessageFor(m => m.FeedbackMember, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+        ContentLoad = function () {
+            //Ready Function()
+        }
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('Refresh');
+
+        $("#ProgrammeList").on('change', function () {
+            //$("#btnReload").click();
+
+
+
+            if ($("#ProgrammeList").val() != '') {
+                $.ajax({
+                    url: "@Url.Action("FetchHodByDepartment", "Feedback")",
+                    async: false,
+                    data: { sDepartment: $("#ProgrammeList").val() },
+                success: function (data) {
+                    var select = $("#FeedbackMember");
+                    select.empty();
+                    // selectbox.html(list);
+                    select.append('<option value=""> -- Select -- </option>' + data);
+                    //select.html(data);
+                    $("#FeedbackMember").selectpicker('refresh');
+                }, error: function (ex) {
+                    alert('Failed to retrieve .' + ex);
+                }
+            });
+        }
+        else
+        {
+                var select = $("#FeedbackMember");
+        select.empty();
+        }
+        });
+</script>
+
+
+
+
+
+
+
+

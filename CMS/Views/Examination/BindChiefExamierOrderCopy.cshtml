@@ -1,0 +1,171 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = null;
+    string sSelected = string.Empty;
+}
+
+<link href="~/Content/assets/plugins/multi-select/multiselect.css" rel="stylesheet" />
+
+<div class="body-content">
+    <div class="col-md-12 table-responsive">
+        @{ int count = 0;}
+        <table class="table table-hover table-bordered" id="tblDeptWiseStaff">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Department</th>
+                    <th>Order Date</th>
+                    <th>Due Date</th>
+                    <th>Staff</th>
+                    <th>View</th>
+                    <th>Preview</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    if (Model.liCIA_Staff_Info != null && Model.liCIA_Staff_Info.Count > 0)
+                    {
+                        var GroupDept = Model.liCIA_Staff_Info.GroupBy(x => x.DEPARTMENT_ID).ToList();
+                        foreach (var item in GroupDept)
+                        {
+                            var listaff = Model.LiStaffInfo.Where(x => x.DEPARTMENT_ID == item.FirstOrDefault().DEPARTMENT_ID).ToList();
+                            <tr cms-SettingId="@Model.SettingId" cms-Acyear="@Model.UDF1" cms-sDeptId="@item.FirstOrDefault().DEPARTMENT_ID" cms-allotedid="@item.FirstOrDefault().STAFF_ALLOTED_ID">
+                                <td>
+                                    @{count++;}
+                                    @count
+                                </td>
+                                <td>@item.FirstOrDefault().DEPARTMENT</td>
+                                <td>
+                                    <div class="input-group">
+                                        <input type="text" name="name" id="txtOrderDate" class="form-control date" value="@item.FirstOrDefault().ORDER_DATE" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="input-group">
+                                        <input type="text" name="name" id="txtDueDate" class="form-control date" value="@item.FirstOrDefault().DUE_DATE" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="col-md-8">
+                                        <select class="form-control m-b-10 selectpicker" id="Stafflist" data-live-search="true" multiple data-selected-text-format="count">
+                                            <option value="0">--Select--</option>
+                                            @if (listaff != null && listaff.Count > 0)
+                                            {
+                                                foreach (var staff in listaff)
+                                                {
+                                                    foreach (var Course in Model.liCIA_Staff_Info)
+                                                    {
+                                                        var matchedstaff = Model.liCIA_Staff_Info.Where(o => o.STAFF_ID == staff.STAFF_ID).ToList();
+                                                        foreach (var match in matchedstaff)
+                                                        {
+                                                            if (item.FirstOrDefault().DEPARTMENT_ID == match.DEPARTMENT_ID)
+                                                            {
+                                                                sSelected = "selected";
+                                                            }
+                                                        }
+                                                    }
+                                                    <option value="@staff.STAFF_ID" @sSelected>@staff.FIRST_NAME</option>
+                                                    sSelected = string.Empty;
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </td>
+                                <td class="text-center" style="align-content:center;"><a href="#ViewStaffList-dialog" onclick="ViewData(@item.FirstOrDefault().DEPARTMENT_ID);" data-toggle="modal" title="View"><i class="glyphicon glyphicon-eye-open text-primary"></i></a></td>
+                                <td class="text-center" style="align-content:center;"><a href="#ViewExaminer-dialog" id="btnPreview" data-toggle="modal" title="View"><i class="glyphicon glyphicon-eye-open text-primary"></i></a></td>
+                            </tr>
+                        }
+
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="col-md-12 pull-right">
+        <a id="btnsubmit" href="#" class="btn btn-success pull-right">Submit</a>
+    </div>
+</div>
+
+
+<script>
+    ContentLoad = function () {
+        //Ready Function()
+    }
+    handleDatepicker = function () {
+        "use strict";
+        // $("#datepicker-autoClose").datepicker({todayHighlight:!0,autoclose:!0})}
+        $(".date").datepicker({
+            todayHighlight: !0,
+            autoclose: !0,
+            format: "dd/mm/yyyy",
+            orientation: "left"
+            // 'top': top,
+            // 'left': left
+        });
+    }
+    handleDatepicker();
+
+    $('.selectpicker').selectpicker({ size: 6 });
+    $('.selectpicker').selectpicker('refresh');
+
+    $("#btnsubmit").on("click", function ()
+    {
+
+        var JsonData = '{"LI_EXAMINER_ORDER":[';
+        $('#tblDeptWiseStaff tbody tr').each(function () {
+
+            SettingId = $(this).attr('cms-settingId');
+            Academicyear = $(this).attr('cms-Acyear');
+            Department = $(this).attr('cms-sDeptId');
+            AllotedId = $(this).attr('cms-allotedid');
+            if (($(this).find('#Stafflist').val()) != '' && ($(this).find('#Stafflist').val())!=null) {
+                JsonData += '{"EXAM_SETTING_ID":"' + SettingId + '","ACADEMIC_YEAR":"' + Academicyear + '","DEPARTMENT_ID" :"' + Department + '","STAFF_ALLOTED_ID":"' + AllotedId + '","STAFF_ID":"' + String($(this).find('#Stafflist').val()) + '","ORDER_DATE":"' + $(this).find('#txtOrderDate').val() + '","DUE_DATE":"' + $(this).find('#txtDueDate').val() +'"},';
+            }
+
+
+        });
+
+        JsonData = JsonData.slice(0, -1) + ']}';
+        $.ajax({
+            url: "@Url.Action("SaveOrUpdateChiefExaminerStaff", "Examination")",
+            method: "POST",
+            datatype: "json",
+            data: { sJsonData: JsonData },
+            success: function (data) {
+                swal({ title: "Success !",text: 'Record Save Successfuly!', showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                BindData();
+            }
+        , error: function (error) {
+
+            swal({ title: "Error !", text: 'Internal Server Error !', showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+        }
+        });
+    });
+
+    $("#tblDeptWiseStaff").on('click', '#btnPreview', function () {
+        var Examsetting = $("#ResultMonth").val();
+        var AcYear = $("#AcademicYearList option:selected").text();
+        Dept = String($(this).closest("tr").attr('cms-sDeptId'));
+        staff_id = String($(this).closest("tr").find('#Stafflist').val());
+        order_date = $(this).closest("tr").find('#txtOrderDate').val();
+        Due_date = $(this).closest("tr").find('#txtDueDate').val();
+        console.log(staff_id);
+        $.ajax({
+            url: "@Url.Action("PreviewChiefExamierOrderCopy", "Examination")",
+            method: "POST",
+            datatype: "json",
+            data: { sExamSetting: Examsetting, sAcYear: AcYear, sStaffId: staff_id, sOrderDate: order_date, sDueDate: Due_date,sDepartment:Dept },
+            success: function (data) {
+                $('#OrderCopy').empty();
+                $('#OrderCopy').append(data);
+            }
+            , error: function (error) {
+
+                swal({ title: "Error !", text: 'Internal Server Error !', showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+</script>
+

@@ -1,0 +1,100 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    if (Model.liExamSeatingAttendance != null && Model.liExamSeatingAttendance.Count() > 0 && Model.LiExamSeatingAllotment != null && Model.LiExamSeatingAllotment.Count() > 0)
+    {
+        <div id="dvCourseWiseReport" style="page-break-after:always !important;page-break-inside:avoid !important;">
+            <div class="col-md-12">
+                <table style="width:100%;">
+                    <tr>
+                        @{
+
+                        }
+                        <td style="width:50%"><b>Date</b> : &nbsp; @Model.liExamSeatingAttendance.FirstOrDefault().EXAM_DATE</td>
+                        <td style="width:20%" align="left"><b>Block</b> : &nbsp;@Model.LiExamSeatingAllotment.FirstOrDefault().BLOCK_NAME</td>
+                    </tr>
+                    <tr>
+                        <td style="width:50%"><b>Session</b> : &nbsp;@Model.liExamSeatingAttendance.FirstOrDefault().EXAM_SESSION_ID</td>
+                        <td style="width:20%" align="left"><b>Room</b> : &nbsp;@Model.LiExamSeatingAllotment.FirstOrDefault().ROOM_NO</td>
+                    </tr>
+                    <tr>
+                        @{ var title = Model.liExamSeatingAttendance.GroupBy(s => s.COURSE_CODE).Select(s => new CMS.ViewModel.Model.EXAM_SEATING_ALLOTEMENT { COURSE_CODE = s.FirstOrDefault().COURSE_CODE }).ToList();
+                            string OddCourseId = string.Join(",", title.Select(t => t.COURSE_CODE));
+                        }
+                        <td style="width:50%"><b>Courses</b> : &nbsp;@OddCourseId</td>
+                    </tr>
+                </table>
+            </div>
+            <table class="table table-bordered text-center" border="1" id="tblExamAttendance">
+                <thead>
+                    <tr>
+                        <th><b>Room-@Model.LiExamSeatingAllotment.FirstOrDefault().ROOM_NO</b></th>
+                        @for (int i = 1; i <= Convert.ToInt16(Model.LiExamSeatingAllotment.FirstOrDefault().COLUMN); i++)
+                        {
+                            <td>
+                                <b>@i</b>
+                            </td>
+                            if (!string.IsNullOrEmpty(Model.LiExamSeatingAllotment.FirstOrDefault().SPACE_COLUMN))
+                            {
+                                if (i % Convert.ToInt16(Model.LiExamSeatingAllotment.FirstOrDefault().SPACE_COLUMN) == 0 && i < Convert.ToInt16(Model.LiExamSeatingAllotment.FirstOrDefault().COLUMN))
+                                {
+                                    <td></td>
+                                }
+                            }
+                        }
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 1; i <= Convert.ToInt16(Model.LiExamSeatingAllotment.FirstOrDefault().ROW); i++)
+                    {
+                        var RoomAllotment = Model.liExamSeatingAttendance.Where(s => s.ROW_NO == i.ToString()).ToList();
+                        <tr>
+                            <td><b>@i</b></td>
+                            @foreach (var citem in RoomAllotment)
+                            {
+                                string sChecked = string.Empty;
+                                if (!string.IsNullOrEmpty(citem.EXAM_ATTENDANCE_ID))
+                                {
+                                    sChecked = "checked";
+                                }
+                                else
+                                {
+                                    sChecked = string.Empty;
+                                }
+                                if (!string.IsNullOrEmpty(citem.REGISTER_NO))
+                                {
+                                    <td>
+                                        <div class="checkbox checkbox-css checkbox-inline" >
+                                            <input type="checkbox" @sChecked id="@citem.STUDENT_ID" cms-studentid="@citem.STUDENT_ID" cms-examAttid="@citem.EXAM_ATTENDANCE_ID" cms-courseid="@citem.COURSE_ID"/>
+                                            <label for="@citem.STUDENT_ID">@citem.REGISTER_NO</label>
+                                        </div>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td>
+                                        <div class="checkbox checkbox-css checkbox-inline" @sChecked>
+                                            <input type="checkbox" @sChecked id="@citem.STUDENT_ID" cms-studentid="@citem.STUDENT_ID" cms-examAttid="@citem.EXAM_ATTENDANCE_ID" cms-courseid="@citem.COURSE_ID" />
+                                            <label for="@citem.STUDENT_ID">@citem.ROLL_NO</label>
+                                        </div>
+                                    </td>
+                                }
+
+                                if (!string.IsNullOrEmpty(Model.LiExamSeatingAllotment.FirstOrDefault().SPACE_COLUMN))
+                                {
+                                    if (Convert.ToInt16(citem.COLUMN_NO) % Convert.ToInt16(Model.LiExamSeatingAllotment.FirstOrDefault().SPACE_COLUMN) == 0 && Convert.ToInt16(citem.COLUMN_NO) < Convert.ToInt16(Model.LiExamSeatingAllotment.FirstOrDefault().COLUMN))
+                                    {
+                                        <td></td>
+                                    }
+                                }
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+
+
+                            }
+}

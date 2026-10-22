@@ -1,0 +1,138 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = null;
+    int questioncount = 0;
+   
+    string[]  optionalphapet= {"A","B","C","D"};
+    }
+
+@if (Model.Liexamquesions != null && Model.Liexamquesions.Count > 0)
+{
+
+    var groupbysection = @Model.Liexamquesions.GroupBy(o => o.SECTION_ID);
+    <br><br>
+    <div class="col-md-12 table-bordered">
+        @if (groupbysection != null )
+        {
+            foreach (var item in groupbysection)
+            {
+                
+                <center><br><strong>Section-@item.FirstOrDefault().SECTION_NAME</strong></center>
+                var lisectionquestions = Model.Liexamquesions.Where(o => o.SECTION_ID == item.FirstOrDefault().SECTION_ID).ToList();
+                if(lisectionquestions!=null && lisectionquestions.Count>0)
+                {
+                    var groupquestions = lisectionquestions.GroupBy(o => o.QUIZ_ID).ToList();
+                    foreach(var question in groupquestions)
+                    {
+                        questioncount++;
+                        if (question.FirstOrDefault().QUESTION_TYPE_ID == "1" )
+                        {
+                            <strong>@questioncount.@(new HtmlString(Model.GetStrigFromBase64String(question.FirstOrDefault().QUESTION)))</strong>                         
+                            var lioptions = Model.Liexamquesions.Where(o => o.QUIZ_ID == question.FirstOrDefault().QUIZ_ID && o.QUESTION_TYPE_ID == "1");
+                            if (lioptions != null)
+                            {
+                                int op1 = 0;
+                                <div class="col-md-12">                              
+                                @foreach (var options in lioptions)
+                                {
+                                    op1++;
+
+                                    <div class="col-md-3">
+                                        @if (question.FirstOrDefault().ANSWER_ID == options.OPTION_ID)
+                                        {
+                                            <label class="text-success">(@op1)@(new HtmlString(Model.GetStrigFromBase64String(options.OPTION)))</label>
+                                        }
+                                        else
+                                        {
+                                            <label>(@op1)@(new HtmlString(Model.GetStrigFromBase64String(options.OPTION)))</label>
+
+                                        }
+                                    </div>
+                                }
+                                   
+                                </div>
+                            }
+                        }
+                        else if (question.FirstOrDefault().QUESTION_TYPE_ID == "2")
+                        {
+                            <strong>@questioncount.@(new HtmlString(Model.GetStrigFromBase64String(question.FirstOrDefault().QUESTION)))</strong>
+                            var lioptions = Model.Liexamquesions.Where(o => o.QUIZ_ID == question.FirstOrDefault().QUIZ_ID && o.QUESTION_TYPE_ID == "2");
+                            if (lioptions != null)
+                            {
+                                int op2 = 0;
+                                <div class="col-md-12">
+                                    @foreach (var options in lioptions)
+                                    {
+                                        op2++;
+
+                                        <div class="col-md-3">
+                                            @if (question.FirstOrDefault().ANSWER_ID == options.OPTION_ID)
+                                            {
+                                                <label class="text-success">(@op2)@(new HtmlString(Model.GetStrigFromBase64String(options.OPTION)))</label>
+                                            }
+                                            else
+                                            {
+                                                <label>(@op2)@(new HtmlString(Model.GetStrigFromBase64String(options.OPTION)))</label>
+
+                                            }
+                                            
+                                        </div>
+                                    }
+                                    
+
+
+                                </div>
+                            }
+                        }
+                        else if (question.FirstOrDefault().QUESTION_TYPE_ID == "3")
+                        {
+                            <strong>@questioncount+"."@(new HtmlString(Model.GetStrigFromBase64String(question.FirstOrDefault().QUESTION)))</strong>
+                            var lioptions = Model.Liexamquesions.Where(o => o.QUIZ_ID == question.FirstOrDefault().QUIZ_ID && o.QUESTION_TYPE_ID == "3");
+                            if (lioptions != null)
+                            {
+                                int op3 = 0;
+                                foreach (var options in lioptions)
+                                {
+                                    op3++;
+
+                                            <label>"("+@op3+")"@(new HtmlString(Model.GetStrigFromBase64String(options.OPTION)))-@(new HtmlString(Model.GetStrigFromBase64String(options.ANSWER)))</label><br><br>
+
+                                }
+
+
+
+                            }
+                        }
+                        else if (question.FirstOrDefault().QUESTION_TYPE_ID == "4")
+                        {
+                            <strong>@questioncount.(@optionalphapet[0]) @(new HtmlString(Model.GetStrigFromBase64String(question.FirstOrDefault().QUESTION)))</strong><br><br>
+                            var lioptions = Model.Liexamquesions.Where(o => o.QUIZ_ID == question.FirstOrDefault().QUIZ_ID && o.QUESTION_TYPE_ID == "4");
+                            if (lioptions != null)
+                            {
+                                int op4 = 0;
+                                foreach (var options in lioptions)
+                                {
+                                    op4++;
+
+                                    <strong>@questioncount.(@optionalphapet[op4])@(new HtmlString(Model.GetStrigFromBase64String(options.OPTION)))</strong><br><br>
+                                }
+                            }
+                        }
+                        else if (question.FirstOrDefault().QUESTION_TYPE_ID == "5")
+                        {
+                            <strong>@questioncount. @(new HtmlString(Model.GetStrigFromBase64String(question.FirstOrDefault().QUESTION)))</strong><br><br>
+
+                        }
+                    }
+                }
+            }
+        }
+    </div>
+}
+else
+{
+    <br><br>
+    <div class="col-md-12 alert alert-info">
+   No question Found...!
+</div>
+}

@@ -1,0 +1,242 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@using CMS.Utility;
+@{
+    ViewBag.Title = "OnlineQuiz";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml"; 
+    Layout = null;
+}
+
+
+    @*<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />*@
+
+<!-- begin #content -->
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a @*href="@Url.Action("Staff","Dashboard")"*@ href="javascript:;">Home</a></li>
+        <li><a @*href="@Url.Action("ListQuiz","Examination")"*@ href="javascript:;" onclick="loadContent('/Examination/ListQuiz')">List Quiz</a></li>
+        <li class="active">Add Quiz Questions</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header"> Add Quiz Questions </h1>
+    <!-- end page-header -->
+
+    <!-- begin row -->
+    <div class="row">
+        <!-- begin col-12 -->
+        <div class="col-md-12">
+            <!-- begin panel -->
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h4 class="panel-title">Question and Answers</h4>
+                </div>
+                <div class="panel-body">
+                    <div class="form-horizontal">
+                        <div class="row">
+                            <div class="col-md-4">
+                                @Html.Label("Class", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(model => model.ClassList, Model.ClassList, "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(model => model.CourseList, Model.CourseList, "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(model => model.CourseList, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            @*<div class="col-md-4">
+                                @Html.Label("SelectTime", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(model => model.CourseList, Model.CourseList, "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(model => model.CourseList, "", new { @class = "text-danger" })
+                                </div>
+                            </div>*@
+
+                            <div class="col-md-4">
+                                @Html.Label("Options Need", htmlAttributes: new { @class = "control-label col-md-5" })
+                                <div class="col-md-4">
+                                    @*@Html.Editor("txtOption", new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Enter Options You Need" } })*@
+                                    <input type="number" id="txtOption" max="10" class="form-control input-sm"/>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        
+                        <br />
+                       <div id="Question"><br />
+                           <div class="form-group">
+                               @Html.Label("Question", htmlAttributes: new { @class = "control-label col-md-1" })
+                               <div class="col-md-6">
+                                   @Html.TextAreaFor(model => model.ObjQuizQuestion.QUESTION, 5, 20, new { @class = "form-control ", placeholder = " Your Question", id="Questions"})
+                                   @Html.ValidationMessageFor(model => model.CourseList, "", new { @class = "text-danger" })
+                               </div>
+                               <div class="col-md-4" id="dvAnswer">
+                                   @Html.Label("Answer", htmlAttributes: new { @class = "control-label col-md-2" })
+                                   <div class="col-md-10">
+                                       <select class="form-control" id="Answer">
+                                           <option value="0"> -- select --</option>
+                                       </select>
+                                   </div>
+                                 
+                               </div>
+                           </div>
+
+                           <div id="dvOptions"></div>
+                       </div>
+                        <br />
+                        <div class="form-group pull-right">
+                            <div class="col-md-12 pull-right">
+                                <a class="btn btn-primary hidden" id="btnSubmit">Submit</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                </div>
+            </div>
+            <!-- end panel -->
+        </div>
+        <!-- end col-6 -->
+    </div>
+    <!-- end row -->
+</div>
+
+
+    
+    <script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+            $("#Question").hide();
+        }
+        
+        $("#dvOptions").focusout(function ()
+        {
+            var End = $("#txtOption").val();
+            var Answers = '';
+            for (var i = 0; i < End; i++)
+            {
+                var j = i;
+                j++;
+                Answers += '<option value="' + j + '">' + $("#Option" + i).val() + '</option>';
+            }
+            $("#Answer").empty();
+            $("#Answer").append('<option value="0">-- Select --</option>' + Answers);
+        });
+        $("#ClassList").on("change", function ()
+        {
+            var Class = $("#ClassList").val();
+            $.ajax({
+                url:"@Url.Action("FethCourseByClassId", "Examination")",
+                method: "POST",
+                datatype: "json",
+                data: { Class_Id: Class },
+                success: function (data)
+                {                    
+                    $("#CourseList").empty();
+                    $("#CourseList").append('<option value="0"> -- Select -- </option>' + data);
+                }, error: function (error)
+                {
+                    alert('Internal Server Error .....!');
+                }
+            });
+        })
+        $("#txtOption").on("change", function ()
+        {
+            $("#btnSubmit").removeClass('hidden');
+            var value = $("#txtOption").val();
+            var Option = '';
+            if (value > 10)
+            {
+                alert('Invalid Option .! Maximum Option is 10 .');
+                value = 10;
+                $("#txtOption").val('10');
+            }
+            for (var i = 0; i < value; i++) {
+                var j = i;
+                j++;
+                Option += '<div class="form-group">';
+                Option += '<label class = "control-label col-md-1">Option' + ' ' + j + '</label>';
+                Option += '<div class="col-md-6">'
+                Option += '<input type="text" id="Option' + i + '" class="form-control" placeholder="Enter Your Options">';
+                Option += '</div>';
+                Option += '</div>';
+            }
+            $("#dvOptions").empty();
+            $("#dvOptions").append(Option);
+            $("#Question").show();
+        });
+
+        $("#btnSubmit").on("click", function ()
+        {            
+            var Endvalue = $("#txtOption").val();
+            var Question = $("#Questions").val();
+            var CourseId = $("#CourseList").val();
+            var ddlAnswer = $("#Answer option:selected").text();
+            var ddlClass = $("#ClassList").val();
+            var QuestionId = $("#QuestionId").val();
+
+            if ($("#Answer").val()!='0')
+            {
+                $("#Question").hide();
+                $("#txtOption").val('0');
+                $("#Questions").val('');
+                //$("#CourseList").empty();
+                //$("#CourseList").append('<option value="0"> -- Select -- </option>');
+                var ArrayOption = '';
+                var Answer = '';
+                ArrayOption = '{"liQuizOption":[';
+                for (var i = 0; i < Endvalue; i++)
+                {
+                    var item = null;
+                    item= $("#Option" + i).val();
+                    if (item)
+                    {
+                        ArrayOption += '{"OPTIONS":"' + $("#Option" + i).val() + '"},';
+                       // $("#Option" + i).empty();
+                    } else {
+                        alert('All the Options Must to Fill ..!');
+                        $("#Answer").empty();
+                        $("#Answer").append('<option value="0"> -- Select -- </option>');
+                        return false;
+                    }
+                    
+                }
+                ArrayOption = ArrayOption.slice(0, -1);
+                ArrayOption += ']}';
+                $("#Answer").empty();
+                $("#Answer").append('<option value="0"> -- Select -- </option>');
+                var JsonData;
+                JsonData = '{"QUESTION":"' + Question + '","COURSE_ID":"' + CourseId + '","ANSWER":"' + ddlAnswer + '","CLASS_ID":"' + ddlClass + '"}';
+                $.ajax({
+                    url:"@Url.Action("SaveOnlineQuiz", "Examination")",
+                    method: "POST",
+                    datatype: "json",
+                    async: false,
+                    cache: false,
+                    data: { QuizQuestion: JsonData, QuizOption: ArrayOption},
+                    success: function (data)
+                    {
+                        alert(data);
+                    }, error: function (error)
+                    {
+                        alert('Internal Server Error ! ');
+                    }
+                });
+            } else {
+                alert('Please select Answer ...!');
+            }            
+        });
+    </script>

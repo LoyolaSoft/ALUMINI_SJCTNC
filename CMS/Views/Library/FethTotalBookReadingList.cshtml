@@ -1,0 +1,174 @@
+﻿
+@{
+    ViewBag.Title = "FethTotalBookReadingList";
+}
+
+@model CMS.ViewModel.ViewModel.LibraryViewModel
+
+@{
+    ViewBag.Title = "FethTotalBookIssueList";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    int nCount = 0;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<div class="form-group">
+    <div class="col-md-12 table-responsive">
+        <table class="table table-bordered" id="tblReturnReadingBook">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>
+                        <div class="checkbox checkbox-css">
+                            <input type="checkbox" id="AllchkID" onchange="SelectOrUnselect()" />
+                            <label for="AllchkID"> &nbsp; &nbsp; &nbsp; &nbsp;</label>
+                        </div>
+                    </th>
+                    @*<th>BOID</th>
+                        <th>Name</th>*@
+                    <th>Access No</th>
+                    <th>Class No</th>
+                    <th>ISBN</th>
+                    <th>Book No</th>
+                    <th>Title</th>
+                    <td>Language</td>
+                    <td>Status</td>
+                    <th>Issue Date</th>
+                    <th>Dues</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.liBookIssueList != null && Model.liBookIssueList.Count > 0)
+                {
+                    foreach (var item in Model.liBookIssueList)
+                    {
+                        <tr cms-ReadingId="@item.READING_ID" cms-Fine="@item.FINE_AMOUNT" cms-BookId="@item.BOOK_ID">
+                            <td>@{nCount++;} @nCount</td>
+                            <td>
+                                <div class="checkbox checkbox-css">
+                                    <input type="checkbox" id="0 @nCount" cms-IssueId="@item.ISSUE_ID" />
+                                    <label for="0 @nCount"></label>
+                                </div>
+                            </td>
+                            @*<td>@item.BOID</td>
+                                <td>@item.FIRST_NAME</td>*@
+                            <td>@item.ACCESS_NO</td>
+                            <td>@item.CLASS_NO</td>
+                            <td>@item.ISBN_NO</td>
+                            <td>@item.BOOK_NO</td>
+                            <td>@item.BOOK_TITLE</td>
+                            <td>@item.LANGUAGE</td>
+                            <td>@Html.DropDownListFor(m => m.sStatusDDL, (Model.sStatusDDL != null) ? Model.sStatusDDL : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_parsley_required = "true", @data_live_search = "true" })</td>
+                            <td>@item.ISSUE_DATE</td>
+                            <td><i class="fa fa-rupee"></i> @item.FINE_AMOUNT</td>
+                        </tr>
+                                    }
+                                }
+            </tbody>
+        </table>
+        <div class="form-group">
+            <a class="btn btn-primary pull-right" href="javascript:;" id="btnBookReturn"> Submit </a>
+        </div>
+    </div>
+</div>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+
+    $(document).ready(function () {
+
+        $('select[name="sStatusDDL"] option:contains("RETURN")').attr('selected', 'selected');
+        $('.selectpicker').selectpicker('refresh');
+    });
+
+
+
+    $('.selectpicker').selectpicker({
+        size: 5
+    });
+    $('.selectpicker').selectpicker('refresh');
+</script>
+
+<script>
+        SelectOrUnselect = function ()
+        {
+            if (AllchkID.checked == true)
+            {
+                $('#tblReturnReadingBook tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", true);
+                    });
+                });
+            }
+            else
+            {
+                $('#tblReturnReadingBook tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", false);
+                    });
+                });
+            }
+        }
+
+
+
+
+
+</script>
+
+@* Book Return Submit *@
+<script>
+    $('#btnBookReturn').on('click', function ()
+    {
+        var JsonData = '{"liBookReading":[';
+        var nCount = 0;
+        $('#tblReturnReadingBook tbody tr').each(function ()
+        {
+
+            if ($(this).find('input[type="checkbox"]').is(':checked'))
+            {
+                JsonData += '{"READING_ID":"' + $(this).attr('cms-ReadingId') + '","STATUS":"2","BOOK_STATUS":"' + $(this).find('select[name="sStatusDDL"]').val() + '"},';
+                nCount++;
+            }
+        });
+
+        if (nCount != 0)
+        {
+            JsonData = JsonData.slice(0, -1);
+            JsonData = JsonData + "]}";
+            $.ajax({
+                url: '@Url.Action("SaveBookReadingRetrun", "Library")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sJsonBookDetails: JsonData },
+                success: function (data)
+                {
+                    if (data.ErrorCode == "200") {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                        $('#liBookReadingReturn').click();
+                    }
+                    if (data.ErrorCode == "417") {
+                        swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+
+                    }
+                    if (data.ErrorCode == "406") {
+                        swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+
+                    }
+
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error !", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        } else
+        {
+            swal({ title: "Alert !", text: "Please Select Any One To Continue !", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+        }
+    });
+</script>
+
+

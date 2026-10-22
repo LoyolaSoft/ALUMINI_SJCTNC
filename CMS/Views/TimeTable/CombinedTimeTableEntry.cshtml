@@ -1,0 +1,730 @@
+@model CMS.ViewModel.ViewModel.TimeTableViewModel
+
+@{
+    ViewBag.Title = "CombinedTimeTableEntry";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    { @Html.AntiForgeryToken()
+        <ol class="breadcrumb pull-right">
+            <li><a @*href="@Url.Action("Admin", "Dashboard")"*@ href="javascript:;">Home</a></li>
+
+            <li class="active">Combined Timetable Entry</li>
+        </ol>
+        <h2 class="page-header">Combined Timetable Entry</h2>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Combined Timetable Entry</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="col-md-12">
+
+                        <div class="form-group col-md-6">
+                            @Html.LabelFor(model => model.ClassList, htmlAttributes: new { @class = "control-label col-md-1" })
+                            <div class="col-md-10">
+                                @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.ClassList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        
+                        <div class="form-group col-md-3 pull-right hidden" id="btnAdd">
+                            <a class="btn btn-success pull-right" href="javascript:;" onclick="FetchAllDropDownForTimeTable();"><i class="fa fa-plus" title="Add"> Add</i></a>
+                        </div>
+                        
+                    </div>
+
+                    <div class="col-lg-12">
+                        <div id="divTimeTableInfo">
+                            <!--Need to use this fied to bind Student List-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    }
+</div>
+
+    <script src="~/Content/assets/plugins/select2/dist/js/select2.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script>
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        //$("#ClassList").select2();
+    </script>
+
+    @* Class Change Event *@
+    <script>
+        $('#ClassList').on('change', function ()
+        {
+            $('#btnAdd').removeClass('hidden');
+            loadGird();
+        });
+        function loadGird()
+        {
+            var vClassId = $('#ClassList').val();
+            if (vClassId != 0)
+            {
+                $.ajax({
+                    url: '@Url.Action("BindTimeTableInfo", "TimeTable")',
+                    data: { sClassId: vClassId },
+                    success: function (option)
+                    {
+                        var dvStudentPromotion = $('#divTimeTableInfo');
+                        dvStudentPromotion.empty();
+                        dvStudentPromotion.append(option);
+                    },
+                    error: function (xhr, textStatus, error)
+                    {
+                        alert(error + "\n");
+                    }
+                });
+
+            } else
+            {
+                alert('Please Select Class...!!!');
+            }
+        }
+    </script>
+
+    @* Value td Click Event *@
+    <script>
+        var sCourseId;
+        var sStaffId;
+        var Is_Static = null;
+        $("table.table td.editable").live("click", function ()
+        {
+            var ClassId = $('#ClassList').val();
+            var SelectedClassId = $('#ClassList').val();
+            var HourId = $(this).attr('cms-hourid');
+            var DayId = $(this).attr('cms-dayid');
+            var HourType = $(this).attr('cms-hourtype');
+            var TimeTableId = $(this).attr('cms-timetalbeid');
+            var SemesterId = $(this).attr('cms-semesterid');
+            var CourseId = $(this).attr('cms-courseid');
+            var StaffId = $(this).attr('cms-staffid');
+            var tCount = $(this).attr('cms-tcount');
+            
+            var sJson;
+            sJson = '{"Count":"' + tCount + '","Class_Id":"' + ClassId + '","S_CLASS_ID":"' + SelectedClassId + '","Day_Order_Id":"' + DayId + '","Hour_Id":"' + HourId + '","hourType":"' + HourType + '","Time_Table_Id":"' + TimeTableId + '","Semester_Id":"' + SemesterId + '","Course_Id":"' + CourseId + '","Staff_Id":"' + StaffId + '"}';
+            $.ajax({
+                url: '@Url.Action("EditClassWiseTimeTable", "TimeTable")',
+                data: { sTimetable: sJson },
+                success: function (data)
+                {
+                    if (data.Message != null && data.Message != '')
+                    {
+                        alert(data.Message); // To Show Error Message ....
+                    } else if (data.hourType != null && data.hourType != '')
+                    {
+                        
+                        // If Single TimeTable Value Retruns ...
+                        Is_Static = data.IS_STATIC;
+                        if (Is_Static != null && Is_Static == "1")
+                        {
+                            $('#txtStatic').text("This is Static Hour !");
+                        } else {
+                            $('#txtStatic').text("");
+                        }
+                        
+                        var sOption = '<option value=""> -- Select -- </option>';
+                        $('#EditModal-dialog').modal();
+
+                        $('#ddlHourType').empty();
+                        $('#ddlHourType').append(sOption + data.hourType);
+                        $('#ddlHourType').val(HourType);
+
+                        $('#ddlCourse').empty();
+                        $('#ddlCourse').append(sOption + data.sCourseId);
+                        $('#ddlCourse').val(CourseId);
+
+                        $('#ddlStaff').empty();
+                        $('#ddlStaff').append(sOption + data.sStaffId);
+                        $('#ddlStaff').val(StaffId);
+
+                        $('#txtClass').val($('#ClassList option:selected').text());
+                        $('#txtTimeTableId').val(TimeTableId);
+                        $('#txtClassId').val(SelectedClassId);
+                        $('#txtDayOrder').val(DayId);
+                        $('#txtHour').val(HourId);
+                        $('#txtHourType').val(HourType);
+                        if (SemesterId != null && SemesterId != '')
+                        {
+                            $('#txtSemesterId').val(SemesterId);
+                        } else
+                        {
+                            $('#txtSemesterId').val(data);
+                        }
+                        
+                        if ($('#txtTimeTableId').val())
+                        {
+                            $('#btnRemove').show();
+                        } else {
+                            $('#btnRemove').hide();
+                        }
+                    } else
+                    {
+                        // If Multiple TimeTable Value Retruns ...
+                        $('#dvMultiTimeTable').empty();
+                        $('#dvMultiTimeTable').append(data);
+                        $('#MultiTimeTable').modal();
+                        
+                    }
+                   
+                    //dvMultiTimeTable
+                    //MultiTimeTable-dialog
+                        
+                        
+                       // FetchStaffByClassAndCourse();
+                       
+                        $('.selectpicker').selectpicker('refresh');
+                },
+                error: function (xhr, textStatus, error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+    </script>
+
+    @* Get Dropdown *@
+    <script>
+        GetDropDown = function (ID)
+        {
+            var ClassId = $('#ClassList').val();
+            $.ajax({
+                url: "@Url.Action("GetCourseAndStaff", "TimeTable")",
+                method: "POST",
+                data: { sClassId: ClassId },
+                datatype: "json",
+                success: function (data)
+                {
+
+                    var ddl = JSON.parse(data);
+                    
+                    $('#ddlCourse').empty();
+                    $('#ddlCourse').append('<option value="0">-- select --</option>' + ddl.COURSE_CODE);
+                    $('#ddlCourse').val(sCourseId);
+                    $('#ddlStaff').empty();
+                    $('#ddlStaff').append('<option value="0">-- select --</option>' + ddl.Staff_Id);
+                    $('#ddlStaff').val(sStaffId);
+                    $('#ddlHourType').empty();
+                    $('#ddlHourType').append('<option value="0">-- select --</option>' + ddl.hourType);
+                    $('.selectpicker').selectpicker('refresh');
+                }, error: function (error) {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+        GetTemplate = function () {
+            var ClassId = $('#ClassList').val();
+            $.ajax({
+                url: "@Url.Action("GetTemplateByClassId", "TimeTable")",
+                method: "POST",
+                data: { sClassId: ClassId },
+                datatype: "json",
+                success: function (data) {
+
+                    var ddl = JSON.parse(data);
+                    $('#ddlHourType').empty();
+                    $('#ddlHourType').append('<option value="0">-- select --</option>' + ddl.hourType);
+                    //$('#ddlCourse').val(sCourseId);
+                    //$('#ddlStaff').empty();
+                    //$('#ddlStaff').append('<option value="0">-- select --</option>' + ddl.Staff_Id);
+                    //$('#ddlStaff').val(sStaffId);
+                    $('.selectpicker').selectpicker('refresh');
+
+                }, error: function (error) {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+    </script>
+
+    @* Table Empty td Click *@
+    <script>
+        $("table.table td.alert").live("click", function ()
+        {
+            alert('Please assign course and staff for this hour...!!!');
+        });
+    </script>
+
+    <script>
+        function FetchAllDropDownForTimeTable()
+        {
+            var ClassId = $('#ClassList').val();
+            $.ajax({
+                url:'@Url.Action("FetchAllDropDownForTimeTable", "TimeTable")',
+                method:'POST',
+                datatype:'json',
+                data: { sClassId: ClassId },
+                success: function (data)
+                {
+                    if (data.Message != null && data.Message != '')
+                    {
+                        alert(data.Message);
+                    } else {
+                        var ddl = JSON.parse(data);
+
+                        $('#MultiddlHourType').empty();
+                        $('#MultiddlHourType').append('<option value="">-- select --</option>' + ddl.hourType);
+
+                        $('#MultiddlDayOrder').empty();
+                        $('#MultiddlDayOrder').append('<option value="">-- select --</option>' + ddl.Day_Order_Id);
+
+                        $('#MultiddlHour').empty();
+                        $('#MultiddlHour').append('<option value="">-- select --</option>' + ddl.Hour_Id);
+
+                        $('#MultiddlCourse').empty();
+                        $('#MultiddlCourse').append('<option value="">-- select --</option>' + ddl.COURSE_ROOT_ID);
+
+                        
+
+                        $('#MultiModal-dialog').modal();
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                    
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+
+        $("#MultiddlCourse").on("change", function ()
+        {
+            $.ajax({
+                url:'@Url.Action("GetStaffByCourseId", "TimeTable")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sClassId: $('#ClassList').val(), sCourseId: $("#MultiddlCourse").val() },
+                success: function (data)
+                {
+                    $('#MultiddlStaff').empty();
+                    $('#MultiddlStaff').append('<option value="">-- select --</option>' + data);
+                    $('.selectpicker').selectpicker('refresh');
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+
+
+        $('#MultibtnSubmit').on('click', function ()
+        {
+            var JsonData = null;
+            JsonData = '{"hourType":"' + $('#MultiddlHourType').val() + '","Day_Order_Id":"' + $('#MultiddlDayOrder').val() + '","Hour_Id":"' + $('#MultiddlHour').val() + '","Course_Id":"' + $('#MultiddlCourse').val() + '","Staff_Id":"' + $('#MultiddlStaff').val() + '","Class_Id":"' + $('#ClassList').val() + '"}';
+            $.ajax({
+                url:'@Url.Action("SaveTimeTableMultiple", "TimeTable")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sTimeTable: JsonData },
+                success: function (data)
+                {
+                    alert(data.Message);
+                    loadGird();
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+    </script>
+  
+
+    @* Course Change Event *@
+    <script>
+        $('#ddlCourse').on('change', function ()
+        {
+            FetchStaffByClassAndCourse();
+        });
+
+        
+
+        function FetchStaffByClassAndCourse()
+        {
+            var CourseId = $('#ddlCourse').val();
+            var ClassId = $('#ClassList').val();
+            if ($('#ddlCourse').val())
+            {
+                $.ajax({
+                    url: '@Url.Action("GetStaffByCourseId", "TimeTable")',
+                    data: { sCourseId: CourseId, sClassId: ClassId },
+                    success: function (data) {
+                        $('#ddlStaff').empty();
+                        if (data != null && data != '') {
+                            $('#ddlStaff').append('<option value="">-- select --</option>' + data);
+                            $('.selectpicker').selectpicker('refresh');
+                        }
+                        else
+                        {
+                            $('#ddlStaff').empty();
+                            alert('Please assign the staff for this course in class course staff...!!!');
+                        }
+                    },
+                    error: function (xhr, textStatus, error) {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+            
+        }
+
+        @*$('#ddlHourType').on('change', function ()
+        {
+            FetchCourseByHourType();
+        });
+
+        function FetchCourseByHourType() 
+        {
+            
+            if ($('#ddlHourType').val()) {
+                $.ajax({
+                    url: '@Url.Action("GetStaffByCourseId", "TimeTable")',
+                    data: { sHourType: $('#ddlHourType').val() },
+                    success: function (data)
+                    {
+                        $('#ddlCourse').empty();
+                        if (data.Message != null && data.Message != '')
+                        {
+                            alert(data.Message);
+                        } else
+                        {
+                            $('#ddlCourse').append('<option value="">-- select --</option>' + data);
+                            $('.selectpicker').selectpicker('refresh');
+                        }
+                    },
+                    error: function (xhr, textStatus, error)
+                    {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+        }*@
+    </script>
+
+    
+
+    @* On Submit *@
+    <script>
+        $('#btnSubmit').on('click', function ()
+        {
+            var TimeTableId = $('#txtTimeTableId').val();
+            var ClassId = $('#ClassList').val();
+            var CourseId = $('#ddlCourse').val();
+            var StaffId = $('#ddlStaff').val();
+            var DayOrderId = $('#txtDayOrder').val();
+            var HourId = $('#txtHour').val();
+            var HourType = $('#ddlHourType').val();
+            var SemesterId = $('#txtSemesterId').val();
+            if (CourseId != null)
+            {
+                submitTimeTableEntry(CourseId, ClassId, TimeTableId, StaffId, DayOrderId, HourId, HourType, SemesterId, "false");
+            }
+        });
+
+        function submitTimeTableEntry(CourseId, ClassId, TimeTableId, StaffId, DayOrderId, HourId, HourType, SemesterId, ForceSave) {
+            $.ajax({
+                url: '@Url.Action("UpdateCombinedTimeTable", "TimeTable")',
+                type: 'POST',
+                data: { 
+                    sCourseId: CourseId, 
+                    sClassId: ClassId, 
+                    sTimeTableId: TimeTableId, 
+                    sStaffId: StaffId, 
+                    sDayOrderId: DayOrderId, 
+                    sHourId: HourId, 
+                    sHourType: HourType, 
+                    sSemesterId: SemesterId,
+                    sForceSave: ForceSave
+                },
+                success: function (response)
+                {
+                    if (response.ErrorCode === "OCCUPIED") {
+                        if (confirm(response.Message)) {
+                            submitTimeTableEntry(CourseId, ClassId, TimeTableId, StaffId, DayOrderId, HourId, HourType, SemesterId, "true");
+                        }
+                    } else {
+                        alert(response.Message);
+                        if (response.ErrorCode === "200") {
+                            loadGird();
+                        }
+                    }
+                },
+                error: function (xhr, textStatus, error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+
+        $('#btnRemove').on('click', function ()
+        {
+            var TimeTableId = $('#txtTimeTableId').val();
+            DeleteTimeTable(TimeTableId);
+        });
+
+        function DeleteTimeTable(ID)
+        {
+            if (ID != null && ID != '')
+            {
+                if (!confirm('Are you sure to delete ?'))
+                {
+                    return false;
+                }
+                $.ajax({
+                    url: '@Url.Action("DeleteTimeTable", "TimeTable")',
+                    method: 'POST',
+                    datatype: 'json',
+                    data: { sTimeTableId: ID },
+                    success: function (data)
+                    {
+                        alert(data.Message);
+                        loadGird();
+                    },
+                    error: function (xhr, textStatus, error)
+                    {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+        }
+
+        function FetchTimeTableById(sTimeTableId)
+        {
+            GetDropDown();
+            
+            if (sTimeTableId != null && sTimeTableId != '')
+            {
+                $.ajax({
+                    url:'@Url.Action("FetchTimeTableById", "TimeTable")',
+                    method:'POST',
+                    datatype:'json',
+                    data: { sTimeTableId: sTimeTableId },
+                    success: function (data)
+                    {
+                        if (data.Message != null && data.Message != '')
+                        {
+                            alert(data.Message);
+                        } else
+                        {
+                            $('#MultiTimeTable').modal('hide');
+                            $('#EditModal-dialog').modal();
+
+                            $('#ddlCourse').val(data[0].Course_Id);
+                            $('#ddlStaff').val(data[0].Staff_Id);
+                            $('#ddlHourType').val(data[0].Hour_Type);
+
+                            $('#txtTimeTableId').val(data[0].Time_Table_Id);
+                            $('#txtClassId').val(data[0].Class_Id);
+                            $('#txtDayOrder').val(data[0].Day_Order_Id);
+                            $('#txtHour').val(data[0].Hour_Id);
+                            $('#txtSemesterId').val(data[0].Semester_Id);
+                            $('#txtHourType').val(data[0].Hour_Type);
+
+                            $('#txtClass').val($('#ClassList option:selected').text());
+                            
+                            if ($('#txtTimeTableId').val())
+                            {
+                                $('#btnRemove').show();
+                            } else
+                            {
+                                $('#btnRemove').hide();
+                            }
+
+                            $('.selectpicker').selectpicker('refresh');
+                        }
+                    }, error: function (error)
+                    {
+                        alert('Internal Server Error !');
+                    }
+                });
+            }
+        }
+    </script>
+
+<div class="modal" id="EditModal-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Edit Class Wise Time Table</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                        
+                    <div class="form-group">
+                            <label class="control-label col-md-3">Hour Type</label>
+                            <div class="col-md-9">
+                                <select id="ddlHourType" class="selectpicker show-menu-arrow show-tick drop-down form-control input-sm" data-live-search="true">
+                                    <option value="">-- select --</option>
+                                </select>
+                            </div>
+                        </div>
+                    
+                    <div class="form-group">
+                            <label class="control-label col-md-3">Class</label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control input-sm" disabled id="txtClass" />
+                            </div>
+                        </div>
+
+                    <div class="form-group">
+                            <label class="control-label col-md-3">Course</label>
+                            <div class="col-md-9">
+                                <select id="ddlCourse" class="selectpicker form-control input-sm" data-live-search = "true">
+                                    <option value="">-- select --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    <div class="form-group">
+                            <label class="control-label col-md-3">Staff</label>
+                            <div class="col-md-9">
+                                <select id="ddlStaff" class="selectpicker form-control input-sm" data-live-search = "true">
+                                    <option value="">-- select --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    <div class="form-group">
+                            <label class="control-label col-md-3">Day Order</label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control input-sm" disabled id="txtDayOrder" />
+                            </div>
+                        </div>
+
+                    <div class="form-group">
+                            <label class="control-label col-md-3">Hour</label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control input-sm" disabled id="txtHour" />
+                            </div>
+                        </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="text-warning pull-left" id="txtStatic"></span>
+                <button type="submit" id="btnSubmit" class="btn btn-default"  data-dismiss="modal">Submit</button>
+                <button type="submit" id="btnRemove" class="btn btn-default"  data-dismiss="modal">Remove</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Feilds-->
+<input type="text" class="form-control input-sm hidden" disabled id="txtClassId" />
+<input type="text" class="form-control input-sm hidden" disabled id="txtSemesterId" />
+<input type="text" class="form-control input-sm hidden" disabled id="txtHourType" />
+<input type="text" class="form-control input-sm hidden" disabled id="txtTimeTableId" />
+<!-- Hidden Feilds-->
+
+
+<!-- Multiple TimeTable Bind Modal-->
+<div class="modal" id="MultiTimeTable">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Edit Class Wise Time Table</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div id="dvMultiTimeTable"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span>Multiple TimeTable Edit List</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Duplicate Allow Modal // MultiModal -->
+<div class="modal" id="MultiModal-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Edit Class Wise Time Table</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Hour Type</label>
+                        <div class="col-md-9">
+                            <select id="MultiddlHourType" class="selectpicker show-menu-arrow show-tick drop-down form-control input-sm" data-live-search="true">
+                                <option value="">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Day Order</label>
+                        <div class="col-md-9">
+                            <select id="MultiddlDayOrder" class="selectpicker form-control input-sm" data-live-search="true">
+                                <option value="">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Hour</label>
+                        <div class="col-md-9">
+                            <select id="MultiddlHour" class="selectpicker form-control input-sm" data-live-search="true">
+                                <option value="">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Course</label>
+                        <div class="col-md-9">
+                            <select id="MultiddlCourse" class="selectpicker form-control input-sm" data-live-search="true">
+                                <option value="">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Staff</label>
+                        <div class="col-md-9">
+                            <select id="MultiddlStaff" class="selectpicker form-control input-sm" data-live-search="true">
+                                <option value="">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" id="MultibtnSubmit" class="btn btn-default"  data-dismiss="modal">Submit</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

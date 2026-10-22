@@ -1,0 +1,285 @@
+@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+@{
+    Layout = null;
+    int count = 0;
+}
+
+@functions {
+    private static readonly System.Globalization.CultureInfo InCulture = System.Globalization.CultureInfo.GetCultureInfo("en-IN");
+
+    public static decimal ToDecimalSafe(string val)
+    {
+        if (string.IsNullOrWhiteSpace(val)) return 0m;
+        decimal d;
+        return decimal.TryParse(val, out d) ? d : 0m;
+    }
+
+    public static string FormatAmount(string val)
+    {
+        if (string.IsNullOrWhiteSpace(val)) return "0.00";
+        decimal d = ToDecimalSafe(val);
+        return d.ToString("N2", InCulture);
+    }
+
+    public static string FormatAmount(decimal d)
+    {
+        return d.ToString("N2", InCulture);
+    }
+
+    public static MvcHtmlString RenderPaidHtml(string paidStr)
+    {
+        decimal paid = ToDecimalSafe(paidStr);
+        if (paid <= 0)
+        {
+            return MvcHtmlString.Create("<span class=\"text-muted font-bold\">-</span>");
+        }
+        else
+        {
+            return MvcHtmlString.Create("<span class=\"text-paid\">" + paid.ToString("N2", InCulture) + "</span>");
+        }
+    }
+
+    public static MvcHtmlString RenderDueHtml(string allocatedStr, string paidStr, string dueStr)
+    {
+        decimal allocated = ToDecimalSafe(allocatedStr);
+        decimal paid = ToDecimalSafe(paidStr);
+        decimal due = ToDecimalSafe(dueStr);
+
+        if (allocated <= 0 && paid <= 0)
+        {
+            return MvcHtmlString.Create("<span class=\"text-muted font-bold\">-</span>");
+        }
+        else if (due > 0)
+        {
+            return MvcHtmlString.Create("<span class=\"text-due\">" + due.ToString("N2", InCulture) + "</span>");
+        }
+        else if (paid > 0 || (allocated > 0 && due <= 0))
+        {
+            return MvcHtmlString.Create("<span class=\"badge-paid\"><i class=\"fa fa-check\"></i> Paid</span>");
+        }
+        else
+        {
+            return MvcHtmlString.Create("<span class=\"text-muted font-bold\">-</span>");
+        }
+    }
+
+    public static MvcHtmlString RenderTotalDueHtml(decimal totalAllocated, decimal totalPaid, decimal oldDue, decimal totalDue)
+    {
+        if (totalAllocated <= 0 && totalPaid <= 0 && oldDue <= 0 && totalDue <= 0)
+        {
+            return MvcHtmlString.Create("<span class=\"text-muted font-bold\">-</span>");
+        }
+        else if (totalDue > 0)
+        {
+            return MvcHtmlString.Create("<span class=\"text-due\" style=\"font-size: 13.5px;\">" + totalDue.ToString("N2", InCulture) + "</span>");
+        }
+        else if (paidHasCovered(totalAllocated, totalPaid, totalDue))
+        {
+            return MvcHtmlString.Create("<span class=\"badge-paid\"><i class=\"fa fa-check-circle\"></i> Paid</span>");
+        }
+        else
+        {
+            return MvcHtmlString.Create("<span class=\"text-muted font-bold\">-</span>");
+        }
+    }
+
+    private static bool paidHasCovered(decimal totalAllocated, decimal totalPaid, decimal totalDue)
+    {
+        return totalDue <= 0 && (totalPaid > 0 || totalAllocated > 0);
+    }
+}
+
+<style>
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+    #StudentList {
+        width: 100% !important;
+        margin-bottom: 0;
+        white-space: nowrap !important;
+    }
+    #StudentList thead th {
+        vertical-align: middle !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+        background-color: #f1f5f9;
+        color: #1e293b;
+        border-bottom: 2px solid #cbd5e1 !important;
+        padding: 8px 10px !important;
+    }
+    #StudentList tbody td {
+        vertical-align: middle !important;
+        font-size: 13.5px !important;
+        white-space: nowrap !important;
+        padding: 8px 10px !important;
+    }
+    .badge-paid {
+        background-color: #eff6ff;
+        color: #1d4ed8;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        display: inline-block;
+        border: 1px solid #bfdbfe;
+    }
+    .text-due {
+        color: #dc2626;
+        font-weight: 700;
+        font-size: 13.5px;
+    }
+    .text-paid {
+        color: #1d4ed8;
+        font-weight: 700;
+        font-size: 13.5px;
+    }
+    .action-icons {
+        display: flex;
+        gap: 4px;
+        justify-content: center;
+    }
+    .font-bold {
+        font-weight: 700 !important;
+    }
+</style>
+
+<div class="table-responsive">
+    <table class="table table-hover table-bordered table-striped" width="100%" id="StudentList">
+        <thead>
+            <tr>
+                <th rowspan="2" class="text-center" style="width: 40px;">#</th>
+                <th rowspan="2" class="text-center">Roll No</th>
+                <th rowspan="2" class="text-center">Student Name</th>
+                <th rowspan="2" class="text-center">Class Name</th>
+                <th colspan="3" class="text-center" style="background-color: #e0f2fe; color: #0369a1;">Term 1 Fee (&#8377;)</th>
+                <th colspan="3" class="text-center" style="background-color: #f0fdf4; color: #15803d;">Term 2 Fee (&#8377;)</th>
+                <th colspan="3" class="text-center" style="background-color: #fef3c7; color: #b45309;">Exam Fee 1 (&#8377;)</th>
+                <th colspan="3" class="text-center" style="background-color: #fef3c7; color: #b45309;">Exam Fee 2 (&#8377;)</th>
+                <th colspan="3" class="text-center" style="background-color: #ede9fe; color: #6d28d9;">Bus Fee (&#8377;)</th>
+                <th colspan="3" class="text-center" style="background-color: #fce7f3; color: #be185d;">Hostel Fee (&#8377;)</th>
+                <th rowspan="2" class="text-center" style="background-color: #fee2e2; color: #991b1b;">Old Due (&#8377;)</th>
+                <th rowspan="2" class="text-center" style="background-color: #fee2e2; color: #991b1b;">Total Due (&#8377;)</th>
+                <th rowspan="2" class="text-center" style="width: 75px;">Actions</th>
+            </tr>
+            <tr>
+                <th class="text-right" style="background-color: #e0f2fe;">Paid</th>
+                <th class="text-right" style="background-color: #e0f2fe;">Allocated</th>
+                <th class="text-right" style="background-color: #e0f2fe;">Due</th>
+
+                <th class="text-right" style="background-color: #f0fdf4;">Paid</th>
+                <th class="text-right" style="background-color: #f0fdf4;">Allocated</th>
+                <th class="text-right" style="background-color: #f0fdf4;">Due</th>
+
+                <th class="text-right" style="background-color: #fef3c7;">Paid</th>
+                <th class="text-right" style="background-color: #fef3c7;">Allocated</th>
+                <th class="text-right" style="background-color: #fef3c7;">Due</th>
+
+                <th class="text-right" style="background-color: #fef3c7;">Paid</th>
+                <th class="text-right" style="background-color: #fef3c7;">Allocated</th>
+                <th class="text-right" style="background-color: #fef3c7;">Due</th>
+
+                <th class="text-right" style="background-color: #ede9fe;">Paid</th>
+                <th class="text-right" style="background-color: #ede9fe;">Allocated</th>
+                <th class="text-right" style="background-color: #ede9fe;">Due</th>
+
+                <th class="text-right" style="background-color: #fce7f3;">Paid</th>
+                <th class="text-right" style="background-color: #fce7f3;">Allocated</th>
+                <th class="text-right" style="background-color: #fce7f3;">Due</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liFeeDueReport != null && Model.liFeeDueReport.Count > 0)
+            {
+                foreach (var item in Model.liFeeDueReport)
+                {
+                    count++;
+                    decimal totalAllocated = ToDecimalSafe(item.TERMFEE1) + ToDecimalSafe(item.TERMFEE2) +
+                                             ToDecimalSafe(item.EXAMFEE1) + ToDecimalSafe(item.EXAMFEE2) +
+                                             ToDecimalSafe(item.BUSFEE) + ToDecimalSafe(item.HOSTELFEE);
+                    decimal totalPaid = ToDecimalSafe(item.TERMFEE1PAID) + ToDecimalSafe(item.TERMFEE2PAID) +
+                                        ToDecimalSafe(item.EXAMFEE1PAID) + ToDecimalSafe(item.EXAMFEE2PAID) +
+                                        ToDecimalSafe(item.BUSFEEPAID) + ToDecimalSafe(item.HOSTELFEEPAID);
+                    decimal oldDue = ToDecimalSafe(item.PREVIOUS_YEAR_TERM_DUE);
+                    decimal totalDue = ToDecimalSafe(item.TOTAL_DUE_AMOUNT);
+
+                    <tr>
+                        <td class="text-center font-bold">@count</td>
+                        <td><b>@item.ROLL_NO</b></td>
+                        <td>@item.FIRST_NAME</td>
+                        <td>@item.CLASS_NAME</td>
+
+                        <!-- Term 1 -->
+                        <td class="text-right">@RenderPaidHtml(item.TERMFEE1PAID)</td>
+                        <td class="text-right">@FormatAmount(item.TERMFEE1)</td>
+                        <td class="text-right">@RenderDueHtml(item.TERMFEE1, item.TERMFEE1PAID, item.TERMFEE1DUE)</td>
+
+                        <!-- Term 2 -->
+                        <td class="text-right">@RenderPaidHtml(item.TERMFEE2PAID)</td>
+                        <td class="text-right">@FormatAmount(item.TERMFEE2)</td>
+                        <td class="text-right">@RenderDueHtml(item.TERMFEE2, item.TERMFEE2PAID, item.TERMFEE2DUE)</td>
+
+                        <!-- Exam Fee 1 -->
+                        <td class="text-right">@RenderPaidHtml(item.EXAMFEE1PAID)</td>
+                        <td class="text-right">@FormatAmount(item.EXAMFEE1)</td>
+                        <td class="text-right">@RenderDueHtml(item.EXAMFEE1, item.EXAMFEE1PAID, item.EXAMFEE1DUE)</td>
+
+                        <!-- Exam Fee 2 -->
+                        <td class="text-right">@RenderPaidHtml(item.EXAMFEE2PAID)</td>
+                        <td class="text-right">@FormatAmount(item.EXAMFEE2)</td>
+                        <td class="text-right">@RenderDueHtml(item.EXAMFEE2, item.EXAMFEE2PAID, item.EXAMFEE2DUE)</td>
+
+                        <!-- Bus Fee -->
+                        <td class="text-right">@RenderPaidHtml(item.BUSFEEPAID)</td>
+                        <td class="text-right">@FormatAmount(item.BUSFEE)</td>
+                        <td class="text-right">@RenderDueHtml(item.BUSFEE, item.BUSFEEPAID, item.BUSFEEDUE)</td>
+
+                        <!-- Hostel Fee -->
+                        <td class="text-right">@RenderPaidHtml(item.HOSTELFEEPAID)</td>
+                        <td class="text-right">@FormatAmount(item.HOSTELFEE)</td>
+                        <td class="text-right">@RenderDueHtml(item.HOSTELFEE, item.HOSTELFEEPAID, item.HOSTELFEEDUE)</td>
+
+                        <!-- Old / Arrear Due -->
+                        <td class="text-right">
+                            @if (oldDue <= 0)
+                            {
+                                <span class="text-muted font-bold">-</span>
+                            }
+                            else
+                            {
+                                <span class="text-due">@FormatAmount(oldDue)</span>
+                            }
+                        </td>
+
+                        <!-- Total Due Amount -->
+                        <td class="text-right">
+                            @RenderTotalDueHtml(totalAllocated, totalPaid, oldDue, totalDue)
+                        </td>
+
+                        <!-- Actions -->
+                        <td>
+                            <div class="action-icons">
+                                <a href="#EditFeeDueDetails" onclick="FetchFeeDueDetailsByID(@item.STU_DUE_ID);" data-toggle="modal" class="btn btn-xs btn-primary" title="Edit Due Details"><i class="fa fa-edit"></i></a>
+                                <a href="javascript:;" onclick="DeletedDueList(@item.STU_DUE_ID,@item.STUDENT_ID)" class="btn btn-xs btn-danger" title="Delete Due Details"><i class="fa fa-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="25" class="text-center text-muted" style="padding: 30px;">
+                        <i class="fa fa-info-circle text-info" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                        Please select a class from the filters above and click <b>Get Due List</b> to display the student fee due records.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

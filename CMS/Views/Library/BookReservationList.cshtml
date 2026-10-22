@@ -1,0 +1,277 @@
+﻿@model CMS.ViewModel.ViewModel.LibraryViewModel
+
+@{ 
+    Layout = null;
+}
+<div class="content" id="content">
+
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="javascript:;">Opac Search</li>
+        <li class="active">Reserved Book List</li>
+    </ol>
+    <h1 class="page-header">Reserved Book List</h1>
+
+    <div class="panel panel-primary" data-sortable-id="ui-widget-1" data-init="true">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Reserved Book List</h4>
+        </div>
+        <div class="panel-body">
+            <div class="form-horizontal">
+                 <div class="col-md-12 form-group table-responsive">
+                     <table class="table table-bordered">
+                         <thead>
+                             <tr>
+                                 <th>#</th>
+                                 <th>Book Title</th>
+                                 <th>Author</th>
+                                 <th>Isbn No</th>
+
+
+                                 <th>Reserve Status</th>
+                                 <th>Date</th>
+                                 <th>By</th>
+
+
+                                 <th>User Cancelled</th>
+
+                                 <th>System Cancelled</th>
+
+                                 <th>Action</th>
+                             </tr>
+                         </thead>
+                         <tbody>
+                             @if (Model.liBookReserve!=null && Model.liBookReserve.Count>0)
+                             {
+                                 int nCount = 0;
+                                 foreach (var item in Model.liBookReserve)
+                                 {
+                             <tr>
+                                 <td>@{nCount++;} @nCount</td>
+                                 <td>@item.BOOK_TITLE</td>
+                                 <td>@item.AUTHOR</td>
+                                 <td>@item.ISBN_NO</td>
+                                 @if (item.IS_APPROVED == "1" && item.IS_COLLECTED != "1")
+                                 {
+                                     <td>Reserve Approved</td>
+
+                                     <td>@item.APPROVED_DATE</td>
+                                     <td>@item.APPROVED_BY</td>
+                                     @*<i class="text-success fa fa-check"></i>*@
+                                 }
+                                 else if (item.IS_APPROVED == "1" && item.IS_COLLECTED== "1")
+                                 {
+                                     <td>Reserve Collected</td>
+
+                                     <td>@item.COLLECTED_DATE</td>
+                                     <td>User</td>
+                                     @*<i class="text-success fa fa-check"></i>*@
+                                 }
+                                 else if (item.IS_CANCELLED == "1")
+                                 {
+                                     <td>Reserve Cancelled</td>
+                                     <td>@item.CANCELLED_DATE</td>
+                                     <td>@item.CANCELLED_BY</td>
+                                     @*<i class="text-success fa fa-check"></i>*@
+                                 }
+                                 else
+                                 {
+                                     <td>Reserve Requested</td>
+                                     <td>@item.ENTRY_DATE</td>
+                                     <td>User</td>
+                                 }
+
+
+
+                                 <td>
+                                     @if (item.IS_USER_CANCELLED == "1")
+                                     {
+
+                                         <label class="label label-info f-s-12">Yes</label>
+                                     }
+
+                                     else
+                                     {
+
+                                         <label class="label label-info f-s-12">No</label>
+                                     }
+                                 </td>
+
+                                 <td>
+                                     @if (item.IS_SYSTEM_CANCELLED == "1")
+                                     {
+
+                                         <label class="label label-info f-s-12">Yes</label>
+                                     }
+
+                                     else
+                                     {
+                                         <label class="label label-info f-s-12">No</label>
+                                     }
+                                 </td>
+
+
+
+
+                                 <td>
+                                     @if (item.IS_CANCELLED == "1")
+                                     {
+
+                                         <i class="text-success fa fa-check"></i>
+                                     }
+                                     else if (item.IS_APPROVED == "1")
+                                     {
+                                         if (item.IS_USER_CANCELLED != "1" && item.IS_SYSTEM_CANCELLED != "1" && item.IS_COLLECTED != "1")
+                                         {
+                                             <a href="jacascript:;" onclick="CancelReservation(@item.RESERVE_ID,@item.BOOK_ID)" style="cursor:pointer;"><i class="text-danger fa fa-trash"></i></a>
+                                         }
+                                         else
+                                         {
+                                             <i class="text-success fa fa-check"></i>
+                                         }
+                                     }
+                                     else if (item.IS_COLLECTED == "1")
+                                     {
+                                         <i class="text-success fa fa-check"></i>
+                                     }
+                                     else
+                                     {
+                                         if (item.IS_USER_CANCELLED != "1" && item.IS_SYSTEM_CANCELLED != "1")
+                                         {
+                                             <a href="jacascript:;" onclick="CancelReservation(@item.RESERVE_ID,@item.BOOK_ID)" style="cursor:pointer;"><i class="text-danger fa fa-trash"></i></a>
+                                         }
+                                         else
+                                         {
+                                             <i class="text-success fa fa-check"></i>
+                                         }
+
+                                     }
+                                 </td>
+                             </tr>
+                                         }
+                                     }
+                         </tbody>
+                     </table>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function ContentLoad()
+    {
+        // Document Ready Function .
+       
+    }
+
+    function CancelReservation(Id,sBookId) 
+    {  
+        swal({
+            title: "Confirmation !",
+            text: "Please Confirm Before You Going To Cancel !",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-success",
+            confirmButtonText: "Yes, I agree !",
+            closeOnConfirm: false
+        }, function ()
+        {
+            swal({
+                title: "Are you sure to cancel ?",
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-success",
+                confirmButtonText: "Yes, Cancel!",
+                closeOnConfirm: false
+            }, function ()
+            {
+                if (Id != "" && sBookId != "") {
+                    $.ajax({
+                        url: '@Url.Action("CancelReservedBookByUser", "Library")',
+                        method: 'POST',
+                        datatype: 'Json',
+                        data: { sReserveId: Id,sBookId:sBookId },
+                        success: function (data)
+                        {
+                            if (data.ErrorCode == "200")
+                            {
+                                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                                loadContent('/Library/BookReservationList');
+                            } else if (ErrorCode == "204")
+                            {
+                                swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+                            } else
+                            {
+                                swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                            }
+                        }, error: function (error)
+                        {
+                            swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    function DeleteReservation(Id,sBookId)
+    {
+        swal({
+            title: "Confirmation !",
+            text: "Please Confirm Before You Going To delete !",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-success",
+            confirmButtonText: "Yes, I agree !",
+            closeOnConfirm: false
+        }, function ()
+        {
+            swal({
+                title: "Are you sure to delete ?",
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-success",
+                confirmButtonText: "Yes, Delete!",
+                closeOnConfirm: false
+            }, function ()
+            {
+                if (Id != "" && sBookId != "")
+                {
+                    $.ajax({
+                        url: '@Url.Action("DeleteReservedBookByUser", "Library")',
+                        method: 'POST',
+                        datatype: 'Json',
+                        data: { sReserveId: Id ,sBookId:sBookId},
+                        success: function (data)
+                        {
+                            if (data.ErrorCode == "200")
+                            {
+                                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                                loadContent('/Library/BookReservationList');
+                            } else if (ErrorCode == "204")
+                            {
+                                swal({ title: "Warning !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+                            } else
+                            {
+                                swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                            }
+                        }, error: function (error)
+                        {
+                            swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                        }
+                    });
+                }
+            });
+        });
+    }
+</script>

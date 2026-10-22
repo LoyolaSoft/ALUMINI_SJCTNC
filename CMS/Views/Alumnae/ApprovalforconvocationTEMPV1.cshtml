@@ -1,0 +1,505 @@
+﻿@model CMS.ViewModel.ViewModel.StaffViewModel
+@{
+    ViewBag.Title = "ClassStudentAttendanceMarkProfile";
+    Layout = null;
+}
+<style>
+    .sweet-alert.show-input.showSweetAlert.visible {
+        overflow: visible !important;
+    }
+</style>
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">ClassWise Convocation Report</li>
+    </ol>
+    <h1 class="page-header">ClassWise Convocation Report</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">ClassWise Convocation Report</h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="col-md-5 form-group">
+                @Html.Label("Programme", htmlAttributes: new { @class = "col-md-4 control-label " })
+                <div class="col-md-8">
+                    @Html.DropDownListFor(m => m.Programmelist, (Model.Programmelist != null) ? Model.Programmelist : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                    @Html.ValidationMessageFor(m => m.Programmelist, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-5 form-group">
+                @Html.Label("CONVOCATION_SETTING", htmlAttributes: new { @class = "col-md-4 control-label " })
+                <div class="col-md-8">
+                    @Html.DropDownListFor(m => m.Convocationsettinglist, (Model.Convocationsettinglist != null) ? Model.Convocationsettinglist : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                    @Html.ValidationMessageFor(m => m.Convocationsettinglist, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-12" id="binddiv">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="profile">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Student Profile</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div id="divprofile">
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<div class="modal" id="feedback">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Curriculum Feedback</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div id="divfeedback">
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<div class="modal" id="Progression">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Alumni Progression</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div id="divProgression">
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<div class="modal" id="Viewall">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Preview of entire data</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div id="divviewalldata">
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script>
+    function ContentLoad() {
+
+    }
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $('.selectpicker').selectpicker('Refresh');
+
+    function bindApprovalForConvocation() {
+    $('#page-loader').removeClass('fade in hide').addClass('fade in');
+
+    var pid = $('#Programmelist').val();
+    var setting = $('#Convocationsettinglist').val();
+
+    $.ajax({
+        url: "@Url.Action("BindApprovalforconvocation", "Alumnae")",
+        type: "post",
+        data: { sProgrammeId: pid, sSETTING: setting },
+        success: function (data) {
+            $('#page-loader').removeClass('fade in').addClass('fade in hide');
+            $('#binddiv').empty().append(data);
+            $('#tblstudent').DataTable({ "paging": false });
+        },
+        error: function (ex) {
+            $('#page-loader').removeClass('fade in').addClass('fade in hide');
+            alert(ex.Message);
+        }
+    });
+}
+
+$('#Programmelist, #Convocationsettinglist').on('change', bindApprovalForConvocation);
+
+
+
+    function profile(ID)
+    {
+        $('#page-loader').removeClass('fade in hide');
+        $('#page-loader').addClass('fade in ');
+        $('#divprofile').empty();
+        $.ajax({
+            url: "@Url.Action("Getprofile", "Alumnae")",
+            type: "post",
+            data: { sStudentId: ID },
+            success: function (data)
+            {
+                $('#page-loader').removeClass('fade in ');
+                $('#page-loader').addClass('fade in hide');
+                $('#divprofile').empty();
+                $('#divprofile').append(data);
+            },
+            error: function (ex) {
+                $('#page-loader').removeClass('fade in ');
+                $('#page-loader').addClass('fade in hide');
+                alert(ex.Message);
+            }
+        });
+    }
+    function feedback(ID)
+    {
+        $('#page-loader').removeClass('fade in hide');
+        $('#page-loader').addClass('fade in ');
+        $('#divfeedback').empty();
+        $.ajax({
+            url: "@Url.Action("Getfeedback", "Alumnae")",
+            type: "post",
+        data: { sStudentId: ID },
+        success: function (data)
+        {
+            $('#page-loader').removeClass('fade in ');
+            $('#page-loader').addClass('fade in hide');
+            $('#divfeedback').empty();
+            $('#divfeedback').append(data);
+        },
+            error: function (ex) {
+                $('#page-loader').removeClass('fade in ');
+                $('#page-loader').addClass('fade in hide');
+            alert(ex.Message);
+        }
+    });
+    }
+    function Progression(ID)
+    {
+        $('#page-loader').removeClass('fade in hide');
+        $('#page-loader').addClass('fade in ');
+        $('#divfeedback').empty();
+        $.ajax({
+            url: "@Url.Action("GetProgression", "Alumnae")",
+            type: "post",
+        data: { sStudentId: ID },
+        success: function (data)
+        {
+            $('#page-loader').removeClass('fade in ');
+            $('#page-loader').addClass('fade in hide');
+            $('#divProgression').empty();
+            $('#divProgression').append(data);
+        },
+            error: function (ex) {
+                $('#page-loader').removeClass('fade in ');
+                $('#page-loader').addClass('fade in hide');
+            alert(ex.Message);
+        }
+    });
+    }
+    function viewalldata(ID)
+    {
+        $('#page-loader').removeClass('fade in hide');
+        $('#page-loader').addClass('fade in ');
+        $('#divviewalldata').empty();
+        $.ajax({
+            url: "@Url.Action("bindentiredata", "Alumnae")",
+            type: "post",
+        data: { sStudentId: ID },
+        success: function (data)
+        {
+            $('#page-loader').removeClass('fade in ');
+            $('#page-loader').addClass('fade in hide');
+            $('#divviewalldata').empty();
+            $('#divviewalldata').append(data);
+        },
+            error: function (ex) {
+                $('#page-loader').removeClass('fade in ');
+                $('#page-loader').addClass('fade in hide');
+            alert(ex.Message);
+        }
+    });
+    }
+
+
+    function updateapproval(ID, status) {
+        $('#page-loader').removeClass('fade in hide');
+        $('#page-loader').addClass('fade in ');
+        var stat = "";
+        if (status == "1") {
+            stat = "0"
+        }
+        else {
+            stat = "1"
+        }
+
+    $.ajax({
+        url: "@Url.Action("APPROVALCHANGES", "Alumnae")",
+        type: "post",
+        data: { STUDENT_ID: ID, APPROVAL: stat },
+        success: function (data) {
+            if (data.Message === "Approval Cancelled ...!") {
+                $('#page-loader').removeClass('fade in ');
+                $('#page-loader').addClass('fade in hide');
+                showAlert('success', 'Approval Cancelled.', function () {
+                    $('#page-loader').removeClass('fade in ');
+                    $('#page-loader').addClass('fade in hide');
+                    bindApprovalForConvocationFORREFRESH();
+                });
+            }
+            else if (data.Message === "Approval success ...!") {
+                $('#page-loader').removeClass('fade in ');
+                $('#page-loader').addClass('fade in hide');
+                showAlert('success', 'Approval Success.', function () {
+                    $('#page-loader').removeClass('fade in ');
+                    $('#page-loader').addClass('fade in hide');
+                    bindApprovalForConvocationFORREFRESH();
+                });
+            } else if (data.Message === "Student not full filled.") {
+                $('#page-loader').removeClass('fade in ');
+                $('#page-loader').addClass('fade in hide');
+                showAlert('warning', 'Student has not met all criteria for approval. Please review.', function () {
+                    $('#page-loader').removeClass('fade in ');
+                    $('#page-loader').addClass('fade in hide');
+                    bindApprovalForConvocationFORREFRESH();
+                });
+            }
+            else {
+                $('#page-loader').removeClass('fade in ');
+                $('#page-loader').addClass('fade in hide');
+                showAlert('error', 'Error submitting feedback.');
+            }
+        },
+        error: function (error) {
+            $('#page-loader').removeClass('fade in ');
+            $('#page-loader').addClass('fade in hide');
+            showAlert('error', 'Error submitting feedback.');
+        }
+    });
+}
+
+    function bindApprovalForConvocationFORREFRESH() {
+        debugger;
+    $('#page-loader').removeClass('fade in hide').addClass('fade in');
+
+    var pid2 = $('#Programmelist').val();
+    var setting2 = $('#Convocationsettinglist').val();
+
+    $.ajax({
+        url: "@Url.Action("BindApprovalforconvocation", "Alumnae")",
+        type: "post",
+        data: { sProgrammeId: pid2, sSETTING: setting2 },
+        success: function (data) {
+            $('#page-loader').removeClass('fade in').addClass('fade in hide');
+            $('#binddiv').empty().append(data);
+            $('#tblstudent').DataTable({ "paging": false });
+        },
+        error: function (ex) {
+            $('#page-loader').removeClass('fade in').addClass('fade in hide');
+            alert(ex.Message);
+        }
+    });
+}
+
+
+
+    function showAlert(type, message, callback) {
+        $('#page-loader').removeClass('fade in').addClass('fade in hide');
+        const titles = {
+            success: "Success!",
+            error: "Error!",
+            warning: "Warning!"
+        };
+
+        const swalOptions = {
+            title: titles[type] || "Notification",
+            text: message,
+            animation: true,
+            type: type
+        };
+
+        if (type === "success") {
+            swalOptions.showConfirmButton = true;
+            swalOptions.confirmButtonText = 'OK';
+            swalOptions.timer = 5000;
+        } else if (type === "warning") {
+            swalOptions.showConfirmButton = true;
+            swalOptions.confirmButtonText = 'OK';
+        } else {
+            swalOptions.timer = 1500;
+            swalOptions.showConfirmButton = false;
+        }
+
+        swal(swalOptions, function () {
+            if (callback) {
+                callback();
+            }
+        });
+
+        if (swalOptions.timer) {
+            setTimeout(() => {
+                swal.close();
+                if (callback) {
+                    callback();
+                }
+            }, swalOptions.timer);
+        }
+    }
+
+
+    function showAlertWithDropdown(title, message, callback) {
+    swal({
+        title: title,
+        text: message,
+        type: "input",
+        allowOutsideClick: false,
+        showCancelButton: true,
+        closeOnConfirm: false,
+        inputPlaceholder: "Choose a reason"
+    }, function(inputValue) {
+        if (inputValue === false) return false;
+        const dropdownValue = $('#dropdownReason').val();
+        if (!dropdownValue || dropdownValue === "") {
+            swal.showInputError("You need to select a reason!");
+            return false;
+        }
+        if (callback) {
+            callback(dropdownValue);
+        }
+    });
+
+    setTimeout(() => {
+        const dropdownHtml = `
+            <select id="dropdownReason" class="swal-input selectpicker show-menu-arrow show-tick drop-down form-control" multiple data-actions-box="true" data-live-search="true" >
+                @foreach (var item in Model.liremarksconvocation)
+                {
+                 <option value="@item.REMARK_ID">@item.REMARK</option>
+                }
+            </select>
+        `;
+        $('.sweet-alert input').hide();
+        $('.sweet-alert .sa-input-error').hide();
+        $('.sweet-alert .form-group').append(dropdownHtml);
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        $('.selectpicker').selectpicker('Refresh');
+    }, 0);
+}
+
+    function deleteRecords(studentId, recordType) {
+     resetDropdown();
+    showAlertWithDropdown('Warning', 'Are you sure to disapprove and redo the selected one? Please provide a reason:', function(selectedValue) {
+        if (!selectedValue) {
+            swal('Warning', 'Please provide a reason to proceed.', 'warning');
+            return;
+        }
+
+        $.ajax({
+            url: "@Url.Action("Deletebasedonselection", "Alumnae")",
+            type: "post",
+            data: {
+                STUDENT_ID: studentId,
+                RECORD_TYPE: recordType,
+                REMARK: selectedValue.toString()
+            },
+            success: function(data) {
+                if (data.Message === "Record deleted successfully!") {
+                    swal({
+                        title: 'Success',
+                        text: 'Record deleted successfully and Approval Cancelled.',
+                        type: 'success'
+                    }, function() {
+                        resetDropdown();
+                    });
+                } else if (data.Message === "Record not found.") {
+                    swal('Warning', 'Record not found, please refresh the list.', 'warning', resetDropdown);
+                } else if (data.Message === "Error deleting record.") {
+                    swal('Error', 'Error while deleting record.', 'error', resetDropdown);
+                } else {
+                    swal('Error', 'No data found to delete.', 'error', resetDropdown);
+                }
+            },
+            error: function() {
+                swal('Error', 'Error while deleting record.', 'error', resetDropdown);
+            }
+        });
+    });
+}
+
+    function resetDropdown() {
+    $('#dropdownReason').val('');
+    $('.swal-input').remove();
+    $('.sweet-alert input').show();
+}
+
+
+
+    function showConfirmationAlert(message, callback) {
+        const swalOptions = {
+            title: "Confirmation",
+            text: message,
+            animation: true,
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No',
+            closeOnConfirm: false,
+            closeOnCancel: true
+        };
+
+        swal(swalOptions, function (isConfirm) {
+            if (isConfirm) {
+                if (callback) {
+                    callback();
+                }
+            } else {
+                showAlert('info', 'Action cancelled.');
+            }
+        });
+    }
+
+
+</script>

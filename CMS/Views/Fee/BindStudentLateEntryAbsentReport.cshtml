@@ -1,0 +1,90 @@
+@model CMS.ViewModel.ViewModel.FeeViewModel
+@{
+    Layout = null;
+    var collegeDetails = Session[CMS.Utility.Common.SESSION_VARIABLES.COLLEGE_DETAILS] as List<CMS.ViewModel.Model.CollegeDetails>;
+
+    List<CMS.ViewModel.Model.STU_LATE_ENTRY> filteredLateFee = null;
+    if (Model.liStuLateFee != null)
+    {
+        filteredLateFee = Model.liStuLateFee.Where(x => {
+            int lateCount = 0;
+            int.TryParse(x.COUNT, out lateCount);
+            return (lateCount / 2) > 0;
+        }).ToList();
+    }
+}
+<style>
+    @@media print {
+        .class-print-block:last-child {
+            page-break-after: avoid !important;
+        }
+    }
+</style>
+
+@if (filteredLateFee != null && filteredLateFee.Count > 0)
+{
+    var groupedList = filteredLateFee.GroupBy(x => x.CLASS_NAME).ToList();
+    foreach (var classGroup in groupedList)
+    {
+        int subCount = 0;
+        <div class="class-print-block" style="page-break-after:always !important; page-break-inside:avoid !important; margin-bottom: 30px;">
+            @if (collegeDetails != null && collegeDetails.Count > 0)
+            {
+                var collegeitem = collegeDetails.FirstOrDefault();
+                <div style="display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;margin-bottom:15px;">
+                    <h3>
+                        <img src="https://erp.sjctnc.edu.in/Content/hcc_img/College_logo_bg_remove.png" height="60" width="60" style="vertical-align:middle;margin-right:10px;" /> 
+                        @collegeitem.COLLEGE_NAME
+                    </h3>
+                    <h4 style="margin-top:-5px;margin-bottom:5px;">@collegeitem.COLLEGE_ADDRESS</h4>
+                </div>
+            }
+            else
+            {
+                <div style="display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;margin-bottom:15px;">
+                    <h3>ST. JOSEPH'S COLLEGE OF ARTS & SCIENCE (AUTONOMOUS)</h3>
+                    <h4>CUDDALORE - 1</h4>
+                </div>
+            }
+            <div style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
+                <h4>Student Late Entry Absent Report - @classGroup.Key (@ViewBag.AcYear)</h4>
+            </div>
+            
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th style="width:5%"><b>#</b></th>
+                        <th style="width:15%"><b>Roll No</b></th>
+                        <th><b>Student Name</b></th>
+                        <th style="width:15%;text-align:center;"><b>Late Entry Count</b></th>
+                        <th style="width:15%;text-align:center;"><b>Absent Days</b></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var items in classGroup)
+                    {
+                        subCount++;
+                        int lateCount = 0;
+                        int.TryParse(items.COUNT, out lateCount);
+                        // Multiples of 0.5 only (e.g. 2 late entries = 0.5 absent day, 4 = 1.0 absent day). Uses integer division to drop .25 and .75.
+                        double absentDays = (lateCount / 2) * 0.5;
+
+                        <tr>
+                            <td>@subCount</td>
+                            <td>@items.ROLL_NO</td>
+                            <td>@items.FIRST_NAME</td>
+                            <td style="text-align:center;">@items.COUNT</td>
+                            <td style="text-align:center;">@absentDays</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+else
+{
+    <div class="bg-danger text-center" style="padding: 15px; margin-top: 20px;">
+        <h4 class="text-white">No Records Found</h4>
+    </div>
+}

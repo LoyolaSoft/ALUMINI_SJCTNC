@@ -1,0 +1,1324 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    ViewBag.Title = "ExternalUserQuestionentry";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+@*<link href="~/Content/assets/plugins/intro-js/introjs.css" rel="stylesheet" />*@
+<link href="~/Content/assets/printout1.css" media="print" rel="stylesheet" />
+
+<style>
+    .card {
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: none;
+        margin-bottom: 25px;
+        background: #fff;
+    }
+
+    .profile-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .profile-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 60px;
+        border: 4px solid rgba(255,255,255,0.3);
+        object-fit: cover;
+    }
+
+    /* Tab Workflow Styles */
+    .workflow-tabs {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        padding: 0;
+        list-style: none;
+        background: #f8f9fa;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .workflow-tab {
+        flex: 1;
+        text-align: center;
+        padding: 20px 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-right: 1px solid #ddd;
+        position: relative;
+        background: #eee;
+        color: #777;
+        font-weight: 600;
+        text-decoration: none !important;
+    }
+
+        .workflow-tab:last-child {
+            border-right: none;
+        }
+
+        .workflow-tab.active {
+            background: #fff;
+            color: #2a5298;
+            box-shadow: inset 0 -4px 0 #2a5298;
+        }
+
+        .workflow-tab.completed {
+            background-color: #43a047 !important;
+            color: white !important;
+        }
+
+            .workflow-tab.completed .tick-mark {
+                display: inline-block;
+                margin-right: 8px;
+                font-size: 1.2em;
+            }
+
+        .workflow-tab.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+    .tick-mark {
+        display: none;
+    }
+
+    .tab-content-panel {
+        padding: 40px;
+        min-height: 400px;
+    }
+
+    .btn-workflow {
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s;
+    }
+
+    .instruction-item {
+        margin-bottom: 15px;
+        padding-left: 30px;
+        position: relative;
+    }
+
+        .instruction-item i {
+            position: absolute;
+            left: 0;
+            top: 4px;
+            color: #2a5298;
+        }
+
+    .borderred {
+        border: 2px solid #ff5b57;
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    /* Success Background for Tab */
+    .bg-completion {
+        background-color: #d4edda !important;
+        border-color: #c3e6cb !important;
+    }
+
+    .no-print {
+        display: block;
+    }
+
+    @@media print {
+        .no-print, .header, .sidebar, .breadcrumb, .page-header, .workflow-tabs, .header-college, #pane-1, #pane-2, #pane-3, .instruction-item, .alert, .btn-workflow {
+            display: none !important;
+        }
+
+        #pane-4, #claimPrintArea {
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        .content {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+    }
+</style>
+
+<style>
+    /* Styling for the Blooms Taxonomy Sidebar */
+    .bloom-box {
+        text-align: center;
+        padding: 15px 5px;
+        margin-bottom: 5px;
+        color: #fff;
+        font-weight: bold;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+        .bloom-box:hover {
+            transform: scale(1.05);
+        }
+
+    .bloom-k1 {
+        background-color: #f5b041;
+    }
+
+    .bloom-k2 {
+        background-color: #5dade2;
+    }
+
+    .bloom-k3 {
+        background-color: #58d68d;
+    }
+
+    .bloom-k4 {
+        background-color: #af7ac5;
+    }
+
+    .bloom-k5 {
+        background-color: #ec7063;
+    }
+
+    .bloom-k6 {
+        background-color: #aeb6bf;
+    }
+
+    .bloom-sidebar {
+        padding-right: 5px;
+    }
+
+    .question-panel {
+        padding-left: 5px;
+    }
+
+    .ck-editor__editable {
+        min-height: 100px;
+    }
+
+    .mathjax-sidebar-btn {
+        text-align: center;
+        padding: 8px 2px;
+        margin-bottom: 8px;
+        color: #fff;
+        font-weight: bold;
+        font-size: 13px;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        display: block;
+        width: 100%;
+        border: none;
+    }
+    .mathjax-sidebar-btn:hover {
+        transform: scale(1.05);
+        color: #fff;
+        text-decoration: none;
+    }
+</style>
+
+<div id="content" class="content">
+
+    <div class="table-responsive mt-4">
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Exam Name</th>
+                    <th>Department</th>
+                    <th>Course Title</th>
+                    <th>Due Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    @if (Model.liExternalordercopydetails != null && Model.liExternalordercopydetails.Count > 0)
+                    {
+                        <td>
+                            @if (Model.liExternalordercopydetails[0].EXAM_NAME != null)
+                            {
+                                <span>@Model.liExternalordercopydetails[0].EXAM_NAME</span>
+                            }
+                        </td>
+                        <td>
+                            @if (Model.liExternalordercopydetails[0].DEPARTMENT != null)
+                            {
+                                <span>@Model.liExternalordercopydetails[0].DEPARTMENT</span>
+                            }
+                        </td>
+                        <td>
+                            @if (Model.liExternalordercopydetails[0].COURSE_TITLE != null)
+                            {
+                                <span>@Model.liExternalordercopydetails[0].COURSE_TITLE</span>
+                            }
+                        </td>
+                        <td>
+                            @if (Model.liExternalordercopydetails[0].DUE_DATE != null)
+                            {
+                                <span>@Model.liExternalordercopydetails[0].DUE_DATE</span>
+                            }
+                        </td>
+                    }
+                    else
+                    {
+                        <td colspan="4" class="text-center">No details found.</td>
+                    }
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="panel-body p-0">
+                    <!-- Workflow Tabs -->
+                    <div class="workflow-tabs" id="workflowTabs">
+                        <a href="javascript:void(0)" class="workflow-tab active" id="tab-1" onclick="showTab(1)">
+                            <span class="tick-mark"><i class="fa fa-check-circle"></i></span>
+                            1. Instructions
+                        </a>
+                        <a href="javascript:void(0)" class="workflow-tab disabled" id="tab-2" onclick="showTab(2)">
+                            <span class="tick-mark"><i class="fa fa-check-circle"></i></span>
+                            2. Syllabus Download
+                        </a>
+                        <a href="javascript:void(0)" class="workflow-tab disabled" id="tab-3" onclick="showTab(3)">
+                            <span class="tick-mark"><i class="fa fa-check-circle"></i></span>
+                            3. Question Entry
+                        </a>
+                        <a href="javascript:void(0)" class="workflow-tab disabled" id="tab-4" onclick="showTab(4)">
+                            <span class="tick-mark"><i class="fa fa-check-circle"></i></span>
+                            4. Claim Form
+                        </a>
+                    </div>
+
+                    <!-- Tab Content Panes -->
+                    <div class="tab-content-panel">
+                        <!-- Pane 1: Instructions -->
+                        <div id="pane-1" class="workflow-pane">
+                            <div class="header-college text-center mb-4">
+                                <h3>Instructions to the Question Setters:</h3>
+                                <hr />
+                            </div>
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="instruction-list" style="max-height: 500px; overflow-y: auto; padding-right: 15px;">
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            1. This appointment must be treated as strictly confidential.
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            2. For any clarification, contact only the Controller of Examinations.
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            3. Carefully study the <b>syllabus, blueprint, and question paper pattern</b> before setting the paper.
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            4. Provide all <b>required particulars</b> such as <b>Title of the Paper, Semester Number, Set Number</b>, etc., accurately.
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            5. Questions must be drawn strictly from the <b>prescribed syllabus</b> and distributed fairly across all units, in line with the <b>blueprint</b>.
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            6. Frame questions in accordance with <b>Bloom's Taxonomy</b>. Use the prescribed <b>action verbs</b>, and indicate the <b>knowledge level (K1-K6)</b> at the end of each question.
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            7. Ensure all <b>technical terms, notations, and symbols</b> are written with precision.
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            8. Questions should be <b>clear, specific, and unambiguous</b>.
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            9. Marks allotted for each question and subdivision must be indicated, unless otherwise stated as <b>"All Questions Carry Equal Marks."</b>
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            10. Assign <b>running numbers</b> to all questions in sequence.
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            11. Prepare a <b>scheme of valuation</b> with key answer points and a clear <b>marking breakup</b> for subdivisions.
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            12. Submit the <b>question paper and scheme of valuation</b> to the official email ID: <b>sjccoe@gmail.com</b>.
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            13. Claims for <b>remuneration and reimbursement of expenses</b> should be sent separately by post on the day of dispatch.
+                                        </div>
+                                        <div class="instruction-item">
+                                            <i class="fa fa-caret-right"></i>
+                                            14. Any documents / correspondence related to question setting should be dispatched only to:<br />
+                                            <div style="margin-top:5px; padding-left: 20px;">
+                                                <b>THE CONTROLLER OF EXAMINATIONS,</b><br />
+                                                St. Joseph's College of Arts & Science (Autonomous),<br />
+                                                St. Joseph's College Road, Cuddalore – 607 001., within one week from the date of receipt of this Communication.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-4 bg-light rounded text-center border">
+                                        <i class="fa fa-file-text-o fa-4x text-primary mb-3"></i>
+                                        <p class="font-weight-bold">Acknowledgement</p>
+                                        <p class="small">I have read and understood all the instructions mentioned above.</p>
+                                        <button class="btn btn-primary btn-workflow btn-block mt-3" onclick="completeStep(1)">Accept & Proceed</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pane 2: Syllabus -->
+                        <div id="pane-2" class="workflow-pane" style="display:none">
+                            <h3 class="mb-4">Syllabus Download</h3>
+                            <div class="alert alert-info">
+                                <i class="fa fa-download mr-2"></i> Please download and review the syllabus for the allotted course(s) before entering the questions.
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr class="bg-primary text-white">
+                                            <th>Course Code</th>
+                                            <th>Course Title</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.liExternalordercopydetails != null)
+                                        {
+                                            foreach (var item in Model.liExternalordercopydetails)
+                                            {
+                                                <tr>
+
+                                                    <td>@item.COURSE_TITLE</td>
+                                                    <td class="text-center">
+                                                        <a href="javascript:void(0)" class="btn btn-sm btn-success" onclick="downloadSyllabus('@item.COURSE_ID')">
+                                                            <i class="fa fa-file-pdf-o"></i> Download Syllabus
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-center mt-4">
+                                <button class="btn btn-primary btn-workflow" id="btnNextSyllabus" onclick="completeStep(2)">Proceed to Question Entry</button>
+                            </div>
+                        </div>
+
+                        <!-- Pane 3: Question Entry -->
+                        <div id="pane-3" class="workflow-pane" style="display:none">
+                            <h3 class="mb-4">Question Entry</h3>
+                            <div id="questionEntryContent">
+                                <div class="panel-body">
+                                    <div class="form-horizontal">
+                                        <div class="row" style="margin-bottom: 20px;">
+                                            <div class="col-md-4 form-group">
+                                                @Html.Label("Exam Name", htmlAttributes: new { @class = "control-label col-md-4" })
+                                                <div class="col-md-8">
+                                                    @Html.DropDownListFor(model => model.ExamSetting, ViewBag.ExamSettings as SelectList ?? Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control selectpicker show-menu-arrow show-tick", @id = "ddlExamSetting", @data_live_search = "true" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 form-group">
+                                                @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-3" })
+                                                <div class="col-md-9">
+                                                    @Html.DropDownListFor(model => model.Course, ViewBag.Courses as SelectList ?? Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control selectpicker show-menu-arrow show-tick", @id = "ddlCourse", @data_live_search = "true" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 form-group">
+                                                <a class="btn btn-primary" id="btnGet" onclick="GetPattern()"><i class="fa fa-search"></i> Get Pattern</a>
+                                                &nbsp;
+                                                <a class="btn btn-success" id="btnPreview" onclick="PreviewQuestionPaper()" style="display:none;"><i class="fa fa-eye"></i> Preview</a>
+                                            </div>
+                                        </div>
+
+                                        <div class="row" id="divMainContent" style="display:none;">
+                                            <!-- Left Column: Blooms Taxonomy -->
+                                                <div class="col-md-1 bloom-sidebar">
+                                                    <h5 class="text-center" style="font-weight:bold; font-size:12px;">Taxonomy</h5>
+                                                    
+                                                    <div class="mathjax-sidebar-btn" onclick="OpenMathModal()" style="background-color: #5bc0de; margin-bottom: 10px;">
+                                                        <i class="fa fa-superscript fa-lg"></i><br /><span style="font-size: 11px;">Maths</span>
+                                                    </div>
+                                                    <div class="mathjax-sidebar-btn" onclick="OpenChemModal()" style="background-color: #f0ad4e; margin-bottom: 10px;">
+                                                        <i class="fa fa-flask fa-lg"></i><br /><span style="font-size: 11px;">Chem</span>
+                                                    </div>
+                                                    <div class="mathjax-sidebar-btn" onclick="OpenImagePicker()" style="background-color: #43a047; margin-bottom: 20px;">
+                                                        <i class="fa fa-image fa-lg"></i><br /><span style="font-size: 11px;">Image</span>
+                                                    </div>
+
+                                                    @if (ViewBag.BloomsTaxonomy != null)
+                                                    {
+                                                        int counter = 1;
+                                                        foreach (var bloom in (IEnumerable<CMS.ViewModel.Model.BLOOMS_TAXONOMY_MASTER>)ViewBag.BloomsTaxonomy)
+                                                        {
+                                                            var cssClass = "bloom-k" + ((counter > 6) ? 6 : counter);
+                                                            <div class="bloom-box @cssClass" onclick="showBloomDetails('@bloom.k_level', '@Html.Raw(HttpUtility.JavaScriptStringEncode(bloom.cognitive_process))', '@Html.Raw(HttpUtility.JavaScriptStringEncode(bloom.description))', '@Html.Raw(HttpUtility.JavaScriptStringEncode(bloom.action_verbs))', '@Html.Raw(HttpUtility.JavaScriptStringEncode(bloom.sample_question_stems))')">
+                                                                K @bloom.k_level
+                                                            </div>
+                                                            counter++;
+                                                        }
+                                                    }
+                                                </div>
+
+                                            <!-- Right Column: Question Entry Panel -->
+                                            <div class="col-md-11 question-panel" id="divPatternDetails">
+                                                <!-- Content will be loaded dynamically here via Ajax -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="text-center">
+                                <button class="btn btn-success btn-workflow" id="btnCompleteQuestions" style="display:none" onclick="completeStep(3)">Complete & Finalize Entry</button>
+                            </div>
+                        </div>
+
+                        <!-- Pane 4: Claim Form -->
+                        <div id="pane-4" class="workflow-pane" style="display:none">
+                            <div id="claimPrintArea" class="p-4 border bg-white" style="color: #333; font-family: 'Times New Roman', serif; line-height: 1.5;">
+                                <div class="text-center mb-4">
+                                    <h3 class="m-0" style="font-weight: bold;">St. Joseph's College of Arts & Science (Autonomous)</h3>
+                                    <p class="m-0">(Re-Accredited by NAAC with A Grade 4<sup>th</sup> Cycle)</p>
+                                    <p class="m-0">St. Joseph's College Road, Cuddalore – 607 001.</p>
+                                    <h4 class="mt-3" style="text-decoration: underline; font-weight: bold;">CLAIM FOR QUESTION PAPER SETTING - NOVEMBER 2025</h4>
+                                </div>
+
+                                <table class="table table-bordered border-dark claim-table" style="border: 2px solid #000; width: 100%;">
+                                    <tr>
+                                        <td width="20%"><b>Programme</b></td>
+                                        <td width="30%"><input type="text" class="form-control-plaintext p-0" /></td>
+                                        <td width="20%"><b>Course Code</b></td>
+                                        <td width="30%"><input type="text" class="form-control-plaintext p-0" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Title of the Course</b></td>
+                                        <td colspan="3"><input type="text" class="form-control-plaintext p-0" value="@(Model.liExternalordercopydetails != null && Model.liExternalordercopydetails.Count > 0 ? Model.liExternalordercopydetails[0].COURSE_TITLE : "")" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" class="text-center"><b>Remuneration</b></td>
+                                        <td class="text-center"><b>@@NO OF QUESTION<br />& SCHEME</b></td>
+                                        <td class="text-center"><b>TOTAL</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <b>UG Question:</b> Rs.500/- <span class="ml-4"><b>SOV:</b> Rs.200/-</span>
+                                        </td>
+                                        <td><input type="number" class="form-control text-center claim-calc" id="qtyUG" oninput="calculateClaim()" value="0" /></td>
+                                        <td><input type="text" class="form-control text-right" id="totalUG" readonly value="0.00" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <b>PG Question:</b> Rs.700/- <span class="ml-4"><b>SOV:</b> Rs.200/-</span>
+                                        </td>
+                                        <td><input type="number" class="form-control text-center claim-calc" id="qtyPG" oninput="calculateClaim()" value="0" /></td>
+                                        <td><input type="text" class="form-control text-right" id="totalPG" readonly value="0.00" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-right"><b>Postal Charges:</b> (original receipt should be enclosed)</td>
+                                        <td><input type="number" class="form-control text-right claim-calc" id="postalCharges" oninput="calculateClaim()" value="0" /></td>
+                                    </tr>
+                                    <tr style="background: #fdfdfd;">
+                                        <td colspan="3" class="text-right"><b>Total Claim (QTN+SCHEME+POSTAL)</b></td>
+                                        <td><input type="text" class="form-control text-right font-weight-bold" id="grandTotal" readonly value="0.00" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4"><b>Rupees (in words) :</b> <span id="rupeesInWords" class="ml-2 font-italic"></span></td>
+                                    </tr>
+                                </table>
+
+                                <table class="table table-bordered border-dark mt-3" style="border: 2px solid #000; width: 100%;">
+                                    <tr><td width="30%"><b>Name :</b></td><td><input type="text" class="form-control-plaintext p-0" value="@(Model.liExternalordercopydetails != null && Model.liExternalordercopydetails.Count > 0 ? Model.liExternalordercopydetails[0].FIRST_NAME : "")" /></td></tr>
+                                    <tr><td><b>Mobile No:</b></td><td><input type="text" class="form-control-plaintext p-0" /></td></tr>
+                                    <tr><td><b>Designation:</b></td><td><input type="text" class="form-control-plaintext p-0" /></td></tr>
+                                    <tr><td><b>Official Address:</b></td><td><input type="text" class="form-control-plaintext p-0" /></td></tr>
+                                    <tr><td><b>Ac/ No :</b></td><td><input type="text" class="form-control-plaintext p-0" /></td></tr>
+                                    <tr><td><b>Bank:</b></td><td><input type="text" class="form-control-plaintext p-0" /></td></tr>
+                                    <tr><td><b>Branch:</b></td><td><input type="text" class="form-control-plaintext p-0" /></td></tr>
+                                    <tr><td><b>IFS Code:</b></td><td><input type="text" class="form-control-plaintext p-0" /></td></tr>
+                                </table>
+
+                                <div class="mt-4">
+                                    <p><b>Declaration:</b></p>
+                                    <p style="text-indent: 30px;">I hereby declare that, the above mentioned claim amount is a part of my taxable income and I am responsible for the same.</p>
+
+                                    <div class="row mt-5">
+                                        <div class="col-xs-6 pt-4">
+                                            <p><b>Signature:</b> ____________________</p>
+                                        </div>
+                                        <div class="col-xs-6 text-right small">
+                                            <p>NOTE: Account number & IFS Code should be in full form.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-4 no-print pb-5">
+                                <button class="btn btn-success btn-lg" id="btnSubmitClaim" onclick="submitClaim()">
+                                    <i class="fa fa-save"></i> Submit Claim Form
+                                </button>
+                                <button class="btn btn-primary btn-lg" id="btnPrintClaim" style="display:none" onclick="printClaim()">
+                                    <i class="fa fa-print"></i> Print Original Claim Form
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Bloom's Taxonomy Modal -->
+<div class="modal fade" id="BloomModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="bloomModalTitle">Bloom's Taxonomy Details</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th style="width: 30%;">Cognitive Process</th><td id="tdCognitiveProcess"></td></tr>
+                        <tr><th>Description</th><td id="tdDescription"></td></tr>
+                        <tr><th>Action Verbs</th><td id="tdActionVerbs"></td></tr>
+                        <tr><th>Sample Questions</th><td id="tdSampleQuestions"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Question Paper Preview Modal -->
+<div class="modal fade" id="previewQPModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" style="width: 90%; max-width: 1100px;" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color:#fff;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:1;"><span>&times;</span></button>
+                <h4 class="modal-title"><i class="fa fa-file-text-o m-r-5"></i> Question Paper Preview</h4>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <div class="no-print" style="padding: 10px 15px; background:#f8f9fa; border-bottom: 1px solid #ddd;">
+                    <button class="btn btn-primary btn-sm" onclick="PrintPreview()"><i class="fa fa-print"></i> Print</button>
+                    &nbsp;
+                    <button class="btn btn-info btn-sm" onclick="DownloadWord()"><i class="fa fa-file-word-o"></i> Download Word (.doc)</button>
+                </div>
+                <div id="previewModalContent" style="padding: 15px; min-height: 300px; max-height: 75vh; overflow-y: auto;">
+                    <div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading preview...</div>
+                </div>
+            </div>
+            <div class="modal-footer no-print">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Maths Modal -->
+<div class="modal fade" id="MathFormModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Insert Maths Equation</h4>
+            </div>
+            <div class="modal-body">
+                <label>Enter LaTeX Equation (e.g., \sqrt{x^2+1} )  - NOTE: Do NOT wrap inside $$ or \(\) :</label>
+                <textarea id="txtMathInput" class="form-control" rows="3" onkeyup="UpdateMathPreview()"></textarea>
+                <br />
+                <label>Preview:</label>
+                <div id="divMathPreview" style="min-height: 50px; border: 1px solid #ccc; padding: 10px; font-size: 16px;"></div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
+                <a href="javascript:;" class="btn btn-sm btn-success" onclick="InsertMathEquation()">Insert</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chem Modal -->
+<div class="modal fade" id="ChemFormModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Insert Chemical Formula</h4>
+            </div>
+            <div class="modal-body">
+                <label>Enter Chemical Formula (e.g., H2O or CO2) - NOTE: Do NOT wrap inside \ce{} :</label>
+                <textarea id="txtChemInput" class="form-control" rows="3" onkeyup="UpdateChemPreview()"></textarea>
+                <br />
+                <label>Preview:</label>
+                <div id="divChemPreview" style="min-height: 50px; border: 1px solid #ccc; padding: 10px; font-size: 16px;"></div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
+                <a href="javascript:;" class="btn btn-sm btn-success" onclick="InsertChemFormula()">Insert</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var currentStep = 1;
+    var completedSteps = {
+        1: false,
+        2: false,
+        3: false,
+        4: false
+    };
+
+    var currentActiveEditor = null;
+
+    function OpenMathModal() {
+        if (!currentActiveEditor) {
+            var firstEditorId = $('.editor-textarea').first().attr('id');
+            if (firstEditorId && CKEDITOR.instances[firstEditorId]) {
+                currentActiveEditor = CKEDITOR.instances[firstEditorId];
+            } else {
+                swal('Warning', 'Please click inside a Question Entry box first to select where to insert.', 'warning');
+                return;
+            }
+        }
+        $('#txtMathInput').val('');
+        $('#divMathPreview').html('');
+        $('#MathFormModal').modal('show');
+    }
+
+    function OpenChemModal() {
+        if (!currentActiveEditor) {
+            var firstEditorId = $('.editor-textarea').first().attr('id');
+            if (firstEditorId && CKEDITOR.instances[firstEditorId]) {
+                currentActiveEditor = CKEDITOR.instances[firstEditorId];
+            } else {
+                swal('Warning', 'Please click inside a Question Entry box first to select where to insert.', 'warning');
+                return;
+            }
+        }
+        $('#txtChemInput').val('');
+        $('#divChemPreview').html('');
+        $('#ChemFormModal').modal('show');
+    }
+
+    function UpdateMathPreview() {
+        var input = $('#txtMathInput').val();
+        $('#divMathPreview').html('\\(' + input + '\\)');
+        if (typeof MathJax !== 'undefined') {
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "divMathPreview"]);
+        }
+    }
+
+    function UpdateChemPreview() {
+        var input = $('#txtChemInput').val();
+        $('#divChemPreview').html('\\(\\ce{' + input + '}\\)');
+        if (typeof MathJax !== 'undefined') {
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "divChemPreview"]);
+        }
+    }
+
+    function InsertMathEquation() {
+        var input = $('#txtMathInput').val();
+        if (input.trim() == '') {
+            swal('Warning', 'Please enter a formula', 'warning');
+            return;
+        }
+        if (currentActiveEditor) {
+            var html = '<span class="math-tex">\\(' + input + '\\)</span>&nbsp;';
+            currentActiveEditor.insertHtml(html);
+            $('#MathFormModal').modal('hide');
+        }
+    }
+
+    function InsertChemFormula() {
+        var input = $('#txtChemInput').val();
+        if (input.trim() == '') {
+            swal('Warning', 'Please enter a formula', 'warning');
+            return;
+        }
+        if (currentActiveEditor) {
+            var html = '<span class="math-tex">\\(\\ce{' + input + '}\\)</span>&nbsp;';
+            currentActiveEditor.insertHtml(html);
+            $('#ChemFormModal').modal('hide');
+        }
+    }
+
+    function OpenImagePicker() {
+        if (!currentActiveEditor) {
+            var firstEditorId = $('.editor-textarea').first().attr('id');
+            if (firstEditorId && CKEDITOR.instances[firstEditorId]) {
+                currentActiveEditor = CKEDITOR.instances[firstEditorId];
+            } else {
+                swal('Warning', 'Please click inside a Question Entry box first to select where to insert.', 'warning');
+                return;
+            }
+        }
+        $('#hdnImageInput').click();
+    }
+
+    function HandleImageUpload(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var base64Image = e.target.result;
+                var html = '<div style="margin:10px 0;"><img src="' + base64Image + '" style="max-width: 100%; height: auto;" /></div>&nbsp;';
+                if (currentActiveEditor) {
+                    currentActiveEditor.insertHtml(html);
+                }
+                $(input).val(''); // Reset
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Load progress from localStorage
+    function loadProgress() {
+        var userId = '@Session[CMS.Utility.Common.SESSION_VARIABLES.USER_ID]';
+        var savedProgress = localStorage.getItem('ExternalUserWorkflow_' + userId);
+        if (savedProgress) {
+            completedSteps = JSON.parse(savedProgress);
+        }
+        updateTabStates();
+
+        // Find furthest completed step to set active tab
+        var furthest = 1;
+        for (var i = 1; i <= 4; i++) {
+            if (completedSteps[i]) {
+                furthest = (i < 4) ? i + 1 : 4;
+            }
+        }
+        showTab(furthest);
+    }
+
+    // Save progress to localStorage
+    function saveProgress() {
+        var userId = '@Session[CMS.Utility.Common.SESSION_VARIABLES.USER_ID]';
+        localStorage.setItem('ExternalUserWorkflow_' + userId, JSON.stringify(completedSteps));
+    }
+
+    function showTab(step) {
+        if (step > 1 && !completedSteps[step - 1] && step > currentStep) {
+            swal("Wait!", "Please complete the previous step first.", "warning");
+            return;
+        }
+
+        // Hide all panes
+        $('.workflow-pane').hide();
+        // Show target pane
+        $('#pane-' + step).show();
+
+        // Update active tab UI
+        $('.workflow-tab').removeClass('active');
+        $('#tab-' + step).addClass('active');
+
+        currentStep = step;
+
+        // Re-enable tabs based on completion
+        updateTabStates();
+    }
+
+    function completeStep(step) {
+        completedSteps[step] = true;
+        saveProgress();
+
+        $('#tab-' + step).addClass('completed');
+        $('#tab-' + step + ' .tick-mark').show();
+
+        // Enable next tab
+        if (step < 4) {
+            var nextStep = step + 1;
+            $('#tab-' + nextStep).removeClass('disabled');
+            showTab(nextStep);
+        } else {
+            swal("Success!", "You have completed the entire workflow.", "success");
+        }
+
+        updateTabStates();
+    }
+
+    function updateTabStates() {
+        for (var i = 1; i <= 4; i++) {
+            if (completedSteps[i]) {
+                $('#tab-' + i).addClass('completed');
+                $('#tab-' + i + ' .tick-mark').show();
+            }
+
+            if (i > 1 && !completedSteps[i-1]) {
+                $('#tab-' + i).addClass('disabled');
+            } else {
+                $('#tab-' + i).removeClass('disabled');
+            }
+        }
+
+        // Always ensure buttons are enabled as per your latest request
+        $('#btnNextSyllabus').prop('disabled', false);
+    }
+
+    function downloadSyllabus(courseId) {
+        // Enforce the requirement: Button enables only after download
+        $('#btnNextSyllabus').prop('disabled', false);
+
+        swal({
+            title: "Downloading...",
+            text: "Your syllabus is being generated.",
+            timer: 1500,
+            showConfirmButton: false,
+            type: "success"
+        });
+
+        // Optional: Trigger actual file download here
+        // window.location.href = '@Url.Action("DownloadFile", "Academics")?id=' + courseId;
+    }
+
+    function loadQuestionEntry() {
+        var courseId = $('#courseSelector').val();
+        if (!courseId) {
+            swal("Required", "Please select a course first.", "info");
+            return;
+        }
+
+        // Navigate to the list exam questions page as requested
+        loadContent('@Url.Action("ListExamQuestions", "Examination")');
+    }
+
+    function calculateClaim() {
+        var ugQty = parseFloat($('#qtyUG').val()) || 0;
+        var pgQty = parseFloat($('#qtyPG').val()) || 0;
+        var postal = parseFloat($('#postalCharges').val()) || 0;
+
+        // UG: 500 (Question) + 200 (Scheme) = 700 per set total
+        var totalUG = ugQty * 700;
+        // PG: 700 (Question) + 200 (Scheme) = 900 per set total
+        var totalPG = pgQty * 900;
+
+        var grandTotal = totalUG + totalPG + postal;
+
+        $('#totalUG').val(totalUG.toFixed(2));
+        $('#totalPG').val(totalPG.toFixed(2));
+        $('#grandTotal').val(grandTotal.toFixed(2));
+    }
+
+    function printClaim() {
+        window.print();
+    }
+
+    function submitClaim() {
+        swal({
+            title: "Submit Claim?",
+            text: "Are you sure you want to submit your remuneration claim?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, submit!",
+            closeOnConfirm: false
+        }, function() {
+            completeStep(4);
+            $('#btnSubmitClaim').hide();
+            $('#btnPrintClaim').show();
+            swal("Submitted!", "Your claim has been submitted. You can now print the original form.", "success");
+        });
+    }
+
+    $(document).ready(function() {
+        loadProgress();
+    });
+</script>
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+
+<!-- MathJax / CKEditor -->
+<script src="https://cdn.ckeditor.com/4.22.1/standard-all/ckeditor.js"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        TeX: { extensions: ["mhchem.js"] }
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker('refresh');
+    });
+
+    function showBloomDetails(klevel, process, desc, verbs, sample) {
+        $('#bloomModalTitle').text(klevel + ' Details');
+        $('#tdCognitiveProcess').text(process);
+        $('#tdDescription').text(desc);
+        $('#tdActionVerbs').text(verbs);
+        $('#tdSampleQuestions').text(sample);
+        $('#BloomModal').modal('show');
+    }
+
+    function GetPattern() {
+        var courseId = $('#ddlCourse').val();
+        var examSettingId = $('#ddlExamSetting').val();
+
+        if (courseId == "" || examSettingId == "") {
+            swal('Warning', 'Please select both Exam Name and Course.', 'warning');
+            return;
+        }
+
+        $('#divMainContent').show();
+        $('#btnPreview').show();
+        $('#divPatternDetails').html('<div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("BindExamQuestionEntryStructure", "OBE")",
+            data: { courseId: courseId, examSettingId: examSettingId },
+            success: function (result) {
+                $('#divPatternDetails').html(result);
+                $('.selectpicker').selectpicker('refresh');
+            },
+            error: function () {
+                swal('Error', 'An error occurred while fetching question paper structure.', 'error');
+            }
+        });
+    }
+
+    function PreviewQuestionPaper() {
+        var courseId = $('#ddlCourse').val();
+        var examSettingId = $('#ddlExamSetting').val();
+
+        if (!courseId || !examSettingId) {
+            swal('Warning', 'Please select Exam Name and Course first.', 'warning');
+            return;
+        }
+
+        $('#previewModalContent').html('<div class="text-center" style="padding:40px 0;"><i class="fa fa-spinner fa-spin fa-3x"></i><br/><br/>Loading preview...</div>');
+        $('#previewQPModal').modal('show');
+
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("PreviewQuestionPaper", "OBE")',
+            data: { courseId: courseId, examSettingId: examSettingId },
+            success: function(result) {
+                $('#previewModalContent').html(result);
+                // Re-render MathJax if available
+                if (typeof MathJax !== 'undefined') {
+                    MathJax.Hub.Queue(['Typeset', MathJax.Hub, 'previewModalContent']);
+                }
+            },
+            error: function() {
+                $('#previewModalContent').html('<div class="alert alert-danger">Failed to load preview. Please try again.</div>');
+            }
+        });
+    }
+
+    function PrintPreview() {
+        var content = document.getElementById('previewModalContent').innerHTML;
+        var printWin = window.open('', '_blank', 'width=900,height=700');
+        printWin.document.write('<html><head><title>Question Paper</title>');
+        printWin.document.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">');
+        printWin.document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML"><\/script>');
+        printWin.document.write('<style>body{font-family:"Times New Roman",Times,serif;font-size:13px;margin:20px;} .no-print{display:none;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #999;padding:5px 8px;} th{background:#e8e8e8;}</style>');
+        printWin.document.write('</head><body>');
+        printWin.document.write(content);
+        printWin.document.write('</body></html>');
+        printWin.document.close();
+        printWin.focus();
+        setTimeout(function() { printWin.print(); }, 1000);
+    }
+
+    function DownloadWord() {
+        var content = document.getElementById('previewModalContent').innerHTML;
+        var header = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Question Paper</title>' +
+            '<style>body{font-family:"Times New Roman",Times,serif;font-size:12pt;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #999;padding:5px 8px;} th{background:#e8e8e8;} .no-print{display:none;}</style></head><body>';
+        var footer = '</body></html>';
+        var blob = new Blob([header + content + footer], { type: 'application/msword' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'QuestionPaper.doc';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Function to handle saving per grid row
+    function SaveQuestionData(btn, isFinalSubmit) {
+        debugger;
+        var row = $(btn).closest('tr');
+        var qidSelector = row.find('.hdnQuestionId');
+        var questionId = qidSelector.val();
+        var unitId = row.find('.liObeUnit').val();
+        var levelId = row.find('.liObeQus').val();
+        var questionNo = row.find('td:eq(0)').text().trim(); // E.g. "1.A"
+
+        var editorId = row.find('.editor-textarea').attr('id');
+        var questionHtml = '';
+        if (CKEDITOR.instances[editorId]) {
+            questionHtml = CKEDITOR.instances[editorId].getData();
+            $('#' + editorId).val(questionHtml); // Fix: Sync the raw textarea value
+        }
+
+        var courseId = $('#ddlCourse').val();
+        var examSettingId = $('#ddlExamSetting').val();
+
+        var isValid = true;
+
+        if (unitId == "" || unitId == "0" || typeof unitId === "undefined") {
+            row.find('.liObeUnit').closest('div').addClass('has-error');
+            isValid = false;
+        } else {
+            row.find('.liObeUnit').closest('div').removeClass('has-error');
+        }
+
+        if (levelId == "" || levelId == "0" || typeof levelId === "undefined") {
+            row.find('.liObeQus').closest('div').addClass('has-error');
+            isValid = false;
+        } else {
+            row.find('.liObeQus').closest('div').removeClass('has-error');
+        }
+
+        var rawText = questionHtml.replace(/(<([^>]+)>)/gi, "").replace(/&nbsp;/g, '').trim();
+        if (rawText == "" && questionHtml.indexOf('<img') === -1 && questionHtml.indexOf('<span class="math-tex"') === -1) {
+            swal("Warning", "Question text cannot be empty. Please enter the question", "warning");
+            isValid = false;
+        }
+
+        if (!isValid) {
+            swal('Warning', 'Please fill all mandatory fields (Unit, Level, Question Text) for this row.', 'warning');
+            return false;
+        }
+
+        var obj = {
+            QUESTION_ID: questionId,
+            QUESTION: questionHtml,
+            OBE_UNIT_ID: unitId,
+            QUESTION_LEVEL_ID: levelId,
+            COURSE_ID: courseId,
+            EXAM_SETTING_ID: examSettingId,
+            FORMULA_EQUATION: questionNo // Using FORMULA_EQUATION slot to temporarily hold the qNum logic to identify it for update if needed.
+        };
+
+        if (isFinalSubmit) {
+            swal({
+                title: 'Final Submit?',
+                text: "You won't be able to edit this question after final submission!",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, submit it!'
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    processAjaxSave(row, btn, obj, true, qidSelector);
+                }
+            });
+        } else {
+            processAjaxSave(row, btn, obj, false, qidSelector);
+        }
+    }
+
+    function processAjaxSave(row, btn, obj, finalSubmit, qidSelector) {
+        var thisBtn = $(btn);
+        var oldHtml = thisBtn.html();
+        thisBtn.html('<i class="fa fa-spinner fa-spin"></i>');
+        thisBtn.prop('disabled', true);
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("SaveQuestionEntry", "OBE")",
+            data: { sJsonData: JSON.stringify(obj), IsFinalSubmit: finalSubmit },
+            success: function (result) {
+                thisBtn.prop('disabled', false);
+                thisBtn.html(oldHtml);
+                if (result.ErrorCode == 202) {
+                    if (finalSubmit) {
+                        swal('Success', result.Message, 'success');
+                        row.find('.btn-draft').hide();
+                        row.find('.label-success').show();
+
+                        // Disable dropdowns
+                        row.find('.liObeUnit, .liObeQus').prop('disabled', true);
+                        row.find('.liObeUnit, .liObeQus').selectpicker('refresh');
+
+                        // Set editor readonly
+                        var editorId = row.find('.editor-textarea').attr('id');
+                        CKEDITOR.instances[editorId].setReadOnly(true);
+                    } else {
+                        if (result.sResult) {
+                            qidSelector.val(result.sResult);
+                            swal('Success', 'Draft saved successfully.', 'success');
+                        }
+                    }
+                } else {
+                    swal('Error', result.Message || "Operation failed", 'error');
+                }
+            },
+            error: function () {
+                thisBtn.prop('disabled', false);
+                thisBtn.html(oldHtml);
+                swal('Error', 'An error occurred while saving data.', 'error');
+            }
+        });
+    }
+
+    function FinalSubmitAllQuestions() {
+        var courseId = $('#ddlCourse').val();
+        var examSettingId = $('#ddlExamSetting').val();
+        var allValid = true;
+        var questionsData = [];
+
+        $('.tblQusEntryStructure tbody tr').each(function () {
+            var row = $(this);
+            // Skip already submitted ones
+            if (row.find('.locked-label').is(':visible')) return;
+
+            var qidSelector = row.find('.hdnQuestionId');
+            var questionId = qidSelector.val();
+            var unitId = row.find('.liObeUnit').val();
+            var levelId = row.find('.liObeQus').val();
+            var questionNo = row.find('td:eq(0)').text().trim();
+
+            var editorId = row.find('.editor-textarea').attr('id');
+            var questionHtml = '';
+            if (CKEDITOR.instances[editorId]) {
+                questionHtml = CKEDITOR.instances[editorId].getData();
+                $('#' + editorId).val(questionHtml); // Fix: Sync the raw textarea value
+            }
+
+            var rowValid = true;
+            if (unitId == "" || unitId == "0" || typeof unitId === "undefined") {
+                row.find('.liObeUnit').closest('div').addClass('has-error');
+                rowValid = false;
+            } else {
+                row.find('.liObeUnit').closest('div').removeClass('has-error');
+            }
+
+            if (levelId == "" || levelId == "0" || typeof levelId === "undefined") {
+                row.find('.liObeQus').closest('div').addClass('has-error');
+                rowValid = false;
+            } else {
+                row.find('.liObeQus').closest('div').removeClass('has-error');
+            }
+
+            var rawText = questionHtml.replace(/(<([^>]+)>)/gi, "").replace(/&nbsp;/g, '').trim();
+            if (rawText == "" && questionHtml.indexOf('<img') === -1 && questionHtml.indexOf('<span class="math-tex"') === -1) {
+                rowValid = false;
+            }
+
+            if (!rowValid) {
+                allValid = false;
+                row.css('background-color', '#fff3f3');
+            } else {
+                row.css('background-color', '');
+                questionsData.push({
+                    row: row,
+                    qidSelector: qidSelector,
+                    obj: {
+                        QUESTION_ID: questionId,
+                        QUESTION: questionHtml,
+                        OBE_UNIT_ID: unitId,
+                        QUESTION_LEVEL_ID: levelId,
+                        COURSE_ID: courseId,
+                        EXAM_SETTING_ID: examSettingId,
+                        FORMULA_EQUATION: questionNo
+                    }
+                });
+            }
+        });
+
+        if (!allValid) {
+            swal('Warning', 'Please fill all mandatory fields (Unit, Level, Question Text) for all pending rows. The invalid rows have been highlighted red.', 'warning');
+            return;
+        }
+
+        if (questionsData.length === 0) {
+            swal('Info', 'All questions are already submitted.', 'info');
+            return;
+        }
+
+        swal({
+            title: 'Final Submit All?',
+            text: "You won't be able to edit these questions after final submission!",
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, submit all!'
+        }, function (isConfirm) {
+            if (isConfirm) {
+                // start batch submit
+                submitQueue(questionsData, 0);
+            }
+        });
+    }
+
+    function submitQueue(queue, index) {
+        if (index >= queue.length) {
+            swal('Success', 'All questions have been successfully submitted.', 'success');
+            return;
+        }
+        var item = queue[index];
+        var row = item.row;
+
+        row.find('.btn-draft').html('<i class="fa fa-spinner fa-spin"></i>');
+        row.find('.btn-draft').prop('disabled', true);
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("SaveQuestionEntry", "OBE")",
+            data: { sJsonData: JSON.stringify(item.obj), IsFinalSubmit: true },
+            success: function (result) {
+                if (result.ErrorCode == 202) {
+                    row.find('.btn-draft').hide();
+                    row.find('.label-success').show();
+
+                    row.find('.liObeUnit, .liObeQus').prop('disabled', true);
+                    row.find('.liObeUnit, .liObeQus').selectpicker('refresh');
+
+                    var editorId = row.find('.editor-textarea').attr('id');
+                    CKEDITOR.instances[editorId].setReadOnly(true);
+
+                    submitQueue(queue, index + 1);
+                } else {
+                    swal('Error', 'Failed processing question ' + item.obj.FORMULA_EQUATION + ': ' + result.Message, 'error');
+                    row.find('.btn-draft').html('<i class="fa fa-save"></i>');
+                    row.find('.btn-draft').prop('disabled', false);
+                }
+            },
+            error: function () {
+                swal('Error', 'An error occurred while saving data for question ' + item.obj.FORMULA_EQUATION, 'error');
+                row.find('.btn-draft').html('<i class="fa fa-save"></i>');
+                row.find('.btn-draft').prop('disabled', false);
+            }
+        });
+    }
+</script>
+
+<input type="file" id="hdnImageInput" accept="image/*" onchange="HandleImageUpload(this)" style="display:none;" />

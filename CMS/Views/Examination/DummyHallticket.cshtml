@@ -1,0 +1,157 @@
+﻿
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+    @using CMS.Utility;
+
+@{
+    ViewBag.Title = "HallTicket";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<style>
+    #HallTicket {
+        width: 1050px;
+        padding: 5px;
+        border: 2px solid gray;
+        margin: 0;
+        height: auto;
+    }
+
+    #Result {
+        width: 150px;
+        padding: 5px;
+        border: 2px solid gray;
+        margin: 0;
+        height: 150px;
+    }
+</style>
+
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">Hall Ticket</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Hall Ticket<small></small></h1>
+    <!-- end page-header -->
+    @*@using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken();*@
+    <div class="form-horizontal">
+        <div class="panel panel-primary">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">HALL TICKET</h4>
+            </div>
+            <div class="panel-body">
+                <label class="hidden" id="studentid"></label>
+                <div class="col-md-12">
+                    <div class="form-group col-md-5">
+                        @Html.Label("Roll No", htmlAttributes: new { @class = "control-label col-md-3" })
+                        <div class="col-md-9">
+                            @Html.DropDownList("Roll No", (Model.liStudentList != null) ? new SelectList(Model.liStudentList, Common.STUDENT_INFO.STUDENT_ID, Common.STUDENT_INFO.ROLL_NO) : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true",@id="Rollno" })
+                            @Html.ValidationMessageFor(model => model.liStudentList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <a href="javascript:;" onclick="loadHallticket()" id="btnGet" class="btn btn-sm btn-primary">Get</a>
+                    </div>
+                    <div class="col-md-2 col-md-offset-4 hidden" style="z-index:1" id="printdiv">
+                        <span class="pull-right">
+                            <a href="javascript:;" id="sPrint" @*onclick="printDiv('dvLoadSubjectDetails')"*@ class="btn btn-sm btn-success m-b-10"><i class="fa fa-print m-r-5"></i> Print</a>
+                        </span>
+                    </div>
+                </div>
+                <br /><br /><br />
+                <div id="dvLoadSubjectDetails">
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+    @*}*@
+</div>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+        function ContentLoad()
+        {
+   
+        }
+
+        $('.selectpicker').selectpicker({
+            size: 5
+        });
+        function loadHallticket()
+        {
+            if ($('#Rollno').val() != '')
+            {
+                var studentid = $('#Rollno').val();
+                $('#studentid').val(studentid);
+                $.ajax({
+                    url: "@Url.Action("BindSubjectsForHallTicket", "Examination")",
+                    method: "POST",
+                datatype: "json",
+                data: { sStudentId: studentid },
+                success: function (data)
+                {
+                    $("#dvLoadSubjectDetails").empty();
+                    $("#dvLoadSubjectDetails").append(data);
+                    $('#printdiv').removeClass("hidden");
+                   
+                }, error: function (error) {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+        else
+        {
+                    alert("Please Select Roll No For Hallticket !");
+        }
+        }
+  
+    $('#sPrint').on('click', function ()
+    {
+        if ($('#studentid').val())
+        {
+            var studentid = $('#studentid').val();
+            $.ajax({
+                url: "@Url.Action("SaveDummyHallticketDistributed", "Examination")",
+                method: "POST",
+                datatype: "json",
+                data: { sStudentId: studentid },
+                success: function (data)
+                {
+                    var printContents = document.getElementById('dvLoadSubjectDetails').innerHTML;
+                    var originalContents = document.body.innerHTML;
+
+                    document.body.innerHTML = printContents;
+
+                    window.print();
+
+                    document.body.innerHTML = originalContents;
+                    
+                    loadContent('/Examination/DummyHallticket');
+
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+
+    });
+</script>
+
+
+

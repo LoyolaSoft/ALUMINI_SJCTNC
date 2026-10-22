@@ -1,0 +1,221 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+
+@{ 
+    Layout = null;
+}
+
+
+<!-- ================== BEGIN PAGE LEVEL STYLE ================== -->
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<!-- ================== END PAGE LEVEL STYLE ================== -->
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">IQAC</a></li>
+        <li class="active">Year Wise Report </li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Year Wise Report<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Year Wise Report</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+                    <div class="col-md-12 form-group">
+                        <div class="col-md-4 form-group">
+                            <label class="col-md-3 control-label">Year</label>
+                            <div class="col-md-9">
+                                @*@Html.DropDownListFor(m => m.sAcademicYearList, (Model.sAcademicYearList != null) ? Model.sAcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(m => m.sAcademicYearList, "", new { @class = "text-danger" })*@
+                                <input type="text" name="txtDateFrom" class="form-control input-sm date" placeholder="Enter  Year" id="sAcademicYearList" max="@System.DateTime.Now.Year" maxlength="4"/>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 form-group">
+                            <label class="col-md-3 control-label">Question</label>
+                            <div class="col-md-9">
+                                <select class="selectpicker show-menu-arrow show-tick drop-down form-control  input-sm" data-live-search="true" id="ddlQuestions">
+                                    <option value="0">-- Select --</option>
+                                    <option value="7"> Awards</option>
+                                    <option value="8"> Subject Association</option>
+                                    <option value="10">Membership</option>
+                                    <option value="11">Project</option>
+                                    <option value="12"> Research Guidence</option>
+                                    <option value="15"> Paper Publication</option>
+                                    <option value="16"> Book Publication</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 form-group">
+                            <a href="javascript:;" class="btn btn-primary" id="btnGet" onclick="BindData()">Get</a>
+                            <a href="javascript:;" class="btn btn-success hidden" id="btnPrint" onclick="printDiv()">Print</a>
+                            <a href="javascript:;" class="btn btn-success hidden" id="btnExport" onclick="Export()">Export</a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 form-group hidden" id="dvlbl">
+                        <div class="col-md-4 form-group">
+                            <label class="col-md-4 control-label"> Year : </label>
+                            <div class="col-md-8">
+                                <label class="lblYear"></label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 form-group">
+                            <label class="col-md-4 control-label"> Question : </label>
+                            <div class="col-md-8">
+                                <label class="lblQuestion"></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <div id="dvIQACBind"></div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+@Html.HiddenFor(model => model.sMessage)
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+
+<script>
+  
+
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+
+</script>
+
+
+
+    <script>
+        function BindData()
+        {
+                $.ajax({
+                url: '@Url.Action("BindIQACYearwiseReport", "IQAC")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sAcYear: $('#sAcademicYearList').val(), sQuestionId: $('#ddlQuestions').val() },
+                success: function (data)
+                {
+                    $('#dvIQACBind').empty();
+                    if (data.Message!=null && data.Message!='')
+                    {
+                        swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    } else
+                    {
+                        var columncount = 0;
+                        $('#dvIQACBind').append(data);
+                        $('.table').DataTable({
+                            'bPaginate': false,
+                            initComplete: function () {
+                                this.api().columns().every(function () {
+                                    if (columncount != 0) {
+                                        var column = this;
+                                        var select = $('<select class="form-control selectpicker" data-live-search="true" ><option value="0">-- Select --</option></select>')
+                                            .appendTo($(column.footer()).empty())
+                                            .on('change', function () {
+                                                var val = $.fn.dataTable.util.escapeRegex(
+                                                    $(this).val()
+                                                );
+
+                                                column
+                                                    .search(val ? '^' + val + '$' : '', true, false)
+                                                    .draw();
+                                            });
+
+                                        column.data().unique().sort().each(function (d, j) {
+                                            select.append('<option value="' + d + '">' + d + '</option>')
+                                        });
+                                    }
+                                    columncount++;
+                                });
+                            },
+                            "ordering": false,
+                            dom: "<'row'<'col-sm-3'l><'col-sm-9 text-right'<'m-l-10 pull-right'B>f>>rt<'pull-left'i>p", lengthMenu: [10, 25, 50, 75, 100], colReorder: !0, fixedHeader: {
+                                header: !0, headerOffset: $("#header").height()
+                            }
+                        });
+                        $('.dataTables_filter').addClass('pull-right'); 
+                        $('.lblYear').text($('#sAcademicYearList').val());
+                        $('.lblQuestion').text($('#ddlQuestions Option:selected').text());
+                        $('#dvlbl').removeClass('hidden');
+                        $('#btnPrint').removeClass('hidden');
+                        $('#btnExport').removeClass('hidden');
+                        $('.selectpicker').selectpicker('refresh');
+                    }
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+
+
+        function printDiv()
+        {
+            var printContents = document.getElementById('dvIQACBind').innerHTML;
+            var originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            loadContent('/IQAC/IQACYearwiseReport');
+        }
+
+
+        function Export()
+        {
+            var title = "";
+            var sAcademicYear = $('#sAcademicYearList').val();
+            var Question = $('#ddlQuestions option:selected').text();
+            var Department = $('#sMessage').val();
+            title = sAcademicYear + "_" + Question ;
+            let file = new Blob([$('#dvIQACBind').html()], { type: "application/vnd.ms-excel" });
+            let url = URL.createObjectURL(file);
+            let a = $("<a />", {
+                href: url,
+                download: title + ".xls"
+            }).appendTo("body").get(0).click();
+            //e.preventDefault();
+            loadContent('/IQAC/IQACYearwiseReport');
+        }
+    </script>

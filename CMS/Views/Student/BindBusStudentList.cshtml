@@ -1,0 +1,100 @@
+﻿
+@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+
+@using System.Globalization;
+
+@{
+    ViewBag.Title = "BindStudentDueWithPercentageReport";
+    Layout = null;
+    int count = 0;
+
+    var currentDate = DateTime.Now.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+}
+
+
+
+
+@if (Model.liFeeDueReport != null && Model.liFeeDueReport.Count > 0)
+{
+    var liGroupShift = Model.liFeeDueReport.GroupBy(x => x.SHIFT).ToList();
+    foreach (var shiftItem in liGroupShift)
+    {
+
+        var liGroupBusRoute = Model.liFeeDueReport.GroupBy(x => x.BUS_NO).ToList();
+        foreach (var busItem in liGroupBusRoute)
+        {
+            count = 0;
+            var liDue = Model.liFeeDueReport.Where(x => x.SHIFT == shiftItem.FirstOrDefault().SHIFT && x.BUS_NO == busItem.FirstOrDefault().BUS_NO).ToList();
+
+            if (liDue != null && liDue.Count > 0)
+            {
+
+                <div style="page-break-after:always !important;">
+                    <table class="table table-hover table-bordered" width="100%" id="StudentList">
+                        <thead>
+                            <tr>
+                                <th class="text-center" colspan="10">ST.JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS), CUDDALORE</th>
+                            </tr>
+                            <tr>
+                                <th>
+                                </th>
+                                <th colspan="6" class="text-center">
+                                    <b>SHIFT @liDue.FirstOrDefault().SHIFT_NAME  - @currentDate</b>
+                                </th>
+
+                            </tr>
+                            <tr>
+                                <th><b>#</b></th>
+                                <th><b>Roll No</b></th>
+                                <th><b>First Name</b></th>
+                                <th><b>Class Name</b></th>
+                                <th><b>Bus Route</b> </th>
+                                <th><b>Signature</b></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (liDue != null)
+                            {
+
+                                foreach (var item in liDue)
+                                {
+                                    var sPercentage = 0.0;
+                                    var absentCount = 0;
+                                    if (Model.liAttendanceReport != null)
+                                    {
+                                        var findStuId = Model.liAttendanceReport.Where(o => o.STUDENT_ID == item.STUDENT_ID).OrderBy(o => o.STUDENT_ID);
+                                        if (findStuId != null)
+                                        {
+                                            var sAbseentCount = Convert.ToInt32(findStuId.FirstOrDefault().DAYS_COUNT) - Convert.ToInt32(findStuId.FirstOrDefault().ABSENT_COUNT);
+                                            sPercentage = Convert.ToDouble(sAbseentCount) / Convert.ToDouble(findStuId.FirstOrDefault().DAYS_COUNT) * 100;
+                                            absentCount = Convert.ToInt32(findStuId.FirstOrDefault().ABSENT_COUNT);
+                                        }
+                                    }
+                                    <tr>
+                                        <td>
+                                            @{ count++;} <b>@count</b>
+                                        </td>
+                                        <td>
+                                            @item.ROLL_NO
+                                        </td>
+                                        <td>
+                                            @item.FIRST_NAME
+                                        </td>
+
+                                        <td>@item.CLASS_NAME</td>
+                                        <td>
+                                            @item.BUS_ROUTE
+                                        </td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+            }
+        }
+    }
+}

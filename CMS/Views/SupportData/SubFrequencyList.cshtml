@@ -1,0 +1,301 @@
+﻿@model CMS.ViewModel.ViewModel.SubFrequencyViewModel
+@{
+    ViewBag.Title = "SubFrequencyList";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+    <link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">List Sub Frequency </li>
+    </ol>
+    <h1 class="page-header">Frequency </h1>
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Sub Frequency </h4>
+        </div>
+        <div class="">
+            <a class="btn bg-green pull-right m-b-5" title="Add Sup Frequency" data-toggle="modal" style="cursor:pointer" href="#Head-dialog"><i class="fa fa-plus"></i> Add</a>
+        </div>
+        <div class="panel-body noPadding">
+            <br />
+            @{ int count = 0;}
+            @if (Model.lstSupFeeFrequency != null)
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-responsive" id="SubFrequencyList">
+                        <thead>
+                            <tr>
+                                <th>
+                                    #
+                                </th>
+                                <th>
+                                    Frequency Name
+                                </th>
+                                <th>
+                                    Academic Year
+                                </th>
+                                <th>
+                                    Date To
+                                </th>
+                                <th>
+                                    Last Date Of Payment
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+
+                        @foreach (var item in Model.lstSupFeeFrequency)
+                {
+                            <tr>
+                                <td>
+                                    @{ count++;}
+                                    @count
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.FREQUENCY_NAME)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.ACADEMIC_YEAR)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.DATE_TO)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.LAST_DATE_OF_PAYMENT)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.FREQUENCY_TYPE)
+                                </td>
+                                <td>
+                                    <a href="#Head-dialog" onclick="FetchSubFrequencyById(@item.FREQUENCY_ID);" data-toggle="modal" title="View"><i class="fa fa-edit text-primary"></i></a>
+                                    <a href="javascript:;" onclick="GetConfirm(@item.FREQUENCY_ID)" title="CliCk To Delete"><i class="fa fa-trash text-danger"></i></a>
+                                </td>
+                            </tr>
+                                        }
+
+                    </table>
+                </div>
+                                        }
+        </div>
+    </div>
+</div>
+
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+    <script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+    <script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+    <script>
+        $("#SubFrequencyList").DataTable();
+    </script>
+    <script>
+        function ContentLoad() 
+        {
+            // Document Ready Function .
+            handleDatepicker();
+            GetDropDown();
+        }
+        
+            handleDatepicker = function () {
+                "use strict";
+                $("#Datefrom,#Dateto,#LastDateOfPayment").datepicker({
+                    todayHighlight: !0,
+                    autoclose: !0,
+                    startDate: new Date(),
+                    format: "dd/mm/yyyy",
+                    orientation: "right bottom",
+                    zIndexOffset: '15',
+                    defaultDate: new Date()
+                }
+                )
+            }
+            
+            GetDropDown = function () {
+                $.ajax({
+                    url: "@Url.Action("FetchFrequencyType", "SupportData")",
+                    method: "POST",
+                    datatype: "json",
+                    success: function (data) {
+                        var ddl = JSON.parse(data);
+                        $('#ddlFrequencyType').empty();
+                        $('#ddlFrequencyType').append('<option value="0">-- select --</option>' + ddl.TYPE);
+                        $('#ddlSemesterType').empty();
+                        $('#ddlSemesterType').append('<option value="0">-- select --</option>' + ddl.SEMESTER_TYPE);
+                    }, error: function (error) {
+                        alert('Internal Server Error ! ');
+                    }
+                });
+            }
+           
+        
+
+        GetConfirm = function (ID) {
+            if (!confirm('Are you sure to Delete the Frequency ?')) {
+                return false;
+            }
+            $.ajax({
+                url: "@Url.Action("DeleteSupFrequency", "SupportData")",
+                method: "POST",
+                datatype: "html",
+                data: { sFrequencyId: ID },
+                success: function (ObjJsonData) {
+                    myAlert(ObjJsonData.Message, 'gritter-success', '');
+                    
+                    loadContent('/SupportData/SupFrequencyList');
+                }, error: function (error) {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+        FetchSubFrequencyById = function (ID) {
+            $.ajax({
+                url: "@Url.Action("FetchSubFrequencyById", "SupportData")",
+                method: "POST",
+                datatype: "html",
+                data: { sFrequencyId: ID },
+                success: function (ObjJsonData) {
+                    $('#txtFrequencyId').val(ObjJsonData[0].FREQUENCY_ID);
+                    $("#txtName").val(ObjJsonData[0].FREQUENCY_NAME);
+                    $("#Datefrom").val(ObjJsonData[0].DATE_FROM);
+                    $("#Dateto").val(ObjJsonData[0].DATE_TO);
+                    $('#LastDateOfPayment').val(ObjJsonData[0].LAST_DATE_OF_PAYMENT);
+                    $('#ddlFrequencyType').val(ObjJsonData[0].FREQUENCY_TYPE);
+                    $('#ddlSemesterType').val(ObjJsonData[0].SEMESTER_TYPE);
+                }, error: function (error) {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+        $('#btnSave').on('click', function () {
+            var FrequencyId = $('#txtFrequencyId').val();
+            var FrequencyName = $("#txtName").val();
+            var DateFrom = $("#Datefrom").val();
+            var DateTo = $("#Dateto").val();
+            var LastDateOfPayment = $('#LastDateOfPayment').val();
+            var FrequencyType = $('#ddlFrequencyType').val();
+            var SemesterType = $('#ddlSemesterType').val();
+            var JsonData;
+            if (DateFrom != null) {
+                if (Date.parse(DateFrom) > Date.parse(DateTo) && Date.parse(DateTo) < Date.parse(LastDateOfPayment)) {
+                    alert('Date Range is wrong...!!!');
+                    return false;
+                }
+                JsonData = '{"FREQUENCY_ID":"' + FrequencyId + '","FREQUENCY_NAME":"' + FrequencyName + '","DATE_FROM":"' + DateFrom + '","DATE_TO":"' + DateTo + '","LAST_DATE_OF_PAYMENT":"' + LastDateOfPayment + '","TYPE":"' + FrequencyType + '","SEMESTER_TYPE":"' + SemesterType + '"}';
+                $.ajax({
+                    url: "@Url.Action("SaveOrUpdateSubFrequency", "SupportData")",
+                    method: "POST",
+                    data: { sFrequency: JsonData },
+                    success: function (objResult) {
+                        myAlert(objResult.Message, 'gritter-success', '');
+                        loadContent('/SupportData/SupFrequencyList');
+                    }, error: function (error) {
+                        alert('Internal Server Error ..!');
+                    }
+                });
+            }
+            else {
+                alert('Please Select the Date...!!!');
+                return false;
+            }
+        });
+    </script>
+
+<div class="modal fade" id="Head-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div>
+                        <input type="hidden" id="txtFrequencyId" />
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Frequency Name</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control input-sm" id="txtName" placeholder="Enter Frequency Name" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Date From</label>
+                        <div class="col-md-9">
+                            <div class="input-group date">
+                                <input type="text" class="form-control input-sm" id="Datefrom" placeholder="Pick Starting Date" />
+                                <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Date To</label>
+                        <div class="col-md-9">
+                            <div class="input-group date">
+                                <input type="text" class="form-control input-sm" id="Dateto" placeholder="Pick Ending Date" />
+                                <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Last Date Of Payment</label>
+                        <div class="col-md-9">
+                            <div class="input-group date">
+                                <input type="text" class="form-control input-sm" id="LastDateOfPayment" placeholder="Pick Last Date Of Payment" />
+                                <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Frequency Type</label>
+                        <div class="col-md-9">
+                            <select id="ddlFrequencyType" class="form-control">
+                                <option value="0">-- Select --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Semester Type</label>
+                        <div class="col-md-9">
+                            <select id="ddlSemesterType" class="form-control">
+                                <option value="0">-- Select --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSave" class="btn btn-sm btn-primary" data-dismiss="modal">Save</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+

@@ -1,0 +1,124 @@
+﻿@model CMS.ViewModel.ViewModel.AccountViewModel
+@{ int count = 0;}
+<table class="table table-bordered table-hover" id="UserAccountList">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Photo</th>
+            <th>Name</th>
+            <th>User Name</th>
+            <th>Role</th>
+            <th>Mobile</th>
+            <th>User Type</th>
+            @*<th>E-mail</th>*@
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.ListUserAccount != null)
+        {
+            foreach (var list in Model.ListUserAccount)
+            {
+                <tr>
+                    <td>
+                        @{ count++;}
+                        @count
+                    </td>
+                    <td>
+                        @if (list.PHOTO != null)
+                        {
+                            <img src="@list.PHOTO" style="width:50px;height:40px;border-radius:50%" />
+                        }
+                        else
+                        {
+                            <img src="" style="width: 50px; height: 40px; border-radius:50%" />
+                        }
+                    </td>
+                    <td>@list.NAME</td>
+                    <td>@list.USERNAME</td>
+                    <td>@list.ROLE</td>
+                    <td>@list.MOBILE</td>
+                    <td>@list.USER_TYPE</td>
+                    @*<td>@list.EMAIL</td>*@
+                    <td>
+                        <a href="#AddModal-dialog" data-toggle="modal" data-dissmiss="modal" onclick="FetchUserAccount(@list.USER_ACCOUNT_ID)"><i class="fa fa-edit"></i></a>
+                        <a href="javascript:;" onclick="DeleteUserAccount(@list.USER_ACCOUNT_ID)"><i class="fa fa-trash text-danger"></i></a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<input type="hidden" name="name" value="" id="hdUserAccountId" />
+<input type="hidden" name="name" value="" id="hdUserId" />
+<script>
+    function FetchUserAccount(UserAccountId)
+    {
+        $.ajax({
+            url: '@Url.Action("FetchUserAccount", "Account")',
+            data: { sUserAccountId: UserAccountId },
+            success: function (data)
+            {
+                if (data.ErrorCode!=null && data.ErrorCode!='')
+                {
+                    swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                } else
+                {
+                    $('#hdUserAccountId').val(data[0].USER_ACCOUNT_ID);
+                    $('#hdUserId').val(data[0].USER_ID);
+                    $('#txtUserName').val(data[0].USERNAME);
+                    $('#txtEmail').val(data[0].EMAIL);
+                    $('#txtName').val(data[0].NAME);
+                    $('#ddlRole').val(data[0].ROLE);
+                    $('#ddlUserType').val(data[0].USER_TYPE);
+                  
+                    $('#txtUserName').attr('disabled', true);
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            },
+            error: function (xhr, textStatus, error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+    function DeleteUserAccount(UserAccountId)
+    {
+
+        if (!confirm('Are you sure to delete ?'))
+        {
+            return false;
+        } else
+        {
+            $.ajax({
+                url: '@Url.Action("DeleteUserAccount", "Account")',
+                data: { sUserAccountId: UserAccountId },
+                success: function (data) {
+                    if (data.ErrorCode == '200') {
+                        swal({ title: "Success!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                        loadGird();
+                    } else {
+                        swal({ title: "Error!", text: "Sorry failed to fetch record !", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                },
+                error: function (xhr, textStatus, error) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+        //swal({
+        //    title: "Confirmation !",
+        //    text: "Are you sure to delete ?",
+        //    type: "Danger",
+        //    showCancelButton: true,
+        //    confirmButtonClass: "btn-danger",
+        //    confirmButtonText: "Yes, I agree !",
+        //    closeOnConfirm: false
+        //}, function ()
+        //{
+
+        //});
+    }
+</script>

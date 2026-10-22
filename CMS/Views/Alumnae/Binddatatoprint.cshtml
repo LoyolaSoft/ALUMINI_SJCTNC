@@ -1,0 +1,576 @@
+﻿
+﻿@using CMS.Utility;
+@using System.Data;
+@using CMS.ViewModel.Model;
+@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    Layout = null;
+}
+@{var symbol = "@fancyapps"; }
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@symbol/ui/dist/fancybox.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+    .dataTables_info {
+        display: none !important;
+    }
+
+    .label.label-success {
+        margin: 10px;
+    }
+
+    .content-block {
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+    }
+
+    .badge.badge-success, .label.label-success {
+        background: #4CD964;
+    }
+
+    .pull-right {
+        float: right !important;
+    }
+</style>
+
+@if (Model.lialumnaeprogression != null && Model.lialumnaeprogression.Count > 0)
+{
+    var classnameforpriting = "";
+    foreach (var selectedstudent in Model.lialumnaeprogression)
+    {
+        bool hasQuestions = Model.licurriculumquestions != null && Model.licurriculumquestions.Any(q => q.STUDENT_ID == selectedstudent.STUDENT_ID && !string.IsNullOrEmpty(q.ANSWER));
+
+        if (string.IsNullOrEmpty(selectedstudent.AADHAR_NO) || hasQuestions == false)
+        {
+            classnameforpriting = "incompletestudent";
+        }
+        else
+        {
+            classnameforpriting = "";
+        }
+        <div class="@classnameforpriting">
+            <div class="feedbackdiv" style="display:  none;">
+                <div class="row" style="display: flex; align-items: center;">
+                    <div style="flex: 0 0 auto; text-align: left; padding-right: 10px;">
+                        <img src="~/Content/assets/img/logoap.jpeg" alt="College Logo" @*style="height: 100px;"*@ id="ISFORPRINT">
+                    </div>
+
+                </div>
+                <br />
+                <br />
+
+                <div class="profilestudent" style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+                    <table class="table table-bordered" id="tblstudent" style="border: 0px !important; width: 70%;">
+                        <tbody style="border: 0px !important;">
+                            @*<tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>ROLL NO</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.ROLL_NO</td>
+                            </tr>*@
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>REGISTER_NO</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.REGISTER_NO</td>
+                            </tr>
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>NAME</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.FIRST_NAME</td>
+                            </tr>
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>DEPARTMENT</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.DEPARTMENT</td>
+                            </tr>
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>PROGRAMME</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.PROGRAMME_NAME</td>
+                            </tr>
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>PHONE_NO</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.PHONE_NO</td>
+                            </tr>
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>EMAIL</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.EMAIL</td>
+                            </tr>
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>AADHAR_NO</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.AADHAR_NO</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="width: 30%; text-align: center;">
+                        <img src="@selectedstudent.PHOTO" alt="Student Photo" style="max-width: 150px; height: auto; border-radius: 8px;">
+                    </div>
+                </div>
+
+                <br />
+
+
+                <center><h3>Feedback</h3></center>
+                @{var selectedstudentid = selectedstudent.STUDENT_ID;
+                    if (Model.licurriculumquestions != null && Model.licurriculumquestions.Count > 0)
+                    {
+                        <table class="table table-hover table-bordered" id="tblstudent">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Question</th>
+                                    <th>Answer</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var count = 0;
+                                    foreach (var item in Model.licurriculumquestions)
+                                    {
+                                        if (item.STUDENT_ID == selectedstudentid)
+                                        {
+                                            count++;
+                                            <tr>
+                                                <td>@count</td>
+                                                <td><b>@item.QUESTION</b></td>
+                                                <td>@item.ANSWER</td>
+                                            </tr>
+                                        }
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    }
+                }
+                <div style="page-break-before:always;"> </div>
+            </div>
+            <br />
+        </div>
+
+        <div class="@classnameforpriting">
+            <div class="progressiondiv @classnameforpriting" style="display:  none;">
+
+                <div class="row" style="display: flex; align-items: center;">
+                    <div style="flex: 0 0 auto; text-align: left; padding-right: 10px;">
+                        <img src="~/Content/assets/img/logoap.jpeg" alt="College Logo" @*style="height: 100px;"*@ id="ISFORPRINT">
+                    </div>
+
+                </div>
+
+                <br />
+                <br />
+                <div class="profilestudent" style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+                    <table class="table table-bordered" id="tblstudent" style="border: 0px !important; width: 70%;">
+                        <tbody style="border: 0px !important;">
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>REGISTER_NO</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.REGISTER_NO</td>
+                            </tr>
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>NAME</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.FIRST_NAME</td>
+                            </tr>
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>DEPARTMENT</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.DEPARTMENT</td>
+                            </tr>
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>PROGRAMME</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.PROGRAMME_NAME</td>
+                            </tr>
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>PHONE_NO</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.PHONE_NO</td>
+                            </tr>
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>EMAIL</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.EMAIL</td>
+                            </tr>
+                            <tr style="border: 0px !important;">
+                                <td style="border: 0px !important;"><b>AADHAR_NO</b></td>
+                                <td style="border: 0px !important;"><b>:</b></td>
+                                <td style="border: 0px !important;">@selectedstudent.AADHAR_NO</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="width: 30%; text-align: center;">
+                        <img src="https://erp.auxiliumcollege.edu.in/@selectedstudent.PHOTO" alt="Student Photo" style="max-width: 150px; height: auto; border-radius: 8px;">
+                    </div>
+                </div>
+                <br />
+
+                <center><h3>Alumnae Progression</h3></center>
+
+                <table class="table table-hover table-bordered" id="tblstudent">
+                    <tbody>
+                        @if (selectedstudent.APSTATUS == "1")
+                        {
+                            <tr>
+                                <td><b>Status</b></td>
+                                <td>@selectedstudent.CSTATUS</td>
+                            </tr>
+                            <tr>
+                                <td><b>Name of the course or Programme</b></td>
+                                <td>@selectedstudent.COURSE_NAME</td>
+                            </tr>
+                            <tr>
+                                <td><b>Name of the Institution</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_NAME</td>
+                            </tr>
+                            <tr>
+                                <td><b>Address of the Institution</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_ADDRESS</td>
+                            </tr>
+                            <tr>
+                                <td><b>Phone Number of the Institution</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_NO</td>
+                            </tr>
+                            <tr>
+                                <td><b>Email of the Institution</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_EMAIL</td>
+                            </tr>
+                            <tr>
+                                <td><b>ID Card / Fee Receipt</b></td>
+                                <td>
+                                    @if (selectedstudent.FILE != null)
+                                    {
+                                        <a data-fancybox="gallery" href="@selectedstudent.FILE">
+                                            <i style="color:black; font-size: 30px;" class="fa fa-download"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <p>File not uploaded ..</p>
+                                    }
+
+                                </td>
+                            </tr>
+                        }
+                        else if (selectedstudent.APSTATUS == "2")
+                        {
+                            <tr>
+                                <td><b>Status</b></td>
+                                <td>@selectedstudent.CSTATUS</td>
+                            </tr>
+                            <tr>
+                                <td><b>Name of the Institution/Company/Organization</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_NAME</td>
+                            </tr>
+                            <tr>
+                                <td><b>Address of the Institution/Company/Organization</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_ADDRESS</td>
+                            </tr>
+                            <tr>
+                                <td><b>Phone Number of the Institution/Company/Organization</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_NO</td>
+                            </tr>
+                            <tr>
+                                <td><b>Email of the Institution/Company/Organization</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_EMAIL</td>
+                            </tr>
+                            <tr>
+                                <td><b>Upload appointment letter / salary slip / employee ID card</b></td>
+                                <td>
+                                    @if (selectedstudent.FILE != null)
+                                    {
+                                        <a data-fancybox="gallery" href="@selectedstudent.FILE">
+                                            <i style="color:black; font-size: 30px;" class="fa fa-download"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <p>File not uploaded ..</p>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><b>Income Range</b></td>
+                                <td>@selectedstudent.INCOME</td>
+                            </tr>
+                        }
+                        else if (selectedstudent.APSTATUS == "3")
+                        {
+                            <tr>
+                                <td><b>Status</b></td>
+                                <td>@selectedstudent.CSTATUS</td>
+                            </tr>
+                            <tr>
+                                <td><b>Name of the course or Programme</b></td>
+                                <td>@selectedstudent.COURSE_NAME</td>
+                            </tr>
+                            <tr>
+                                <td><b>Name of the Institution</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_NAME</td>
+                            </tr>
+                            <tr>
+                                <td><b>Address of the Institution</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_ADDRESS</td>
+                            </tr>
+                            <tr>
+                                <td><b>Phone Number of the Institution</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_NO</td>
+                            </tr>
+                            <tr>
+                                <td><b>Email of the Institution</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_EMAIL</td>
+                            </tr>
+                            <tr>
+                                <td><b>ID Card / Fee Receipt</b></td>
+                                <td>
+                                    @if (selectedstudent.FILE != null)
+                                    {
+                                        <a data-fancybox="gallery" href="@selectedstudent.FILE">
+                                            <i style="color:black; font-size: 30px;" class="fa fa-download"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <p>File not uploaded ..</p>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        else if (selectedstudent.APSTATUS == "4")
+                        {
+                            <tr>
+                                <td><b>Status</b></td>
+                                <td>@selectedstudent.CSTATUS</td>
+                            </tr>
+                            <tr>
+                                <td><b>Specify</b></td>
+                                <td>@selectedstudent.SPECIFY</td>
+                            </tr>
+                            <tr>
+                                <td><b>Name of the Institution</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_NAME</td>
+                            </tr>
+                            <tr>
+                                <td><b>Address of the Institution</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_ADDRESS</td>
+                            </tr>
+                            <tr>
+                                <td><b>Phone Number of the Institution</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_NO</td>
+                            </tr>
+                            <tr>
+                                <td><b>Email of the Institution</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_EMAIL</td>
+                            </tr>
+                            <tr>
+                                <td><b>ID Card / Fee Receipt</b></td>
+                                <td>
+                                    @if (selectedstudent.FILE != null)
+                                    {
+                                        <a data-fancybox="gallery" href="@selectedstudent.FILE">
+                                            <i style="color:black; font-size: 30px;" class="fa fa-download"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <p>File not uploaded ..</p>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        else if (selectedstudent.APSTATUS == "5")
+                        {
+                            <tr>
+                                <td><b>Status</b></td>
+                                <td>@selectedstudent.CSTATUS</td>
+                            </tr>
+                            <tr>
+                                <td><b>Duration</b></td>
+                                <td>@selectedstudent.DURATION</td>
+                            </tr>
+                            <tr>
+                                <td><b>Name of the Institution/Company/Organization</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_NAME</td>
+                            </tr>
+                            <tr>
+                                <td><b>Address of the Institution/Company/Organization</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_ADDRESS</td>
+                            </tr>
+                            <tr>
+                                <td><b>Phone Number of the Institution/Company/Organization</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_NO</td>
+                            </tr>
+                            <tr>
+                                <td><b>Email of the Institution/Company/Organization</b></td>
+                                <td>@selectedstudent.INSTITUTION_COMPANY_EMAIL</td>
+                            </tr>
+                            <tr>
+                                <td><b>Upload appointment letter / salary slip / employee ID card</b></td>
+                                <td>
+
+                                    @if (selectedstudent.FILE != null)
+                                    {
+                                        <a data-fancybox="gallery" href="@selectedstudent.FILE">
+                                            <i style="color:black; font-size: 30px;" class="fa fa-download"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <p>File not uploaded ..</p>
+                                    }
+
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><b>Income Range</b></td>
+                                <td>@selectedstudent.INCOME</td>
+                            </tr>
+                        }
+                        else if (selectedstudent.APSTATUS == "6")
+                        {
+                            <tr>
+                                <td><b>Status</b></td>
+                                <td>@selectedstudent.CSTATUS</td>
+                            </tr>
+                            <tr>
+                                <td><b>Specify</b></td>
+                                <td>@selectedstudent.SPECIFY</td>
+                            </tr>
+                        }
+                        else if (selectedstudent.APSTATUS == "7")
+                        {
+                            <tr>
+                                <td><b>Status</b></td>
+                                <td>@selectedstudent.CSTATUS</td>
+                            </tr>
+                            <tr>
+                                <td><b>Specify</b></td>
+                                <td>@selectedstudent.SPECIFY</td>
+                            </tr>
+                        }
+
+
+                        @if (selectedstudent.EXAM_CLEARED == "1")
+                        {
+                            <tr>
+                                <td><b>Is cleared any competitive examination?</b></td>
+                                <td>Yes</td>
+                            </tr>
+
+                            <tr>
+                                <td><b>Name of the exam</b></td>
+                                <td>@selectedstudent.EXAM_NAME</td>
+                            </tr>
+
+                            <tr>
+                                <td><b>Year of passing</b></td>
+                                <td>@selectedstudent.PASSED_YEAR</td>
+                            </tr>
+
+                            <tr>
+                                <td><b>Certificate of passing</b></td>
+                                <td>
+                                    @if (selectedstudent.CLEARED_FILE != null)
+                                    {
+                                        <a data-fancybox="gallery" href="@selectedstudent.CLEARED_FILE">
+                                            <i style="color:black; font-size: 30px;" class="fa fa-download"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <p>File not uploaded ..</p>
+                                    }
+                                </td>
+                            </tr>
+
+                        }
+                        else
+                        {
+                            <tr>
+                                <td><b>Is cleared any competitive examination?</b></td>
+                                <td>No</td>
+                            </tr>
+                        }
+
+                        <tr>
+                            <td><b>How would you like to collaborate with the Auxilium College Alumnae Association?</b></td>
+                            <td>@selectedstudent.COLLOBRATION</td>
+                        </tr>
+                        <tr>
+                            <td><b>Suggestions</b></td>
+                            <td>@selectedstudent.SUGGESTIONS</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="page-break-before:always;"> </div>
+            </div>
+            <br />
+        </div>
+
+    }
+}
+
+<script src="https://cdn.jsdelivr.net/npm/@symbol/ui/dist/fancybox.umd.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        Fancybox.bind('[data-fancybox="gallery"]', {
+            Toolbar: {
+                display: ["zoom", "close"]
+            },
+            loop: true,
+            afterLoad: (fancybox, slide) => {
+                slide.$content.on('click', function (event) {
+                    event.preventDefault();
+                });
+            }
+        });
+    });
+    function ContentLoad() {
+
+    }
+
+    if ($('#progression').is(':checked')) {
+        $('.progressiondiv').css('display', 'block');
+        $('.feedbackdiv').css('display', 'none');
+
+    } else if ($('#feedback').is(':checked')) {
+        $('.progressiondiv').css('display', 'none');
+        $('.feedbackdiv').css('display', 'block');
+    } else if ($('#both').is(':checked')) {
+        $('.progressiondiv').css('display', 'block');
+        $('.feedbackdiv').css('display', 'block');
+    }
+
+    if ($('#ignoreincompletedata').is(':checked')) {
+        $('.incompletestudent').css('display', 'none');
+    }
+    else {
+        $('.incompletestudent').css('display', 'block');
+    }
+
+    $('#ignoreincompletedata').change(function () {
+        if ($('#ignoreincompletedata').is(':checked')) {
+            $('.incompletestudent').css('display', 'none');
+        } else {
+            $('.incompletestudent').css('display', 'block');
+        }
+    });
+
+
+    $('input[name="printtype"]').change(function () {
+        if ($('#progression').is(':checked')) {
+            $('.progressiondiv').css('display', 'block');
+            $('.feedbackdiv').css('display', 'none');
+
+        } else if ($('#feedback').is(':checked')) {
+            $('.progressiondiv').css('display', 'none');
+            $('.feedbackdiv').css('display', 'block');
+        } else if ($('#both').is(':checked')) {
+            $('.progressiondiv').css('display', 'block');
+            $('.feedbackdiv').css('display', 'block');
+        }
+    });
+</script>

@@ -1,0 +1,332 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "StudentWiseOBEReport";
+    Layout = null;
+}
+
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/css/jquery.jqGauges.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">OBE Report</li>
+    </ol>
+    <h1 class="page-header">OBE Report</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">OBE Report</h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="col-md-3">
+                @Html.Label("Exam", htmlAttributes: new { @class = "col-md-3 control-label " })
+                <div class="col-md-9">
+                    @Html.DropDownListFor(m => m.ExamList, (Model.ExamList != null) ? Model.ExamList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control  selectpicker", @data_live_search = "true" })
+                    @Html.ValidationMessageFor(m => m.ExamList, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-4">
+                @Html.Label("Class", htmlAttributes: new { @class = "col-md-3 control-label " })
+                <div class="col-md-9">
+                    @Html.DropDownListFor(m => m.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control  selectpicker", @data_live_search = "true" })
+                    @Html.ValidationMessageFor(m => m.ClassList, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-4">
+                @Html.Label("Student", htmlAttributes: new { @class = "col-md-3 control-label " })
+                <div class="col-md-9">
+                    @Html.DropDownListFor(m => m.StudentList, (Model.StudentList != null) ? Model.StudentList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control  selectpicker", @data_live_search = "true" })
+                    @Html.ValidationMessageFor(m => m.StudentList, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-primary" id="btnget">Get</button>
+            </div>
+            <br>
+            <br>
+            <div class="form-group col-md-12" id="bindquestiondiv">
+
+            </div>
+            <div class="col-md-12" id="bindcanvas" style="background-color: #fff;height:100%;width:100%">
+
+            </div>
+            <div class="col-md-12 hidden" id="printdiv">
+                <div class="col-md-1 col-md-offset-11"><button class="btn btn-success" onclick="printDiv('bindcanvas')">Download</button></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.js" type="text/javascript" xml="space"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="~/Content/assets/js/jquery.jqGauges.min.js"></script>
+<script>
+
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $('.selectpicker').selectpicker('refresh');
+
+    $('#ClassList').on('change', function () {
+
+        var classid = $(this).val();
+        $.ajax({
+            url: "@Url.Action("FetchStudentsByClassId", "Examination")",
+            type: "post",
+            data: { sClassId: classid },
+            success: function (data) {
+                $('#StudentList').empty();
+                $('#StudentList').append("<option value='0'>--Select--</option>" + data);
+                $('.selectpicker').selectpicker('refresh');
+
+            },
+            error: function (ex) {
+                alert(ex.Message);
+            }
+        });
+    });
+
+    $('#btnget').on('click', function () {
+
+        var classid = $('#ClassList').val();
+        var examid = $('#ExamList').val();
+        var studentid = $('#StudentList').val();
+        $.ajax({
+            url: "@Url.Action("FetchStudentScoreSheet", "Examination")",
+            type: "post",
+            data: { sExamId: examid, sClassId: classid, sStudentId: studentid },
+            success: function (data) {
+                $('#printdiv').removeClass('hidden');
+                $('#bindquestiondiv').empty();
+                var gradient1 = {
+                    type: 'linearGradient',
+                    x0: 0,
+                    y0: 0.5,
+                    x1: 1,
+                    y1: 0.5,
+                    colorStops: [{ offset: 0, color: '#C5F80B' },
+                                 { offset: 1, color: '#6B8901' }]
+                };
+
+                var gradient2 = {
+                    type: 'linearGradient',
+                    x0: 0.5,
+                    y0: 0,
+                    x1: 0.5,
+                    y1: 1,
+                    colorStops: [{ offset: 0, color: '#FF3366' },
+                                 { offset: 1, color: '#B2183E' }]
+                };
+
+                var anchorGradient = {
+                    type: 'radialGradient',
+                    x0: 0.35,
+                    y0: 0.35,
+                    r0: 0.0,
+                    x1: 0.35,
+                    y1: 0.35,
+                    r1: 1,
+                    colorStops: [{ offset: 0, color: '#4F6169' },
+                                 { offset: 1, color: '#252E32' }]
+                };
+                var studetdetails = '<h5><b>Name:' + data.liStudentMark[0].FIRST_NAME + '</b><br><br><b>Register No:' + data.liStudentMark[0].REGISTER_NO + '</b></h5><br><br>';
+                $('#bindquestiondiv').append(studetdetails);
+                $.each(data.liOBECourese, function (i, course) {
+                    var coursetitle = '<center><h4>' + course.COURSE_TITLE + '-' + course.COURSE_CODE + '</h4></center><br><br><br>';
+                    var chartrow = '<div class="row" style="content:attr();display:table;clear: both;" id=' + course.COURSE_CODE + '></div><br><br>';
+                    $('#bindquestiondiv').append(coursetitle);
+                    $('#bindquestiondiv').append(chartrow);
+                    $.each(data.liQuestionlevel, function (i, level) {
+                        var chartdiv = '<div class="column" style="float:left;width: 235px; height: 135px;margin-top:50px;margin-right: 10px;margin-right:10px;"  id=' + course.COURSE_ID + level.QUESTION_LEVEL_ID + '><center><h5 style="margin-top:-40px">' + level.QUESTION_LEVEL + '</h5></center></div>';
+
+                        $('#' + course.COURSE_CODE + '').append(chartdiv);
+                        //$('#' + course.COURSE_CODE + '').append(questionlevel);
+
+                        $.each(data.liStudentMark, function (i, mark) {
+
+                            if (course.COURSE_ID == mark.COURSE_ID && level.QUESTION_LEVEL_ID == mark.QUESTION_LEVEL_ID) {
+                                var percentage = '<center><h5 style="margin-top:-10px"><b>' + mark.MARK + '%</b></h5></center>';
+                                $('#' + course.COURSE_ID + level.QUESTION_LEVEL_ID + '').append(percentage);
+                                $('#' + course.COURSE_ID + level.QUESTION_LEVEL_ID + '').jqRadialGauge({
+                                    background: '#F7F7F7',
+                                    border: {
+                                        lineWidth: 6,
+                                        strokeStyle: '#76786A',
+                                        padding: 16
+                                    },
+                                    shadows: {
+                                        enabled: true
+                                    },
+                                    anchor: {
+                                        visible: true,
+                                        fillStyle: anchorGradient,
+                                        radius: 0.10
+                                    },
+                                    tooltips: {
+                                        disabled: false,
+                                        highlighting: true
+                                    },
+                                    animation: {
+                                        duration: 1
+                                    },
+                                    scales: [
+                                             {
+                                                 minimum: 0,
+                                                 maximum: 100,
+                                                 startAngle: 180,
+                                                 endAngle: 360,
+                                                 majorTickMarks: {
+                                                     length: 12,
+                                                     lineWidth: 2,
+                                                     interval: 10,
+                                                     offset: 0.84
+                                                 },
+                                                 minorTickMarks: {
+                                                     visible: true,
+                                                     length: 8,
+                                                     lineWidth: 2,
+                                                     interval: 2,
+                                                     offset: 0.84
+                                                 },
+                                                 labels: {
+                                                     orientation: 'horizontal',
+                                                     interval: 10,
+                                                     offset: 1.00
+                                                 },
+                                                 needles: [
+                                                            {
+                                                                value: mark.MARK,
+                                                                type: 'pointer',
+                                                                outerOffset: 0.8,
+                                                                mediumOffset: 0.7,
+                                                                width: 10,
+                                                                fillStyle: '#252E32'
+                                                            }
+                                                 ],
+                                                 ranges: [
+                                                            {
+                                                                outerOffset: 0.82,
+                                                                innerStartOffset: 0.76,
+                                                                innerEndOffset: 0.68,
+                                                                startValue: 0,
+                                                                endValue: mark.MARK,
+                                                                fillStyle: level.QUESTION_LEVEL_ID == 1 ? gradient1 : level.QUESTION_LEVEL_ID == 2 ? gradient2 : anchorGradient
+                                                            }
+                                                            //{
+                                                            //    outerOffset: 0.82,
+                                                            //    innerStartOffset: 0.68,
+                                                            //    innerEndOffset: 0.60,
+                                                            //    startValue: 80,
+                                                            //    endValue: 100,
+                                                            //    fillStyle: gradient2
+                                                            //}
+                                                 ]
+                                             }
+                                    ]
+                                });
+
+                                $('#' + course.CCOURSE_ID + level.QUESTION_LEVEL_ID + '').bind('tooltipFormat', function (e, data) {
+
+                                    var tooltip = '<b>Element: ' + data.elementType + '</b> ' + '<br />';
+
+                                    switch (data.elementType) {
+
+                                        case 'needle':
+                                            tooltip += 'Value: ' + mark.MARK;
+                                            break;
+                                            //case 'range':
+                                            //    tooltip += 'Start Value: ' + data.startValue + '<br/>End Value: ' + data.endValue;
+                                    }
+
+                                    return tooltip;
+                                });
+                            }
+                        });
+
+                    });
+
+
+
+                });
+
+
+            },
+            error: function (ex) {
+                alert(ex.Message);
+            }
+        });
+    });
+
+</script>
+<script>
+
+    function printDiv(divName)
+    {
+       
+        var div = $("#bindquestiondiv")[0];
+        var rect = div.getBoundingClientRect();
+        var image;
+        var canvas = document.createElement("canvas");
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        
+        var ctx = canvas.getContext("2d");
+       
+        ctx.fillStyle = 'white';
+        ctx.beginPath();            
+        ctx.stroke();
+        ctx.fill();     
+        ctx.translate(-rect.left, -rect.top);
+       
+        ctx.globalAlpha = 0.2;
+
+        html2canvas(div, {
+            canvas: canvas,
+            height: rect.height,
+            width: rect.width,
+            onrendered: function (canvas)
+            {            
+                image = canvas.toDataURL("image/jpg");
+
+                var pHtml = "<img src=" + image + " />";
+                $("#bindcanvas").append(pHtml);
+               
+                var link = document.createElement('a');
+                link.download = "OBE_Report.jpg";
+                link.href = image;
+                link.click();
+                loadContent('/Examination/StudentWiseOBEReport');
+            }
+
+        });
+       
+        $('#bindquestiondiv').hide();
+      
+
+      
+
+    }
+</script>
+
+

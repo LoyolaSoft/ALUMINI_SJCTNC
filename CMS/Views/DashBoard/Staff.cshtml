@@ -1,0 +1,811 @@
+﻿@model CMS.ViewModel.ViewModel.DashboardViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "Staff";
+    Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    //Layout = null;
+}
+
+<style>
+    #ourmanna-verse {
+        padding: 10px;
+        margin: 10px;
+        /*background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(0, 0, 0, 0.3);*/
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+    }
+
+    #mannaverse {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    #mannaverse-reference:before {
+        content: "- ";
+    }
+
+    #mannaverse-reference {
+        text-align: right;
+        font-size: 12px;
+    }
+
+    #mannaverse-version {
+        color: #ddd;
+    }
+</style>
+@section Styles{
+    <link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+}
+
+@{string CourseCode = string.Empty; string CourseTitle = string.Empty; string ttTimeTable = string.Empty;}
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">StaffDashboard</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">StaffDashboard</h1>
+    <div class="row">
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6 col-lg-12">
+            <div class="widget widget-stats bg-gradient-blue">
+                <div class="stats-icon"><i class="fa fa-inbo"></i></div>
+                <div class="stats-info">
+                    <h4>Word Of The Day</h4>
+                    @*<p><marquee onmouseover="stop();" onmouseout="start();"> My grace is sufficient for you, for my power is made perfect in weakness. 2 Corinthians 12:9 .</marquee></p>*@
+                    <p><div id="ourmanna-verse">Loading...</div></p>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    @*@if (Model.liappdownload != null)
+        {
+
+        }
+        else
+        {
+            Html.RenderPartial("AppDownloaded");
+        }*@
+
+    <div class="row">
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="widget widget-stats bg-gradient-blue">
+                <div class="stats-icon"><i class="ion-ios-world"></i></div>
+                <div class="stats-info">
+                    <h4>Day Order</h4>
+                    @if (@Session[Common.SESSION_VARIABLES.DAY_ORDER].ToString() != null && @Session[Common.SESSION_VARIABLES.DAY_ORDER].ToString() != "")
+                    {
+                        <p>@Session[Common.SESSION_VARIABLES.DAY_ORDER].ToString()</p>
+                    }
+                    else
+                    {
+                        if (@Session[Common.SESSION_VARIABLES.IS_HOLIDAY].ToString() == "1")
+                        {
+                            <p>Holiday</p>
+                        }
+                        else
+                        {
+                            <p></p>
+                        }
+                    }
+
+                </div>
+
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- end col-3 -->
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="widget widget-stats bg-gradient-aqua">
+                <div class="stats-icon"><i class="ion-ios-upload"></i></div>
+                <div class="stats-info">
+                    <h4>Assignments</h4>
+                    <p>0</p>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- end col-3 -->
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="widget widget-stats bg-gradient-purple">
+                <div class="stats-icon"><i class="ion-ios-pie"></i></div>
+                <div class="stats-info">
+                    <h4>TOTAL STAFF</h4>
+                    @*<p>416</p>*@
+                    <p>@ViewBag.TotalStaff</p>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- end col-3 -->
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="widget widget-stats bg-gradient-orange">
+                <div class="stats-icon"><i class="ion-ios-clock"></i></div>
+                <div class="stats-info">
+                    <h4>TIME</h4>
+                    <p id="currenttime"></p>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- end col-3 -->
+    </div>
+    <!-- end row -->
+    <!-- begin row -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-inverse" data-sortable-id="index-5">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <i class="fa fa-birthday-cake"> Today Birth Day Celebraties </i><span class="label bg-blue pull-right">
+                            Staff - @if (Model.liStaffBirthDayList != null && Model.liStaffBirthDayList.Count > 0)
+                            {@Model.liStaffBirthDayList.Count}
+                        </span>
+                    </h4>
+                </div>
+                <div class="panel-body">
+                    <marquee direction="up" onmouseover="stop();" onmouseout="start();">
+                        <div class="height-sm" @*data-scrollbar="true"*@>
+                            <ul class="media-list media-list-with-divider media-messaging">
+                                @if (Model.liStaffBirthDayList != null && Model.liStaffBirthDayList.Count > 0)
+                                {
+                                    foreach (var item in Model.liStaffBirthDayList)
+                                    {
+                                        <li class="media media-sm">
+                                            <a href="javascript:;" class="pull-left">
+                                                <img src="@item.PHOTO" alt="" class="media-object rounded-corner" height="90" />
+                                            </a>
+                                            <div class="media-body">
+                                                <h5 class="media-heading"><b>@item.FIRST_NAME</b></h5>
+                                                <p>
+                                                    Staff Code : @item.STAFF_CODE <br />
+                                                    Department : @item.DEPARTMENT <br />
+                                                    Staff Category : @item.CATEGORY <br />
+                                                </p>
+                                            </div>
+                                        </li>
+                                    }
+                                }
+
+                            </ul>
+                        </div>
+                    </marquee>
+                </div>
+            </div>
+        </div><!-- begin col-8 -->
+        @*<div class="col-md-8">
+                <div class="panel panel-inverse" data-sortable-id="index-1">
+                    <div class="panel-heading">
+                        <div class="panel-heading-btn">
+                            <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                            <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                            <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                            <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                        </div>
+                        <h4 class="panel-title">Staff Perfomance (Last 7 Days)</h4>
+                    </div>
+                    <div class="panel-body">
+                        <div id="interactive-chart" class="height-sm"></div>
+                    </div>
+                </div>
+            </div>*@
+        <!-- end col-8 -->
+        <!-- begin col-4 -->
+        <div class="col-md-4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="panel panel-inverse">
+                        <div class="panel-heading">
+                            <div class="panel-heading-btn">
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                            </div>
+                            <h3 class="panel-title"><i class="fa fa-flag"></i> Events</h3>
+                        </div>
+                        <div class="panel-body noPadding">
+                            <div class="row myMargin" id="event">
+                                <marquee direction="up" scrolldelay="150" onmouseover="stop();" onmouseout="start();">
+                                    <div class="height-sm" @*data-scrollbar="true"*@>
+                                        @if (Model.liCalenderEvents != null && Model.liCalenderEvents.Count > 0)
+                                        {
+                                            <ul class="media-list media-list-with-divider media-messaging">
+                                                @foreach (var item in Model.liCalenderEvents)
+                                                {
+                                                    <li class="media media-sm">
+                                                        <a href="javascript:;" class="pull-left">
+                                                            <img src="" alt="" class="media-object rounded-corner" />
+                                                        </a>
+                                                        <div class="media-body">
+                                                            <h5 class="media-heading"><b>@item.EVENT_START_DATE</b></h5>
+                                                            <p>
+                                                                @item.EVENT_NAME
+                                                            </p>
+                                                        </div>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                    </div>
+                                </marquee>
+
+
+
+                                @*<div class="alert bg-pink alert-dismissible">
+                                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                        No Data Found.
+
+                                        <div id="chartContainer1"></div>
+
+                                    </div>*@
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="panel panel-inverse">
+                        <div class="panel-heading">
+                            <div class="panel-heading-btn">
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                            </div>
+                            <h4 class="panel-title">Calendar</h4>
+                        </div>
+                        <div class="panel-body">
+                            <div class="height-sm">
+                                <div id="datepicker-inline" class="datepicker-full-width"><div></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- end col-4 -->
+    </div>
+    <!-- Begin Event -->
+
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="form-group panel-group" id="accordion">
+                <div class="panel panel-info overflow-hidden">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#OnCampus">
+                                <i class="fa fa-plus-circle pull-right"></i>
+                                On Campus Timetable
+                            </a>
+                        </h3>
+                    </div>
+                    <div class="panel-collapse collapse" id="OnCampus">
+                        <div class="panel-body noPadding">
+                            <div class="row table-responsive" id="event">
+                                @if (Model.liTimetable != null && Model.liTimetable.Count > 0)
+                                {
+                                    var liGroupShift = Model.liTimetable.GroupBy(x => x.SHIFT).OrderBy(x => x.FirstOrDefault().SHIFT).ToList();
+                                    foreach (var Groupitem in liGroupShift)
+                                    {
+                                        var liTimeTable = Model.liTimetable.Where(x => x.SHIFT == Groupitem.FirstOrDefault().SHIFT).ToList();
+                                        <div id="dvTimeTable" class="col-md-12"> Time Table For SHIFT - @Groupitem.FirstOrDefault().SHIFT</div>
+                                        <table class="table table-bordered text-center" id="TimeTableClassWiseList">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    @if (Model.lstHours != null && Model.lstHours.Count > 0)
+                                                    {
+                                                        foreach (var dataitem in Model.lstHours)
+                                                        {
+                                                            <th><b> Hour- @dataitem.HOUR</b></th>
+                                                        }
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model.lstDayOrders != null && Model.lstDayOrders.Count > 0)
+                                                {
+                                                    foreach (var dataitem in Model.lstDayOrders)
+                                                    {
+                                                        <tr>
+                                                            <td><b> Day- @dataitem.DAY</b></td>
+                                                            @foreach (var item in Model.lstHours)
+                                                            {
+                                                                if (liTimeTable != null && liTimeTable.Count > 0)
+                                                                {
+                                                                    var TimeTableList = liTimeTable.Where(s => s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                                                                    var TimeTable = TimeTableList.Where(s => s.Hour_Id == item.HOUR_ID && s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                                                                    if (TimeTable != null && TimeTable.Count > 0)
+                                                                    {
+                                                                        ttTimeTable = string.Join(",", TimeTable.Select(x => x.CLASS_CODE.ToString()).ToArray());
+                                                                        <td>
+                                                                            @{ CourseCode = "(" + @TimeTable.FirstOrDefault().COURSE_CODE + ")";}
+                                                                            @TimeTable.FirstOrDefault().hourType<br />
+                                                                            @{ CourseTitle = @TimeTable.FirstOrDefault().COURSE_TITLE; }
+                                                                            @CourseTitle - @CourseCode <br />
+                                                                            @ttTimeTable
+                                                                        </td>
+                                                                    }
+                                                                    else if (Model.liSubstituteList != null && Model.liSubstituteList.Count > 0)
+                                                                    {
+                                                                        var liSubstituteList = Model.liSubstituteList.Where(s => s.HOUR_ID == item.HOUR_ID && s.DAY_ORDER_ID == dataitem.DAY_ORDER_ID && s.SHIFT == Groupitem.FirstOrDefault().SHIFT).ToList();
+                                                                        if (liSubstituteList != null && liSubstituteList.Count > 0)
+                                                                        {
+                                                                            <td>
+                                                                                @liSubstituteList.FirstOrDefault().HOUR_TYPE<br />
+                                                                                @liSubstituteList.FirstOrDefault().DAY_ORDER_DATE<br />
+                                                                                @liSubstituteList.FirstOrDefault().CLASS_NAME<br />
+                                                                                @liSubstituteList.FirstOrDefault().STAFF_CODE<br />
+                                                                            </td>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <td></td>
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <td></td>
+                                                                    }
+                                                                }
+                                                                else if (Model.liSubstituteList != null && Model.liSubstituteList.Count > 0)
+                                                                {
+                                                                    var liSubstituteList = Model.liSubstituteList.Where(s => s.HOUR_ID == item.HOUR_ID && s.DAY_ORDER_ID == dataitem.DAY_ORDER_ID && s.SHIFT == Groupitem.FirstOrDefault().SHIFT).ToList();
+                                                                    if (liSubstituteList != null && liSubstituteList.Count > 0)
+                                                                    {
+                                                                        <td>
+                                                                            @liSubstituteList.FirstOrDefault().HOUR_TYPE<br />
+                                                                            @liSubstituteList.FirstOrDefault().DAY_ORDER_DATE<br />
+                                                                            @liSubstituteList.FirstOrDefault().CLASS_NAME<br />
+                                                                            @liSubstituteList.FirstOrDefault().STAFF_CODE<br />
+                                                                        </td>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <td></td>
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td></td>
+                                                                }
+                                                            }
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td><p>No records available !!!</p></td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="form-group panel-group" id="accordion">
+                <div class="panel panel-info overflow-hidden">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#Online">
+                                <i class="fa fa-plus-circle pull-right"></i>
+                                Online Timetable
+                            </a>
+                        </h3>
+                    </div>
+                    <div class="panel-collapse collapse" id="Online">
+                        <div class="panel-body noPadding">
+                            <div class="row table-responsive" id="event">
+                                @if (Model.liOnlineTimetable != null && Model.liOnlineTimetable.Count > 0)
+                                {
+                                    var liGroupShift = Model.liOnlineTimetable.GroupBy(x => x.SHIFT).OrderBy(x => x.FirstOrDefault().SHIFT).ToList();
+                                    foreach (var Groupitem in liGroupShift)
+                                    {
+                                        var liTimeTable = Model.liOnlineTimetable.Where(x => x.SHIFT == Groupitem.FirstOrDefault().SHIFT).ToList();
+                                        <div id="dvTimeTable" class="col-md-12"> Time Table For SHIFT - @Groupitem.FirstOrDefault().SHIFT</div>
+                                        <table class="table table-bordered text-center" id="TimeTableClassWiseList">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    @if (Model.lstHours != null && Model.lstHours.Count > 0)
+                                                    {
+                                                        foreach (var dataitem in Model.lstHours)
+                                                        {
+                                                            <th><b> Hour- @dataitem.HOUR</b></th>
+                                                        }
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model.lstDayOrders != null && Model.lstDayOrders.Count > 0)
+                                                {
+                                                    foreach (var dataitem in Model.lstDayOrders)
+                                                    {
+                                                        <tr>
+                                                            <td><b> Day- @dataitem.DAY</b></td>
+                                                            @foreach (var item in Model.lstHours)
+                                                            {
+                                                                if (liTimeTable != null && liTimeTable.Count > 0)
+                                                                {
+                                                                    var TimeTableList = liTimeTable.Where(s => s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                                                                    var TimeTable = TimeTableList.Where(s => s.Hour_Id == item.HOUR_ID && s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                                                                    if (TimeTable != null && TimeTable.Count > 0)
+                                                                    {
+                                                                        ttTimeTable = string.Join(",", TimeTable.Select(x => x.CLASS_CODE.ToString()).ToArray());
+                                                                        <td>
+                                                                            @{ CourseCode = "(" + @TimeTable.FirstOrDefault().COURSE_CODE + ")";}
+                                                                            @TimeTable.FirstOrDefault().hourType<br />
+                                                                            @{ CourseTitle = @TimeTable.FirstOrDefault().COURSE_TITLE; }
+                                                                            @CourseTitle - @CourseCode <br />
+                                                                            @ttTimeTable
+                                                                        </td>
+                                                                    }
+                                                                    else if (Model.liSubstituteList != null && Model.liSubstituteList.Count > 0)
+                                                                    {
+                                                                        var liSubstituteList = Model.liSubstituteList.Where(s => s.HOUR_ID == item.HOUR_ID && s.DAY_ORDER_ID == dataitem.DAY_ORDER_ID && s.SHIFT == Groupitem.FirstOrDefault().SHIFT).ToList();
+                                                                        if (liSubstituteList != null && liSubstituteList.Count > 0)
+                                                                        {
+                                                                            <td>
+                                                                                @liSubstituteList.FirstOrDefault().HOUR_TYPE<br />
+                                                                                @liSubstituteList.FirstOrDefault().DAY_ORDER_DATE<br />
+                                                                                @liSubstituteList.FirstOrDefault().CLASS_NAME<br />
+                                                                                @liSubstituteList.FirstOrDefault().STAFF_CODE<br />
+                                                                            </td>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <td></td>
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <td></td>
+                                                                    }
+                                                                }
+                                                                else if (Model.liSubstituteList != null && Model.liSubstituteList.Count > 0)
+                                                                {
+                                                                    var liSubstituteList = Model.liSubstituteList.Where(s => s.HOUR_ID == item.HOUR_ID && s.DAY_ORDER_ID == dataitem.DAY_ORDER_ID && s.SHIFT == Groupitem.FirstOrDefault().SHIFT).ToList();
+                                                                    if (liSubstituteList != null && liSubstituteList.Count > 0)
+                                                                    {
+                                                                        <td>
+                                                                            @liSubstituteList.FirstOrDefault().HOUR_TYPE<br />
+                                                                            @liSubstituteList.FirstOrDefault().DAY_ORDER_DATE<br />
+                                                                            @liSubstituteList.FirstOrDefault().CLASS_NAME<br />
+                                                                            @liSubstituteList.FirstOrDefault().STAFF_CODE<br />
+                                                                        </td>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <td></td>
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td></td>
+                                                                }
+                                                            }
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td><p>No records available !!!</p></td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- end Event -->
+    <!-- Begin Event -->
+    @*<div class="row">
+            <div class="col-sm-4">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-flag"></i> Events</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="row myMargin" id="event">
+                                    <marquee direction="up" scrolldelay="150" onmouseover="stop();" onmouseout="start();">
+                                        <div class="height-sm" data-scrollbar="true">
+                                            @if (Model.liCalenderEvents != null && Model.liCalenderEvents.Count > 0)
+                                            {
+                                                <ul class="media-list media-list-with-divider media-messaging">
+                                                    @foreach (var item in Model.liCalenderEvents)
+                                                    {
+                                                        <li class="media media-sm">
+                                                            <a href="javascript:;" class="pull-left">
+                                                                <img src="" alt="" class="media-object rounded-corner" />
+                                                            </a>
+                                                            <div class="media-body">
+                                                                <h5 class="media-heading"><b>@item.EVENT_START_DATE</b></h5>
+                                                                <p>
+                                                                    @item.EVENT_NAME
+                                                                </p>
+                                                            </div>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            }
+                                        </div>
+                                    </marquee>
+
+
+
+                                    @*<div class="alert bg-pink alert-dismissible">
+                                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                            No Data Found.
+
+                                            <div id="chartContainer1"></div>
+
+                                        </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-8">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel">
+                            <div class="panel-heading bg-purple">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-calendar-o"></i>Activities</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="row myMargin" id="Activity">
+                                    @if (Model.liActivity != null && Model.liActivity.Count > 0)
+                                    {
+                                        var TempList = Model.liActivity.GroupBy(s => s.ACTIVITY_LEVEL_ID);
+                                        <ol>
+                                            <lh><b>Activities</b></lh>
+                                            @foreach (var item in TempList)
+                                            {
+                                                <li>
+                                                    <a href="javascript:;" onclick="loadContent('/TaskManagement/GetActivityByUserId?ActivityLevelId=@item.FirstOrDefault().ACTIVITY_LEVEL_ID')"
+                                                       @*href="@Url.Action("GetActivityByUserId","TaskManagement",new { ActivityLevelId=item.FirstOrDefault().ACTIVITY_LEVEL_ID})">@item.FirstOrDefault().ACTIVITY_LEVEL</a>
+                                                </li>
+                                            }
+                                        </ol>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert bg-info alert-dismissible">
+                                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                            No Data Found.
+                                        </div>
+                                    }
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          <div class="col-sm-4">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel">
+                            <div class="panel-heading bg-purple">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-calendar-o"></i>Notification</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="row myMargin" id="notification">
+                                    <marquee direction="up" scrolldelay="150" onmouseover="stop();" onmouseout="start();">
+                                        <div class="height-sm" data-scrollbar="true"
+                                            @if (Model.liNotification != null && Model.liNotification.Count > 0)
+                                            {
+                                                <ul class="media-list media-list-with-divider media-messaging">
+                                                    @foreach (var item in Model.liNotification)
+                                                    {
+                                                        <li class="media media-sm">
+                                                            <a href="javascript:;" class="pull-left">
+                                                                <img src="" alt="" class="media-object rounded-corner" />
+                                                            </a>
+                                                            <div class="media-body">
+                                                                <h5 class="media-heading"><b>@item.NOTIFIED_DATE</b></h5>
+                                                                <p>
+                                                                    @item.NOTIFICATION
+                                                                </p>
+                                                            </div>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            }
+                                        </div>
+                                    </marquee>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel">
+                            <div class="panel-heading bg-blue">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript: ;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-calendar-o"></i> Tasks</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="row myMargin" id="Timetable">
+                                    <div class="alert bg-pink alert-dismissible">
+                                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                        No Data Found.
+
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+
+    @*<div class="row">
+
+            <div class="col-sm-4">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel">
+                            <div class="panel-heading bg-gradient-pink">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-check-circle"></i> Tasks</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="row myMargin" id="Tasks">
+                                    <div class="alert bg-pink alert-dismissible">
+                                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                        No Data Found.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-sm-4">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel">
+                            <div class="panel-heading bg-gradient-purple">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-birthday-cake"></i> Birthdays</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="row myMargin" id="Birthdays">
+                                    <div class="alert bg-pink alert-dismissible">
+                                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                        No Data Found.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+
+</div>
+
+
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="http://www.ourmanna.com/verses/api/js/" type="text/javascript"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script>
+
+    $(document).ready(function () {
+        //   Dashboard.init();
+
+        handleDashboardDatepicker = function () {
+            "use strict";
+            $("#datepicker-inline").datepicker({
+                todayHighlight: !0
+            }
+            )
+        }
+        handleDashboardDatepicker();
+    });
+
+    var refreshTimerId;
+
+    function startTimer() {
+        refreshTimerId = setInterval(function () {
+            if (document.getElementById("currenttime")) {
+                document.getElementById("currenttime").innerHTML = new Date().toLocaleTimeString();
+            }
+        }, 1000);
+    }
+    startTimer();
+
+</script>
+

@@ -1,0 +1,186 @@
+﻿@model CMS.ViewModel.ViewModel.NMEViewModel
+
+@{Layout = null; int count = 0;}
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Roll No</th>
+            <th>Student Name</th>            
+            <th>Course Title</th>
+            <th>Selected Class</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+
+    @if (Model.lstNMERegisteredStudent != null)
+    {
+        foreach (var item in Model.lstNMERegisteredStudent)
+        {
+            <tr>
+                <td>
+                    @{ count++;}@count
+                </td>
+                <td>@item.ROLL_NO</td>
+                <td>@item.FIRST_NAME</td>
+                <td>@item.CLASS_CODE</td>
+                <td>@item.COURSE_CODE</td>
+                <td>@item.SELECTED_CLASS</td>
+                @if (string.IsNullOrEmpty(item.REGISTRATION_ID))
+                {
+                    <td>NOT REGISTERD</td>
+                }
+                else
+                {
+                    <td>
+                        @*<a href="#editModal" title="Click to Add Class Wise Courses" data-dismiss="modal"><i class="fa fa-pencil-square-o text-primary" title="Edit"></i></a>*@
+                        <a href="#editModal-dialog" onclick="EditNMERegisteredStudent(@item.REGISTRATION_ID)" data-toggle="modal"><i class="fa fa-edit text-primary" title="Edit"></i></a>
+                        <a @*href="@Url.Action("DeleteNMERegisteredStudent","NME",new { id=@item.REGISTRATION_ID})"*@ href="javascript:;" onclick="GetConfrim(@item.REGISTRATION_ID);"><i class="fa fa-trash text-danger" title="Delete"></i></a>
+                    </td>
+                }
+            </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td><p>No records available !!!</p></td>
+                            </tr>
+                        }
+
+
+</table>
+
+<div>
+    <script>
+        @*function GetConfrim(ID)
+        {
+            if (!confirm('Are you sure to delete ?'))
+            {
+                return false;
+            }
+            $.ajax({
+                url: "@Url.Action("DeleteNMERegisteredStudent", "NME")",
+                method: "POST",
+                datatype: "json",
+                data: { id: ID },
+                success: function (data)
+                {
+                    alert(data);
+                    loadContent('/NME/NMECourseAllotmentList');
+                },error:function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        }*@
+        $('#sbtnSubmit').on('click', function () {
+            //if (parseInt($('#NMECourseList').val()) != 0) {
+            //    if (Validate()) {
+            //        alert('No More Allotment For This Course');
+            //        return false;
+            //    }
+            //}
+            var RegistrationId = $("#txtRegistrationId").val();
+            var StudentId = $("#txtStudentId").val();
+            var ClassId = $("#txtClassId").val();
+            var CourseId = $("#ddlCourse").val();
+            var JsonData;
+            if (JsonData == null) {
+                JsonData = '{"REGISTRATION_ID":"' + RegistrationId + '","STUDENT_ID":"' + StudentId + '","CLASS_ID":"' + ClassId + '","COURSE_ID":"' + CourseId + '"}';
+            }
+            $.ajax({
+                url: "@Url.Action("UpdateNMERegisteredStudent", "NME")",
+                method: "POST",
+                datatype: "html",
+                data: { NMERegisteredStudent: JsonData },
+                success: function (data) {
+                    alert(data);
+                }, error: function (error) {
+                    alert('Internal Server Error ..!');
+                }
+            });
+        });
+    </script>
+</div>
+
+<div class="modal fade" id="editModal-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Edit NME Registered Student</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Roll No</label>
+                        <div class="col-md-9">
+                            <input id="txtRollNo" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group" hidden>
+                        <label class="control-label col-md-3">Registration Id</label>
+                        <div class="col-md-9">
+                            <input id="txtRegistrationId" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group" hidden>
+                        <label class="control-label col-md-3">Course Id</label>
+                        <div class="col-md-9">
+                            <input id="txtCourseId" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group" hidden>
+                        <label class="control-label col-md-3">Student Id</label>
+                        <div class="col-md-9">
+                            <input id="txtStudentId" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Student Name</label>
+                        <div class="col-md-9">
+                            <input id="txtStudentName" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Class</label>
+                        <div class="col-md-9">
+                            <input id="txtClassCode" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Course</label>
+                        <div class="col-md-9">
+                            <select id="ddlCourse" onchange="GetNMEClassCourseByCoursId();" class="form-control input-sm ">
+                                <option value="0">-- select --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Alloted Seats</label>
+                        <div class="col-md-9">
+                            <input id="txtAllotedSeats" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3">Sum Of Quota</label>
+                        <div class="col-md-9">
+                            <input id="txtQuota" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group" hidden>
+                        <label class="control-label col-md-3">Class</label>
+                        <div class="col-md-9">
+                            <input id="txtClassId" class="form-control input-sm" type="text" disabled="disabled" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="sbtnSubmit" value="SUBMIT" class="btn btn-primary" data-dismiss="modal">Submit</a>
+                <a id="btnCancel" value="Submit" class="btn btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>

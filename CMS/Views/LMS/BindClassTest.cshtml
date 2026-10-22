@@ -1,0 +1,199 @@
+﻿@model CMS.ViewModel.ViewModel.LMSViewModel
+@{
+    ViewBag.Title = "OnlineQuizEntry";
+    Layout = null;
+    int nCount = 0;
+}
+
+<style>
+    .note.note-default,
+    .note.note-secondary {
+        border-color: #bbb;
+        background: #e2e2e3;
+        color: #454548
+    }
+
+        .note.note-default .note-icon,
+        .note.note-secondary .note-icon {
+            background: #bbb
+        }
+</style>
+<div class="col-md-12 table-responsive">
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Test Title</th>
+                <th>Course</th>
+                <th>Incharge</th>
+                <th>Action</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ if (Model.liQuizSetting != null && Model.liQuizSetting.Count > 0)
+                {
+                    foreach (var item in Model.liQuizSetting)
+                    {
+                        <tr>
+                            <td>@{nCount++;} @nCount</td>
+                            <td>@item.SETTING_NAME</td>
+                            <td>@item.COURSE_CODE - @item.COURSE_TITLE</td>
+                            <td>@item.FIRST_NAME</td>
+                            <td>
+                                @{
+                                    if (item.STATUS == "1")
+                                    {
+                                        <a class="btn btn-success" onclick="GetQuizResult(@item.COURSE_ID,@item.STAFF_ID,@item.SETTING_ID);" href="javascript:;">Quiz Result</a>
+                                    }
+                                    else
+                                    {
+                                        <a class="btn btn-primary" onclick="GetQuizQuestions(document.body,@item.CLASS_ID,@item.COURSE_ID,@item.SETTING_ID,@item.STAFF_ID,@item.TIME);" href="javascript:;">Quiz Entry</a>
+                                        @*<a class="btn btn-primary" onclick="BindQuizQuestions(@item.CLASS_ID,@item.COURSE_ID,@item.SETTING_ID,@item.STAFF_ID,@item.TIME);" href="javascript:;">Quiz Entry</a>*@
+                                    }
+                                }
+                            <td>
+                                @{
+                                    if (item.STATUS == "1")
+                                    {
+                                        <i class="ion-ios-checkmark-outline fa-2x text-success"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="ion-ios-close-outline fa-2x text-danger"></i>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" style="text-align:center;">No Record Found...!</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+
+
+<div class="col-md-12" id="dvOnlineQuiz">
+
+</div>
+
+<div id="Modal-Quiz" class="modal fade" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLiveLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLiveLabel">Answer Questions</h5>
+            </div>
+            <div class="modal-body">
+
+
+
+                <div class="form-group btn-submit">
+                    <div class="checkbox checkbox-css pt-0 checkbox-inline">
+                        <input type="checkbox" value="" id="chkDeclare" checked="">
+                        <label for="chkDeclare"> I hereby declare that the above mentioned information is correct to the best of my knowledge</label>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="" class="btn btn-primary">Next</button>
+                <div class="hidden btn-submit">
+                    <button type="button" onclick="" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+
+        function GetQuizQuestions(elem,ClassId, CourseId, SettingId, StaffId, Time)
+        {
+
+            if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen))
+            {
+               // alert(elem);
+                if (elem.requestFullScreen)
+                {
+                    elem.requestFullScreen();
+                } else if (elem.mozRequestFullScreen)
+                {
+                    elem.mozRequestFullScreen();
+                } else if (elem.webkitRequestFullScreen)
+                {
+                    elem.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+                } else if (elem.msRequestFullscreen)
+                {
+                    elem.msRequestFullscreen();
+                }
+            }
+
+            $.ajax({
+                url: '@Url.Action("BindOnlineQuizForSetWise", "Student")',
+                method:'POST',
+                datatype:'json',
+                data: { sClassId: ClassId, sCourseId: CourseId, sSettingId: SettingId, sStaffId: StaffId, sTime: Time },
+                success: function (data)
+                {
+                    if (data.Message!=null && data.Message!='')
+                    {
+                        alert(data.Message);
+                        if (data.sResult == "1")
+                        {
+                            $('#dvListOnlineQuizQuestions').addClass('hidden');
+                            GetQuizResult(CourseId, StaffId, SettingId);
+                        }else if(data.sResult=="2")
+                        {
+                            $('#dvListOnlineQuizQuestions').addClass('hidden');
+                        }
+                    } else
+                    {
+                        loadContent('/Student/BindOnlineQuizForSetWise?sClassId=' + ClassId + '&sCourseId=' + CourseId + '&sSettingId=' + SettingId + '&sStaffId=' + StaffId + '&sTime=' + Time + '');
+                    }
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        }
+
+    function GetQuizResult(CourseId, StaffId, SettingId)
+    {
+        $('#dvbtnSubmit').addClass('hidden');
+        $.ajax({
+            url: '@Url.Action("BindOnlineQuizResultForStudent", "Student")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sCourseId: CourseId, sStaffId: StaffId, sSettingId: SettingId },
+            success: function (data)
+            {
+                $("#dvOnlineQuiz").empty();
+                if (data.Message != null && data.Message != '')
+                {
+                    alert(data.Message);
+                } else
+                {
+                    $("#dvOnlineQuiz").append(data);
+                }
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+
+</script>
+
+
+

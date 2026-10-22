@@ -1,0 +1,510 @@
+﻿@{
+    ViewBag.Title = "BindstudentOverAllCumulativeStrenghReport";
+}
+@model CMS.ViewModel.ViewModel.StudentViewModel
+
+@{
+    Layout = null;
+
+}
+<style>
+
+
+    /* Tables */
+    table {
+        font-size: 11px !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        page-break-inside: avoid;
+    }
+
+    th, td {
+        padding: 2px 4px !important;
+        border: 1px solid #000 !important;
+    }
+
+    /* Columns */
+    .row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .col-md-7, .col-md-5 {
+        float: none !important;
+        display: inline-block !important;
+        vertical-align: top;
+    }
+</style>
+<div class="form-group table-responsive" style="page-break-after:always !important;">
+    @if (Model.liStudentList != null && Model.liStudentList.Count > 0)
+    {
+        <div class="row">
+       
+            <div class="col-md-7">
+                <table class="table table-bordered table-hover" id="tblStrengthReport">
+                    <thead>
+                        <tr>
+                            <th colspan="6" class="text-center">
+                                <b>ST.JOSEPH'S COLLEGE OF ARTS AND SCIENCE (AUTONOMOUS), CUDDALORE</b>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th colspan="6" class="text-center">
+                                <b>Student Strength Report (@ViewBag.AcademicYear)</b>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>S.No</th>
+                            <th>Programme Name</th>
+                            <th>I YEAR</th>
+                            <th>II YEAR</th>
+                            <th>III YEAR</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @{
+                            double gFirst = 0, gSecond = 0, gThird = 0, gAll = 0;
+
+                            var classLevelGroups = Model.liStudentList
+                                .GroupBy(x => x.CLASSLEVEL)
+                                .OrderBy(x =>  x.Key);
+
+                            foreach (var classLevel in classLevelGroups)
+                            {
+                                double clFirst = 0, clSecond = 0, clThird = 0, clAll = 0;
+                                int count = 0;
+
+                                <tr class="table-primary">
+                                    <td colspan="6"><b>@classLevel.Key</b></td>
+                                </tr>
+
+                                var shiftGroups = classLevel
+                                    .GroupBy(x => x.SHIFT)
+                                    .OrderBy(x => x.Key);
+
+                                foreach (var shift in shiftGroups)
+                                {
+                                    double shFirst = 0, shSecond = 0, shThird = 0, shAll = 0;
+
+                                    <tr class="table-secondary">
+                                        <td colspan="6">
+                                            <b>SHIFT : @(shift.Key == "1" ? "I (DAY)" : "II (EVE)")</b>
+                                        </td>
+                                    </tr>
+
+                                    foreach (var prog in shift.GroupBy(x => x.PROGRAMME_NAME))
+                                    {
+                                        count++;
+
+                                        var first = prog.Where(x => x.CLASS_YEAR == "1").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+                                        var second = prog.Where(x => x.CLASS_YEAR == "2").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+                                        var third = prog.Where(x => x.CLASS_YEAR == "3").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+                                        var total = first + second + third;
+
+                                        shFirst += first; shSecond += second; shThird += third; shAll += total;
+
+                                        <tr>
+                                            <td>@count</td>
+                                            <td>@prog.Key</td>
+                                            <td>@first</td>
+                                            <td>@second</td>
+                                            <td>@third</td>
+                                            <td>@total</td>
+                                        </tr>
+                                    }
+
+                                    <tr style="font-weight:bold;">
+                                        <td colspan="2">SHIFT TOTAL</td>
+                                        <td>@shFirst</td>
+                                        <td>@shSecond</td>
+                                        <td>@shThird</td>
+                                        <td>@shAll</td>
+                                    </tr>
+
+                                    clFirst += shFirst;
+                                    clSecond += shSecond;
+                                    clThird += shThird;
+                                    clAll += shAll;
+                                }
+
+                                <tr class="table-success">
+                                    <td colspan="2"><b>@classLevel.Key TOTAL</b></td>
+                                    <td><b>@clFirst</b></td>
+                                    <td><b>@clSecond</b></td>
+                                    <td><b>@clThird</b></td>
+                                    <td><b>@clAll</b></td>
+                                </tr>
+
+                                gFirst += clFirst;
+                                gSecond += clSecond;
+                                gThird += clThird;
+                                gAll += clAll;
+                            }
+
+                            <!-- Grand Total -->
+                            <tr class="table-dark">
+                                <td colspan="2"><b>GRAND TOTAL</b></td>
+                                <td><b>@gFirst</b></td>
+                                <td><b>@gSecond</b></td>
+                                <td><b>@gThird</b></td>
+                                <td><b>@gAll</b></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="col-md-5">
+                <h4><b>Department wise Total</b></h4>
+
+                <table class="table table-bordered table-hover" id="tblStrengthReport">
+                    <thead>
+                        <tr>
+                            <th>S.No</th>
+                            <th>Department</th>
+
+                            @{
+                                // Dynamic class levels (UG, PG, etc.)
+                                var classLevels = Model.liStudentList
+                                    .Select(x => x.CLASSLEVEL)
+                                    .Distinct()
+                                    .OrderBy(x => x)
+                                    .ToList();
+
+                                foreach (var cl in classLevels)
+                                {
+                                    <th>@cl</th>
+                                }
+                            }
+
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @{
+                            int sno = 0;
+
+                            // Column totals (UG, PG...)
+                            var columnTotals = classLevels.ToDictionary(x => x, x => 0.0);
+                            double grandTotal = 0;
+
+                            // Group by Department (ONE row per department)
+                            var departmentGroups = Model.liStudentList
+                                .GroupBy(x => x.DEPARTMENT)
+                                .OrderBy(x => x.Key);
+
+                            foreach (var dept in departmentGroups)
+                            {
+                                sno++;
+                                double rowTotal = 0;
+
+                                <tr>
+                                    <td>@sno</td>
+                                    <td>@dept.Key</td>
+
+                                    @foreach (var cl in classLevels)
+                                    {
+                                        var count = dept
+                                            .Where(x => x.CLASSLEVEL == cl)
+                                            .Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+
+                                        rowTotal += count;
+                                        columnTotals[cl] += count;
+
+                                        <td>@count</td>
+                                    }
+
+                                    <td><b>@rowTotal</b></td>
+                                </tr>
+
+                                grandTotal += rowTotal;
+                            }
+
+                            <!-- Column + Grand Total -->
+                            <tr class="table-success">
+                                <td></td>
+                                <td><b>Total</b></td>
+
+                                @foreach (var cl in classLevels)
+                                {
+                                    <td><b>@columnTotals[cl]</b></td>
+                                }
+
+                                <td><b>@grandTotal</b></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <h4><b>Community wise Total</b></h4>
+
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Community</th>
+                            <th>Male</th>
+                            <th>Female</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            double gMale = 0, gFemale = 0, gTotal = 0;
+
+                            var communityGroups = Model.liStudentList
+                                .GroupBy(x => x.COMMUNITY)
+                                .OrderBy(x => x.Key);
+
+                            foreach (var com in communityGroups)
+                            {
+                                var male = com
+                                    .Where(x => x.GENDER_NAME == "Male")
+                                    .Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+
+                                var female = com
+                                    .Where(x => x.GENDER_NAME == "Female")
+                                    .Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+
+                                var total = male + female;
+
+                                gMale += male;
+                                gFemale += female;
+                                gTotal += total;
+                                <tr>
+                                    <td>@(com.Key ?? "Others")</td>
+                                    <td>@male</td>
+                                    <td>@female</td>
+                                    <td>@total</td>
+                                </tr>
+                            }
+
+                            <!-- Grand Total -->
+                            <tr class="table-success">
+                                <td><b>Grand Total</b></td>
+                                <td><b>@gMale</b></td>
+                                <td><b>@gFemale</b></td>
+                                <td><b>@gTotal</b></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <!-- Community wise -->
+                @*<br />
+        <h4><b>Community wise Total</b></h4>
+        <table class=" table-bordered">
+            <thead>
+                <tr>
+                    <th>Community</th>
+                    <th>Male</th>
+                    <th>Female</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var communityGroups = Model.liStudentList.GroupBy(x => x.COMMUNITY).ToList();
+                    foreach (var com in communityGroups)
+                    {
+                        var male = com.Where(x => x.GENDER_NAME == "Male").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+                        var female = com.Where(x => x.GENDER_NAME == "Female").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+                        var total = male + female;
+                        <tr>
+                            <td>@com.Key</td>
+                            <td>@male</td>
+                            <td>@female</td>
+                            <td>@total</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>*@
+
+                <!-- Religion wise -->
+                @*<br />
+        <h4><b>Religion wise Total</b></h4>
+        <table class="table-bordered">
+            <thead>
+                <tr>
+                    <th>Religion</th>
+                    <th>Male</th>
+                    <th>Female</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var religionGroups = Model.liStudentList.GroupBy(x => x.RELIGION).ToList();
+                    foreach (var rel in religionGroups)
+                    {
+                        var male = rel.Where(x => x.GENDER_NAME == "Male").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+                        var female = rel.Where(x => x.GENDER_NAME == "Female").Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+                        var total = male + female;
+                        <tr>
+                            <td>@rel.Key</td>
+                            <td>@male</td>
+                            <td>@female</td>
+                            <td>@total</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>*@
+
+                <h4><b>Religion wise Total</b></h4>
+
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Religion</th>
+                            <th>Male</th>
+                            <th>Female</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            double gRMale = 0, gRFemale = 0, gRTotal = 0;
+
+                            var religionGroups = Model.liStudentList
+                                .GroupBy(x => x.RELIGION)
+                                .OrderBy(x => x.Key);
+
+                            foreach (var rel in religionGroups)
+                            {
+                                var male = rel
+                                    .Where(x => x.GENDER_NAME == "Male")
+                                    .Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+
+                                var female = rel
+                                    .Where(x => x.GENDER_NAME == "Female")
+                                    .Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+
+                                var total = male + female;
+
+                                gRMale += male;
+                                gRFemale += female;
+                                gRTotal += total;
+                                <tr>
+                                    <td>@(rel.Key ?? "Others")</td>
+                                    <td>@male</td>
+                                    <td>@female</td>
+                                    <td>@total</td>
+                                </tr>
+                            }
+
+                            <!-- Grand Total -->
+                            <tr class="table-success">
+                                <td><b>Grand Total</b></td>
+                                <td><b>@gRMale</b></td>
+                                <td><b>@gRFemale</b></td>
+                                <td><b>@gRTotal</b></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <!-- Religion wise -->
+
+                <h4><b>Gender wise Total</b></h4>
+
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Class Level</th>
+                            <th>Shift</th>
+                            <th>Class Year</th>
+                            <th>Male</th>
+                            <th>Female</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            double grandMale = 0, grandFemale = 0, grandGTotal = 0;
+
+                            var LevelGroups = Model.liStudentList
+                                .GroupBy(x => x.CLASSLEVELID)
+                                .OrderBy(x => x.Key);
+
+                            foreach (var classLevel in LevelGroups)
+                            {
+                                <tr class="table-primary">
+                                    <td colspan="6"><b>Class Level : @classLevel.First().CLASSLEVEL</b></td>
+                                </tr>
+
+                                var shiftGroups = classLevel.GroupBy(x => x.SHIFT).OrderBy(x => x.Key);
+
+                                foreach (var shift in shiftGroups)
+                                {
+                                    double shiftMale = 0, shiftFemale = 0, shiftTotal = 0;
+
+                                    var classYearGroups = shift
+                                        .GroupBy(x => x.CLASS_YEAR)
+                                        .OrderBy(x => x.Key);
+
+                                    foreach (var year in classYearGroups)
+                                    {
+                                        var male = year
+                                            .Where(x => x.GENDER_NAME == "Male")
+                                            .Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+
+                                        var female = year
+                                            .Where(x => x.GENDER_NAME == "Female")
+                                            .Sum(x => Convert.ToDouble(x.STUDENT_COUNT));
+
+                                        var total = male + female;
+
+                                        shiftMale += male;
+                                        shiftFemale += female;
+                                        shiftTotal += total;
+
+                                        grandMale += male;
+                                        grandFemale += female;
+                                        grandGTotal += total;
+
+                                        <tr>
+                                            <td></td>
+                                            <td>@(shift.Key == "1" ? "Shift I" : "Shift II")</td>
+                                            <td>@year.Key</td>
+                                            <td>@male</td>
+                                            <td>@female</td>
+                                            <td>@total</td>
+                                        </tr>
+                                    }
+
+                                    <!-- Shift Total -->
+                                    <tr class="table-secondary">
+                                        <td></td>
+                                        <td colspan="2"><b>@(shift.Key == "1" ? "Shift I Total" : "Shift II Total")</b></td>
+                                        <td><b>@shiftMale</b></td>
+                                        <td><b>@shiftFemale</b></td>
+                                        <td><b>@shiftTotal</b></td>
+                                    </tr>
+                                }
+                            }
+
+                            <!-- Grand Total -->
+                            <tr class="table-success">
+                                <td colspan="3"><b>Grand Total</b></td>
+                                <td><b>@grandMale</b></td>
+                                <td><b>@grandFemale</b></td>
+                                <td><b>@grandGTotal</b></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="bg-warning text-center">
+            <h4>No Records Found</h4>
+        </div>
+    }
+</div>

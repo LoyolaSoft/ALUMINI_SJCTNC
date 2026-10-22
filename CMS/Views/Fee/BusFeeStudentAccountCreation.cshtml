@@ -1,0 +1,1430 @@
+@model CMS.ViewModel.ViewModel.FeeStructureViewModel
+
+@{
+    ViewBag.Title = "BusFeeStudentAccountCreation";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<style>
+    .nav-tabs {
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .nav-tabs > li > a {
+        border: none;
+        color: #64748b;
+        font-weight: 600;
+        padding: 12px 20px;
+        transition: all 0.2s ease;
+    }
+    .nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+        border: none;
+        border-bottom: 3px solid #3b82f6;
+        color: #3b82f6;
+        background: transparent;
+    }
+    .nav-tabs > li > a:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+        border-radius: 6px 6px 0 0;
+    }
+    .tab-content {
+        padding: 20px 0;
+    }
+    .form-section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 15px;
+        border-left: 4px solid #3b82f6;
+        padding-left: 10px;
+    }
+    .dropzone-container {
+        background: #f8fafc;
+        border: 2px dashed #cbd5e1;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        position: relative;
+        transition: all 0.2s ease;
+    }
+    .dropzone-container:hover {
+        border-color: #3b82f6;
+        background: #f0f9ff;
+    }
+    .action-btn-group {
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+    }
+    .table-container {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+    .badge-active {
+        background-color: #dcfce7;
+        color: #15803d;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+    }
+    .badge-inactive {
+        background-color: #fee2e2;
+        color: #b91c1c;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+    }
+    .font-bold {
+        font-weight: 700 !important;
+    }
+</style>
+
+<div id="content" class="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Bus Fee Management</li>
+    </ol>
+    <h1 class="page-header">Bus Fee Management</h1>
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" onclick="reloadCurrentTab()"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Bus Fee Management Panel</h4>
+        </div>
+        <div class="panel-body">
+            <ul class="nav nav-tabs" id="busFeeTabs">
+                <li class="active"><a href="#tab-fee-creation" data-toggle="tab">Bus Fee Account Creation</a></li>
+                <li><a href="#tab-bus-details" data-toggle="tab">Bus Details</a></li>
+                <li><a href="#tab-boarding-places" data-toggle="tab">Bus-wise Boarding Places</a></li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- TAB 1: BUS FEE ACCOUNT CREATION -->
+                <div class="tab-pane fade active in" id="tab-fee-creation">
+                    <div class="form-horizontal">
+                        <div class="row">
+                            <div class="form-group col-md-4">
+                                <label class="control-label col-md-5">Academic Year</label>
+                                <div class="col-md-7">
+                                    @Html.DropDownList("CreationAcYear", (Model.AcademicyearList != null) ? Model.AcademicyearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @onchange = "onCreationYearChange()" })
+                                </div>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label class="control-label col-md-5">Frequency</label>
+                                <div class="col-md-7">
+                                    <select id="CreationFrequency" class="selectpicker show-menu-arrow show-tick drop-down form-control input-sm" data-live-search="true" onchange="onCreationFrequencyChange()"></select>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label class="control-label col-md-5">Main Head</label>
+                                <div class="col-md-7">
+                                    <select id="CreationMainHead" class="selectpicker show-menu-arrow show-tick drop-down form-control input-sm" data-live-search="true" onchange="onCreationMainHeadChange()"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="clear: both;"></div>
+
+                    <!-- Accounts List for Student & Staff -->
+                    <div id="divBusAccountsList" style="display: none; margin-top: 15px;">
+                        <div class="row" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <div class="col-md-6">
+                                <h4 class="form-section-title" style="margin: 0;"><i class="fa fa-bus text-primary"></i> Created Bus Fee Accounts (Students & Staff)</h4>
+                            </div>
+                            <div class="col-md-6 text-right" style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="openSingleAddModal()"><i class="fa fa-plus-circle"></i> Add Single Account</button>
+                                <button type="button" class="btn btn-sm btn-success" onclick="openExcelUploadModal()"><i class="fa fa-file-excel-o"></i> Bulk Upload (Excel)</button>
+                                <button type="button" class="btn btn-sm btn-info" onclick="loadBusAccountsList()"><i class="fa fa-refresh"></i> Refresh</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive table-container">
+                            <table class="table table-striped table-bordered table-hover dt-responsive" id="tblBusAccounts" width="100%">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;">#</th>
+                                        <th style="width: 70px;">Type</th>
+                                        <th>Roll / Staff Code</th>
+                                        <th>Name</th>
+                                        <th>Class / Designation</th>
+                                        <th class="text-right">Allocated (&#8377;)</th>
+                                        <th class="text-right">Paid (&#8377;)</th>
+                                        <th class="text-right">Balance (&#8377;)</th>
+                                        <th class="text-center" style="width: 90px;">Status</th>
+                                        <th class="text-center" style="width: 130px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: BUS DETAILS -->
+                <div class="tab-pane fade" id="tab-bus-details">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button type="button" class="btn btn-primary btn-sm pull-right m-b-10" onclick="openAddBusModal()">
+                                <i class="fa fa-plus"></i> Add New Bus
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive table-container">
+                        <table class="table table-striped table-bordered" id="tblBuses" width="100%">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Bus Name</th>
+                                    <th>Driver Name</th>
+                                    <th>Route</th>
+                                    <th>Allocated Seats</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 3: BOARDING PLACES -->
+                <div class="tab-pane fade" id="tab-boarding-places">
+                    <div class="row">
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-4">Select Bus</label>
+                            <div class="col-md-8">
+                                <select id="ddlFilterBus" class="selectpicker show-menu-arrow show-tick drop-down form-control input-sm" data-live-search="true" onchange="loadBoardingStagesGrid()"></select>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-5">Academic Year</label>
+                            <div class="col-md-7">
+                                @Html.DropDownList("ddlFilterAcYear", (Model.AcademicyearList != null) ? Model.AcademicyearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @onchange = "onTab2FilterChange()" })
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-primary btn-sm pull-right" onclick="openAddStageModal()">
+                                <i class="fa fa-plus"></i> Add Boarding Place
+                            </button>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="table-responsive table-container">
+                        <table class="table table-striped table-bordered" id="tblStages" width="100%">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Stage Name</th>
+                                    <th>KM</th>
+                                    <th>Bus Name</th>
+                                    <th>Allocated Seats</th>
+                                    <th>Amount (Sem 1)</th>
+                                    <th>Amount II (Sem 2)</th>
+                                    <th>Academic Year</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SINGLE BUS FEE ACCOUNT CREATION MODAL -->
+<div class="modal" id="modalSingleAddAccount" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="frmSingleAddAccount" onsubmit="submitSingleAccount(event)">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title"><i class="fa fa-plus-circle text-primary"></i> Create Single Bus Fee Account</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="singleUserId" value="0" />
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">User Type <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select id="singleUserType" class="form-control input-sm" onchange="onSingleUserTypeChange()">
+                                <option value="STUDENT">Student</option>
+                                <option value="STAFF">Staff</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Academic Year <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select id="singleAcYear" class="form-control input-sm" required onchange="onSingleAcYearChange()"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Frequency <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select id="singleFrequency" class="form-control input-sm" required onchange="onSingleFrequencyChange()"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Main Head <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select id="singleMainHead" class="form-control input-sm" required></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4" id="lblSingleCode">Roll No <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" id="singleCode" class="form-control input-sm" placeholder="Enter Roll No or Staff Code" required onchange="verifyStudentOrStaff()" />
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="verifyStudentOrStaff()"><i class="fa fa-search"></i> Verify</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Verified Details Preview Box -->
+                    <div class="form-group col-md-12" id="singleUserInfoBox" style="display: none;">
+                        <div class="col-md-8 col-md-offset-4">
+                            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 10px; font-size: 13px;">
+                                <div><i class="fa fa-check-circle text-success"></i> <b>Name:</b> <span id="singleDisplayVerifiedName" style="color: #15803d; font-weight: 700;"></span></div>
+                                <div style="margin-top: 4px;"><b>Details:</b> <span id="singleDisplayVerifiedDetails" style="color: #334155;"></span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Allocated Amount (&#8377;) <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="number" id="singleAllocatedAmount" class="form-control input-sm font-bold" min="1" step="0.01" placeholder="Enter allocated fee amount" required />
+                        </div>
+                    </div>
+
+                    <div style="clear:both;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save"></i> Create Account</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- BULK EXCEL UPLOAD MODAL -->
+<div class="modal" id="modalExcelUpload" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-file-excel-o text-success"></i> Bulk Upload Bus Fee Accounts (Excel)</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info" style="font-size: 13px; margin-bottom: 15px;">
+                    <i class="fa fa-info-circle"></i> Upload an Excel sheet with columns: <b>Roll No / Staff Code</b>, <b>Student / Staff Name</b>, and <b>Amount</b>.
+                </div>
+
+                <!-- Dropzone input -->
+                <div class="dropzone-container" id="dropzone" style="margin-bottom: 15px;">
+                    <i class="fa fa-cloud-upload text-primary" style="font-size: 36px; display: block; margin-bottom: 8px;"></i>
+                    <span style="font-weight: 600; font-size: 14px; color: #475569;" id="uploadInstruction">Drag & Drop Excel file here or click to browse</span>
+                    <input type="file" id="BusFeeExcelFile" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;" accept=".xlsx, .xls, .csv" />
+                    <div id="selectedFileName" style="font-weight: 700; color: #10b981; font-size: 14px; display: none; margin-top: 8px;"></div>
+                </div>
+
+                <div class="text-right">
+                    <a href="~/Content/ExcelTemplate/Bus_Fee_due_template.xlsx" class="btn btn-warning btn-sm" style="font-weight: 600;"><i class="fa fa-download"></i> Download Excel Template</a>
+                </div>
+
+                <!-- Invalid excel records display panel inside modal -->
+                <div id="divInvalidRecords" style="display: none; margin-top: 20px;">
+                    <h5 class="text-danger" style="font-weight: 700;"><i class="fa fa-exclamation-triangle"></i> Invalid Excel Records Found</h5>
+                    <p class="text-muted" style="font-size: 12px;">The following records had validation errors and were skipped. Valid records were inserted successfully.</p>
+                    <div class="table-responsive table-container" style="max-height: 250px; overflow-y: auto;">
+                        <table class="table table-striped table-bordered" id="tblInvalidRecords" width="100%">
+                            <thead>
+                                <tr>
+                                    <th>Row</th>
+                                    <th>Roll / Staff Code</th>
+                                    <th>Name</th>
+                                    <th>Reason / Validation Errors</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success btn-sm" onclick="submitExcelFile()"><i class="fa fa-check"></i> Submit & Process File</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BUS MODAL -->
+<div class="modal" id="modalBus" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="frmBus" onsubmit="saveBus(event)">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="busModalTitle">Add New Bus</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="BUS_ID" name="BUS_ID" value="0" />
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Bus Name <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="text" id="BUS_NAME" name="BUS_NAME" class="form-control input-sm" required />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Driver Name</label>
+                        <div class="col-md-8">
+                            <input type="text" id="DRIVER_NAME" name="DRIVER_NAME" class="form-control input-sm" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Route</label>
+                        <div class="col-md-8">
+                            <input type="text" id="ROUTE" name="ROUTE" class="form-control input-sm" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Allocated Seats <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="number" id="ALLOTED_SEATS" name="ALLOTED_SEATS" class="form-control input-sm" required min="1" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Status</label>
+                        <div class="col-md-8">
+                            <select id="IS_ACIVE" name="IS_ACIVE" class="form-control input-sm">
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="clear:both;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- BOARDING STAGE MODAL -->
+<div class="modal" id="modalStage" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="frmStage" onsubmit="saveStage(event)">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="stageModalTitle">Add Boarding Stage</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="BUS_STAGE_ID" name="BUS_STAGE_ID" value="0" />
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Select Bus <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select id="ddlModalBus" name="BUS_ID" class="form-control input-sm" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Stage Name <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="text" id="STAGE_NAME" name="STAGE_NAME" class="form-control input-sm" required />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">KM</label>
+                        <div class="col-md-8">
+                            <input type="text" id="KM" name="KM" class="form-control input-sm" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Allocated Seats <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="number" id="STAGE_ALLOTED_SEATS" name="ALLOTED_SEATS" class="form-control input-sm" required min="1" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Amount (Sem 1) <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="number" id="AMOUNT" name="AMOUNT" class="form-control input-sm" required min="0" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Amount II (Sem 2)</label>
+                        <div class="col-md-8">
+                            <input type="number" id="AMOUNT_II" name="AMOUNT_II" class="form-control input-sm" min="0" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Academic Year <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select id="ddlModalAcYear" name="ACADEMIC_YEAR" class="form-control input-sm" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Status</label>
+                        <div class="col-md-8">
+                            <select id="STAGE_IS_ACTIVE" name="IS_ACTIVE" class="form-control input-sm">
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="clear:both;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT BUS FEE ACCOUNT AMOUNT MODAL -->
+<div class="modal" id="modalEditAccount" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="frmEditAccount" onsubmit="saveEditedAccount(event)">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Edit Bus Fee Allocated Amount</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editUserType" />
+                    <input type="hidden" id="editAccountId" />
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">User Type</label>
+                        <div class="col-md-8">
+                            <input type="text" id="editDisplayUserType" class="form-control input-sm" readonly style="background-color: #f1f5f9; font-weight: 600;" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Roll / Staff Code</label>
+                        <div class="col-md-8">
+                            <input type="text" id="editDisplayCode" class="form-control input-sm" readonly style="background-color: #f1f5f9; font-weight: 600;" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Name</label>
+                        <div class="col-md-8">
+                            <input type="text" id="editDisplayName" class="form-control input-sm" readonly style="background-color: #f1f5f9;" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Allocated Amount (&#8377;) <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="number" id="editAllocatedAmount" class="form-control input-sm font-bold" required min="0" step="0.01" />
+                        </div>
+                    </div>
+                    <div style="clear:both;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save Changes</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+
+<script>
+    var tblBuses, tblStages, tblBusAccounts;
+
+    function ContentLoad() {
+        // Initialize Select Pickers
+        $('.selectpicker').selectpicker({ size: 4 });
+
+        // Load dropdown options
+        loadActiveBusesDropdowns();
+        populateModalDropdowns();
+
+        // Bind tab change events
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            var target = $(e.target).attr("href");
+            if (target === "#tab-bus-details") {
+                loadBusesGrid();
+            } else if (target === "#tab-boarding-places") {
+                loadBoardingStagesGrid();
+            } else if (target === "#tab-fee-creation") {
+                loadBusAccountsList();
+            }
+        });
+
+        // Auto-load frequencies if Academic Year is already selected
+        var defaultAcYear = $('#CreationAcYear').val();
+        if (defaultAcYear && defaultAcYear !== "" && defaultAcYear !== "0") {
+            onCreationYearChange();
+        }
+
+        // Bind drag and drop Excel events
+        setupDragAndDrop();
+
+        $('#BusFeeExcelFile').on('change', function (e) {
+            var file = e.target.files[0];
+            if (file) {
+                $('#uploadInstruction').hide();
+                $('#selectedFileName').html('<i class="fa fa-file-excel-o"></i> Selected: <b>' + file.name + '</b>').show();
+            } else {
+                $('#uploadInstruction').show();
+                $('#selectedFileName').hide();
+            }
+        });
+    }
+
+    // Tab reloading utility
+    function reloadCurrentTab() {
+        var activeTab = $('#busFeeTabs li.active a').attr('href');
+        if (activeTab === "#tab-bus-details") {
+            loadBusesGrid();
+        } else if (activeTab === "#tab-boarding-places") {
+            loadBoardingStagesGrid();
+        } else if (activeTab === "#tab-fee-creation") {
+            loadBusAccountsList();
+        }
+    }
+
+    // Set up drag-and-drop zone
+    function setupDragAndDrop() {
+        var dropzone = document.getElementById('dropzone');
+        if (dropzone) {
+            dropzone.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                dropzone.style.background = '#e0f2fe';
+                dropzone.style.borderColor = '#3b82f6';
+            });
+            dropzone.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                dropzone.style.background = '#f8fafc';
+                dropzone.style.borderColor = '#cbd5e1';
+            });
+            dropzone.addEventListener('drop', function (e) {
+                e.preventDefault();
+                dropzone.style.background = '#f8fafc';
+                dropzone.style.borderColor = '#cbd5e1';
+                var files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    document.getElementById('BusFeeExcelFile').files = files;
+                    $('#BusFeeExcelFile').trigger('change');
+                }
+            });
+        }
+    }
+
+    // ----------------------------------------------------
+    // TAB 1: BUS DETAILS LOGIC
+    // ----------------------------------------------------
+    function loadBusesGrid() {
+        if ($.fn.DataTable.isDataTable('#tblBuses')) {
+            $('#tblBuses').DataTable().destroy();
+        }
+
+        $.ajax({
+            url: '@Url.Action("GetBusList", "Fee")',
+            type: 'GET',
+            success: function (res) {
+                var rows = "";
+                if (res.Success) {
+                    $.each(res.Data, function (i, item) {
+                        rows += "<tr>" +
+                                "<td>" + (i + 1) + "</td>" +
+                                "<td>" + item.BUS_NAME + "</td>" +
+                                "<td>" + (item.DRIVER_NAME || "") + "</td>" +
+                                "<td>" + (item.ROUTE || "") + "</td>" +
+                                "<td>" + (item.ALLOTED_SEATS || 0) + "</td>" +
+                                "<td><span class='" + (item.IS_ACIVE == 1 ? "badge-active" : "badge-inactive") + "'>" + item.ACTIVE_STATUS + "</span></td>" +
+                                "<td class='action-btn-group'>" +
+                                    "<a href='javascript:;' onclick='editBus(" + JSON.stringify(item) + ")' class='btn btn-xs btn-primary'><i class='fa fa-edit'></i></a> " +
+                                    "<a href='javascript:;' onclick='deleteBus(" + item.BUS_ID + ")' class='btn btn-xs btn-danger'><i class='fa fa-trash'></i></a>" +
+                                "</td>" +
+                               "</tr>";
+                    });
+                }
+                $('#tblBuses tbody').html(rows);
+                tblBuses = $('#tblBuses').DataTable({ responsive: true });
+            }
+        });
+    }
+
+    function openAddBusModal() {
+        $('#busModalTitle').text("Add New Bus");
+        $('#BUS_ID').val("0");
+        $('#BUS_NAME').val("");
+        $('#DRIVER_NAME').val("");
+        $('#ROUTE').val("");
+        $('#ALLOTED_SEATS').val("");
+        $('#IS_ACIVE').val("1");
+        $('#modalBus').modal('show');
+    }
+
+    function editBus(bus) {
+        $('#busModalTitle').text("Edit Bus Info");
+        $('#BUS_ID').val(bus.BUS_ID);
+        $('#BUS_NAME').val(bus.BUS_NAME);
+        $('#DRIVER_NAME').val(bus.DRIVER_NAME);
+        $('#ROUTE').val(bus.ROUTE);
+        $('#ALLOTED_SEATS').val(bus.ALLOTED_SEATS);
+        $('#IS_ACIVE').val(bus.IS_ACIVE);
+        $('#modalBus').modal('show');
+    }
+
+    function saveBus(e) {
+        e.preventDefault();
+        var data = $('#frmBus').serialize();
+        $.ajax({
+            url: '@Url.Action("SaveOrUpdateBus", "Fee")',
+            type: 'POST',
+            data: data,
+            success: function (res) {
+                $('#modalBus').modal('hide');
+                if (res.Success) {
+                    swal("Success", res.Message, "success");
+                    loadBusesGrid();
+                    loadActiveBusesDropdowns();
+                } else {
+                    swal("Error", res.Message, "error");
+                }
+            }
+        });
+    }
+
+    function deleteBus(id) {
+        swal({
+            title: "Are you sure?",
+            text: "You want to delete this bus record?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, delete it!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                url: '@Url.Action("DeleteBus", "Fee")',
+                type: 'POST',
+                data: { id: id },
+                success: function (res) {
+                    if (res.Success) {
+                        swal("Deleted!", res.Message, "success");
+                        loadBusesGrid();
+                        loadActiveBusesDropdowns();
+                    } else {
+                        swal("Error", res.Message, "error");
+                    }
+                }
+            });
+        });
+    }
+
+    // ----------------------------------------------------
+    // TAB 2: BOARDING PLACES LOGIC
+    // ----------------------------------------------------
+    function loadActiveBusesDropdowns() {
+        $.ajax({
+            url: '@Url.Action("GetBusList", "Fee")',
+            type: 'GET',
+            success: function (res) {
+                var options = "<option value='0'>-- Select Bus --</option>";
+                if (res.Success) {
+                    $.each(res.Data, function (i, item) {
+                        if (item.IS_ACIVE == 1) {
+                            options += "<option value='" + item.BUS_ID + "'>" + item.BUS_NAME + "</option>";
+                        }
+                    });
+                }
+                $('#ddlFilterBus').html(options).selectpicker('refresh');
+                $('#ddlModalBus').html(options);
+            }
+        });
+    }
+
+    function populateModalDropdowns() {
+        var options = "";
+        $('#ddlFilterAcYear option').each(function () {
+            options += "<option value='" + $(this).val() + "'>" + $(this).text() + "</option>";
+        });
+        $('#ddlModalAcYear').html(options);
+    }
+
+    function onTab2FilterChange() {
+        loadBoardingStagesGrid();
+    }
+
+    function loadBoardingStagesGrid() {
+        var busId = $('#ddlFilterBus').val();
+        var academicYear = $('#ddlFilterAcYear option:selected').text();
+        if (academicYear.includes("-- Select --")) {
+            academicYear = "";
+        }
+
+        if ($.fn.DataTable.isDataTable('#tblStages')) {
+            $('#tblStages').DataTable().destroy();
+        }
+
+        $.ajax({
+            url: '@Url.Action("GetBoardingStages", "Fee")',
+            type: 'GET',
+            data: { busId: busId, academicYear: academicYear },
+            success: function (res) {
+                var rows = "";
+                if (res.Success) {
+                    $.each(res.Data, function (i, item) {
+                        rows += "<tr>" +
+                                "<td>" + (i + 1) + "</td>" +
+                                "<td>" + item.STAGE_NAME + "</td>" +
+                                "<td>" + (item.KM || "") + "</td>" +
+                                "<td>" + item.BUS_NAME + "</td>" +
+                                "<td>" + (item.ALLOTED_SEATS || 0) + "</td>" +
+                                "<td>" + (item.AMOUNT || 0) + "</td>" +
+                                "<td>" + (item.AMOUNT_II || 0) + "</td>" +
+                                "<td>" + item.ACADEMIC_YEAR + "</td>" +
+                                "<td><span class='" + (item.IS_ACTIVE == 1 ? "badge-active" : "badge-inactive") + "'>" + item.ACTIVE_STATUS + "</span></td>" +
+                                "<td class='action-btn-group'>" +
+                                    "<a href='javascript:;' onclick='editStage(" + JSON.stringify(item) + ")' class='btn btn-xs btn-primary'><i class='fa fa-edit'></i></a> " +
+                                    "<a href='javascript:;' onclick='deleteStage(" + item.BUS_STAGE_ID + ")' class='btn btn-xs btn-danger'><i class='fa fa-trash'></i></a>" +
+                                "</td>" +
+                               "</tr>";
+                    });
+                }
+                $('#tblStages tbody').html(rows);
+                tblStages = $('#tblStages').DataTable({ responsive: true });
+            }
+        });
+    }
+
+    function openAddStageModal() {
+        $('#stageModalTitle').text("Add Boarding Stage");
+        $('#BUS_STAGE_ID').val("0");
+        $('#STAGE_NAME').val("");
+        $('#KM').val("");
+        $('#STAGE_ALLOTED_SEATS').val("");
+        $('#AMOUNT').val("");
+        $('#AMOUNT_II').val("");
+        $('#ddlModalBus').val($('#ddlFilterBus').val() !== "0" ? $('#ddlFilterBus').val() : "");
+        $('#ddlModalAcYear').val($('#ddlFilterAcYear').val() !== "" ? $('#ddlFilterAcYear').val() : "");
+        $('#STAGE_IS_ACTIVE').val("1");
+        $('#modalStage').modal('show');
+    }
+
+    function editStage(stage) {
+        $('#stageModalTitle').text("Edit Boarding Stage");
+        $('#BUS_STAGE_ID').val(stage.BUS_STAGE_ID);
+        $('#STAGE_NAME').val(stage.STAGE_NAME);
+        $('#KM').val(stage.KM);
+        $('#STAGE_ALLOTED_SEATS').val(stage.ALLOTED_SEATS);
+        $('#AMOUNT').val(stage.AMOUNT);
+        $('#AMOUNT_II').val(stage.AMOUNT_II);
+        $('#ddlModalBus').val(stage.BUS_ID);
+        
+        $('#ddlModalAcYear option').each(function () {
+            if ($(this).text() === stage.ACADEMIC_YEAR) {
+                $('#ddlModalAcYear').val($(this).val());
+            }
+        });
+        
+        $('#STAGE_IS_ACTIVE').val(stage.IS_ACTIVE);
+        $('#modalStage').modal('show');
+    }
+
+    function saveStage(e) {
+        e.preventDefault();
+        
+        var params = {
+            BUS_STAGE_ID: $('#BUS_STAGE_ID').val(),
+            BUS_ID: $('#ddlModalBus').val(),
+            STAGE_NAME: $('#STAGE_NAME').val(),
+            KM: $('#KM').val(),
+            ALLOTED_SEATS: $('#STAGE_ALLOTED_SEATS').val(),
+            AMOUNT: $('#AMOUNT').val(),
+            AMOUNT_II: $('#AMOUNT_II').val(),
+            ACADEMIC_YEAR: $('#ddlModalAcYear option:selected').text(),
+            IS_ACTIVE: $('#STAGE_IS_ACTIVE').val()
+        };
+
+        $.ajax({
+            url: '@Url.Action("SaveOrUpdateBoardingStage", "Fee")',
+            type: 'POST',
+            data: params,
+            success: function (res) {
+                $('#modalStage').modal('hide');
+                if (res.Success) {
+                    swal("Success", res.Message, "success");
+                    loadBoardingStagesGrid();
+                } else {
+                    swal("Error", res.Message, "error");
+                }
+            }
+        });
+    }
+
+    function deleteStage(id) {
+        swal({
+            title: "Are you sure?",
+            text: "You want to delete this boarding place/stage?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, delete it!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                url: '@Url.Action("DeleteBoardingStage", "Fee")',
+                type: 'POST',
+                data: { id: id },
+                success: function (res) {
+                    if (res.Success) {
+                        swal("Deleted!", res.Message, "success");
+                        loadBoardingStagesGrid();
+                    } else {
+                        swal("Error", res.Message, "error");
+                    }
+                }
+            });
+        });
+    }
+
+    // ----------------------------------------------------
+    // TAB 3: BUS FEE ACCOUNT CREATION & MANAGEMENT LOGIC
+    // ----------------------------------------------------
+    function onCreationYearChange() {
+        var acYear = $('#CreationAcYear option:selected').text();
+        $('#CreationFrequency').empty().selectpicker('refresh');
+        $('#CreationMainHead').empty().selectpicker('refresh');
+        $('#divBusAccountsList').hide();
+
+        if (acYear.includes("-- Select --")) return;
+
+        $.ajax({
+            url: '@Url.Action("GetBusFrequencies", "Fee")',
+            type: 'GET',
+            data: { academicYear: acYear },
+            success: function (res) {
+                var options = "<option value='0'>-- Select --</option>";
+                if (res.Success) {
+                    $.each(res.Data, function (i, item) {
+                        options += "<option value='" + item.FREQUENCY_ID + "'>" + item.FREQUENCY_NAME + "</option>";
+                    });
+                }
+                $('#CreationFrequency').html(options).selectpicker('refresh');
+            }
+        });
+    }
+
+    function onCreationFrequencyChange() {
+        var acYear = $('#CreationAcYear option:selected').text();
+        var freqId = $('#CreationFrequency').val();
+        $('#CreationMainHead').empty().selectpicker('refresh');
+        $('#divBusAccountsList').hide();
+
+        if (freqId === "0" || freqId === "") return;
+
+        $.ajax({
+            url: '@Url.Action("GetBusMainHeads", "Fee")',
+            type: 'GET',
+            data: { frequencyId: freqId, academicYear: acYear },
+            success: function (res) {
+                var options = "<option value='0'>-- Select --</option>";
+                if (res.Success) {
+                    $.each(res.Data, function (i, item) {
+                        options += "<option value='" + item.MAIN_HEAD_ID + "'>" + item.MAIN_HEAD + "</option>";
+                    });
+                }
+                $('#CreationMainHead').html(options).selectpicker('refresh');
+            }
+        });
+    }
+
+    function onCreationMainHeadChange() {
+        var mainHeadId = $('#CreationMainHead').val();
+        if (mainHeadId && mainHeadId !== "0") {
+            loadBusAccountsList();
+        } else {
+            $('#divBusAccountsList').hide();
+        }
+    }
+
+    function loadBusAccountsList() {
+        var acYear = $('#CreationAcYear option:selected').text();
+        var freqId = $('#CreationFrequency').val();
+        var mainHeadId = $('#CreationMainHead').val();
+
+        if (acYear.includes("-- Select --") || !freqId || freqId === "0") {
+            $('#divBusAccountsList').hide();
+            return;
+        }
+
+        if ($.fn.DataTable.isDataTable('#tblBusAccounts')) {
+            $('#tblBusAccounts').DataTable().destroy();
+        }
+
+        $.ajax({
+            url: '@Url.Action("GetBusAccountsList", "Fee")',
+            type: 'GET',
+            data: { academicYear: acYear, frequencyId: freqId, mainHeadId: mainHeadId },
+            success: function (res) {
+                var rows = "";
+                if (res.Success && res.Data && res.Data.length > 0) {
+                    $.each(res.Data, function (i, item) {
+                        var isStudent = (item.USER_TYPE || "").toUpperCase() === "STUDENT";
+                        var typeBadge = isStudent 
+                            ? "<span class='label label-primary' style='font-size: 11px;'>Student</span>" 
+                            : "<span class='label label-warning' style='font-size: 11px;'>Staff</span>";
+
+                        var allocated = parseFloat(item.ALLOCATED_AMOUNT || 0);
+                        var paid = parseFloat(item.PAID_AMOUNT || 0);
+                        var balance = parseFloat(item.BALANCE_AMOUNT || 0);
+
+                        var statusBadge = "";
+                        if (balance <= 0 && paid > 0) {
+                            statusBadge = "<span class='label label-success' style='font-size: 11px;'>Fully Paid</span>";
+                        } else if (paid > 0) {
+                            statusBadge = "<span class='label label-warning' style='font-size: 11px;'>Partially Paid</span>";
+                        } else {
+                            statusBadge = "<span class='label label-danger' style='font-size: 11px;'>Unpaid</span>";
+                        }
+
+                        var canEditDelete = (item.CAN_EDIT_DELETE == 1 || item.CAN_EDIT_DELETE === true || item.CAN_EDIT_DELETE == "1" || paid <= 0);
+                        var actions = "";
+                        if (canEditDelete) {
+                            var safeName = encodeURIComponent(item.NAME || "");
+                            var safeCode = encodeURIComponent(item.CODE || "");
+                            actions = "<div class='action-btn-group text-center'>" +
+                                      "<a href='javascript:;' onclick=\"openEditAccountModal('" + item.USER_TYPE + "', " + item.ACCOUNT_ID + ", '" + safeCode + "', '" + safeName + "', " + allocated + ")\" class='btn btn-xs btn-primary' title='Edit Amount'><i class='fa fa-edit'></i> Edit</a> " +
+                                      "<a href='javascript:;' onclick=\"deleteBusAccount('" + item.USER_TYPE + "', " + item.ACCOUNT_ID + ", '" + safeName + "', '" + safeCode + "')\" class='btn btn-xs btn-danger' title='Delete Account'><i class='fa fa-trash'></i> Delete</a>" +
+                                      "</div>";
+                        } else {
+                            actions = "<div class='text-center'><span class='label label-default' style='font-size: 11px;' title='Payment made. Editing and deleting locked.'><i class='fa fa-lock'></i> Paid (Locked)</span></div>";
+                        }
+
+                        rows += "<tr>" +
+                                "<td>" + (i + 1) + "</td>" +
+                                "<td>" + typeBadge + "</td>" +
+                                "<td><b>" + (item.CODE || "") + "</b></td>" +
+                                "<td>" + (item.NAME || "") + "</td>" +
+                                "<td>" + (item.DETAILS || "") + "</td>" +
+                                "<td class='text-right font-bold'>" + allocated.toFixed(2) + "</td>" +
+                                "<td class='text-right font-bold text-success'>" + paid.toFixed(2) + "</td>" +
+                                "<td class='text-right font-bold " + (balance > 0 ? "text-danger" : "text-success") + "'>" + balance.toFixed(2) + "</td>" +
+                                "<td class='text-center'>" + statusBadge + "</td>" +
+                                "<td>" + actions + "</td>" +
+                               "</tr>";
+                    });
+                } else {
+                    rows = "<tr><td colspan='10' class='text-center text-muted' style='padding: 20px;'>No bus fee accounts found matching the specified criteria.</td></tr>";
+                }
+                $('#tblBusAccounts tbody').html(rows);
+                tblBusAccounts = $('#tblBusAccounts').DataTable({ 
+                    responsive: true,
+                    pageLength: 10,
+                    order: [[1, "asc"], [2, "asc"]]
+                });
+                $('#divBusAccountsList').slideDown();
+            }
+        });
+    }
+
+    // ----------------------------------------------------
+    // SINGLE ACCOUNT CREATION LOGIC
+    // ----------------------------------------------------
+    function openSingleAddModal() {
+        var currentAcYearVal = $('#CreationAcYear').val();
+        var currentFreqVal = $('#CreationFrequency').val();
+        var currentMainHeadVal = $('#CreationMainHead').val();
+
+        // Populate Academic Year in single modal
+        var acYearOptions = "";
+        $('#CreationAcYear option').each(function () {
+            acYearOptions += "<option value='" + $(this).val() + "'>" + $(this).text() + "</option>";
+        });
+        $('#singleAcYear').html(acYearOptions);
+        if (currentAcYearVal && currentAcYearVal !== "") {
+            $('#singleAcYear').val(currentAcYearVal);
+        }
+
+        $('#singleUserType').val("STUDENT");
+        $('#lblSingleCode').html("Roll No <span class='text-danger'>*</span>");
+        $('#singleCode').val("").attr("placeholder", "Enter Roll No or Admission No");
+        $('#singleUserId').val("0");
+        $('#singleUserInfoBox').hide();
+        $('#singleAllocatedAmount').val("");
+
+        loadSingleModalFrequencies(currentFreqVal, currentMainHeadVal);
+        $('#modalSingleAddAccount').modal('show');
+    }
+
+    function onSingleUserTypeChange() {
+        var userType = $('#singleUserType').val();
+        if (userType === "STUDENT") {
+            $('#lblSingleCode').html("Roll No <span class='text-danger'>*</span>");
+            $('#singleCode').attr("placeholder", "Enter Roll No or Admission No");
+        } else {
+            $('#lblSingleCode').html("Staff Code <span class='text-danger'>*</span>");
+            $('#singleCode').attr("placeholder", "Enter Staff Code");
+        }
+        $('#singleUserId').val("0");
+        $('#singleUserInfoBox').hide();
+    }
+
+    function onSingleAcYearChange() {
+        loadSingleModalFrequencies();
+    }
+
+    function loadSingleModalFrequencies(selectedFreqId, selectedMainHeadId) {
+        var acYear = $('#singleAcYear option:selected').text();
+        $('#singleFrequency').empty();
+        $('#singleMainHead').empty();
+
+        if (acYear.includes("-- Select --")) return;
+
+        $.ajax({
+            url: '@Url.Action("GetBusFrequencies", "Fee")',
+            type: 'GET',
+            data: { academicYear: acYear },
+            success: function (res) {
+                var options = "<option value='0'>-- Select Frequency --</option>";
+                if (res.Success) {
+                    $.each(res.Data, function (i, item) {
+                        options += "<option value='" + item.FREQUENCY_ID + "'>" + item.FREQUENCY_NAME + "</option>";
+                    });
+                }
+                $('#singleFrequency').html(options);
+                if (selectedFreqId && selectedFreqId !== "0") {
+                    $('#singleFrequency').val(selectedFreqId);
+                    loadSingleModalMainHeads(selectedMainHeadId);
+                }
+            }
+        });
+    }
+
+    function onSingleFrequencyChange() {
+        loadSingleModalMainHeads();
+    }
+
+    function loadSingleModalMainHeads(selectedMainHeadId) {
+        var acYear = $('#singleAcYear option:selected').text();
+        var freqId = $('#singleFrequency').val();
+        $('#singleMainHead').empty();
+
+        if (freqId === "0" || freqId === "") return;
+
+        $.ajax({
+            url: '@Url.Action("GetBusMainHeads", "Fee")',
+            type: 'GET',
+            data: { frequencyId: freqId, academicYear: acYear },
+            success: function (res) {
+                var options = "<option value='0'>-- Select Main Head --</option>";
+                if (res.Success) {
+                    $.each(res.Data, function (i, item) {
+                        options += "<option value='" + item.MAIN_HEAD_ID + "'>" + item.MAIN_HEAD + "</option>";
+                    });
+                }
+                $('#singleMainHead').html(options);
+                if (selectedMainHeadId && selectedMainHeadId !== "0") {
+                    $('#singleMainHead').val(selectedMainHeadId);
+                }
+            }
+        });
+    }
+
+    function verifyStudentOrStaff() {
+        var userType = $('#singleUserType').val();
+        var code = $('#singleCode').val().trim();
+        var acYear = $('#singleAcYear option:selected').text();
+
+        if (!code) {
+            $('#singleUserId').val("0");
+            $('#singleUserInfoBox').hide();
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("FindStudentOrStaffInfo", "Fee")',
+            type: 'GET',
+            data: { userType: userType, code: code, academicYear: acYear },
+            success: function (res) {
+                if (res.Success) {
+                    $('#singleUserId').val(res.Id);
+                    $('#singleDisplayVerifiedName').text(res.Name);
+                    $('#singleDisplayVerifiedDetails').text(res.Details);
+                    $('#singleUserInfoBox').slideDown();
+                } else {
+                    $('#singleUserId').val("0");
+                    $('#singleUserInfoBox').hide();
+                    swal("Not Found", res.Message, "warning");
+                }
+            },
+            error: function () {
+                $('#singleUserId').val("0");
+                $('#singleUserInfoBox').hide();
+            }
+        });
+    }
+
+    function submitSingleAccount(e) {
+        e.preventDefault();
+        var userId = $('#singleUserId').val();
+        var userType = $('#singleUserType').val();
+        var acYear = $('#singleAcYear option:selected').text();
+        var freqId = $('#singleFrequency').val();
+        var mainHeadId = $('#singleMainHead').val();
+        var amount = $('#singleAllocatedAmount').val();
+
+        if (userId === "0" || userId === "") {
+            swal("Verification Required", "Please enter a valid Roll No / Staff Code and verify it first.", "error");
+            return;
+        }
+        if (!freqId || freqId === "0") {
+            swal("Error", "Please select Fee Frequency.", "error");
+            return;
+        }
+        if (!mainHeadId || mainHeadId === "0") {
+            swal("Error", "Please select Main Head.", "error");
+            return;
+        }
+        if (!amount || parseFloat(amount) <= 0) {
+            swal("Error", "Please enter a valid allocated amount.", "error");
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("SaveSingleBusFeeAccount", "Fee")',
+            type: 'POST',
+            data: {
+                userType: userType,
+                userId: userId,
+                academicYear: acYear,
+                frequencyId: freqId,
+                mainHeadId: mainHeadId,
+                amount: amount
+            },
+            success: function (res) {
+                if (res.Success) {
+                    $('#modalSingleAddAccount').modal('hide');
+                    swal("Success", res.Message, "success");
+                    loadBusAccountsList();
+                } else {
+                    swal("Error", res.Message, "error");
+                }
+            },
+            error: function () {
+                swal("Error", "Internal server error occurred.", "error");
+            }
+        });
+    }
+
+    // ----------------------------------------------------
+    // BULK EXCEL UPLOAD MODAL LOGIC
+    // ----------------------------------------------------
+    function openExcelUploadModal() {
+        var acYear = $('#CreationAcYear option:selected').text();
+        var freqId = $('#CreationFrequency').val();
+        var mainHeadId = $('#CreationMainHead').val();
+
+        if (acYear.includes("-- Select --") || !freqId || freqId === "0" || !mainHeadId || mainHeadId === "0") {
+            swal("Selection Required", "Please select Academic Year, Frequency, and Main Head from the panel first!", "warning");
+            return;
+        }
+
+        $('#BusFeeExcelFile').val('');
+        $('#selectedFileName').hide();
+        $('#uploadInstruction').show();
+        $('#divInvalidRecords').hide();
+        $('#modalExcelUpload').modal('show');
+    }
+
+    function submitExcelFile() {
+        var fileInput = $('#BusFeeExcelFile').get(0);
+        if (fileInput.files.length === 0) {
+            swal("Error", "Please drag-and-drop or select an Excel file first!", "error");
+            return;
+        }
+
+        var academicYear = $('#CreationAcYear option:selected').text();
+        var frequencyId = $('#CreationFrequency').val();
+        var mainHeadId = $('#CreationMainHead').val();
+
+        if (!academicYear || academicYear.includes("-- Select --") || !frequencyId || frequencyId === "0" || !mainHeadId || mainHeadId === "0") {
+            swal("Error", "Please select Academic Year, Frequency, and Main Head first!", "error");
+            return;
+        }
+
+        swal({
+            title: "Confirmation",
+            text: "Are you sure you want to upload and process this bus fee file?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-success",
+            confirmButtonText: "Yes, upload!",
+            closeOnConfirm: false
+        }, function () {
+            var formData = new FormData();
+            formData.append(fileInput.files[0].name, fileInput.files[0]);
+            formData.append("AcademicYear", academicYear);
+            formData.append("FrequencyId", frequencyId);
+            formData.append("MainHeadId", mainHeadId);
+
+            $.ajax({
+                url: '@Url.Action("UploadBusFeeExcel", "Fee")',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (res) {
+                    $('#divInvalidRecords').hide();
+
+                    if (res.Success) {
+                        var isErrExist = res.InvalidRecords && res.InvalidRecords.length > 0;
+                        
+                        if (isErrExist) {
+                            var rows = "";
+                            $.each(res.InvalidRecords, function (i, item) {
+                                rows += "<tr>" +
+                                        "<td>" + item.Row + "</td>" +
+                                        "<td>" + item.AdmissionNo + "</td>" +
+                                        "<td>" + item.Name + "</td>" +
+                                        "<td class='text-danger'><b>" + item.Reason + "</b></td>" +
+                                       "</tr>";
+                            });
+                            $('#tblInvalidRecords tbody').html(rows);
+                            $('#divInvalidRecords').slideDown();
+
+                            swal({
+                                title: "Completed with Warnings",
+                                text: res.Message + " Some rows had validation errors. See the list in the modal.",
+                                type: "warning"
+                            });
+                        } else {
+                            $('#modalExcelUpload').modal('hide');
+                            swal("Success", res.Message, "success");
+                        }
+
+                        $('#BusFeeExcelFile').val('');
+                        $('#selectedFileName').hide();
+                        $('#uploadInstruction').show();
+                        loadBusAccountsList();
+                    } else {
+                        swal("Error", res.Message, "error");
+                    }
+                },
+                error: function () {
+                    swal("Error", "Internal server error occurred.", "error");
+                }
+            });
+        });
+    }
+
+    // ----------------------------------------------------
+    // EDIT & DELETE ACTIONS LOGIC
+    // ----------------------------------------------------
+    function openEditAccountModal(userType, accountId, safeCode, safeName, currentAmount) {
+        var code = decodeURIComponent(safeCode);
+        var name = decodeURIComponent(safeName);
+
+        $('#editUserType').val(userType);
+        $('#editAccountId').val(accountId);
+        $('#editDisplayUserType').val(userType === "STUDENT" ? "Student" : "Staff");
+        $('#editDisplayCode').val(code);
+        $('#editDisplayName').val(name);
+        $('#editAllocatedAmount').val(currentAmount);
+        $('#modalEditAccount').modal('show');
+    }
+
+    function saveEditedAccount(e) {
+        e.preventDefault();
+        var userType = $('#editUserType').val();
+        var accountId = $('#editAccountId').val();
+        var newAmount = $('#editAllocatedAmount').val();
+
+        if (newAmount === "" || parseFloat(newAmount) < 0) {
+            swal("Error", "Please enter a valid non-negative amount.", "error");
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("UpdateBusAccountAmount", "Fee")',
+            type: 'POST',
+            data: { userType: userType, accountId: accountId, newAmount: newAmount },
+            success: function (res) {
+                $('#modalEditAccount').modal('hide');
+                if (res.Success) {
+                    swal("Success", res.Message, "success");
+                    loadBusAccountsList();
+                } else {
+                    swal("Error", res.Message, "error");
+                }
+            },
+            error: function () {
+                swal("Error", "Failed to update account amount.", "error");
+            }
+        });
+    }
+
+    function deleteBusAccount(userType, accountId, safeName, safeCode) {
+        var name = decodeURIComponent(safeName);
+        var code = decodeURIComponent(safeCode);
+
+        swal({
+            title: "Are you sure?",
+            text: "You want to delete the bus fee account for " + name + " (" + code + ")?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, delete it!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                url: '@Url.Action("DeleteBusAccount", "Fee")',
+                type: 'POST',
+                data: { userType: userType, accountId: accountId },
+                success: function (res) {
+                    if (res.Success) {
+                        swal("Deleted!", res.Message, "success");
+                        loadBusAccountsList();
+                    } else {
+                        swal("Error", res.Message, "error");
+                    }
+                },
+                error: function () {
+                    swal("Error", "Failed to delete account.", "error");
+                }
+            });
+        });
+    }
+</script>

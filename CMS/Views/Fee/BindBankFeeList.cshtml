@@ -1,0 +1,63 @@
+﻿@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+
+@{ 
+    Layout = null;
+    int nCount = 0;
+}
+
+<div class="col-md-12 table-responsive">
+    
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Programme</th>
+                <th>Class Name</th>
+                @if (Model.liFeeMainHeads!=null && Model.liFeeMainHeads.Count>0)
+                {
+                    foreach (var item in Model.liFeeMainHeads)
+                    {
+                        <th>@item.HEAD</th>
+                    }
+                }
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liFeeAccountList!=null && Model.liFeeAccountList.Count>0)
+            {
+                var liAccount = Model.liFeeAccountList.GroupBy(x=>x.STUDENT_ID).ToList();
+                foreach (var item in liAccount)
+                {
+                    <tr>
+                        <td>@{nCount++;} @nCount</td>
+                        <td>@item.FirstOrDefault().ROLL_NO</td>
+                        <td>@item.FirstOrDefault().FIRST_NAME</td>
+                        <td>@item.FirstOrDefault().PROGRAMME_GROUP_CODE</td>
+                        <td>@item.FirstOrDefault().CLASS_NAME</td>
+                        @if (Model.liFeeMainHeads != null && Model.liFeeMainHeads.Count > 0)
+                        {
+                            var liCredit = Model.liFeeAccountList.Where(x => x.STUDENT_ID == item.FirstOrDefault().STUDENT_ID).ToList();
+                            foreach (var Headitem in Model.liFeeMainHeads)
+                            {
+                                var liExist = liCredit.Where(x => x.HEAD == Headitem.HEAD_ID).ToList();
+                                if (liExist!=null && liExist.Count>0)
+                                {
+                                    <td>@liExist.FirstOrDefault().CREDIT</td>
+                                }
+                                else
+                                {
+                                    <td>0</td>
+                                }
+                            }
+                            <td>@liCredit.Sum(x=>Convert.ToDouble(x.CREDIT))</td>
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+</div>

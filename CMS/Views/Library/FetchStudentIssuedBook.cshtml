@@ -1,0 +1,293 @@
+﻿
+@model CMS.ViewModel.ViewModel.LibraryViewModel
+@{ Layout = null; int count = 0;}
+
+
+<style>
+    .review-card {
+        /*background-color: #f9f9f9;*/
+        border-left: 4px solid #007bff;
+        border-right: 4px solid #007bff;
+        border-radius: 10px;
+    }
+
+    .modal-body input {
+        width: 100%;
+        max-width: 200px;
+        padding: 6px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .custom-switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 24px;
+    }
+
+        .custom-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 24px;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+    input:checked + .slider {
+        background-color: #28a745;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+    .checkbox-on {
+        background-color: #d4edda;
+        border: 1px solid #28a745;
+        padding: 4px;
+        border-radius: 5px;
+    }
+
+    .checkbox-off {
+        background-color: #f8d7da;
+        border: 1px solid #dc3545;
+        padding: 4px;
+        border-radius: 5px;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 576px) {
+        .review-card {
+            font-size: 14px;
+        }
+
+        .custom-switch {
+            width: 40px;
+            height: 20px;
+        }
+
+        .slider:before {
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+    }
+</style>
+
+<div class="table-responsive col-md-12">
+    <table class="table table-bordered table-hover" id="tblStuCourseRemark">
+        <thead>
+            <tr>
+                <th>
+                    #
+                </th>
+                <th>
+                    Roll No
+                </th>
+
+                <th>
+                    Name
+                </th>
+                <th>Count</th>
+                <th>Total Mark</th>
+                <th>Sec Mark</th>
+                <th>View</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liStudentDetails != null && Model.liStudentDetails.Count > 0)
+            {
+                foreach (var item in Model.liStudentDetails)
+                {
+                    <tr data-student-id="@item.STUDENT_ID" data-component-id="@item.COMPONENT_ID" data-course-id="@item.COURSE_ID" data-max-mark="@item.MAX_MARK" data-count="@item.COUNT" data-book-mark="@item.PER_BOOK_MARK">
+                        <td>
+                            @{ count++;}
+                            @count
+                        </td>
+                        <td>
+                            @Html.DisplayFor(m => item.ROLL_NO)
+                        </td>
+
+                        <td>
+                            @Html.DisplayFor(m => item.STUDENT_NAME)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(m => item.COUNT)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(m => item.MAX_MARK)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(m => item.SEC_MARK)
+                        </td>
+                        <td>
+                            @if (@item.SUBMITED == "1")
+                            {
+                                <a href="#StuAssignment" onclick="FetchStusubmission(@item.STUDENT_ID,@item.COMPONENT_ID,@item.COURSE_ID)" class="btn btn-theme pull-right" data-toggle="modal"><i class="fa fa-eye"> </i></a>
+                            }
+
+                        </td>
+                    </tr>
+                }
+            }
+
+        </tbody>
+    </table>
+</div>
+<div class="modal " id="StuAssignment" @*data-bs-backdrop="false" tabindex="0" aria-hidden="true"*@>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body d-block" style="background: aliceblue">
+                <div class="modal-header">
+                    <h5 class="modal-title text-center w-100" id="AddnewtdLabel">
+                        <button type="button" id="btncolseModal2" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+                        <span class="text-gradient">View &Aacute; Reading Component Mark</span>
+                    </h5>
+                </div>
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div id="cms-head" class="p-2">
+                        <div id="AppendBindData">
+
+
+                        </div>
+                        <hr />
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer d-flex justify-content-between">
+
+                    <a href="javascript:;" id="btncolseModal" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+
+
+        function bindStuReviewStatusafterSave() {
+           var sComponent = $('#Component').val();
+   if (sComponent == '' || sComponent == '0') {
+    alert('Please Choose Course...!!!');
+    return false;
+}
+$.ajax({
+    url: "@Url.Action("FetchStudentIssuedBook", "Library")",
+    method: "POST",
+    datatype: "json",
+    data: { sCourseId: $('#CourseList').val(), sClassId: $('#liLCasslist').val(), sComponent: $('#Component').val() },
+    success: function (data) {
+        $("#dvStuCourseRemark").empty();
+        $("#dvStuCourseRemark").append(data);
+        $("#tblStuCourseRemark").DataTable({});
+    }, error: function (error) {
+        alert('Internal Server Error !');
+    }
+})
+    }
+
+     // Fetch Settin Info ...
+   function FetchStusubmission(ID, comID, CourseID) {
+    $.ajax({
+        url: "@Url.Action("FetchStuReadingBookDetails", "Library")",
+        method: "POST",
+        datatype: "json",
+        data: { sStusubid: ID, sComponentID: comID, sCourseID: CourseID },
+        success: function (data) {
+            if (data.Message != null && data.Message !== '') {
+                swal({
+                    title: "info !",
+                    text: data.Message,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    type: 'error',
+                    animation: true
+                });
+            } else if (Array.isArray(data) && data.length > 0) {
+                $('#AppendBindData').empty();
+                $('#Sec_mark').val('');
+                let totalMark = "";
+                let SecMark = 0;
+
+                for (let i = 0; i < data.length; i++) {
+                    let item = data[i];
+                    let html = `
+<div class="review-card card shadow-sm mb-4 p-3">
+    <div class="row">
+        <div class="col-12 mb-2">
+            <h6 class="text-primary text-center mb-2">Review #${i + 1}</h6>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <p><strong>Roll No:</strong> ${item.ROLL_NO}</p>
+            <p><strong>Component:</strong> ${item.COMPONENT}</p>
+            <p><strong>Access No:</strong> ${item.ACCESS_NO}</p>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <p><strong>Document Title:</strong> ${item.DOC_TITLE}</p>
+            <p><strong>Personal Author:</strong> ${item.PERSONAL_AUTHOR1}</p>
+        </div>
+
+
+    </div>
+</div>
+`;
+                    $('#AppendBindData').append(html);
+                }
+            }
+        },
+        error: function (error) {
+            swal({
+                title: "Internal Server Error!",
+                text: "Sorry for the inconvenience",
+                showConfirmButton: false,
+                timer: 3000,
+                type: 'error',
+                animation: true
+            });
+        }
+    });
+}
+    
+
+
+
+
+
+
+
+</script>

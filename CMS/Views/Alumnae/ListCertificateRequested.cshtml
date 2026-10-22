@@ -1,0 +1,356 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "ListCertificateRequested";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Certificate</a></li>
+        <li class="active">Certificate Request Report</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Certificate Request List<small></small></h1>
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Certificate Request Report</h4>
+        </div>
+
+        <br />
+        <div class="panel-body">
+            <div class="pull-right p-5">
+
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#leaveModal">
+                    <i class="fa fa-plus"></i> Leave Update
+                </button>
+            </div>
+            <br />
+            <br />
+            <div class="panel-body noPadding">
+                <div class="form-group col-md-12 table-responsive">
+                    <table class="table table-hover table-bordered" id="tblMarkSheetRequested">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Roll No</th>
+                                <th>Certificate</th>
+                                <th>Requested Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.liCertificateDistribution != null && Model.liCertificateDistribution.Count > 0)
+                            {
+                                int count = 0;
+                                foreach (var item in Model.liCertificateDistribution)
+                                {
+                                    @*<tr data-json='@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(item))'> *@
+                                    <tr data-json="@Html.AttributeEncode(Newtonsoft.Json.JsonConvert.SerializeObject(item))">
+
+                                        <td>@(++count)</td>
+                                        <td>@item.FIRST_NAME</td>
+                                        <td>@item.ROLL_NO</td>
+                                        <td>@item.CERTIFICATE_NAME</td>
+                                        <td>@item.REQUEST_DATE</td>
+                                        <td>@item.STATUS_NAME</td>
+                                        <td>
+                                            <button class="btn btn-info btn-sm btn-view"><i class="fa fa-eye"></i> View</button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Details Modal -->
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Certificate Request Details</h5>
+                <button type="button" class="close" data-dismiss="modal">×</button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <tbody id="modalDetails"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" id="btnApprove">Approve</button>
+                <button class="btn btn-danger" id="btnReject">Reject</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="leaveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">Update Leave Request</h5>
+                <button type="button" class="close" data-dismiss="modal">×</button>
+            </div>
+            <div class="modal-body">
+
+                <div class="form-group">
+                    <label>Leave From</label>
+                    <input type="text" class="form-control datepicker" id="fromDate" placeholder="dd/mm/yyyy" />
+                </div>
+
+                <div class="form-group">
+                    <label>Leave To</label>
+                    <input type="text" class="form-control datepicker" id="toDate" placeholder="dd/mm/yyyy" />
+                </div>
+
+                <div class="form-group">
+                    <label>Reason for Leave</label>
+                    <textarea class="form-control" id="leaveReason" rows="3"></textarea>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btnUpdateLeaveStatus">Update Leave Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Approve/Reject Modal -->
+<div class="modal fade" id="actionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title" id="actionTitle"></h5>
+                <button type="button" class="close" data-dismiss="modal">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="distributionId" />
+                <div id="approveSection" class="hidden">
+                    <div>
+                        <label>Collection Date</label>
+                        <input type="text" class="form-control datepicker" id="collectDate" placeholder="dd/mm/yyyy" />
+                    </div>
+                    <div>
+                        <label> Extra Information</label>
+                        <textarea class="form-control" id="ExtraInformation" rows="3"></textarea>
+                    </div>
+                </div>
+                <div id="rejectSection" class="hidden">
+                    <label>Rejection Reason</label>
+                    <textarea class="form-control" id="rejectReason" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btnSaveStatus">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script>
+$(function () {
+    $('#tblMarkSheetRequested').DataTable();
+
+
+    // Open View Modal
+    $(document).on("click", ".btn-view", function () {
+        //var data = $(this).closest("tr").data("json");
+        var encoded = $(this).closest("tr").attr("data-json");
+
+        // Decode HTML entities back to real JSON
+        var jsonStr = $('<textarea/>').html(encoded).text();
+
+        // Parse into object
+        var data = JSON.parse(jsonStr);
+        // ✅ Cleared All Subject check
+        var clearedAll = (data.IS_CLEARED_ALL_SUBJECT == "1" || data.IS_CLEARED_ALL_SUBJECT == 1) ? "Yes" : "No";
+
+        // ✅ Semester month + year
+        var semester = (data.MONTH_OF_SEMESTER ?? "") + " " + (data.YEAR_OF_SEMESTER ?? "");
+
+        // ✅ Authorization details (conditionally added)
+        var authorizeRows = "";
+        if (data.AUTHORIZE_PERSON == "1" || data.AUTHORIZE_PERSON == "2") {
+            authorizeRows = `
+            <tr><th>Authorized Person</th><td>${data.AUTHORIZER_NAME ?? 'N/A'}</td></tr>
+            <tr><th>Authorizer Name</th><td>${data.AUTHORIZE_PERSON_NAME ?? 'N/A'}</td></tr>
+            <tr><th>Reason for not coming</th><td>${data.AUTHORIZE_REASON ?? 'N/A'}</td></tr>
+        `;
+        }
+
+        // ✅ Build modal content with safe checks
+        var html = `
+        <tr><th>Name</th><td>${data.FIRST_NAME ?? 'N/A'}</td></tr>
+        <tr><th>Roll No</th><td>${data.ROLL_NO ?? 'N/A'}</td></tr>
+        <tr><th>Contact No</th><td>${data.CONTACT_NO ?? 'N/A'}</td></tr>
+        <tr><th>Register No</th><td>${data.REGISTER_NO ?? 'N/A'}</td></tr>
+        <tr><th>Programme</th><td>${data.PROGRAMME_NAME ?? 'N/A'}</td></tr>
+        <tr><th>Certificate Category</th><td>${data.CATEGORY_NAME ?? 'N/A'}</td></tr>
+        <tr><th>Certificate</th><td>${data.CERTIFICATE_NAME ?? 'N/A'}</td></tr>
+        <tr><th>Requested Date</th><td>${data.REQUEST_DATE ?? 'N/A'}</td></tr>
+        <tr><th>Cleared All Subject</th><td>${clearedAll}</td></tr>
+        <tr><th>Semester Month & Year</th><td>${semester.trim() || 'N/A'}</td></tr>
+        ${authorizeRows}
+        <tr><th>Status</th><td>${data.STATUS_NAME ?? 'N/A'}</td></tr>
+        <tr><th>Reason</th><td>${data.REASON ?? 'N/A'}</td></tr>
+    `;
+
+
+        $("#modalDetails").html(html);
+        $("#distributionId").val(data.CERTIFICATE_DISTRIBUTION_ID ?? '');
+        $("#viewModal").modal("show");
+    });
+
+    // Open View Modal
+    //$(document).on("click", ".btn-view", function () {
+    //    var data = $(this).closest("tr").data("json");
+    //    // ✅ Cleared All Subject check
+    //    var clearedAll = data.IS_CLEARED_ALL_SUBJECT ? "Yes" : "No";
+
+    //    // ✅ Semester month + year
+    //    var semester = (data.MONTH_OF_SEMESTER ? data.MONTH_OF_SEMESTER : "") + " " +
+    //        (data.YEAR_OF_SEMESTER ? data.YEAR_OF_SEMESTER : "");
+
+    //    // ✅ Authorization details (conditionally added)
+    //    var authorizeRows = "";
+    //    if (data.AUTHORIZE_PERSON == "1" || data.AUTHORIZE_PERSON == "2") {
+    //        authorizeRows = `
+    //        <tr><th>Authorized Person</th><td>${data.AUTHORIZE_PERSON}</td></tr>
+    //        <tr><th>Authorizer Name</th><td>${data.AUTHORIZE_PERSON_NAME}</td></tr>
+    //        <tr><th>Reason for not coming </th><td>${data.AUTHORIZE_REASON}</td></tr>
+    //    `;
+    //    }
+    //    // ✅ Build modal content
+    //    var html = `
+    //    <tr><th>Name</th><td>${data.FIRST_NAME}</td></tr>
+    //    <tr><th>Roll No</th><td>${data.ROLL_NO}</td></tr>
+    //    <tr><th>Contact No</th><td>${data.CONTACT_NO}</td></tr>
+    //    <tr><th>Register No</th><td>${data.REGISTER_NO}</td></tr>
+    //      <tr><th>Programme</th><td>${data.PROGRAMME_NAME}</td></tr>
+    //    <tr><th>Certificate Category</th><td>${data.CATEGORY_NAME}</td></tr>
+    //    <tr><th>Certificate</th><td>${data.CERTIFICATE_NAME}</td></tr>
+    //    <tr><th>Requested Date</th><td>${data.REQUEST_DATE}</td></tr>
+    //    <tr><th>Cleared All Subject</th><td>${clearedAll}</td></tr>
+    //    <tr><th>Semester Month & Year</th><td>${semester.trim()}</td></tr>
+    //    ${authorizeRows}
+    //    <tr><th>Status</th><td>${data.STATUS_NAME}</td></tr>
+    //    <tr><th>Reason</th><td>${data.REASON ?? ''}</td></tr>
+    //`;
+
+    //    $("#modalDetails").html(html);
+    //    $("#distributionId").val(data.CERTIFICATE_DISTRIBUTION_ID);
+    //    $("#viewModal").modal("show");
+    //});
+    // Approve button
+    $("#btnApprove").click(function () {
+        $("#viewModal").modal("hide");
+        $("#actionTitle").text("Approve Certificate");
+        $("#approveSection").removeClass("hidden");
+        $("#rejectSection").addClass("hidden");
+        $("#actionModal").modal("show");
+    });
+
+    // Reject button
+    $("#btnReject").click(function () {
+        $("#viewModal").modal("hide");
+        $("#actionTitle").text("Reject Certificate");
+        $("#rejectSection").removeClass("hidden");
+        $("#approveSection").addClass("hidden");
+        $("#actionModal").modal("show");
+    });
+
+    // Save Status
+    $("#btnSaveStatus").click(function () {
+        var status = $("#approveSection").is(":visible") ? "1" : "2";
+        var payload = {
+            CERTIFICATE_DISTRIBUTION_ID: $("#distributionId").val(),
+            STATUS: status,
+            TO_BE_COLLECTED_DATE: $("#collectDate").val() || "",
+            REJECT_REASON: $("#rejectReason").val() || "",
+            EXTRA_INFORMATION: $("#ExtraInformation").val() || ""
+        };
+
+        $.ajax({
+            url: "@Url.Action("SaveorUpdateMarkSheetrequestedStatus", "Alumnae")",
+            type: "POST",
+            data: { sJsonData: JSON.stringify({ JSON_CERTIFICATE_DISTRIBUTION: [payload] }) },
+            success: function (data) {
+                if (data.ErrorCode == "406") {
+                    swal("Error", data.Message, "error");
+                } else {
+                    swal("Success", data.Message, "success");
+                    loadContent('/Alumnae/ListCertificateRequested');
+                    $('#viewModal').modal('hide');
+                    $('#actionModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
+                }
+            },
+            error: function () {
+                swal("Error", "Internal Server Error", "error");
+            }
+        });
+    });
+
+    // Init datepicker
+    $(".datepicker").datepicker({ format: "dd/mm/yyyy", autoclose: true });
+});
+
+// Save Leave Request
+$("#btnUpdateLeaveStatus").click(function () {
+    var payload = {
+        FROM_DATE: $("#fromDate").val(),
+        TO_DATE: $("#toDate").val(),
+        REASON: $("#leaveReason").val()
+    };
+
+    if (!payload.FROM_DATE || !payload.TO_DATE) {
+        swal("Warning", "Please select both From and To dates", "warning");
+        return;
+    }
+
+    $.ajax({
+        url: "@Url.Action("SaveorUpdateLeaveRequestedStatus", "Alumnae")",  // ✅ Change to your actual controller/action
+        type: "POST",
+        data: { sJsonData: JSON.stringify({ JSON_CERTIFICATE_ISSUE_LEAVE: [payload] }) },
+        success: function (data) {
+            if (data.ErrorCode == "406") {
+                swal("Error", data.Message, "error");
+            } else {
+                swal("Success", data.Message, "success");
+                $("#leaveModal").modal("hide");
+                $(".modal-backdrop").remove();
+                $("body").removeClass("modal-open");
+                loadContent('/Alumnae/ListCertificateRequested'); // refresh list if needed
+            }
+        },
+        error: function () {
+            swal("Error", "Internal Server Error", "error");
+        }
+    });
+});
+
+</script>

@@ -1,0 +1,814 @@
+﻿@model CMS.ViewModel.ViewModel.LibraryViewModel
+
+@{
+    ViewBag.Title = "BookCirculation";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+
+}
+
+
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active"> Book Circulation </li>
+    </ol>
+    <h1 class="page-header"> Book Circulation </h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title"> Book Circulation </h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="col-md-12 form-horizontal">
+                <div class="form-group">
+                    <label class="col-md-1"> ScanId </label>
+                    <div class="col-md-4">
+                        <input type="text" placeholder="Rfid/Barcode" class="form-control input-sm" id="txtScanId" />
+                    </div>
+                </div>
+
+                <div class="col-md-12 hidden" id="profile-details">
+                    <div class="profile-container">
+                        <div class="profile-section">
+                            <div class="profile-left">
+                                <div class="profile-image">
+                                    <div id="dvImage"></div>
+                                    <i class="fa fa-user hide"></i>
+                                </div>
+                            </div>
+                            <div class="profile-right">
+                                <div class="profile-info">
+
+                                    @*<div class="form-group col-md-12">
+                                            <label> RFID : <label id="lblRfid"> </label></label>
+                                        </div>*@
+
+                                    <div class="form-group col-md-12">
+                                        <label> Name : <label id="lblName"> </label></label>
+                                    </div>
+
+                                    <div class="form-group col-md-12">
+                                        <label> Date Of Birth : <label id="lblDateOfBirth"> </label></label>
+                                    </div>
+
+                                    <div class="form-group col-md-12">
+                                        <label> User Type : <label id="lblUserType"> </label></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="" id="divCirculation">
+
+                    </div>
+
+                    <div class="col-md-9">
+                        <a class="btn btn-primary" href="#issue-dialog" data-toggle="modal" id="btnIssue"><i class="fa fa-plus"></i>Issue</a>
+                        <a class="btn btn-primary" href="#return-dialog" data-toggle="modal" id="btnReturn"><i class="fa fa-plus"></i>Return</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="txtUserId" value="" />
+<input type="hidden" id="txtUserType" value="" />
+<input type="hidden" id="txtRole" value="" />
+<input type="hidden" id="txtSemesterId" value="" />
+<input type="hidden" id="txtSemesterType" value="" />
+<input type="hidden" id="txtProgrammeLevel" value="" />
+
+<!-- Issue Modal -->
+<div class="modal" id="issue-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Book Issue</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="issueBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="col-md-1"> ScanId </label>
+                                <div class="col-md-8">
+                                    <input type="text" placeholder="Rfid/Barcode" class="form-control input-sm" id="txtIssueScanId" />
+                                </div>
+                            </div>
+
+                            <div class="hidden" id="divIssueTransaction">
+
+                                <div class="form-group col-md-12 table-responsive">
+                                    <table class="table table-hover table-bordered" id="tblLiBookIssue">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>
+                                                    <div class="checkbox checkbox-css">
+                                                        <input type="checkbox" id="AllchkID" onchange="SelectOrUnselect()" />
+                                                        <label for="AllchkID"> &nbsp; &nbsp;</label>
+                                                    </div>
+                                                </th>
+                                                <th>Access No</th>
+                                                <th>Book Title</th>
+                                                <th>Author</th>
+                                                <th>Isbn No</th>
+                                                @*<th>Action</th>*@
+                                                <th class="hidden" id="thStatus">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="bAppend"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnIssueSubmit" class="btn btn-sm btn-primary">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-info" id="btnIssueClear">Clear</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" id="btnIssueCancel" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="return-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Book Return</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="issueBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="col-md-1"> ScanId </label>
+                                <div class="col-md-8">
+                                    <input type="text" placeholder="Rfid/Barcode" class="form-control input-sm" id="txtReturnScanId" />
+                                </div>
+                            </div>
+
+                            <div class="hidden" id="divReturnTransaction">
+
+                                <div class="form-group col-md-12 table-responsive">
+                                    <table class="table table-hover table-bordered" id="tblLiBookReturn">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>
+                                                    <div class="checkbox checkbox-css">
+                                                        <input type="checkbox" id="AllchkIDForReturn" onchange="SelectOrUnselectForReturn()" />
+                                                        <label for="AllchkIDForReturn"> &nbsp; &nbsp;</label>
+                                                    </div>
+                                                </th>
+                                                <th>Access No</th>
+                                                <th>Book Title</th>
+                                                <th>Author</th>
+                                                <th>Isbn No</th>
+                                                @*<th>Action</th>*@
+                                                <th class="hidden" id="thStatusForReturn">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="bAppendForReturn"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnReturnSubmit" class="btn btn-sm btn-primary">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-info" id="btnReturnClear">Clear</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" id="btnReturnCancel" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="txtScanHiddenId" />
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+
+<script>
+    function ContentLoad()
+    {
+        // Document Ready Function .
+    }
+
+    $('#txtScanId').keypress(function (event)
+    {
+        $('#txtScanHiddenId').val('');
+
+        var x = event.which || event.keyCode
+        if (x == 13)
+        {
+            if ($('#txtScanId').val())
+            {
+                var text = $('#txtScanId').val();
+            $('#txtScanHiddenId').val('');
+            $('#txtScanHiddenId').val(text);
+            $.ajax({
+                url: '@Url.Action("FetchStudentDetails", "Library")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sScanId: text },
+                success: function (data) {
+                    if (data.Message != null && data.Message != '')
+                    {
+
+                        swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+                        // alert(data.Message); // If Error Occur's alert will  fire ...
+
+
+                        $('#profile-details').addClass('hidden');
+                        $('#divCirculation').empty();
+
+                        // Bind Data's ,..
+                        $('#txtScanId').val('');
+                        $('#lblName').text('');
+                        $('#lblDateOfBirth').text('');
+                        $('#lblUserType').text('');
+                        $('#lblBloodGroup').text('');
+
+                        $('#txtUserId').val('');
+                        $('#txtUserType').val('');
+                        $('#txtRole').val('');
+
+                        $('#txtSemesterId').val('');
+                        $('#txtSemesterType').val('');
+                        $('#txtProgrammeLevel').val('');
+
+                        $('#dvImage').empty();
+
+
+
+                    } else
+                    {
+
+
+                        if (data.oResult.sMessage != null && data.oResult.sMessage != '')
+                        {
+                            if (data.oResult.sErrorCode == "404")
+                            {
+                                swal({ title: "Info !", text: data.oResult.sMessage, showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+                            }
+
+                                $('#profile-details').addClass('hidden');
+                               $('#divCirculation').empty();
+
+                                // Bind Data's ,..
+                                $('#txtScanId').val('');
+                                $('#lblName').text('');
+                                $('#lblDateOfBirth').text('');
+                                $('#lblUserType').text('');
+                                $('#lblBloodGroup').text('');
+                                $('#txtUserId').val('');
+                                $('#txtUserType').val('');
+                                $('#txtRole').val('');
+
+                                $('#txtSemesterId').val('');
+                                $('#txtSemesterType').val('');
+                                $('#txtProgrammeLevel').val('');
+
+                                $('#dvImage').empty();
+
+
+                        }
+                        else
+                        {
+
+                                $('#profile-details').removeClass('hidden');
+
+                                // Bind Data's ,..
+
+                                $('#lblName').text(data.oResult.objUserAccount.FIRST_NAME);
+                                $('#lblDateOfBirth').text(data.oResult.objUserAccount.DATE_OF_BIRTH);
+                                $('#lblUserType').text(data.oResult.objUserAccount.USER_TYPE_NAME);
+                                $('#lblBloodGroup').text(data.oResult.objUserAccount.BLOOD_GROUP);
+                                $('#dvImage').empty();
+
+                                $('#dvImage').append('<img src="' + data.oResult.objUserAccount.PHOTO + '" alt="User Image" id="imgUser"/>');
+                                $('#txtUserId').val(data.oResult.objUserAccount.USER_ID);
+                                $('#txtUserType').val(data.oResult.objUserAccount.USER_TYPE);
+                                $('#txtRole').val(data.oResult.objUserAccount.ROLE);
+                                $('#txtSemesterType').val(data.oResult.objUserAccount.SEMESTER_TYPE);
+                                $('#txtProgrammeLevel').val(data.oResult.objUserAccount.PROGRAMME_LEVEL);
+
+                                $('#txtScanId').val('');
+                                if (data.oResult.liBookCirculation != null && data.oResult.liBookCirculation.length>0)
+                                {
+                                     $.ajax({
+                                         url:'@Url.Action("BindCirculation", "Library")',
+                                         method: 'POST',
+                                         data: { sData: data.oResult.liBookCirculation},
+                                                success: function (data1)
+                                                {
+
+                                                    $('#divCirculation').empty();
+                                                    $('#divCirculation').append(data1);
+                                                }, error: function (error)
+                                                {
+
+                                                }
+                                             });
+                            }
+                                else {
+                                    $('#divCirculation').empty();
+                                    $('#divCirculation').append("<div class='alert alert-danger'>No Circulation Yet !</div>");
+                                }
+                            }
+
+
+
+                    }
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+            }
+            else
+            {
+                swal({ title: "Info!", text: "Please enter rfid/barcode of the user!", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                $('#profile-details').addClass('hidden');
+                $('#divCirculation').empty();
+
+                // Bind Data's ,..
+                $('#txtScanId').val('');
+                $('#lblName').text('');
+                $('#lblDateOfBirth').text('');
+                $('#lblUserType').text('');
+                $('#lblBloodGroup').text('');
+                $('#txtUserId').val('');
+                $('#txtUserType').val('');
+                $('#txtRole').val('');
+
+                $('#txtSemesterId').val('');
+                $('#txtSemesterType').val('');
+                $('#txtProgrammeLevel').val('');
+
+                $('#dvImage').empty();
+
+            }
+           
+        }
+    });
+</script>
+
+<script>
+    var sIssueKeys = [];
+    var sReturnKeys = [];
+   $('#txtIssueScanId').keypress(function (event)
+    {
+        var x = event.which || event.keyCode
+        if (x == 13)
+        {
+            var text = $('#txtIssueScanId').val();
+            //if (sIssueKeys.includes(text)) {
+            //    swal({ title: "Info!", text: "Already Exists!", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+            //    return false;
+            //}
+
+                 //sIssueKeys.push(text);
+            if (text != "" && text != null)
+            {
+                $.ajax({
+                url: '@Url.Action("FetchBookDetailsForIssueByRfidorBarcode", "Library")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sScanId: text },
+                success: function (data) {
+                    if (data.Message != null && data.Message != '')
+                    {
+                        if (data.ErrorCode == "404") {
+                            swal({ title: "Info!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                        if (data.ErrorCode == "208") {
+                            swal({ title: "Info!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+
+                    }
+                    else
+                    {
+                        $('#txtIssueScanId').val('');
+                        if ($('#divIssueTransaction').hasClass("hidden"))
+                        {
+                            $('#divIssueTransaction').removeClass("hidden");
+
+                        }
+                        //check if data already exist or not
+                        if (sIssueKeys.includes(data.oResult)) {
+                            swal({ title: "Info!", text: "Already Exists!", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+
+                        }
+                        else
+                        {
+                            sIssueKeys.push(data.oResult);
+                            $('#bAppend').append(data.sResult);
+                        }
+                    }
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+            }
+            else {
+                swal({ title: "Info!", text: "No id were readed!", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+            }
+
+
+
+        }
+    });
+
+      $('#txtReturnScanId').keypress(function (event)
+    {
+        var x = event.which || event.keyCode
+        if (x == 13)
+        {
+            var text = $('#txtReturnScanId').val();
+
+            if (text != "" && text != null) {
+                $.ajax({
+                    url: '@Url.Action("FetchBookDetailsForIssueByRfidorBarcode", "Library")',
+                    method: 'POST',
+                    datatype: 'json',
+                    data: { sScanId: text },
+                    success: function (data) {
+                        if (data.Message != null && data.Message != '') {
+                            if (data.ErrorCode == "404") {
+                                swal({ title: "Info!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                            }
+                            if (data.ErrorCode == "208") {
+                                swal({ title: "Info!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                            }
+
+                        }
+                        else {
+                            $('#txtReturnScanId').val('');
+                            if ($('#divReturnTransaction').hasClass("hidden")) {
+                                $('#divReturnTransaction').removeClass("hidden");
+
+                            }
+
+                            //check if data already exist or not
+                            if (sReturnKeys.includes(data.oResult)) {
+                                swal({ title: "Info!", text: "Already Exists!", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+
+                            }
+                            else {
+                                sReturnKeys.push(data.oResult);
+                                $('#bAppendForReturn').append(data.sResult);
+                            }
+                        }
+                    }, error: function (error) {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                });
+
+            }
+            else {
+                swal({ title: "Info!", text: "No id were readed!", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+            }
+        }
+    });
+
+</script>
+
+<script>
+    SelectOrUnselect = function () {
+        if (AllchkID.checked == true) {
+            $('#tblLiBookIssue tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').each(function () {
+                    $('input[type="checkbox"]').attr("checked", true);
+                });
+            });
+        }
+        else {
+            $('#tblLiBookIssue tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').each(function () {
+                    $('input[type="checkbox"]').attr("checked", false);
+                });
+            });
+        }
+    }
+    SelectOrUnselectForReturn = function () {
+        if (AllchkIDForReturn.checked == true) {
+            $('#tblLiBookReturn tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').each(function () {
+                    $('input[type="checkbox"]').attr("checked", true);
+                });
+            });
+        }
+        else {
+            $('#tblLiBookReturn tbody tr').each(function () {
+                $(this).find('input[type="checkbox"]').each(function () {
+                    $('input[type="checkbox"]').attr("checked", false);
+                });
+            });
+        }
+    }
+
+
+</script>
+
+<script>
+    $('#btnIssueClear').on('click', function ()
+    {
+        $('#txtIssueScanId').val('');
+        $('#divIssueTransaction').addClass("hidden");
+        $('#bAppend').empty();
+        $('#bAppendForReturn').empty();
+        sIssueKeys = [];
+        $('#thStatus').addClass("hidden");
+        if (AllchkID.checked == true)
+        {
+
+            $('#AllchkID').attr("checked", false);
+        }
+
+        $.ajax({
+             url:'@Url.Action("MakeZeroForRCount", "Library")',
+             method: 'POST',
+             success: function (data1)
+             {
+
+                                                   
+             }, error: function (error)
+             {
+
+             }
+          });
+
+    });
+    $('#btnIssue').on('click', function () {
+
+
+        $.ajax({
+             url:'@Url.Action("MakeZeroForRCount", "Library")',
+             method: 'POST',
+             success: function (data1)
+             {
+
+                                                   
+             }, error: function (error)
+             {
+
+             }
+          });
+
+
+            $('#txtIssueScanId').val('');
+            $('#divIssueTransaction').addClass("hidden");
+            $('#bAppend').empty();
+            $('#bAppendForReturn').empty();
+        sIssueKeys = [];
+        if (AllchkID.checked == true) {
+
+            $('#AllchkID').attr("checked", false);
+        }
+
+    });
+
+   
+    
+
+    $('#btnIssueCancel').on('click', function ()
+    {
+        $('#bAppend').empty();
+        $('#bAppendForReturn').empty();
+        var text = $('#txtScanHiddenId').val();
+        $('#txtScanId').val(text);
+        var e = $.Event("keypress", { which: 13 });
+
+        $('#txtScanId').trigger(e);
+
+    });
+
+    $('#btnReturnCancel').on('click', function ()
+    {
+        $('#bAppend').empty();
+        $('#bAppendForReturn').empty();
+        var text = $('#txtScanHiddenId').val();
+        $('#txtScanId').val(text);
+        var e = $.Event("keypress", { which: 13 });
+
+        $('#txtScanId').trigger(e);
+
+    });
+
+    $('#btnReturnClear').on('click', function () {
+        $('#txtReturnScanId').val('');
+        $('#divReturnTransaction').addClass("hidden");
+        $('#bAppendForReturn').empty();
+        $('#bAppend').empty();
+        sReturnKeys = [];
+        $('#thStatusForReturn').addClass("hidden");
+        if (AllchkIDForReturn.checked == true) {
+
+            $('#AllchkIDForReturn').attr("checked", false);
+        }
+
+        $.ajax({
+             url:'@Url.Action("MakeZeroForRCount", "Library")',
+             method: 'POST',
+             success: function (data1)
+             {
+
+                                                   
+             }, error: function (error)
+             {
+
+             }
+          });
+
+    });
+    $('#btnReturn').on('click', function () {
+
+
+
+        $.ajax({
+             url:'@Url.Action("MakeZeroForRCount", "Library")',
+             method: 'POST',
+             success: function (data1)
+             {
+
+                                                   
+             }, error: function (error)
+             {
+
+             }
+          });
+
+        $('#txtReturnScanId').val('');
+        $('#divReturnTransaction').addClass("hidden");
+        $('#bAppendForReturn').empty();
+        $('#bAppend').empty();
+        sReturnKeys = [];
+        if (AllchkIDForReturn.checked == true) {
+
+            $('#AllchkIDForReturn').attr("checked", false);
+        }
+    });
+
+
+
+
+
+
+
+
+    $('#btnIssueSubmit').on('click', function ()
+    {
+        var JsonData = '{"liBookIssue":[';
+        var nCount = 0;
+        $('#tblLiBookIssue tbody tr').each(function ()
+        {
+            if ($(this).find('input[type="checkbox"]').is(':checked'))
+            {
+                JsonData += '{"BOOK_ID":"' + $(this).attr('cms-book-id') + '","USER_ID":"' + $('#txtUserId').val() + '","USER_TYPE":"' + $('#txtUserType').val() + '","PROGRAMME_LEVEL":"' + $('#txtProgrammeLevel').val() + '",'+
+                    '"ROLE":"' + $('#txtRole').val() + '",' +
+                    '"SEMESTER_TYPE":"' + $('#txtSemesterType').val() + '"},';
+                nCount++;
+            }
+        });
+
+        if (nCount != 0)
+        {
+            JsonData = JsonData.slice(0, -1);
+            JsonData = JsonData + "]}";
+            $.ajax({
+                url: '@Url.Action("SaveBookCirculation", "Library")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sJsonBookDetails: JsonData, sMode:'0'},
+                success: function (data)
+                {
+                    if (data.sMessage != null && data.sMessage != '') {
+                        if (data.sErrorCode == "204") {
+                            swal({ title: "Info!", text: data.sMessage, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                        if (data.sErrorCode == "409") {
+                            swal({ title: "Info!", text: data.sMessage, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                        if (data.sErrorCode == "503") {
+                            swal({ title: "Info!", text: data.sMessage, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                    }
+                    else
+                    {
+
+                        if (data.liGridClass != null && data.liGridClass.length > 0)
+                        {
+                            $('#thStatus').removeClass("hidden");
+                            //$('#bAppend > .ms-lastCell').removeClass("hidden");
+
+                            for (var i = 0; i < data.liGridClass.length; i++)
+                            {
+                                $('#tblLiBookIssue tbody').find('tr[cms-book-id=' + data.liGridClass[i].BOOK_ID + ']').find('td.ms-lastCell').removeClass('hidden');
+                                $('#tblLiBookIssue tbody').find('tr[cms-book-id=' + data.liGridClass[i].BOOK_ID +']').find('td.ms-lastCell').text(data.liGridClass[i].STATUS);
+                            }
+                        }
+                    }
+                }, error: function (error)
+                {
+
+                }
+            });
+        } else
+        {
+            swal({ title: "Info!", text: "Select item to continue!", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+        }
+    });
+
+
+
+    $('#btnReturnSubmit').on('click', function ()
+    {
+        var JsonData = '{"liBookIssue":[';
+        var nCount = 0;
+        $('#tblLiBookReturn tbody tr').each(function ()
+        {
+            if ($(this).find('input[type="checkbox"]').is(':checked'))
+            {
+                JsonData += '{"BOOK_ID":"' + $(this).attr('cms-book-id') + '","USER_ID":"' + $('#txtUserId').val() + '","USER_TYPE":"' + $('#txtUserType').val() + '","PROGRAMME_LEVEL":"' + $('#txtProgrammeLevel').val() + '",'+
+                    '"ROLE":"' + $('#txtRole').val() + '",' +
+                    '"SEMESTER_TYPE":"' + $('#txtSemesterType').val() + '"},';
+                nCount++;
+            }
+        });
+
+        if (nCount != 0)
+        {
+            JsonData = JsonData.slice(0, -1);
+            JsonData = JsonData + "]}";
+            $.ajax({
+                url: '@Url.Action("SaveBookCirculation", "Library")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sJsonBookDetails: JsonData, sMode:'1'},
+                success: function (data)
+                {
+                    if (data.sMessage != null && data.sMessage != '') {
+                        if (data.sErrorCode == "204") {
+                            swal({ title: "Info!", text: data.sMessage, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                        if (data.sErrorCode == "409") {
+                            swal({ title: "Info!", text: data.sMessage, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                        if (data.sErrorCode == "503") {
+                            swal({ title: "Info!", text: data.sMessage, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+                        }
+                    }
+                    else
+                    {
+
+                        if (data.liGridClass != null && data.liGridClass.length > 0)
+                        {
+                            $('#thStatusForReturn').removeClass("hidden");
+                            //$('#bAppendForReturn > .ms-lastCell').removeClass("hidden");
+                            for (var i = 0; i < data.liGridClass.length; i++)
+                            {
+                                $('#tblLiBookReturn tbody').find('tr[cms-book-id=' + data.liGridClass[i].BOOK_ID + ']').find('td.ms-lastCell').removeClass('hidden');
+                                $('#tblLiBookReturn tbody').find('tr[cms-book-id=' + data.liGridClass[i].BOOK_ID + ']').find('td.ms-lastCell').text(data.liGridClass[i].STATUS);
+                            }
+                        }
+                    }
+                }, error: function (error)
+                {
+
+                }
+            });
+        } else
+        {
+            swal({ title: "Info!", text: "Select item to continue!", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+        }
+    });
+
+
+</script>

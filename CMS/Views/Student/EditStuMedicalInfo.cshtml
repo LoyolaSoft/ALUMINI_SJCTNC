@@ -1,0 +1,293 @@
+﻿@model IEnumerable<CMS.ViewModel.Model.StudentMedical>
+
+
+<div id="dvMedical">
+    <div class="row">
+        <div class="form-group pull-right">
+            <a href="#Medical-dialog" class="btn btn-sm btn-success pull-right" data-toggle="modal"><i class="fa fa-plus"></i></a>
+        </div>
+    </div>
+    <div class="table-responsive row">
+        @{int count = 0;}
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Allergies</th>
+                    <th>Docter Note</th>
+                    <th>Medical Date</th>
+                    <th>Medical Condition</th>
+                    <th>Vaccination</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null)
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@{count++;} @count</td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Allergies)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DocterNote)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.MedicalDate)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.MedicalCondition)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Vaccination)
+                            </td>
+                            <td>
+                                <a href="#Medical-dialog" onclick="GetMedicalValues(@item.sMedicalId)" data-toggle="modal" class="fa fa-edit text-primary"></a>
+                                <a href="javascript:;" onclick="GetConfirm(@item.sMedicalId)" class="fa fa-trash text-danger"></a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td>No Data Found ..!</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+
+        $(document).ready(function ()
+        {
+            $("#btnEditMedical").hide();
+            ////FormMultipleUpload.init();
+            handleDatePicker = function ()
+            {
+                "use strict";
+                $("#MedicalDate").datepicker({
+                    todayHighlight: true,
+                    autoclose: true,
+                    endDate: new Date(),
+                    format: "dd/mm/yyyy",
+                    orientation: "right bottom"
+                    // 'top': top,
+                    // 'left': left
+                });
+            }
+            handleDatePicker();
+        });
+
+        // Bind Medical Values ...
+        GetMedicalValues=function(ID)
+        {
+            $.ajax({
+                url:"@Url.Action("BindMedical", "Student")",
+                method:"POST",
+                datatype:"json",
+                data: { sMedicalId: ID },
+                success: function (data)
+                {
+                    $("#Allergies").val(data.Allergies);
+                    $("#DocterNote").val(data.DocterNote);
+                    $("#MedicalDate").val(data.MedicalDate);
+                    $("#MedicalCondition").val(data.MedicalCondition);
+                    $("#Vaccination").val(data.Vaccination);
+                    $("#btnEditMedical").show();
+                    $("#btnMedical").hide();
+                },error:function(error)
+                {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+
+        // Fetch Student Medical ...
+        GetStuMedical = function ()
+        {
+            $.ajax({
+                url:"@Url.Action("EditStuMedicalInfo", "Student")",
+                method:"POST",
+                datatype:"json",
+                success:function(data)
+                {
+                    $("#dvMedical").empty();
+                    $("#dvMedical").append(data);
+                },error:function(error)
+                {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+
+        // Delete Talents ...
+        function GetConfirm(ID)
+        {
+            if (!confirm('Are you sure to delete ?'))
+            {
+                return false;
+            } else
+            {
+                $.ajax({
+                    url:"@Url.Action("DeleteMedical", "Student")",
+                    method: "POST",
+                    datatype:"json",
+                    data: { sMedicalId: ID },
+                    success:function(data)
+                    {
+                        alert(data);
+                        GetStuMedical();
+                    },error:function(error)
+                    {
+                        alert('Internal Server Error ! ');
+                    }
+                });
+            }
+        }
+
+        // Insert Medical ....
+        $("#btnMedical").on("click", function ()
+        {
+            var isValid = true;
+            if ($('#nav-tab2-16').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //gritter-info,danger,success,warning,default
+                myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+            var Allergies = $("#Allergies").val();
+            var DocterNote = $("#DocterNote").val();
+            var MedicalDate = $("#MedicalDate").val();
+            var MedicalCondition = $("#MedicalCondition").val();
+            var Vaccination = $("#Vaccination").val();
+            var JsonData;
+            if (JsonData == null)
+            {
+                JsonData = '{"Allergies":"' + Allergies + '","DocterNote":"' + DocterNote + '","MedicalDate":"' + MedicalDate + '","MedicalCondition":"' + MedicalCondition + '","Vaccination":"' + Vaccination + '"}';
+            }
+
+            $.ajax({
+                url: "@Url.Action("InsertMedical", "Student")",
+                method: "POST",
+                datatype: "html",
+                data: { JsonMedical: JsonData },
+                success:function(data)
+                {
+                    alert(data);
+                    GetStuMedical();
+                },error:function(error)
+                {
+                    alert('Session time out try again ...!');
+                }
+            });
+        });
+
+        // Update Medical ....
+        $("#btnEditMedical").on("click", function ()
+        {
+            var isValid = true;
+            if ($('#nav-tab2-16').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //gritter-info,danger,success,warning,default
+                myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+            var Allergies = $("#Allergies").val();
+            var DocterNote = $("#DocterNote").val();
+            var MedicalDate = $("#MedicalDate").val();
+            var MedicalCondition = $("#MedicalCondition").val();
+            var Vaccination = $("#Vaccination").val();
+            var JsonData;
+            if (JsonData == null) {
+                JsonData = '{"Allergies":"' + Allergies + '","DocterNote":"' + DocterNote + '","MedicalDate":"' + MedicalDate + '","MedicalCondition":"' + MedicalCondition + '","Vaccination":"' + Vaccination + '"}';
+            }
+
+            $.ajax({
+                url: "@Url.Action("UpdateMedical", "Student")",
+                method: "POST",
+                datatype: "html",
+                data: { JsonMedical: JsonData },
+                success: function (data)
+                {
+                    alert(data);
+                    GetStuMedical();
+                }, error: function (error)
+                {
+                    alert('Session time out try again ...!');
+                }
+            });
+        });
+    </script>
+</div>
+
+
+<div class="modal fade" id="Medical-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 class="modal-title">Medical</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Allergies</label>
+                                    <div class="col-md-9">
+                                        <textarea id="Allergies" class="form-control" rows="3" data-parsley-length="[3,400]" data-parsley-required="true" placeholder="Allergies"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Docter Note</label>
+                                    <div class="col-md-9">
+                                        <textarea id="DocterNote" class="form-control" rows="3" data-parsley-length="[3,400]" data-parsley-required="true" placeholder="Docter Note"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Medical Date</label>
+                                    <div class="col-md-9">
+                                        <div class="input-group date" id="datetimepicker1">
+                                            <input type="text" id="MedicalDate" class="form-control input-sm" placeholder="Enter Medical Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Medical Condition</label>
+                                    <div class="col-md-9">
+                                        <textarea id="MedicalCondition" class="form-control" rows="3" data-parsley-length="[3,500]" data-parsley-required="true" placeholder="Medical Condition"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Vaccination</label>
+                                    <div class="col-md-9">
+                                        <textarea id="Vaccination" class="form-control" rows="3" data-parsley-length="[3,500]" data-parsley-required="true" placeholder="Vaccination"></textarea>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+               
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnMedical" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" id="btnEditMedical" class="btn btn-sm btn-primary" data-dismiss="modal">Update</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>

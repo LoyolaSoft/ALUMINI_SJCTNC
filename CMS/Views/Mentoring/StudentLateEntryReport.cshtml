@@ -1,0 +1,107 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    ViewBag.Title = "StudentLateEntryReport";
+    Layout = null;
+}
+
+<input type="hidden" id="LateEntrySTUDENT_ID" value="@ViewBag.StudentId" />
+
+<div class="container-fluid mt-3">
+    <h4 class="text-center mb-3"><b>Student Late Entry Report</b></h4>
+    
+    <div class="card p-3 shadow-sm mb-4">
+        <div class="row align-items-end">
+            <div class="col-md-4 form-group">
+                <label>Date From</label>
+                <div class="input-group">
+                    <input type="text" id="LATE_ENTRY_DATE_FROM" class="form-control" autocomplete="off" />
+                    <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+            </div>
+            <div class="col-md-4 form-group">
+                <label>Date To</label>
+                <div class="input-group">
+                    <input type="text" id="LATE_ENTRY_DATE_TO" class="form-control" autocomplete="off" />
+                    <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+            </div>
+            <div class="col-md-2 form-group">
+                <button type="button" id="btnGetLateEntryDateWise" class="btn btn-primary">
+                    <i class="fa fa-search"></i> Get Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <hr />
+
+    <!-- RESULT -->
+    <div id="divbindLateEntryPage"></div>
+</div>
+
+<script>
+$(document).ready(function () {
+
+    $("#LATE_ENTRY_DATE_FROM, #LATE_ENTRY_DATE_TO").datepicker({
+        todayHighlight: true,
+        autoclose: true,
+        format: "dd/mm/yyyy",
+        orientation: "bottom"
+    }).datepicker('setDate', new Date());
+
+    // Icon click handler
+    $("#LATE_ENTRY_DATE_FROM, #LATE_ENTRY_DATE_TO").each(function() {
+        $(this).closest('.input-group').find('.input-group-addon').click(function(){
+            $(this).prev('input').focus();
+        });
+    });
+
+    // GET REPORT
+    $("#btnGetLateEntryDateWise").click(function () {
+        var DateFrom = $("#LATE_ENTRY_DATE_FROM").val();
+        var DateTo = $("#LATE_ENTRY_DATE_TO").val();
+        
+        // Convert dd/mm/yyyy to yyyy-mm-dd for backend
+        if(DateFrom) DateFrom = DateFrom.split("/").reverse().join("-");
+        if(DateTo) DateTo = DateTo.split("/").reverse().join("-");
+
+        var STUDENT_ID = $("#LateEntrySTUDENT_ID").val();
+
+        if (!DateFrom || !DateTo) {
+            swal("Warning", "Please select both dates", "warning");
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("BindStuLateEntryReportDateWise", "Mentoring")',
+            type: "GET",
+            data: {
+                sdate: DateFrom,
+                edate: DateTo,
+                student_id: STUDENT_ID
+            },
+            success: function (html) {
+                $("#divbindLateEntryPage").html(html);
+
+                if ($.fn.DataTable.isDataTable("#tbltpmReport")) {
+                    $("#tbltpmReport").DataTable().destroy();
+                }
+
+                $("#tbltpmReport").DataTable({
+                    responsive: true,
+                    paging: true,
+                    ordering: true,
+                    dom: 'lBfrtip',
+                    buttons: ['copy', 'excel', 'pdf']
+                });
+            },
+            error: function () {
+                swal("Error", "Error loading report data", "error");
+            }
+        });
+    });
+
+});
+</script>
+
+

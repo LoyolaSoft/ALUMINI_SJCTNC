@@ -1,0 +1,414 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+@{
+    //ViewBag.Title = "BindPedagogicMethodInputSystem";
+
+    int count = 0;
+    int lastHour = 0;
+}
+<style>
+
+    /* .dropdown-menu{
+        right:0 !important;
+        left:-150px !important
+    }*/
+    /* .bootstrap-select.form-control:not([class*="span"]) {
+        width: 190px !important;
+    }*/
+    .dropup .dropdown-menu, .navbar-fixed-bottom .dropdown .dropdown-menu {
+        margin-bottom: -85px !important
+    }
+</style>
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<br />
+@if (Model.liStaffCourseList != null && Model.liStaffCourseList.Count > 0)
+{
+    int ccCount = 0;
+    <div class="">
+        <div class="form-horizontal ">
+            <div class="form-group col-md-12">
+                <table class="table table-bordered " id="tblteaching">
+                    <thead>
+                        <tr>
+                            @*<th><b>#</b></th>*@
+                            @*<th><b>Date</b></th>*@
+                            <th><b>Class</b></th>
+                            <th><b>Course Code</b></th>
+                            <th><b>Hour</b></th>
+                            <th><b>Unit</b></th>
+                            <th><b>Topic Title</b></th>
+                            <th><b>Sub Topic</b></th>
+                            <th><b>Methodology</b></th>
+                            <th><b>CC</b></th>
+                            <th><b>Substitute</b></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var items in Model.liStaffCourseList)
+                        {
+                            count++;
+
+                            if (!string.IsNullOrEmpty(items.PENDAGOGIC_ID))
+                            {
+                                <tr class="nav-tab1" data-parsley-validate="true">
+                                    @*<td>@count</td>*@
+                                    @*<td>@items.DAY_ORDER_DATE</td>*@
+                                    <td>@items.CLASS_CODE </td>
+                                    <td>@items.COURSE_CODE</td>
+                                    <td>@items.HOUR</td>
+
+                                    <td>
+                                        @items.UNIT_NAME
+                                    </td>
+                                    <td>@items.TOPIC_TITLE</td>
+                                    <td>@items.SUP_TOPIC</td>
+                                    <td>
+                                        @items.METHODOLOGY_NAME
+                                    </td>
+                                    <td></td>
+                                    <td>@items.FIRST_NAME</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                ccCount++;
+                                <tr class="nav-tab1" data-parsley-validate="true">
+                                    @*<td>@count</td>*@
+                                    @*<td>@items.DAY_ORDER_DATE</td>*@
+                                    <td value="@items.CLASS_ID" class="classId">@items.CLASS_CODE</td>
+                                    <td value="@items.COURSE_ID" class="CourseID">@items.COURSE_CODE</td>
+                                    <td value="@items.HOUR_ID" class="hour">@items.HOUR</td>
+
+                                    <td>
+                                        <div class=" col-md-12">
+
+                                            @Html.DropDownListFor(model => model.UnitList, (Model.UnitList != null) ? Model.UnitList : Enumerable.Empty<SelectListItem>(), "--- Select ---", new { @class = "form-control unitId", @data_live_search = "true", @data_parsley_required = "true" })
+                                            @Html.ValidationMessageFor(model => model.UnitList, "", new { @class = "text-danger" })
+
+                                        </div>
+                                    </td>
+                                    <td><textarea class="form-control topicTitle" required></textarea></td>
+                                    <td><textarea class="form-control supTitle" required></textarea></td>
+                                    <td>
+                                        <div>
+
+                                            <div class="col-md-12">
+                                                @Html.DropDownListFor(m => m.MethodologyList, (Model.MethodologyList != null) ? Model.MethodologyList : Enumerable.Empty<SelectListItem>(), "--- Select ---", new { @class = "form-control  selectpicker methodologyId", @data_live_search = "true", @data_parsley_required = "true" })  @*, @multiple = "multiple",  @data_actions_box = "true" *@
+                                                @Html.ValidationMessageFor(m => m.MethodologyList, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </td>
+                                    @*@if (lastHour + 1 == Convert.ToInt16(items.HOUR_ID) && lastHour != 0)
+                                        {
+                                            <td><input type="checkbox" class="contClass" /></td>
+
+                                        }
+                                        else
+                                        {
+                                            <td></td>
+                                        }*@
+                                    @if (ccCount == 1)
+                                    {
+                                        <td></td>
+                                    }
+                                    else
+                                    {
+                                        <td><input type="checkbox" class="contClass" /></td>
+                                    }
+                                    @{
+                                        lastHour = Convert.ToInt16(items.HOUR_ID);
+                                    }
+                                    <td>
+                                        <input type="checkbox" class="IsSubstitute" value="@items.HOUR_ID" shift="@items.SHIFT" />
+                                        <div class="form-horizontal SubstituteStafflist hidden">
+                                            <div class=" form-group">
+                                                @Html.DropDownListFor(m => m.StaffList, (Model.StaffList != null) ? Model.StaffList : Enumerable.Empty<SelectListItem>(), null, new { @class = "form-control  SupStaffs", @data_live_search = "true" })
+                                                @Html.ValidationMessageFor(m => m.StaffList, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <div>
+                    <a href="javascript:;" id="btnSubmitAll" class="btn btn-sm btn-primary m-b-10 pull-right"> Submit</a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <br />
+    <br />
+    <div class="bg-danger text-center">
+        <h3>No Record's Found</h3>
+    </div>
+}
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $('.selectpicker').selectpicker('refresh');
+
+    @*$('#btnSubmitAll').on('click', function () {
+    var isValid = true;
+    var nJsonCount = 0;
+    var sJsonData = '{"JSONPendagogicMethod":[';
+
+        $('#tblteaching tbody tr').each(function () {
+
+        var rowData = $(this);
+        if (rowData.find('.IsSubstitute').is(':checked')) {
+            var methodologyValues = rowData.find('.methodologyId').val();
+
+            if (methodologyValues && !$.isArray(methodologyValues)) {
+                methodologyValues = $.map(methodologyValues, function (value) {
+                    return value;
+                });
+            }
+            if (methodologyValues && $.isArray(methodologyValues)) {
+                methodologyValues = methodologyValues.join(',');
+            } else {
+                methodologyValues = methodologyValues ? methodologyValues.toString() : "";
+            }
+                    sJsonData += '{ "COURSE_ID": "' + rowData.find('.CourseID').attr('value') + '",\
+            "CLASS_ID": "' + rowData.find('.classId').attr('value') + '",\
+            "HOUR_ID": "' + rowData.find('.hour').attr('value') + '",\
+            "UNIT_ID": "' + rowData.find('.unitId').val() + '",\
+            "TOPIC_TITLE": "' + rowData.find('.topicTitle').val() + '",\
+            "SUP_TOPIC": "' + rowData.find('.supTitle').val() + '",\
+            "METHODOLOGY_ID": "' + methodologyValues + '",\
+            "SUP_STAFF": "' + rowData.find('.SupStaffs').val() + '",\
+            "DATE": "' + $('#Datefrom').val() + '" },';
+                    nJsonCount++;
+        }
+        else {
+            if (rowData.find('.unitId').val() || rowData.find('.unitId').val() !== "" || rowData.find('.methodologyId').val() || rowData.find('.topicTitle').val() || rowData.find('.supTitle').val()) {
+
+                if (!rowData.parsley().validate()) {
+                    isValid = false;
+                    myAlert('Something went wrong! Please check your inputs!', 'gritter-warning', '');
+                    return false; // Exit the loop if validation fails
+                }
+                var methodologyValues = rowData.find('.methodologyId').val();
+                if (methodologyValues && $.isArray(methodologyValues)) {
+                    $.each(methodologyValues, function (index, value) {
+                        if (value.trim() !== "") {
+                            sJsonData += '{ "COURSE_ID": "' + rowData.find('.CourseID').attr('value') + '",\
+                                        "CLASS_ID": "' + rowData.find('.classId').attr('value') + '",\
+                                        "HOUR_ID": "' + rowData.find('.hour').attr('value') + '",\
+                                        "UNIT_ID": "' + rowData.find('.unitId').val() + '",\
+                                        "TOPIC_TITLE": "' + rowData.find('.topicTitle').val() + '",\
+                                        "SUP_TOPIC": "' + rowData.find('.supTitle').val() + '",\
+                                        "SUP_STAFF": "",\
+                                        "METHODOLOGY_ID": "' + value + '",\
+                                        "DATE": "' + $('#Datefrom').val() + '" },';
+                            nJsonCount++;
+                        }
+                    });
+                }
+            }
+        }
+    });
+
+    if (nJsonCount > 0) {
+        sJsonData = sJsonData.slice(0, -1); // Remove the trailing comma
+        sJsonData += "]}";
+        if (!confirm('Are you sure to submit?')) {
+            return false;
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("SavePedagogicMethod", "TimeTable")',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ JsonData: sJsonData }),
+                success: function (data) {
+                    if (data.ErrorCode == "406") {
+                        swal({ title: "Message!", text: data.Message, timer: 2500, icon: 'danger', animation: true });
+                    } else {
+                        swal({ title: "Message!", text: data.Message, timer: 2500, icon: 'success', animation: true });
+                        loadpage()
+                    }
+                },
+                error: function (error) {
+                    swal({ title: "Message!", text: 'Internal Server Error...!', timer: 2500, icon: 'gritter-danger', animation: true });
+                }
+            });
+        }
+    }
+    });*@
+
+    // methodology Single Select
+
+    $('#btnSubmitAll').on('click', function () {
+         
+    var isValid = true;
+    var nJsonCount = 0;
+    var sJsonData = '{"JSONPendagogicMethod":[';
+
+        $('#tblteaching tbody tr').each(function () {
+             
+
+        var rowData = $(this);
+        if (rowData.find('.IsSubstitute').is(':checked')) {
+            var methodologyValues = rowData.find('.methodologyId').val();
+                    sJsonData += '{ "COURSE_ID": "' + rowData.find('.CourseID').attr('value') + '",\
+            "CLASS_ID": "' + rowData.find('.classId').attr('value') + '",\
+            "HOUR_ID": "' + rowData.find('.hour').attr('value') + '",\
+            "UNIT_ID": "' + rowData.find('.unitId').val() + '",\
+            "TOPIC_TITLE": "' + rowData.find('.topicTitle').val() + '",\
+            "SUP_TOPIC": "' + rowData.find('.supTitle').val() + '",\
+            "METHODOLOGY_ID": "' + methodologyValues + '",\
+            "SUP_STAFF": "' + rowData.find('.SupStaffs').val() + '",\
+            "DATE": "' + $('#Datefrom').val() + '" },';
+                    nJsonCount++;
+        }
+        else {
+             
+            if (rowData.find('.unitId').val() || rowData.find('.unitId').val() !== "" || rowData.find('.methodologyId').val() || rowData.find('.topicTitle').val() || rowData.find('.supTitle').val()) {
+
+                if (!rowData.parsley().validate()) {
+                    isValid = false;
+                    myAlert('Something went wrong! Please check your inputs!', 'gritter-warning', '');
+                    return false; // Exit the loop if validation fails
+                }
+                var methodologyValues = rowData.find('.methodologyId').val();
+
+
+                            sJsonData += '{ "COURSE_ID": "' + rowData.find('.CourseID').attr('value') + '",\
+                                        "CLASS_ID": "' + rowData.find('.classId').attr('value') + '",\
+                                        "HOUR_ID": "' + rowData.find('.hour').attr('value') + '",\
+                                        "UNIT_ID": "' + rowData.find('.unitId').val() + '",\
+                                        "TOPIC_TITLE": "' + rowData.find('.topicTitle').val() + '",\
+                                        "SUP_TOPIC": "' + rowData.find('.supTitle').val() + '",\
+                                        "SUP_STAFF": "",\
+                                        "METHODOLOGY_ID": "' + methodologyValues + '",\
+                                        "DATE": "' + $('#Datefrom').val() + '" },';
+                            nJsonCount++;
+
+
+
+            }
+        }
+    });
+         
+
+    if (nJsonCount > 0) {
+        sJsonData = sJsonData.slice(0, -1); // Remove the trailing comma
+        sJsonData += "]}";
+        if (!confirm('Are you sure to submit?')) {
+            return false;
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("SavePedagogicMethod", "TimeTable")',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ JsonData: sJsonData }),
+                success: function (data) {
+                    if (data.ErrorCode == "406") {
+                        swal({ title: "Message!", text: data.Message, timer: 2500, icon: 'danger', animation: true });
+                    } else {
+                        swal({ title: "Message!", text: data.Message, timer: 2500, icon: 'success', animation: true });
+                        loadpage()
+                    }
+                },
+                error: function (error) {
+                    swal({ title: "Message!", text: 'Internal Server Error...!', timer: 2500, icon: 'gritter-danger', animation: true });
+                }
+            });
+        }
+    }
+});
+
+    $('.contClass').on('click', function () {
+
+        if ($(this).is(':checked')) {
+            var currentRow = $(this).closest('tr');
+            var previousRow = currentRow.prev('tr');
+            if (!previousRow.parsley().validate()) {
+                isValid = false;
+                myAlert('Something went wrong! Please check your inputs!', 'gritter-warning', '');
+                return false; // Exit the loop if validation fails
+            }
+
+
+            // Get data from previous row
+            var unit = previousRow.find('.unitId').val();
+            var topicTitle = previousRow.find('.topicTitle').val();
+            var supTitle = previousRow.find('.supTitle').val();
+            var methodologies = previousRow.find('.methodologyId').val();
+
+            // Append data to current row
+            currentRow.find('.unitId').val(unit);
+            currentRow.find('.topicTitle').val(topicTitle);
+            currentRow.find('.supTitle').val(supTitle);
+
+            // Set selected methodologies in the dropdown (assuming multiselect)
+            currentRow.find('.methodologyId').val(methodologies);
+            currentRow.find('.methodologyId').selectpicker('refresh'); // Refresh selectpicker if using Bootstrap Select
+
+            // Optionally, you can clear and reset validations if any
+            currentRow.find('.unitId').parsley().reset();
+            currentRow.find('.topicTitle').parsley().reset();
+            currentRow.find('.supTitle').parsley().reset();
+            currentRow.find('.methodologyId').parsley().reset();
+        }
+        else {
+            var currentRow = $(this).closest('tr');
+            // Append data to current row
+            currentRow.find('.unitId').val("");
+            currentRow.find('.topicTitle').val("");
+            currentRow.find('.supTitle').val("");
+
+            // Set selected methodologies in the dropdown (assuming multiselect)
+            currentRow.find('.methodologyId').val("");
+            currentRow.find('.methodologyId').selectpicker('refresh');
+        }
+        });
+
+    $(".IsSubstitute").on('click', function () {
+    if ($(this).is(':checked')) {
+        var currenttr = $(this).closest("tr");
+        var varcurrentDiv = currenttr.find('.SubstituteStafflist');
+        varcurrentDiv.removeClass("hidden");
+        var hourID = $(this).val();
+        var shift = $(this).attr('shift');
+        var date = $('#Datefrom').val();
+
+        $.ajax({
+            url: "@Url.Action("FetchSubStaffforTpm", "TimeTable")",
+            method: "POST",
+            datatype: "html",
+            data: { shourID: hourID, sdate: date, sshift: shift },
+            success: function (data) {
+                var select = currenttr.find(".SupStaffs");
+                select.empty();
+                if (data.sResult != null && data.sResult != '') {
+                    select.append(data.sResult);
+                } else {
+                    myAlert(data.Message, 'gritter-danger', '');
+                }
+                // Refresh the selectpicker for the specific dropdown
+                select.selectpicker('refresh');
+            },
+            error: function (error) {
+                myAlert('Internal Server Error ...!', 'gritter-danger', '');
+            }
+        });
+
+    } else {
+        var currenttr = $(this).closest("tr");
+        var varcurrentDiv = currenttr.find('.SubstituteStafflist');
+        varcurrentDiv.addClass("hidden");
+    }
+});
+
+</script>

@@ -1,0 +1,601 @@
+﻿@model CMS.ViewModel.ViewModel.DashboardViewModel
+@{
+    Layout = null;
+}
+
+<style>
+    :root {
+        --student-bg: #eff6ff;
+        --student-text: #3b82f6;
+        --staff-bg: #f0fdf4;
+        --staff-text: #22c55e;
+        --general-bg: #faf5ff;
+        --general-text: #a855f7;
+        --due-bg: #fff7ed;
+        --due-text: #f97316;
+        --card-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+        --card-hover: 0 12px 24px -4px rgba(0, 0, 0, 0.08);
+        --slate-50: #f8fafc;
+        --slate-100: #f1f5f9;
+        --slate-200: #e2e8f0;
+        --slate-400: #94a3b8;
+        --slate-600: #475569;
+        --slate-800: #1e293b;
+    }
+
+    .notice-container {
+        padding: 15px;
+        background: #fcfcfd;
+    }
+
+    .notice-card {
+        background: #fff;
+        border: 1px solid var(--slate-100);
+        border-radius: 16px;
+        margin-bottom: 20px;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+
+        .notice-card:hover {
+            box-shadow: var(--card-hover);
+            transform: translateY(-2px);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+    .notice-header {
+        padding: 12px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(248, 250, 252, 0.5);
+        border-bottom: 1px dashed var(--slate-100);
+    }
+
+    .notice-type-tag {
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .tag-student {
+        background: var(--student-bg);
+        color: var(--student-text);
+    }
+
+    .tag-staff {
+        background: var(--staff-bg);
+        color: var(--staff-text);
+    }
+
+    .tag-general {
+        background: var(--general-bg);
+        color: var(--general-text);
+    }
+
+    .notice-meta-pill {
+        background: var(--due-bg);
+        color: var(--due-text);
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .notice-body {
+        padding: 16px 18px;
+    }
+
+    .notice-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--slate-800);
+        margin-bottom: 8px;
+        display: block;
+        line-height: 1.3;
+    }
+
+    .notice-description {
+        font-size: 14px;
+        color: var(--slate-600);
+        line-height: 1.6;
+        margin-bottom: 12px;
+        max-height: 80px;
+        overflow: hidden;
+        transition: all 0.4s ease;
+    }
+
+        .notice-description.expanded {
+            max-height: none;
+        }
+
+    .notice-footer {
+        padding: 12px 18px;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--slate-50);
+    }
+
+    .notice-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-notice-premium {
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        transition: 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-attachment-premium {
+        background: #fff1f2;
+        color: #f43f5e;
+    }
+
+        .btn-attachment-premium:hover {
+            background: #f43f5e;
+            color: #fff;
+        }
+
+    .btn-link-premium {
+        background: #eff6ff;
+        color: #3b82f6;
+    }
+
+        .btn-link-premium:hover {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+    .btn-read-premium {
+        background: #f0fdf4;
+        color: #22c55e;
+        border: 1px solid #dcfce7;
+    }
+
+        .btn-read-premium:hover {
+            background: #22c55e;
+            color: #fff;
+            box-shadow: 0 4px 8px rgba(34, 197, 94, 0.15);
+        }
+
+    .btn-expand-premium {
+        color: var(--slate-400);
+        background: var(--slate-50);
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        border: none;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+        .btn-expand-premium:hover {
+            background: var(--slate-100);
+            color: var(--slate-800);
+        }
+
+    .notice-response-section {
+        border-top: 1px solid var(--slate-50);
+        padding: 16px 18px;
+        background: #fafcfd;
+    }
+
+    .response-title {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--slate-400);
+        margin-bottom: 12px;
+        display: block;
+        letter-spacing: 0.5px;
+    }
+
+    .comment-box {
+        width: 100%;
+        border: 1px solid var(--slate-200);
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 13px;
+        margin-bottom: 12px;
+        resize: none;
+        transition: 0.3s;
+        background: #fff;
+    }
+
+        .comment-box:focus {
+            border-color: var(--student-text);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+            outline: none;
+        }
+
+    .response-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .response-btn-group {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-action-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 14px;
+    }
+
+    .btn-accept {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+        .btn-accept:hover {
+            background: #22c55e;
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+    .btn-cancel {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+        .btn-cancel:hover {
+            background: #ef4444;
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+    .response-file-wrapper {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--slate-600);
+        font-size: 12px;
+        font-weight: 700;
+        background: #fff;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px dashed var(--slate-200);
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .response-file-wrapper:hover {
+            border-color: var(--student-text);
+            color: var(--student-text);
+            background: #f0f7ff;
+        }
+
+        .response-file-wrapper input {
+            display: none;
+        }
+
+    .empty-notice {
+        text-align: center;
+        padding: 60px 30px;
+    }
+
+    .empty-illustration {
+        width: 80px;
+        height: 80px;
+        background: var(--slate-50);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: var(--slate-200);
+        font-size: 32px;
+    }
+
+    .status-badge-premium {
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        letter-spacing: 0.5px;
+    }
+
+    .status-accepted {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .status-declined {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    /* Mobile Responsive */
+    @@media (max-width: 640px) {
+        .notice-container {
+            padding: 10px;
+        }
+
+        .notice-header {
+            padding: 12px 15px;
+        }
+
+        .notice-body {
+            padding: 15px;
+        }
+
+        .notice-footer {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            padding: 12px 15px;
+        }
+
+        .notice-actions {
+            flex-direction: column;
+        }
+
+        .response-actions {
+            flex-direction: column;
+            gap: 15px;
+            align-items: stretch;
+        }
+    }
+</style>
+
+
+
+
+<div class="notice-container" style=" max-height: 60vh; overflow: scroll;">
+    @if (Model != null && Model.liNoticeBoard != null && Model.liNoticeBoard.Count > 0)
+    {
+        foreach (var item in Model.liNoticeBoard)
+        {
+            string tagClass = "tag-general";
+            string tagText = "General";
+
+            if (item.ROLE_ID.Contains("5"))
+
+            {
+                tagClass = "tag-student";
+                tagText = "Student";
+            }
+            else if (item.ROLE_ID.Contains("3") || item.ROLE_ID.Contains("4"))
+            {
+                tagClass = "tag-staff";
+                tagText = "Staff";
+            }
+
+            <div class="notice-card" id="notice-card-@item.NOTICEBOARD_ID">
+                <div class="notice-header">
+                    <span class="notice-type-tag @tagClass">@tagText</span>
+                    <div class="notice-meta-pill">
+                        <i class="fa fa-clock-o"></i> Due: @item.DUE_DATE
+                    </div>
+                </div>
+                <div class="notice-body">
+                    <span class="notice-title">@item.NOTICEBOARD</span>
+                    <div class="notice-description" id="desc-text-@item.NOTICEBOARD_ID">@Html.Raw(item.DESCRIPTION)</div>
+
+                    @if (!string.IsNullOrEmpty(item.DESCRIPTION) && item.DESCRIPTION.Length > 200)
+                    {
+                        <button class="btn-expand-premium" onclick="toggleNoticeContent('@item.NOTICEBOARD_ID')">
+                            <span id="label-text-@item.NOTICEBOARD_ID">READ FULL MESSAGE</span> <i class="fa fa-chevron-down" id="icon-chevron-@item.NOTICEBOARD_ID"></i>
+                        </button>
+                    }
+                </div>
+                <div class="notice-footer" id="footer-actions-@item.NOTICEBOARD_ID" style="@(item.IS_VIEWED == "1" ? "display:none;" : "")">
+                    <div class="notice-actions">
+                        @if (!string.IsNullOrEmpty(item.FILE_NAME))
+                        {
+                            <a href="@item.FILE_NAME" target="_blank" onclick="trackNoticeView('@item.NOTICEBOARD_ID', 'File')" class="btn-notice-premium btn-attachment-premium">
+                                <i class="fa fa-file-pdf-o"></i> VIEW ATTACHMENT
+                            </a>
+                        }
+                        @if (!string.IsNullOrEmpty(item.LINK_UPLOAD))
+                        {
+                            <a href="@item.LINK_UPLOAD" target="_blank" onclick="trackNoticeView('@item.NOTICEBOARD_ID', 'Link')" class="btn-notice-premium btn-link-premium">
+                                <i class="fa fa-external-link"></i> OPEN LINK
+                            </a>
+                        }
+                    </div>
+
+                    <button onclick="trackNoticeView('@item.NOTICEBOARD_ID', 'MarkAsRead')" class="btn-notice-premium btn-read-premium">
+                        @*<i class="fa fa-check-circle"></i> MARK AS READ*@
+                    </button>
+                </div>
+
+                <div class="notice-footer" id="status-view-@item.NOTICEBOARD_ID" style="@(item.IS_VIEWED == "1" ? "" : "display:none;")">
+                    <div class="status-badge-premium status-accepted">
+                        <i class="fa fa-check-circle"></i> RESPONSE SUBMITTED / READ
+                    </div>
+                    <div class="notice-actions">
+                        @if (!string.IsNullOrEmpty(item.FILE_NAME))
+                        {<a href="@item.FILE_NAME" target="_blank" class="btn-notice-premium btn-attachment-premium"><i class="fa fa-file-pdf-o"></i> FILE</a>}
+                        @if (!string.IsNullOrEmpty(item.LINK_UPLOAD))
+                        {<a href="@item.LINK_UPLOAD" target="_blank" class="btn-notice-premium btn-link-premium"><i class="fa fa-external-link"></i> LINK</a>}
+                    </div>
+                </div>
+
+                @if ((item.IS_COMMENT_ENABLE == "1" || item.IS_FILE_UPLOAD_ENABLE == "1"))
+                {
+                    <div class="notice-response-section" id="response-sec-@item.NOTICEBOARD_ID">
+                        <span class="response-title">Submit Response</span>
+
+                        @if (item.IS_COMMENT_ENABLE == "1")
+                        {
+                            <textarea id="comment-@item.NOTICEBOARD_ID" class="comment-box" rows="2" placeholder="Write your comments here..."></textarea>
+                        }
+
+                        <div class="response-actions">
+                            <div>
+                                @if (item.IS_FILE_UPLOAD_ENABLE == "1")
+                                {
+                                    <label class="response-file-wrapper">
+                                        <i class="fa fa-cloud-upload"></i> <span id="file-label-@item.NOTICEBOARD_ID">Upload Document</span>
+                                        <input type="file" id="file-@item.NOTICEBOARD_ID" onchange="$('#file-label-@item.NOTICEBOARD_ID').text(this.files[0].name)" />
+                                    </label>
+                                }
+                            </div>
+                            <div class="notice-response-section" id="confirmed-status-@item.NOTICEBOARD_ID" style="@(item.IS_RESPONSE_ID != "0" ? "" : "display:none;")">
+                                @if (item.IS_ACCEPTED == "1")
+                                {
+                                    <div class="status-badge-premium status-accepted"><i class="fa fa-check-circle"></i> YOU HAVE ACCEPTED THIS NOTICE</div>
+                                }
+                                else if (item.IS_CANCELED == "1")
+                                {
+                                    <div class="status-badge-premium status-declined"><i class="fa fa-times-circle"></i> YOU HAVE DECLINED THIS NOTICE</div>
+                                }
+                                else
+                                {
+                                    <div class="response-btn-group">
+                                        <button onclick="submitResponse('@item.NOTICEBOARD_ID', 1)" class="btn-action-circle btn-accept" title="Accept/Confirm">
+                                            <i class="fa fa-check"></i>
+                                        </button>
+                                        <button onclick="submitResponse('@item.NOTICEBOARD_ID', 0)" class="btn-action-circle btn-cancel" title="Cancel/Dismiss">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+
+                        </div>
+                    </div>
+                }
+
+
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-notice">
+            <div class="empty-illustration">
+                <i class="fa fa-bell-slash-o"></i>
+            </div>
+            <h3 style="color: #1e293b; font-weight: 800;">No Recent Notices</h3>
+            <p style="color: #64748b;">Stay tuned! We'll notify you when something important comes up.</p>
+        </div>
+    }
+</div>
+
+<script>
+    function toggleNoticeContent(id) {
+        var desc = $('#desc-text-' + id);
+        var label = $('#label-text-' + id);
+        var icon = $('#icon-chevron-' + id);
+
+        if (desc.hasClass('expanded')) {
+            desc.removeClass('expanded');
+            label.text('READ FULL MESSAGE');
+            icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+        } else {
+            desc.addClass('expanded');
+            label.text('SHOW LESS');
+            icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            trackNoticeView(id, 'Expand');
+        }
+    }
+
+    function trackNoticeView(id, type) {
+        $.ajax({
+            url: "/DashBoard/SaveNoticeViewTracking",
+            method: "POST",
+            data: { noticeId: id },
+            success: function (response) {
+                if (response.success) {
+                    if (type === 'MarkAsRead') {
+                        $.gritter.add({
+                            title: 'Success!',
+                            text: 'Notice marked as read. Admin has been notified.',
+                            class_name: 'gritter-light'
+                        });
+                        $('#notice-card-' + id).css('opacity', '0.7');
+                    }
+                }
+            }
+        });
+    }
+
+    function submitResponse(id, isAccepted) {
+        var comment = $('#comment-' + id).val() || '';
+        var fileInput = $('#file-' + id)[0];
+        var file = fileInput ? fileInput.files[0] : null;
+
+        if (isAccepted == 1 && !comment && !file) {
+            // Optional: Validation
+        }
+
+        var sJsonValue = {
+            NOTICEBOARD_ID: id,
+            COMMENTS: comment,
+            IS_ACCEPTED: isAccepted,
+            IS_CANCELED: isAccepted == 1 ? 0 : 1
+        };
+
+        var formData = new FormData();
+        formData.append("sJsonValue", JSON.stringify(sJsonValue));
+        if (file) formData.append("FILE_PATH", file);
+
+        $.ajax({
+            url: "/DashBoard/SaveNoticeBoardResponse",
+            type: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (response) {
+                if (response.ErrorCode == "202") {
+                    $.gritter.add({
+                        title: 'Response Sent!',
+                        text: response.Message,
+                        class_name: 'gritter-light'
+                    });
+
+                    $('#response-sec-' + id).slideUp(300, function () {
+                        var statusHtml = isAccepted == 1
+                            ? '<div class="status-badge-premium status-accepted"><i class="fa fa-check-circle"></i> YOU HAVE ACCEPTED THIS NOTICE</div>'
+                            : '<div class="status-badge-premium status-declined"><i class="fa fa-times-circle"></i> YOU HAVE DECLINED THIS NOTICE</div>';
+
+                        $('#confirmed-status-' + id).html(statusHtml).show();
+                    });
+
+                    $('#footer-actions-' + id).hide();
+                    $('#status-view-' + id).show();
+                } else {
+                    swal({ title: "Error!", text: response.Message, type: 'error' });
+                }
+            }
+        });
+    }
+</script>

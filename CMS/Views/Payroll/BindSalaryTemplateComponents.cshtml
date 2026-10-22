@@ -1,0 +1,313 @@
+﻿@model CMS.ViewModel.ViewModel.PayrollViewModel
+    @{ 
+        Layout = null;
+    }
+
+<div class="form-group col-md-12">
+    <a class="btn btn-success pull-right form-group m-b-5" href="#templatecomponent" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add">Add</i></a>
+</div>
+<br><br>
+<div class="form-group col-md-12 table-responsive">
+
+    <table class="table table-hover table-bordered" id="tbltemplatecomponents">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Component</th>
+                <th>Flat/Percentage</th>
+                <th>Component type</th>
+                <th>Percentage Component</th>
+                <th>Is_Manual</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @if (Model.lisalarytemplatecomponent != null && Model.lisalarytemplatecomponent.Count > 0)
+            {
+                var count = 0;
+                foreach (var item in Model.lisalarytemplatecomponent)
+                {
+                    count = count + 1;
+
+                    <tr>
+                        <td>@count</td>
+                        <td>@item.COMPONENT_NAME</td>
+                        <td>
+                            @if (item.PERCENTAGE != "")
+                            {
+                                @item.PERCENTAGE
+
+                            }
+                            else
+                            {
+                                @item.FLAT_AMOUNT
+                            }
+                        </td>
+                        <td>@item.SALARY_COMPONENT_NAME</td>
+                        <td>@item.PERCENTAGE_COMPONENT_NAME</td>
+                       
+
+                        @if (item.IS_MANUAL == "0")
+                        {
+                            <td>
+                                No
+                            </td>
+
+                        }
+                        else
+                        {
+                            <td>
+                                Yes
+                            </td>
+                        }
+
+
+                        <td>
+                            <a href="#templatecomponent" onclick="FetchComponentDetails(@item.CTEMPLATE_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+                            <a href="javascrip:;" onclick="GetConfirm(@item.CTEMPLATE_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+
+            }
+
+        </tbody>
+    </table>
+
+</div>
+
+<div class="modal" id="templatecomponent">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                   
+                                    <input type="text" id="ctemplateid" class="hidden">
+                                    
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Component</label>
+
+                                        <div class="col-md-8">
+                                            @Html.DropDownList("Component", (Model.COMPONENTS != null) ? Model.COMPONENTS : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl", @data_live_search = "true", @data_parsley_required = "true", @id = "COMPONENTS" })
+                                            @Html.ValidationMessageFor(model => model.COMPONENTS, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label"></label>
+                                        <div class="form-group col-md-4">
+                                            <div class="radio radio-inline radio-css">
+                                                <input type="radio" name="cssRadio" id="cssRadio1" onchange="HideOrShow()" value="1" />
+                                                <label for="cssRadio1">
+                                                    Flat Amount
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-md-offset-2 col-md-4">
+                                            <div class="radio radio-inline radio-css">
+                                                <input type="radio" name="cssRadio" id="cssRadio2" onchange="HideOrShow()" value="2" />
+                                                <label for="cssRadio2">
+                                                    Percentage
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group hidden" id="flatdiv">
+                                        <div class="col-md-12 form-group">
+                                            <label class="col-md-4 control-label">Flat Amout</label>
+                                            <div class="col-md-8">
+                                                <input type="number" id="flatamount" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group hidden" id="percentdiv">
+                                        <div class="col-md-12 form-group">
+                                            <label class="col-md-4 control-label">Percentage Component</label>
+
+                                            <div class="col-md-8">
+                                                @Html.DropDownList("Percentage Component", (Model.COMPONENTS != null) ? Model.COMPONENTS : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl", @data_live_search = "true", @id = "ddlpercentagecomponent" })
+                                                @Html.ValidationMessageFor(model => model.COMPONENTS, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 form-group">
+                                            <label class="col-md-4 control-label">Percentage</label>
+                                            <div class="col-md-8">
+                                                <input type="text" id="percentage" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label"></label>
+                                        <div class="col-md-8 checkbox checkbox-css">
+                                            <input type="checkbox" id="cssCheckbox1" value="1">
+                                            <label for="cssCheckbox1" class="control-label"><b>Is Manual</b></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label"></label>
+                                        <div class="col-md-8 checkbox checkbox-css">
+                                            <input type="checkbox" id="cssCheckbox2" value="1">
+                                            <label for="cssCheckbox2" class="control-label"><b>Is Gross Pay</b></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script>
+    $('#btnSubmit').click(function ()
+    {
+        var isValid = true;
+        var JsonData = null;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            return false;
+        }
+        var ismaual=0;
+        var isgrosspay = 0;
+        var isflat = 0;
+
+        if ($('#cssRadio1').is(":checked"))
+        {
+
+            isflat = 1;
+        }
+        if ($('#cssCheckbox2').is(":checked"))
+        {
+            isgrosspay=$('#cssCheckbox2').val();
+        }
+        if ($('#cssCheckbox1').is(":checked"))
+        {
+            ismaual = $('#cssCheckbox1').val();
+        }
+        JsonData = '{"CTEMPLATE_ID":"' + $('#ctemplateid').val() + '","TEMPLATE_ID":"' + $('#Templates').val() + '","COMPONENTT_ID":"' + $('#COMPONENTS').val() + '","FLAT_AMOUNT":"' + $('#flatamount').val() + '","PERCENTAGE_COMPONENT_ID":"' + $('#ddlpercentagecomponent').val() + '","IS_MANUAL":"' + ismaual + '","PERCENTAGE":"' + $('#percentage').val() + '","IS_GROSS_PAY":"' + isgrosspay + '","IS_FLAT":"' + isflat + '"}';
+        $.ajax({
+            url: "@Url.Action("SaveorUpdateSalaryTemplateComponents", "Payroll")",
+            type: "post",
+        data: { sJsonData: JsonData },
+        success: function (data)
+        {
+            
+            if (data.ErrorCode == "400")
+            {
+                swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+            }
+            else
+            {
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                FetchTemplateComponent();
+
+            }
+            
+
+        },
+        error: function (ex) {
+            swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+        }
+    });
+    });
+    function FetchComponentDetails(ID)
+    {
+        if (ID != null) {
+            $.ajax({
+                url: "@Url.Action("FetchSalaryTemplateComponents", "Payroll")",
+                type: "post",
+            data: { sCTemplateId: ID },
+            success: function (data)
+            {
+               
+                if (data != null)
+                {
+                   
+                    $('#ctemplateid').val(data.CTEMPLATE_ID);
+                    $('#COMPONENTS').val(data.COMPONENTT_ID);
+                   
+                    $('#flatamount').val(data.FLAT_AMOUNT);
+                    $('#ddlpercentagecomponent').val(data.PERCENTAGE_COMPONENT_ID);
+                    $('#percentage').val(data.PERCENTAGE);
+                    if (data.PERCENTAGE_COMPONENT_ID != null && data.PERCENTAGE_COMPONENT_ID !="")
+                    {
+                       
+                        $('#cssRadio2').prop('checked', true);
+                        $('#flatdiv').addClass('hidden');
+                        $('#percentdiv').removeClass('hidden');
+                    }
+                    else
+                    {
+                       
+                        $('#cssRadio1').prop('checked', true);
+                        $('#flatdiv').removeClass('hidden');
+                        $('#percentdiv').addClass('hidden');
+                    }
+                    if (data.IS_MANUAL == "1")
+                    {
+
+                        $('#IS_MANUAL').prop('checked', true);
+                    }
+                    if (data.IS_GROSS_PAY == "1")
+                    {
+                        $('#IS_GROSS_PAY').attr('checked', 'checked');
+                           
+                    }
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            },
+            error: function (ex) {
+                alert(ex.Message);
+            }
+        });
+    }
+    }
+    HideOrShow = function ()
+    {
+        if (cssRadio1.checked == true) {
+
+            $('#flatdiv').removeClass('hidden');
+            $('#percentdiv').addClass('hidden');
+
+
+        }
+        if (cssRadio2.checked == true)
+        {
+            $.ajax({
+                url: "@Url.Action("FetchTemplateComponentByTemplate", "Payroll")",
+                type: "post",
+                data: { sTemplateId: $('#Templates').val() },
+                success: function (data) 
+                {
+                    $('#ddlpercentagecomponent').empty();
+                    $('#ddlpercentagecomponent').append(data);
+
+                },
+                error: function (ex) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+
+            $('#percentdiv').removeClass('hidden');
+
+            $('#flatdiv').addClass('hidden');
+
+
+        }
+    }
+</script>

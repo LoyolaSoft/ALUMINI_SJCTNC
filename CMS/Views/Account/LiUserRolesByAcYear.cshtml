@@ -1,0 +1,484 @@
+
+@model CMS.ViewModel.ViewModel.AccountViewModel
+@{
+    ViewBag.Title = "LiUserRolesByAcYear";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    {@Html.AntiForgeryToken()
+    <ol class="breadcrumb pull-right">
+        <li><a @*href="@Url.Action("Admin", "Dashboard")"*@ href="javascript:;">Home</a></li>
+        <li class="active">User Role By Academic Year  </li>
+    </ol>
+    <h2 class="page-header">User Role By Academic Year </h2>
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">User Role By Academic Year </h4>
+        </div>
+        <div class="panel-body">
+            <!-- Bulk Move Section -->
+            <div class="well well-sm" style="background: #f0f3f5; border: 1px solid #dcdcdc; border-radius: 4px; padding: 15px; margin-bottom: 20px;">
+                <h4 class="m-t-0 m-b-15 text-primary" style="font-weight: 600;"><i class="fa fa-exchange"></i> Bulk Copy User Roles to Another Year</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group clearfix m-b-10">
+                            <label class="control-label col-md-4 text-right" style="padding-top: 5px;">From Year:</label>
+                            <div class="col-md-8">
+                                @Html.DropDownList("FromAcademicYear", (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "selectpicker show-menu-arrow show-tick form-control input-sm", @data_live_search = "true", id = "ddlFromAcademicYear" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group clearfix m-b-10">
+                            <label class="control-label col-md-4 text-right" style="padding-top: 5px;">To Year:</label>
+                            <div class="col-md-8">
+                                @Html.DropDownList("ToAcademicYear", (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "selectpicker show-menu-arrow show-tick form-control input-sm", @data_live_search = "true", id = "ddlToAcademicYear" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-warning btn-sm" id="btnBulkMove"><i class="fa fa-share-square-o"></i> Move User Roles</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="" id="content">
+                @using (Html.BeginForm())
+                {@Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="col-md-12">
+
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.AcademicYearList, "Academic Year", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", id = "Acyearid" })
+                                @Html.ValidationMessageFor(model => model.AcademicYearList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.SupRoleList, "Role", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.SupRoleList, (Model.SupRoleList != null) ? Model.SupRoleList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", id = "SupRoleId" })
+                                @Html.ValidationMessageFor(model => model.SupRoleList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-3">User Name</label>
+                            <div class="col-md-8">
+
+                                <input type="text" class="form-control" id="txtRollNo" />
+
+                            </div>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <a class="btn btn-primary" href="javascript:;" id="btnGet"> Get </a>
+                        </div>
+                        @*<div class="form-group col-md-4">
+                                @Html.LabelFor(model => model.StudentList, "User Details", htmlAttributes: new { @class = "control-label col-md-3" })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(model => model.StudentList, (Model.StudentList != null) ? Model.StudentList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(model => model.StudentList, "", new { @class = "text-danger" })
+                                </div>
+                            </div>*@
+                        <div class="form-group col-md-3 pull-right" id="btnAdd1">
+                            <a class="btn bg-green pull-right" title="Add User Role" data-toggle="modal" style="cursor:pointer" href="#userroles" id="urbtnAdd"><i class="fa fa-plus"></i> Add</a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-12">
+                        <div id="divUserRoles">
+                            <!--Need to use this fied to bind Student List-->
+                        </div>
+                    </div>
+                </div>
+
+
+            }
+            </div>
+        </div>
+    </div>
+
+}
+</div>
+
+
+
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script>
+
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $('#tblUserRolesRight').DataTable();
+
+    $('#btnBulkMove').on('click', function () {
+        var fromYear = $('#ddlFromAcademicYear option:selected').text().trim();
+        var toYear = $('#ddlToAcademicYear option:selected').text().trim();
+        
+        var fromVal = $('#ddlFromAcademicYear').val();
+        var toVal = $('#ddlToAcademicYear').val();
+
+        if (!fromVal || !toVal || fromVal == "" || toVal == "") {
+            swal({ title: "Warning!", text: "Please select both From and To academic years.", type: "warning" });
+            return false;
+        }
+
+        if (fromVal == toVal) {
+            swal({ title: "Warning!", text: "From Year and To Year cannot be the same.", type: "warning" });
+            return false;
+        }
+
+        swal({
+            title: "Are you sure?",
+            text: "Do you want to copy all user roles from " + fromYear + " to " + toYear + "? Existing matching records in target year will not be duplicated.",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-warning",
+            confirmButtonText: "Yes, Copy them!",
+            closeOnConfirm: false
+        }, function (isConfirm) {
+            if (isConfirm) {
+                // Change modal state to show loader/progress
+                swal({
+                    title: "Processing...",
+                    text: "Please wait while user roles are copied.",
+                    type: "info",
+                    showConfirmButton: false
+                });
+
+                $.ajax({
+                    url: '@Url.Action("BulkMoveUserRoles", "Account")',
+                    type: 'POST',
+                    data: { sFromYear: fromYear, sToYear: toYear },
+                    success: function (data) {
+                        if (data.ErrorCode == "200") {
+                            swal({ title: "Success!", text: data.Message, type: "success", showConfirmButton: true });
+                            if (typeof loadGird1 === "function") {
+                                loadGird1();
+                            }
+                        } else {
+                            swal({ title: "Info", text: data.Message, type: "info", showConfirmButton: true });
+                        }
+                    },
+                    error: function (xhr, textStatus, error) {
+                        swal({ title: "Error!", text: "Internal Server Error or session expired.", type: "error", showConfirmButton: true });
+                    }
+                });
+            }
+        });
+    });
+</script>
+<script>
+    @*$('#SupRoleId').on('change', function ()
+    {
+        if ($('#SupRoleId').val() !=0)
+        {
+             $.ajax
+             ({
+                    url: '@Url.Action("BindUserbyrole", "Account")',
+                    data: { sRoleId: $('#SupRoleId').val() },//
+                    success: function (option1)
+                    {
+
+                        var dvUser = $('#StudentList');
+                        dvUser.empty();
+                        dvUser.append('<option value="0" >---Select---</option>' + option1);
+                        $('.selectpicker').selectpicker('refresh');
+
+                    },
+                    error: function (xhr, textStatus, error)
+                    {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+             });
+        }
+
+
+    });*@
+
+
+    //$('#StudentList').on('change', function ()
+    //{
+    //    loadGird1();
+    //});
+    $('#btnGet').on('click', function ()
+    {
+        loadGird1();
+    });
+    @*$('#ddlurrole').on('change', function ()
+    {
+
+        $.ajax(
+            {
+                   url: '@Url.Action("BindUsersbyrole", "Account")',
+                  data: { sRoleId: $('#ddlurrole').val() },
+                    success: function (option1)
+                    {
+                        var dvUser1 = $('#ddluruserid');
+                        dvUser1.empty();
+                        dvUser1.append('<option value="0" >---Select---</option>' + option1);
+                        $('.selectpicker').selectpicker('refresh');
+
+                    },
+                    error: function (xhr, textStatus, error)
+                    {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+            });
+    });*@
+    function loadGird1()
+    {
+
+        var vRoleId = $('#SupRoleId').val();
+        //var vUserId = $('#StudentList').val();
+        var vUserId = $('#txtRollNo').val();
+        var vAcyearId = $('#Acyearid option:selected').text();
+        if (vUserId != 0 && vAcyearId != 0 )
+        {
+                $.ajax({
+                    url: '@Url.Action("BindUserRolesFromUSerRolebyACYear", "Account")',
+                    data: { sUserid: vUserId, sAcyear: vAcyearId, sRoleId: vRoleId },// sRoleId: vRoleId,
+                    success: function (option)
+                    {
+                        var dvUserAccount = $('#divUserRoles');
+                        dvUserAccount.empty();
+                        dvUserAccount.append(option);
+                     // $("#UserAccountList").DataTable({ "bPaginate": false });
+                    },
+                    error: function (xhr, textStatus, error)
+                    {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                });
+
+        }
+
+        else
+        {
+          alert('Please Select User...!!!');
+        }
+    }
+    $('#urbtnSubmit').on('click', function ()
+    {
+            SaveUserRoles();
+    });
+        sUseraccountId = '';
+
+    function SaveUserRoles()
+    {
+        var UserRoleId = $('#sUserRoleId').val();
+        var acyear = $('#ddlurYear option:selected').text();
+        var Userid = $('#ddluruserid').val();
+        var UserName = $('#uruserName').val();
+        var Role = $('#ddlurrole').val();
+        var Usertype = $('#ddlurusertype').val();
+            var Json;
+        if ($('#ddlurrole').val() && $('#ddlurYear option:selected').text() && $('#uruserName').val() && $('#ddlurusertype').val())
+        {
+            if ($('#ddlurrole').val() == '' && $('#ddlurusertype').val() == '')
+                {
+                    myAlert('Please Choose Role And User Type...!!!', 'gritter-warning', '');
+                    return false;
+                  }
+            Json = '{"USER_ROLE_ID":"' + UserRoleId + '","USER_ID":"' + Userid + '","USERNAME":"' + UserName + '",\
+                     "ROLE_ID":"' + Role + '","USER_TYPE":"' + Usertype + '","ACADEMIC_YEAR":"' + acyear + '"}';
+                $.ajax({
+                    url: '@Url.Action("SaveUserRole", "Account")',
+                    data: { sJson: Json },
+                    success: function (objResult)
+                    {
+                        if (objResult.ErrorCode = "200") {
+                            swal({ title: "Success!", text: objResult.Message, showConfirmButton: false, timer: 2000, type: 'success', animation: true });
+                            $('.modal-backdrop').removeClass('modal-backdrop in');
+                            $('#usbrnClose').click();
+                            loadGird1();
+                        }
+                        else {
+                            swal({ title: "Fail!", text: objResult.Message, showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+
+                        }
+                    },
+                    error: function (xhr, textStatus, error)
+                    {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+                    }
+                });
+        }
+        else
+        {
+                myAlert('Select all the Fields...!!!', 'gritter-error', '');
+        }
+    }
+
+
+
+
+    $("#userroles").modal(
+        {
+            backdrop: 'static',
+            keyboard: false,
+            show: false
+        });
+    $('#urbtnAdd').click(function ()
+        {
+        $('#sUserRoleId').val('');
+        $('#ddlurYear').val('');
+        $('#ddluruserid').val('');
+        $('#ddlurrole').val('');
+        $('#ddlurusertype').val('');
+        $('#uruserName').val('');
+
+            $('.selectpicker').selectpicker('refresh');
+        $('#uruserName').prop("disabled", false);
+        });
+</script>
+
+<script>
+    function FetchUserRole(UserRoleId)
+    {
+        $.ajax({
+            url: '@Url.Action("FetchUserRole", "Account")',
+            data: { sUserRoleId: UserRoleId },
+            success: function (data)
+            {
+                if (data.ErrorCode!=null && data.ErrorCode!='')
+                {
+                    swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                } else
+                {
+                    $('#sUserRoleId').val(data[0].USER_ROLE_ID);
+                    $('#ddlurYear').val(data[0].ACADEMIC_YEAR);
+                    $('#ddluruserid').val(data[0].USER_ID);
+                    $('#uruserName').val(data[0].USERNAME);
+                 
+                    $('#ddlurrole').val(data[0].ROLE_ID);
+                    $('#ddlurusertype').val(data[0].USER_TYPE);
+                    $('#uruserName').prop("disabled", true);
+                    $('.selectpicker').selectpicker('refresh');
+
+                }
+            },
+            error: function (xhr, textStatus, error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+    function DeleteUserRole(UserRoleId)
+    {
+
+        if (!confirm('Are you sure to delete ?'))
+        {
+            return false;
+        }
+        else
+        {
+            $.ajax({
+                url: '@Url.Action("DeleteUserRole", "Account")',
+                data: { sUserRoleId: UserRoleId },
+                success: function (data) {
+                    if (data.ErrorCode == '200')
+                    {
+                        swal({ title: "Success!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                        loadGird1();
+                        //$('#LiUserRoles').click();
+                    } else {
+                        swal({ title: "Error!", text: "Sorry failed to fetch record !", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                },
+                error: function (xhr, textStatus, error) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+     }
+</script>
+
+<div class="modal" id="userroles">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add User Roles By Academic Year</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <input type="hidden" id="sUserRoleId">
+                    <input type="hidden" id="ddluruserid">
+
+
+                    <div class="form-group">
+                        @Html.Label("Academic Year", htmlAttributes: new { @class = "col-md-4 control-label " })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(m => m.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "form-control  selectpicker", @data_live_search = "true", @id = "ddlurYear" })
+                            @Html.ValidationMessageFor(m => m.AcademicYearList, "", new { @class = "text-danger" })
+                        </div>
+
+                    </div>
+                    <div class="form-group">
+                        @Html.Label("Role", htmlAttributes: new { @class = "col-md-4 control-label " })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(m => m.SupRoleList, (Model.SupRoleList != null) ? Model.SupRoleList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "form-control  selectpicker", @data_live_search = "true", @id = "ddlurrole" })
+                            @Html.ValidationMessageFor(m => m.SupRoleList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        @Html.Label("User Type", htmlAttributes: new { @class = "col-md-4 control-label " })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(m => m.SupUsertypeList, (Model.SupUsertypeList != null) ? Model.SupUsertypeList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "form-control  selectpicker", @data_live_search = "true", @id = "ddlurusertype" })
+                            @Html.ValidationMessageFor(m => m.SupUsertypeList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    @*<div class="form-group">
+                            @Html.Label("User Name", htmlAttributes: new { @class = "col-md-4 control-label " })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(m => m.userList, (Model.userList != null) ? Model.userList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @id = "ddluruserid" })
+                                @Html.ValidationMessageFor(m => m.userList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>*@
+                    <div class="form-group">
+                        <label class="control-label col-md-4">User Name</label>
+                        <div class="col-md-8">
+
+                            <input type="text" class="form-control" id="uruserName"  />
+
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="text-warning pull-left" id="txturStatic"></span>
+                <a href="javascript:;" id="urbtnSubmit" class="btn btn-default">Submit</a>
+                <a href="javascript:;" id="usbrnClose" class="btn btn-default" data-dismiss="modal">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+

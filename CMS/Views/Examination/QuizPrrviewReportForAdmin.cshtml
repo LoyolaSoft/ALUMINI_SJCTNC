@@ -1,0 +1,170 @@
+﻿
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "QuizPrrviewReportForAdmin";
+}
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+
+    
+        
+            <div class="form-horizontal">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="col-md-12">
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.ClassList, "Class", htmlAttributes: new { @class = "control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @id = "dClass" })
+                            @Html.ValidationMessageFor(model => model.ClassList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.CourseList, "Course", htmlAttributes: new { @class = "control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.CourseList, (Model.Shift != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @id = "dCourse" })
+                            @Html.ValidationMessageFor(model => model.CourseList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 form-group">
+                        @Html.Label("Setting", htmlAttributes: new { @class = "control-label col-md-3" })
+                        <div class="col-md-9">
+                            <select class="form-control selectpicker show-menu-arrow show-tick" data-live-search="true" id="ddlSetting">
+                                <option value="0"> -- Select -- </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-3">
+                        @Html.LabelFor(model => model.Batch, "Set", htmlAttributes: new { @class = "control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.Batch, (Model.Batch != null) ? Model.Batch : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @id = "dSet" })
+                            @Html.ValidationMessageFor(model => model.Batch, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-1">
+                        <a class="btn btn-primary" id="btnGet">Get</a>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-md-12" id="divBind">
+
+            </div>
+            <input type="hidden" value="@Model.StaffId"  id="StaffId"/>
+        
+ 
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+    ContentLoad = function () {
+        $('.selectpicker').selectpicker({
+            size: 5
+        });
+        $('.selectpicker').selectpicker('refresh');
+    }
+   
+
+    $("#dClass").on("change", function () {
+        var Class = $("#dClass").val();
+        $.ajax({
+            url: "@Url.Action("FethCourseByClassIdAndStaffId", "Examination")",
+            method: "POST",
+            datatype: "json",
+            data: { Class_Id: Class, Staff_Id: $('#StaffId').val() },
+            success: function (data) {
+                $("#dCourse").empty();
+                $("#dCourse").append('<option value=""> -- Select -- </option>' + data);
+                $('.selectpicker').selectpicker('refresh');
+            }, error: function (error) {
+                alert('Internal Server Error .....!');
+            }
+        });
+    });
+
+
+
+    $('#btnGet').click( function () {
+
+        if ($('#dClass').val() && $('#dCourse').val() && $('#dSet').val() && $("#ddlSetting").val() && $('#StaffId').val())
+        {
+            $.ajax({
+                  url:"@Url.Action("BindOnlineQuizPreviewForAdmin", "Examination")",
+                type: "post",
+                data: { sClassId: $('#dClass').val(), sCourseId: $('#dCourse').val(), sSetId: $('#dSet').val(), sSettingId: $("#ddlSetting").val(), sStaffId: $('#StaffId').val() },
+                success:function(data)
+                  {
+                      if(data.Message!=null && data.Message!='')
+                      {
+                          alert(data.Message)
+                      }
+                      else {
+
+                          $('#divBind').empty();
+                          $('#divBind').append(data);
+                          $('.selectpicker').selectpicker('refresh');
+                      }
+                  },
+                  error:function(ex)
+                  {
+                      alert('Internal Server Error !');
+                  }
+            });
+        }
+        else {
+            alert("Pleas Select All the fields")
+        }
+    });
+
+
+    $("#dCourse").on("change", function ()
+    {
+        if ($("#dCourse").val() != 0)
+        {
+            $.ajax({
+                url: "@Url.Action("FetchSettingInfoByClassAndCourseIdsAndStaff", "Examination")",
+                method: "POST",
+            datatype: "json",
+            data: { sClassId: $("#dClass").val(), sCourseId: $("#dCourse").val(), sStaffId: $('#StaffId').val() },
+            success: function (data)
+            {
+                $("#ddlSetting").empty();
+                if (data.Message != null && data.Message != '')
+                {
+                    alert(data.Message);
+                } else
+                {
+                    $("#ddlSetting").append(data.sResult);
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            }, error: function (error)
+            {
+                alert('Internal Server Error .!');
+            }
+        });
+    }
+    });
+
+    function printDiv(sDivName) {
+        var printContents = document.getElementById(sDivName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        loadContent('/Examination/QuizPreviewForAdmin');
+    }
+
+
+</script>
+
+
+
+
+
+
+

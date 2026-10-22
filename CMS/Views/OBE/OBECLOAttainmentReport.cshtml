@@ -1,0 +1,155 @@
+﻿@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    ViewBag.Title = "OBECLOAttainmentReport";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<style>
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        margin: 0;
+    }
+
+    #staticcolumn {
+        position: sticky;
+        left: 0;
+        z-index: 0;
+    }
+</style>
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">OBE CLO Attainment</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">OBE CLO Attainment<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">OBE CLO Attainment</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-horizontal">
+
+                    <div class="form-group  col-md-12">
+
+                        <div class="col-md-4 form-group">
+                            @Html.Label("Setting", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.ExamSetting, (Model.ExamSetting != null) ? Model.ExamSetting : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.ExamSetting, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            @Html.Label("Semester", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.Semester, (Model.Semester != null) ? Model.Semester : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <a href="#" class="btn-primary btn " id="btnget">Get</a>
+                        </div>
+
+                    </div>
+                    <div id="binddiv"></div>
+                </div>
+
+
+            }
+
+        </div>
+
+    </div>
+</div>
+<!-- end #content -->
+
+
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/select2/dist/js/select2.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<script>
+
+    $('.selectpicker').selectpicker({
+        size: 4
+    });
+
+    $('#Semester').on('change', function ()
+    {
+        $.ajax({
+            url: '@Url.Action("FetchCourseBySemester", "OBE")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sSemster: $(this).val() },
+            success: function (data)
+            {
+
+                    $('#CourseList').empty();
+                    $('#CourseList').append(data); // cms-sSemesterId
+                    $('.selectpicker').selectpicker('refresh');
+
+            }, error: function (error) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        })
+    });
+
+
+    $('#btnget').on('click', function ()
+    {
+        var Examid = $('#ExamSetting').val();
+        var CourseId = $('#CourseList').val();
+
+            $.ajax({
+                url: "@Url.Action("BindOBECLOAttainmentReport", "OBE")",
+                async: false,
+                method: "POST",
+                content: "application/json; charset=utf-8",
+                data: { sExamId: Examid, sCourseId: CourseId },
+                success: function (data)
+                {
+                    $('#binddiv').empty();
+                    $('#binddiv').append(data);
+
+                }, error: function (e)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+
+    });
+
+</script>
+
+
+
+
+
+

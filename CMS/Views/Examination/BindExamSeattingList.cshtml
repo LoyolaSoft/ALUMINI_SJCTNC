@@ -1,0 +1,79 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = null;
+}
+
+@{
+    if (Model.LiSupRoom != null && Model.LiSupRoom.Count() > 0 && Model.LiExamSeatingAllotment != null && Model.LiExamSeatingAllotment.Count() > 0)
+    {
+        foreach (var Roomitem in Model.LiSupRoom)
+        {
+            var LiExamSeatings = Model.LiExamSeatingAllotment.Where(o => o.ROOM_ID == Roomitem.ROOM_ID).ToList();
+            <div class="form-group" id="dvCourseWiseReport"  style="page-break-after:always !important;page-break-inside:avoid !important;">
+                <div class="col-md-12">
+                    <table style="width:100%;">
+                        <tr>
+                            <td style="width:50%"><b>Block</b> : &nbsp;@Roomitem.BLOCK_NAME</td>                         
+                            <td style="width:20%" align="left"><b>Room No</b> : &nbsp;@Roomitem.ROOM_NO</td>
+                        </tr>
+                        <tr>
+                            <td style="width:50%"><b>Block Code</b> : &nbsp;@Roomitem.BLOCK_CODE</td>                          
+                            <td style="width:20%" align="left"><b>TotalStrength</b> : &nbsp;@Roomitem.EXAM_CAPACITY</td>
+                        </tr>
+                        @*<tr>
+                            <td style="width:50%"><b>Course</b> : &nbsp;@ClassStudents.FirstOrDefault().COURSE_TITLE</td>
+                        </tr>*@
+                    </table>
+                </div>
+                <table class="table table-bordered text-center" border="1">
+                    <tbody>
+                        <tr>
+                            <th><b>#</b></th>
+                            @for (int i = 1; i <= Convert.ToInt16(Roomitem.COLUMN); i++)
+                            {
+                                <td>
+                                    <b>@i</b>
+                                </td>
+                                if (!string.IsNullOrEmpty(Roomitem.SPACE_COLUMN))
+                                {
+                                    if (i % Convert.ToInt16(Roomitem.SPACE_COLUMN) == 0 && i < Convert.ToInt16(Roomitem.COLUMN))
+                                    {
+                                        <td></td>
+                                    }
+                                }
+                            }
+
+                        </tr>
+                    </tbody>
+                    <tbody>
+                        @for (int i = 1; i <= Convert.ToInt16(Roomitem.ROW); i++)
+                        {
+                            var RoomAllotment = LiExamSeatings.Where(s => s.ROW_NO == i.ToString()).ToList();
+                            <tr>
+                                <td><b>@i</b></td>
+                                @foreach (var citem in RoomAllotment)
+                                {
+                                    <td>@citem.SEAT_CODE</td>
+                                    if (!string.IsNullOrEmpty(Roomitem.SPACE_COLUMN))
+                                    {
+                                        if (Convert.ToInt16(citem.COLUMN_NO) % Convert.ToInt16(Roomitem.SPACE_COLUMN) == 0 && Convert.ToInt16(citem.COLUMN_NO) < Convert.ToInt16(Roomitem.COLUMN))
+                                        {
+                                            <td></td>
+                                        }
+                                    }
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <table style="width:100%;">
+                    <tr>
+                        <td style="width:100%"><b>CodeDescription</b> : &nbsp;
+                        BlockCode - RoomNo - Position</td>                       
+                    </tr>                       
+                </table>
+            </div>
+        }
+
+    }
+}

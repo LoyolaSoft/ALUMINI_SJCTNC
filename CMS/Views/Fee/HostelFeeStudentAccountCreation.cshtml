@@ -1,0 +1,1218 @@
+@model CMS.ViewModel.ViewModel.FeeStructureViewModel
+
+@{
+    ViewBag.Title = "HostelFeeStudentAccountCreation";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    string currentDate = DateTime.Now.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) + ".txt";
+}
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<style>
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        margin: 0;
+    }
+    .sweet-overlay {
+        z-index: 100000 !important;
+    }
+    .sweet-alert {
+        z-index: 100001 !important;
+    }
+    .btn-action-single {
+        background-color: #7c3aed !important;
+        border-color: #6d28d9 !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        border-radius: 6px;
+        padding: 6px 15px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-action-single:hover:not(.disabled) {
+        background-color: #6d28d9 !important;
+        border-color: #5b21b6 !important;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(124, 58, 237, 0.3);
+    }
+    /* Offcanvas modal styling to simulate sidebar drawer */
+    .modal.offcanvas {
+        overflow: hidden;
+    }
+    .modal.offcanvas .modal-dialog {
+        position: fixed;
+        margin: auto;
+        width: 680px;
+        max-width: 92vw;
+        height: 100%;
+        right: -720px;
+        top: 0;
+        bottom: 0;
+        transition: right 0.35s ease-out;
+        z-index: 1050;
+    }
+    .modal.offcanvas.in .modal-dialog {
+        right: 0;
+    }
+    .modal.offcanvas .modal-content {
+        height: 100%;
+        border-radius: 0;
+        border: none;
+        box-shadow: -5px 0 25px rgba(0,0,0,0.2);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .modal.offcanvas .modal-header {
+        background: linear-gradient(135deg, #0e7490, #0891b2);
+        color: #fff;
+        border-radius: 0;
+        padding: 14px 20px;
+        flex-shrink: 0;
+    }
+    .modal.offcanvas .modal-header .modal-title {
+        color: #fff !important;
+        font-weight: 600;
+        font-size: 16px;
+    }
+    .modal.offcanvas .modal-header .close {
+        color: #fff !important;
+        opacity: 0.85;
+        font-size: 24px;
+        transition: opacity 0.2s;
+    }
+    .modal.offcanvas .modal-header .close:hover {
+        opacity: 1;
+    }
+    .modal.offcanvas .modal-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: 18px;
+        background-color: #f8fafc;
+    }
+    #dvOffcanvasFeeStructureBind .widget-stats {
+        border-radius: 8px;
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, #0891b2, #0e7490) !important;
+        color: #fff;
+    }
+    #dvOffcanvasFeeStructureBind .table {
+        background: #ffffff;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+    #dvOffcanvasFeeStructureBind .table th {
+        background-color: #f1f5f9;
+        color: #334155;
+        font-weight: 600;
+        font-size: 12px;
+    }
+    .btn-action-view {
+        background-color: #0891b2 !important;
+        border-color: #0e7490 !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        border-radius: 6px;
+        padding: 6px 15px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-action-view:hover:not(.disabled) {
+        background-color: #0e7490 !important;
+        border-color: #155e75 !important;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(8, 145, 178, 0.3);
+    }
+    .btn.disabled {
+        opacity: 0.55 !important;
+        cursor: not-allowed !important;
+        pointer-events: none;
+    }
+</style>
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Fee Student Account Creation</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Fee Student Account Creation</h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Fee Student Account Creation</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+                    <div class="form-group  col-md-12">
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.AcademicyearList, "Academic Year", htmlAttributes: new { @class = "control-label col-md-5" })
+                            <div class="col-md-7">
+                                @Html.DropDownListFor(model => model.AcademicyearList, (Model.AcademicyearList != null) ? Model.AcademicyearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.AcademicyearList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.FrequencyList, "Frequency", htmlAttributes: new { @class = "control-label col-md-5" })
+                            <div class="col-md-7">
+                                @Html.DropDownListFor(model => model.FrequencyList, (Model.FrequencyList != null) ? Model.FrequencyList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.FrequencyList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.MainHeadList, "Main Heads", htmlAttributes: new { @class = "control-label col-md-5" })
+                            <div class="col-md-7">
+                                @Html.DropDownListFor(model => model.MainHeadList, (Model.MainHeadList != null) ? Model.FrequencyList : Enumerable.Empty<SelectListItem>(), new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true",@multiple="mutiple",@data_actions_box="true" })
+                                @Html.ValidationMessageFor(model => model.MainHeadList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        @*<div class="form-group col-md-1">
+                                <a class="btn btn-primary pull-right" title="" id="btnGetCollegeMainHead">Get</a>
+                            </div>*@
+                    </div>
+                </div>
+
+                <!-- Upload & Action Buttons Section in a SINGLE LINE -->
+                <div id="divHostelUploadSection" class="row" style="display: none; margin-top: 15px; margin-bottom: 15px;">
+                    <div class="col-md-12">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 15px;">
+                            
+                            <!-- 1. File Choose + Submit File Immediately After -->
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
+                                <div style="position: relative; border: 2px dashed #cbd5e1; border-radius: 6px; padding: 6px 12px; text-align: center; background: #ffffff; min-width: 220px; cursor: pointer;" id="dropzone">
+                                    <i class="fa fa-cloud-upload text-primary" style="font-size: 16px; vertical-align: middle; margin-right: 5px;"></i>
+                                    <span style="font-weight: 600; font-size: 12px; color: #475569;" id="uploadInstruction">Drag Excel here or click to browse</span>
+                                    <input type="file" id="HostelFeeExcelFile" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;" accept=".xlsx, .xls, .csv" />
+                                    <span id="selectedFileName" style="font-weight: 700; color: #10b981; font-size: 12px; display: none; margin-left: 5px;"></span>
+                                </div>
+                                <button type="button" id="btnSubmitUpload" class="btn btn-success btn-sm" style="font-weight: 600; border-radius: 6px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;" onclick="SaveHostelFeeFile()">
+                                    <i class="fa fa-check"></i> Submit File
+                                </button>
+                            </div>
+
+                            <!-- 2. Download Template & Error Log Links -->
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
+                                <a href="~/Content/ExcelTemplate/Hostel_Fee_due_template.xlsx" class="btn btn-warning btn-sm" style="font-weight: 600; border-radius: 6px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
+                                    <i class="fa fa-file-excel-o"></i> Excel Template
+                                </a>
+                                <a href="~/FeeDueFileLog/@currentDate" class="btn btn-danger btn-sm" style="font-weight: 600; border-radius: 6px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;" target="_blank">
+                                    <i class="fa fa-file-text-o"></i> Error Log
+                                </a>
+                            </div>
+
+                            <!-- 3. Fee Creation Action Buttons in Same Line -->
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
+                                <button type="button" class="btn btn-sm btn-action-single disabled" title="Single Fee Creation" id="btnSingleSave" onclick="openSingleAddModal()" style="white-space: nowrap;">
+                                    <i class="fa fa-plus-circle"></i> Single Fee Creation
+                                </button>
+                                <a class="btn btn-sm btn-action-view" id="btnview" title="View Fee Structure" href="javascript:;" onclick="openHostelFeeStructureOffcanvas()" style="white-space: nowrap;">
+                                    <i class="fa fa-list-alt"></i> View Fee Structure
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 table-responsive">
+                        <div id="dvStudentBind"></div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 15px; margin-bottom: 25px;">
+                    <div class="col-md-12" style="display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+                        <button type="button" class="btn btn-sm btn-action-single disabled" title="Single Fee Creation" id="btnSingleSaveBottom" onclick="openSingleAddModal()">
+                            <i class="fa fa-plus-circle"></i> Single Fee Creation
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+<script>
+    $('.selectpicker').selectpicker({
+        size: 4
+    });
+</script>
+<script>
+        var table;
+        function ContentLoad()
+        {
+            // Document Ready Function .
+            $(document).on("wheel", "input[type=number]", function (e) {
+                $(this).blur();
+            });
+
+        }
+        //$(document).ready(function () {
+
+        //});
+
+        $('#FrequencyList').on('change', function () {          
+            LoadFrequency();
+            var val = $(this).val();
+            if (val != null && val != "0" && val != "") {
+                $('#divHostelUploadSection').slideDown();
+                $('#btnSingleSave, #btnSingleSaveBottom').removeClass("disabled");
+                $('#btnview').removeClass("disabled");
+            } else {
+                $('#divHostelUploadSection').slideUp();
+                $('#btnSingleSave, #btnSingleSaveBottom').addClass("disabled");
+                $('#btnview').addClass("disabled");
+            }
+        });
+        $('#MainHeadList').on('change', function () {
+            loadGird();
+        });
+        $('#AcademicyearList').on('change', function () {
+             var vAcademicyear = $('#AcademicyearList option:selected').text();
+         $('#dvStudentBind').empty();
+            $.ajax({
+                url: '@Url.Action("FetchHostelFrequencyByAcademicYear", "Fee")',
+                data: { Academicyear: vAcademicyear },
+                success: function (objResult) {
+                    $('#FrequencyList').empty();
+                    $('#FrequencyList').append('<option value="0">-- select --</option>' + objResult.sResult);
+                    $('.selectpicker').selectpicker('refresh');
+                },
+                error: function (xhr, textStatus, error) {
+                    swal({ title: "Error!", text: "Error loading frequency: " + error, type: "error", timer: 1800, showConfirmButton: false });
+                }
+            });
+        });
+
+        function LoadFrequency() {
+            var vAcademicyear = $('#AcademicyearList option:selected').text();
+            var vFrequency = $('#FrequencyList').val();
+            $('#dvStudentBind').empty();
+            $.ajax({
+                url: '@Url.Action("FetchHostelAndMessMainHeadByFrequencyId", "Fee")',
+                data: { sFrequencyId: vFrequency, Academicyear: vAcademicyear },
+                success: function (objResult) {
+                    $('#MainHeadList').empty();
+                    $('#MainHeadList').append(objResult.sResult);
+
+                    $('.selectpicker').selectpicker('refresh');
+                },
+                error: function (xhr, textStatus, error) {
+                    swal({ title: "Error!", text: "Error loading main heads: " + error, type: "error", timer: 1800, showConfirmButton: false });
+                }
+            });
+        }
+        function loadGird() {
+            var vAcademicyear = $('#AcademicyearList option:selected').text();
+            $('#btnview').removeClass("disabled");
+            $('#btnSingleSave, #btnSingleSaveBottom').removeClass("disabled");
+            if (vAcademicyear != 0) {
+                $.ajax({
+                    url: '@Url.Action("BindHostelStudentsByAcademicYear", "Fee")',
+                    data: {  Academicyear: vAcademicyear},
+                    success: function (option) {
+                        var dvFeeStructureBind = $('#dvStudentBind');
+                        dvFeeStructureBind.empty();
+                        dvFeeStructureBind.append(option);
+                        table = $("#StudentList").DataTable({ "bPaginate": false });//{ "bPaginate": false }
+                        $("#StudentList_filter").addClass("dataTables_filter pull-right");
+                        $(".pagination").addClass("pagination pull-right");
+                    },
+                    error: function (xhr, textStatus, error) {
+                        swal({ title: "Error!", text: "Error loading students: " + error, type: "error", timer: 1800, showConfirmButton: false });
+                    }
+                });
+
+            } else {
+                $('#dvStudentBind').empty();
+                $('#btnview').addClass("disabled");
+                $('#btnSingleSave, #btnSingleSaveBottom').addClass("disabled");
+                $('.selectpicker').selectpicker('refresh');
+                return false;
+            }
+        }
+
+        // File selection / drag-and-drop event handlers
+        $('#HostelFeeExcelFile').on('change', function (e) {
+            var file = e.target.files[0];
+            if (file) {
+                $('#uploadInstruction').hide();
+                $('#selectedFileName').html('<i class="fa fa-file-excel-o"></i> Selected: <b>' + file.name + '</b>').show();
+            } else {
+                $('#uploadInstruction').show();
+                $('#selectedFileName').hide();
+            }
+        });
+
+        // Drag & Drop visual feedback
+        var dropzone = document.getElementById('dropzone');
+        if (dropzone) {
+            dropzone.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                dropzone.style.background = '#e0f2fe';
+                dropzone.style.borderColor = '#3b82f6';
+            });
+            dropzone.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                dropzone.style.background = '#f8fafc';
+                dropzone.style.borderColor = '#cbd5e1';
+            });
+            dropzone.addEventListener('drop', function (e) {
+                e.preventDefault();
+                dropzone.style.background = '#f8fafc';
+                dropzone.style.borderColor = '#cbd5e1';
+                var files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    document.getElementById('HostelFeeExcelFile').files = files;
+                    $('#HostelFeeExcelFile').trigger('change');
+                }
+            });
+        }
+
+        SaveHostelFeeFile = function () {
+            var fileInput = $('#HostelFeeExcelFile').get(0);
+            if (fileInput.files.length === 0) {
+                swal({ title: "Error", text: "Please select or drag-and-drop a file first!", type: "error", timer: 2000, showConfirmButton: false });
+                return;
+            }
+            
+            swal({
+                title: "Confirmation",
+                text: "Are you sure you want to upload and update student hostel fees?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-success",
+                confirmButtonText: "Yes, upload!",
+                closeOnConfirm: false
+            },
+            function () {
+                var formData = new FormData();
+                var sFile = fileInput.files;
+                for (var i = 0; i < sFile.length; i++) {
+                    formData.append(sFile[i].name, sFile[i]);
+                }
+                
+                var academicYear = $('#AcademicyearList option:selected').text();
+                var frequencyId = $('#FrequencyList').val();
+                
+                formData.append("AcademicYear", academicYear);
+                formData.append("FrequencyId", frequencyId);
+                
+                $.ajax({
+                    url: '@Url.Action("SaveHostelFeeDueDetailssjctnc", "Fee")',
+                    method: 'POST',
+                    datatype: 'json',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (data) {
+                        swal({ title: "Success", text: data.Message, type: "success" });
+                        $('#HostelFeeExcelFile').val('');
+                        $('#selectedFileName').hide();
+                        var vAcademicyear = $('#AcademicyearList option:selected').text();
+                        if (vAcademicyear != 0) {
+                            loadGird();
+                        }
+                    }, 
+                    error: function (error) {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                });
+            });
+        }
+        // Handle click on "Select all" control
+        //$('#AllchkID').on('click', function () {
+        //    // Get all rows with search applied
+        //    alert();
+        //    var rows = table.rows({ 'search': 'applied' }).nodes();
+        //    // Check/uncheck checkboxes for all rows in the table
+        //    $('input[type="checkbox"]', rows).prop('checked', this.checked);
+        //});
+
+
+
+        SelectOrUnselect = function () {
+          if (AllchkID.checked == true) {
+              $('#StudentList tbody tr').each(function () {
+                  $(this).find('input[type="checkbox"]').each(function () {
+                      $('input[type="checkbox"]').attr("checked", true);
+                  });
+              });
+          }
+          else {
+              $('#StudentList tbody tr').each(function () {
+                  $(this).find('input[type="checkbox"]').each(function () {
+                      $('input[type="checkbox"]').attr("checked", false);
+                  });
+              });
+          }
+        }
+        var currentModalStudentId = 0;
+        function ListSelectedStudentFeeAccount(StudentId) {
+             currentModalStudentId = StudentId;
+             var vAcademicyear = $('#AcademicyearList option:selected').text();
+             var FrequencyId = $('#FrequencyList').val();
+             $.ajax({
+                 url: "@Url.Action("FetchSelectedStudentFeeAccountForHostelandMess", "Fee")",
+                 method: "POST",
+                 datatype: "html",
+                 data: { sStudentId: StudentId, Academicyear: vAcademicyear, sFrequencyId: FrequencyId, sFeeMainHeadId: $('#MainHeadList').val().toString() },
+                 success: function (Option) {
+                     var divHtml = $('#SelectedStudentFeeAccount');
+                     divHtml.empty();
+                     divHtml.html(Option);
+                 },
+                  error: function (xhr, textStatus, error) {
+                      swal({ title: "Error!", text: "Error loading student fee account: " + error, type: "error", timer: 1800, showConfirmButton: false });
+                  }
+             });
+        }
+    $('#btnUpdateFeeStudentAccount').on('click', function () {
+        var StudentId;
+        $('#StudentFeeList tbody tr').each(function () {
+            var Balance = $(this).attr("cms-balance");
+            if (Balance != "0") {
+                StudentId = '"' + Balance + '"';
+            }
+        });
+        if (StudentId == null) {
+            swal({ title: "Warning!", text: "You cannot update. Please contact Admin!", type: "warning" });
+            return false;
+        }
+        var JsonData = '{"StudentAccountList":[';
+        $('#StudentFeeList tbody tr').each(function () {
+            var FeeStudentAccountId = $(this).attr("cms-StudentAccountId");
+            var Amount = $(this).find('input[type="text"]').val();
+            var Balance = $(this).attr("cms-balance");
+            if (Balance != "0") {
+                JsonData += '{"' + "F_STUDENT_AC_ID" + '":"' + FeeStudentAccountId + '","CREDIT":"' + $(this).find('input[type="text"]').val() + '"},';
+            }
+        });
+        JsonData = JsonData.slice(0, -1);
+        JsonData += ']}';
+        $.ajax({
+            url: "@Url.Action("UpdateHostelAndMessFeeStudentAccount", "Fee")",
+            method: "POST",
+            data: { sFeeStudentAccount: JsonData },
+            success: function (objResult) {
+                if (objResult.ErrorCode == "200") {
+                    swal({ title: "Success!", text: objResult.Message, type: "success" });
+                } else {
+                    swal({ title: "Error!", text: objResult.Message, type: "error" });
+                }
+                loadGird();
+            },
+            error: function (error) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", type: "error", timer: 1800, showConfirmButton: false });
+            }
+        });
+    });
+
+    function openSingleAddModal() {
+        var currentAcYearVal = $('#AcademicyearList').val();
+        var currentAcYearText = $('#AcademicyearList option:selected').text();
+        var currentFreqVal = $('#FrequencyList').val();
+        var currentMainHeadVal = $('#MainHeadList').val();
+
+        if (!currentAcYearText || currentAcYearText === '0' || currentAcYearText.includes('--')) {
+            swal({ title: "Warning!", text: "Please select Academic Year first!", type: "warning" });
+            return false;
+        }
+        if (!currentFreqVal || currentFreqVal === '0') {
+            swal({ title: "Warning!", text: "Please select Frequency first!", type: "warning" });
+            return false;
+        }
+        if (!currentMainHeadVal || currentMainHeadVal.length === 0 || currentMainHeadVal === '0') {
+            swal({ title: "Warning!", text: "Please select Fee Main Head first!", type: "warning" });
+            return false;
+        }
+
+        // Populate Academic Year in single modal
+        var acYearOptions = "";
+        $('#AcademicyearList option').each(function () {
+            if ($(this).val() !== "0" && !$(this).text().includes("--")) {
+                acYearOptions += "<option value='" + $(this).val() + "'>" + $(this).text() + "</option>";
+            }
+        });
+        $('#singleAcYear').html(acYearOptions);
+        if (currentAcYearVal && currentAcYearVal !== "0") {
+            $('#singleAcYear').val(currentAcYearVal);
+        }
+
+        // Populate Frequency in single modal
+        var freqOptions = "";
+        $('#FrequencyList option').each(function () {
+            if ($(this).val() !== "0" && !$(this).text().includes("--")) {
+                freqOptions += "<option value='" + $(this).val() + "'>" + $(this).text() + "</option>";
+            }
+        });
+        $('#singleFrequency').html(freqOptions);
+        if (currentFreqVal && currentFreqVal !== "0") {
+            $('#singleFrequency').val(currentFreqVal);
+        }
+
+        // Populate Main Head in single modal
+        var mainHeadOptions = "";
+        $('#MainHeadList option').each(function () {
+            if ($(this).val() !== "0" && !$(this).text().includes("--")) {
+                mainHeadOptions += "<option value='" + $(this).val() + "'>" + $(this).text() + "</option>";
+            }
+        });
+        $('#singleMainHead').html(mainHeadOptions);
+        if (currentMainHeadVal) {
+            $('#singleMainHead').val(currentMainHeadVal);
+        }
+        if (!$('#singleMainHead').val() && $('#singleMainHead option').length > 0) {
+            $('#singleMainHead').prop('selectedIndex', 0);
+        }
+
+        $('#singleUserId').val("0");
+        $('#singleUserInfoBox').hide();
+        $('#singleAmount').val("");
+
+        // Load Head Codes for selected filters
+        loadSingleModalHeadCodes();
+
+        // Check if student checkbox is selected in the table
+        var checkedBoxes = $('#StudentList tbody input[type="checkbox"]:checked');
+        if (checkedBoxes.length === 1) {
+            var rollNo = checkedBoxes.first().closest('tr').find('td:nth-child(4)').text().trim();
+            $('#singleCode').val(rollNo);
+            verifyHostelStudent();
+        } else {
+            $('#singleCode').val("");
+        }
+
+        $('#modalSingleAddAccount').modal('show');
+    }
+
+    function onSingleAcYearChange() {
+        var vAcademicyear = $('#singleAcYear option:selected').text();
+        $('#singleFrequency').empty();
+        $('#singleMainHead').empty();
+        $('#singleHeadCode').empty();
+        $.ajax({
+            url: '@Url.Action("FetchHostelAndMessFrequencyByAcademicYear", "Fee")',
+            data: { Academicyear: vAcademicyear },
+            success: function (objResult) {
+                $('#singleFrequency').empty();
+                $('#singleFrequency').append('<option value="0">-- select --</option>' + objResult.sResult);
+                onSingleFrequencyChange();
+            }
+        });
+    }
+
+    function onSingleFrequencyChange() {
+        var vAcademicyear = $('#singleAcYear option:selected').text();
+        var vFrequency = $('#singleFrequency').val();
+        $('#singleMainHead').empty();
+        $('#singleHeadCode').empty();
+        $.ajax({
+            url: '@Url.Action("FetchHostelAndMessMainHeadByFrequencyId", "Fee")',
+            data: { sFrequencyId: vFrequency, Academicyear: vAcademicyear },
+            success: function (objResult) {
+                $('#singleMainHead').empty();
+                $('#singleMainHead').append(objResult.sResult);
+                if ($('#singleMainHead option').length > 0) {
+                    $('#singleMainHead').prop('selectedIndex', 0);
+                }
+                loadSingleModalHeadCodes();
+            }
+        });
+    }
+
+    function onSingleMainHeadChange() {
+        loadSingleModalHeadCodes();
+    }
+
+    function loadSingleModalHeadCodes(selectedHeadId) {
+        var acYear = $('#singleAcYear option:selected').text();
+        var freqId = $('#singleFrequency').val();
+        var mainHeadId = $('#singleMainHead').val();
+
+        $('#singleHeadCode').empty().append('<option value="">-- Loading Head Codes... --</option>');
+
+        if (!freqId || freqId === "0") {
+            $('#singleHeadCode').html('<option value="">-- Select Frequency First --</option>');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("GetHostelHeadCodes", "Fee")',
+            type: 'GET',
+            data: { 
+                academicYear: (acYear && !acYear.includes("--")) ? acYear : "", 
+                frequencyId: freqId, 
+                mainHeadId: (mainHeadId ? mainHeadId.toString() : "") 
+            },
+            success: function (res) {
+                var options = '<option value="">-- Select Head Code --</option>';
+                if (res.Success && res.Data && res.Data.length > 0) {
+                    $.each(res.Data, function (i, rawItem) {
+                        var item = rawItem;
+                        if (Array.isArray(rawItem)) {
+                            item = {};
+                            $.each(rawItem, function (j, kv) {
+                                item[kv.Key] = kv.Value;
+                            });
+                        }
+                        var headId = item.HEAD_ID != null ? item.HEAD_ID : (item.head_id != null ? item.head_id : "");
+                        var headCode = item.HEAD_CODE != null ? item.HEAD_CODE : (item.head_code != null ? item.head_code : "");
+                        var headName = item.HEAD_NAME != null ? item.HEAD_NAME : (item.head_name != null ? item.head_name : "");
+                        var fmhId = item.FEE_MAIN_HEAD_ID != null ? item.FEE_MAIN_HEAD_ID : (item.fee_main_head_id != null ? item.fee_main_head_id : "");
+
+                        var display = "";
+                        if (headCode && headName) {
+                            display = headCode + " - " + headName;
+                        } else if (headCode) {
+                            display = headCode;
+                        } else {
+                            display = headName;
+                        }
+
+                        if (!display || display === " - ") {
+                            display = "Head ID: " + headId;
+                        }
+
+                        options += '<option value="' + headId + '" data-fmh="' + fmhId + '" data-code="' + headCode + '">' + display + '</option>';
+                    });
+                } else {
+                    options = '<option value="">-- No Head Codes Available --</option>';
+                }
+                $('#singleHeadCode').html(options);
+                if (selectedHeadId) {
+                    $('#singleHeadCode').val(selectedHeadId);
+                }
+            },
+            error: function () {
+                $('#singleHeadCode').html('<option value="">-- Error Loading Head Codes --</option>');
+            }
+        });
+    }
+
+    function verifyHostelStudent() {
+        var code = $('#singleCode').val().trim();
+        var acYear = $('#singleAcYear option:selected').text();
+
+        if (!code) {
+            $('#singleUserId').val("0");
+            $('#singleUserInfoBox').hide();
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("FindStudentOrStaffInfo", "Fee")',
+            type: 'GET',
+            data: { userType: "STUDENT", code: code, academicYear: acYear },
+            success: function (res) {
+                if (res.Success) {
+                    $('#singleUserId').val(res.Id);
+                    $('#singleDisplayVerifiedName').text(res.Name);
+                    $('#singleDisplayVerifiedDetails').text(res.Details + " (Roll No: " + res.Code + ")");
+                    $('#singleUserInfoBox').slideDown();
+                } else {
+                    $('#singleUserId').val("0");
+                    $('#singleUserInfoBox').hide();
+                    swal({ title: "Not Found", text: res.Message, type: "warning" });
+                }
+            },
+            error: function () {
+                $('#singleUserId').val("0");
+                $('#singleUserInfoBox').hide();
+            }
+        });
+    }
+
+    function submitSingleHostelAccount(e) {
+        e.preventDefault();
+        var studentId = $('#singleUserId').val();
+        var acYear = $('#singleAcYear option:selected').text();
+        var freqId = $('#singleFrequency').val();
+        var mainHeadId = $('#singleMainHead').val();
+        var headId = $('#singleHeadCode').val();
+        var selectedHeadOption = $('#singleHeadCode option:selected');
+        var feeMainHeadId = selectedHeadOption.attr('data-fmh') || "";
+        var headCode = selectedHeadOption.attr('data-code') || selectedHeadOption.text();
+        var amount = $('#singleAmount').val();
+
+        if (studentId === "0" || studentId === "") {
+            swal({ title: "Verification Required", text: "Please enter a valid Roll No and verify it first.", type: "warning" });
+            return;
+        }
+        if (!acYear || acYear === "0" || acYear.includes("--")) {
+            swal({ title: "Error", text: "Please select Academic Year.", type: "error" });
+            return;
+        }
+        if (!freqId || freqId === "0" || freqId.includes("--")) {
+            swal({ title: "Error", text: "Please select Frequency.", type: "error" });
+            return;
+        }
+        if (!headId || headId === "" || headId === "0") {
+            swal({ title: "Error", text: "Please select a Head Code.", type: "warning" });
+            return;
+        }
+        if (!amount || parseFloat(amount) <= 0) {
+            swal({ title: "Error", text: "Please enter a valid fee amount greater than 0.", type: "warning" });
+            return;
+        }
+
+        swal({
+            title: "Confirmation",
+            text: "Are you sure you want to create hostel fee account for " + $('#singleDisplayVerifiedName').text() + " for Head Code '" + headCode + "' (Amount: ₹" + amount + ") for " + acYear + "?",
+            type: "info",
+            showCancelButton: true,
+            confirmButtonClass: "btn-success",
+            confirmButtonText: "Yes, Create!",
+            cancelButtonText: "Cancel",
+            closeOnConfirm: false
+        }, function (isConfirm) {
+            if (isConfirm) {
+                $.ajax({
+                    url: "@Url.Action("SaveSingleHostelFeeAccount", "Fee")",
+                    method: "POST",
+                    data: {
+                        studentId: studentId,
+                        academicYear: acYear,
+                        frequencyId: freqId,
+                        headId: headId,
+                        feeMainHeadId: feeMainHeadId,
+                        amount: amount
+                    },
+                    success: function (res) {
+                        if (res.Success) {
+                            $('#modalSingleAddAccount').modal('hide');
+                            swal({ title: "Success!", text: res.Message, type: "success" });
+                            loadGird();
+                        } else {
+                            swal({ title: "Account Already Exists!", text: res.Message, type: "error" });
+                        }
+                    },
+                    error: function () {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", type: "error", timer: 1800, showConfirmButton: false });
+                    }
+                });
+            }
+        });
+    }
+
+    function DeleteHostelFeeAccountItem(fStudentAcId, headName) {
+        var vAcademicyear = $('#AcademicyearList option:selected').text();
+        var headDesc = headName ? ('unpaid "' + headName + '"') : 'this unpaid fee head';
+        swal({
+            title: "Are you sure want to delete?",
+            text: "Are you sure you want to delete " + headDesc + " from the student account?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
+            closeOnConfirm: false
+        }, function (isConfirm) {
+            if (isConfirm) {
+                $.ajax({
+                    url: "@Url.Action("DeleteUnpaidHostelFeeAccountItem", "Fee")",
+                    method: "POST",
+                    data: { fID: fStudentAcId, Academicyear: vAcademicyear },
+                    success: function (objResult) {
+                        if (objResult.ErrorCode == "200") {
+                            swal({ title: "Deleted!", text: objResult.Message, type: "success" });
+                            if (currentModalStudentId) {
+                                ListSelectedStudentFeeAccount(currentModalStudentId);
+                            }
+                            loadGird();
+                        } else {
+                            swal({ title: "Error!", text: objResult.Message, type: "error" });
+                        }
+                    },
+                    error: function (error) {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", type: "error", timer: 1800, showConfirmButton: false });
+                    }
+                });
+            }
+        });
+    }
+
+    function DeleteStudentUnpaidFeeAccounts(studentId, studentName) {
+        var vAcademicyear = $('#AcademicyearList option:selected').text();
+        var vFrequency = $('#FrequencyList').val();
+        if (!vAcademicyear || vAcademicyear == '0' || vAcademicyear == '--Select Academic Year--') {
+            swal({ title: "Warning!", text: "Please select Academic Year first!", type: "warning" });
+            return false;
+        }
+        if (!vFrequency || vFrequency == '0') {
+            swal({ title: "Warning!", text: "Please select Frequency first!", type: "warning" });
+            return false;
+        }
+        var displayName = studentName ? ('for student ' + studentName) : 'for the selected student';
+        swal({
+            title: "Are you sure want to delete?",
+            text: "Are you sure you want to delete ALL unpaid hostel fee records " + displayName + " for " + vAcademicyear + "? (Paid records will NOT be deleted)",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
+            closeOnConfirm: false
+        }, function (isConfirm) {
+            if (isConfirm) {
+                $.ajax({
+                    url: "@Url.Action("DeleteAllUnpaidHostelFeeForStudent", "Fee")",
+                    method: "POST",
+                    data: { sStudentId: studentId, sFrequencyId: vFrequency, Academicyear: vAcademicyear },
+                    success: function (objResult) {
+                        if (objResult.ErrorCode == "200") {
+                            swal({ title: "Deleted!", text: objResult.Message, type: "success" });
+                        } else {
+                            swal({ title: "Error!", text: objResult.Message, type: "error" });
+                        }
+                        loadGird();
+                    },
+                    error: function (error) {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", type: "error", timer: 1800, showConfirmButton: false });
+                    }
+                });
+            }
+        });
+    }
+
+    function DeleteAllUnpaidFromModal() {
+        if (!currentModalStudentId) {
+            swal({ title: "Warning!", text: "No student selected!", type: "warning" });
+            return false;
+        }
+        var vAcademicyear = $('#AcademicyearList option:selected').text();
+        var vFrequency = $('#FrequencyList').val();
+        if (!vFrequency || vFrequency == '0') {
+            swal({ title: "Warning!", text: "Please select Frequency first!", type: "warning" });
+            return false;
+        }
+        swal({
+            title: "Are you sure want to delete?",
+            text: "Are you sure you want to delete ALL unpaid fee heads for this student? (Paid records will NOT be deleted)",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
+            closeOnConfirm: false
+        }, function (isConfirm) {
+            if (isConfirm) {
+                $.ajax({
+                    url: "@Url.Action("DeleteAllUnpaidHostelFeeForStudent", "Fee")",
+                    method: "POST",
+                    data: { sStudentId: currentModalStudentId, sFrequencyId: vFrequency, Academicyear: vAcademicyear },
+                    success: function (objResult) {
+                        if (objResult.ErrorCode == "200") {
+                            swal({ title: "Deleted!", text: objResult.Message, type: "success" });
+                            ListSelectedStudentFeeAccount(currentModalStudentId);
+                            loadGird();
+                        } else {
+                            swal({ title: "Error!", text: objResult.Message, type: "error" });
+                        }
+                    },
+                    error: function (error) {
+                        swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", type: "error", timer: 1800, showConfirmButton: false });
+                    }
+                });
+            }
+        });
+    }
+
+    // ==========================================
+    // HOSTEL FEE STRUCTURE OFFCANVAS FUNCTIONS
+    // ==========================================
+    function openHostelFeeStructureOffcanvas() {
+        var parentAcYearVal = $('#AcademicyearList').val();
+        var parentFreqVal = $('#FrequencyList').val();
+
+        // Populate offcanvas Academic Year options from parent dropdown
+        $('#offcanvasAcademicyearList').empty();
+        $('#AcademicyearList option').each(function () {
+            $('#offcanvasAcademicyearList').append($('<option>', {
+                value: $(this).val(),
+                text: $(this).text()
+            }));
+        });
+
+        if (parentAcYearVal && parentAcYearVal != "0" && parentAcYearVal != "-- Select --") {
+            $('#offcanvasAcademicyearList').val(parentAcYearVal);
+        }
+
+        // Populate offcanvas Frequency
+        if (parentFreqVal && parentFreqVal != "0") {
+            $('#offcanvasFrequencyList').empty();
+            $('#FrequencyList option').each(function () {
+                $('#offcanvasFrequencyList').append($('<option>', {
+                    value: $(this).val(),
+                    text: $(this).text()
+                }));
+            });
+            $('#offcanvasFrequencyList').val(parentFreqVal);
+            loadOffcanvasFeeStructure();
+        } else if (parentAcYearVal && parentAcYearVal != "0" && parentAcYearVal != "-- Select --") {
+            loadOffcanvasFrequency(function () {
+                loadOffcanvasFeeStructure();
+            });
+        } else {
+            $('#offcanvasFrequencyList').empty().append('<option value="0">-- select --</option>');
+            $('#dvOffcanvasFeeStructureBind').html('<div class="alert alert-info text-center" style="margin-top: 20px;"><i class="fa fa-info-circle"></i> Please select Academic Year and Frequency to view fee structure.</div>');
+        }
+
+        $('#HostelFeeStructureOffcanvasModal').modal('show');
+    }
+
+    function onOffcanvasAcYearChange() {
+        loadOffcanvasFrequency(function () {
+            loadOffcanvasFeeStructure();
+        });
+    }
+
+    function loadOffcanvasFrequency(callback) {
+        var vAcademicyear = $('#offcanvasAcademicyearList option:selected').text();
+        if (!vAcademicyear || vAcademicyear == '0' || vAcademicyear == '-- Select --') {
+            $('#offcanvasFrequencyList').empty().append('<option value="0">-- select --</option>');
+            $('#dvOffcanvasFeeStructureBind').html('<div class="alert alert-info text-center" style="margin-top: 20px;"><i class="fa fa-info-circle"></i> Please select Academic Year and Frequency to view fee structure.</div>');
+            return;
+        }
+        $.ajax({
+            url: '@Url.Action("FetchHostelFrequencyByAcademicYear", "Fee")',
+            data: { Academicyear: vAcademicyear },
+            success: function (objResult) {
+                $('#offcanvasFrequencyList').empty();
+                $('#offcanvasFrequencyList').append('<option value="0">-- select --</option>' + objResult.sResult);
+                if (typeof callback === 'function') callback();
+            },
+            error: function (xhr, textStatus, error) {
+                swal({ title: "Error!", text: "Error loading frequency: " + error, type: "error", timer: 1800, showConfirmButton: false });
+            }
+        });
+    }
+
+    function loadOffcanvasFeeStructure() {
+        var vAcademicyear = $('#offcanvasAcademicyearList option:selected').text();
+        var vFrequency = $('#offcanvasFrequencyList').val();
+
+        if (vFrequency && vFrequency != "0" && vAcademicyear && vAcademicyear != "0" && vAcademicyear != "-- Select --") {
+            $('#dvOffcanvasFeeStructureBind').html('<div class="text-center" style="padding: 40px 0;"><i class="fa fa-spinner fa-spin fa-2x text-info"></i><p style="margin-top: 10px; color: #64748b; font-weight: 500;">Loading Fee Structure...</p></div>');
+            $.ajax({
+                url: '@Url.Action("BindFeeHosteAndMesslStructureByFrequencyId", "Fee")',
+                data: { sFrequency: vFrequency, Academicyear: vAcademicyear },
+                success: function (option) {
+                    $('#dvOffcanvasFeeStructureBind').html(option);
+                },
+                error: function (xhr, textStatus, error) {
+                    $('#dvOffcanvasFeeStructureBind').html('<div class="alert alert-danger"><i class="fa fa-exclamation-triangle"></i> Failed to load Fee Structure: ' + error + '</div>');
+                }
+            });
+        } else {
+            $('#dvOffcanvasFeeStructureBind').html('<div class="alert alert-info text-center" style="margin-top: 20px;"><i class="fa fa-info-circle"></i> Please select Frequency to view fee structure.</div>');
+        }
+    }
+
+    function openAddEditFeeStructure() {
+        $('#HostelFeeStructureOffcanvasModal').modal('hide');
+        loadContent('@Url.Action("AddOrEditFeeHostelAndMessStructure", "Fee")');
+    }
+
+    GetConfirm = function (ID) {
+        swal({
+            title: "Are you sure?",
+            text: "Are you sure to delete this Fee Structure item?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, delete!",
+            cancelButtonText: "Cancel",
+            closeOnConfirm: false
+        }, function (isConfirm) {
+            if (isConfirm) {
+                $.ajax({
+                    url: "@Url.Action("DeleteHostelAndMessFeeStructure", "Fee")",
+                    method: "POST",
+                    datatype: "json",
+                    data: { sFeeStructureId: ID },
+                    success: function (ObjJsonData) {
+                        swal({ title: "Deleted!", text: ObjJsonData.Message, type: "success", timer: 1500, showConfirmButton: false });
+                        loadOffcanvasFeeStructure();
+                    },
+                    error: function (error) {
+                        swal({ title: "Internal Server Error!", text: "Failed to delete fee structure item", type: "error", timer: 1800, showConfirmButton: false });
+                    }
+                });
+            }
+        });
+    };
+</script>
+
+<div class="modal fade" id="ViewFeeStudentAccount-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-orange-lighter">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <p class="modal-title f-s-15 f-w-200 text-white">View Student Fee Account</p>
+            </div>
+            <div class="modal-body">
+                <div class="from-group" id="SelectedStudentFeeAccount"></div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" class="btn btn-sm btn-warning pull-left" id="btnModalDeleteAllUnpaid" onclick="DeleteAllUnpaidFromModal()"><i class="fa fa-trash"></i> Delete All Unpaid</a>
+                <a href="javascript:;" class="btn btn-sm btn-success" data-dismiss="modal" id="btnUpdateFeeStudentAccount">Update</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SINGLE HOSTEL FEE ACCOUNT CREATION MODAL (Reference: BusFeeStudentAccountCreation) -->
+<div class="modal fade" id="modalSingleAddAccount" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="frmSingleAddAccount" onsubmit="submitSingleHostelAccount(event)">
+                <div class="modal-header bg-primary">
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title text-white"><i class="fa fa-plus-circle"></i> Create Single Hostel Fee Account</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="singleUserId" value="0" />
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Academic Year <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select id="singleAcYear" class="form-control input-sm" required onchange="onSingleAcYearChange()"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Frequency <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select id="singleFrequency" class="form-control input-sm" required onchange="onSingleFrequencyChange()"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Main Head <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select id="singleMainHead" class="form-control input-sm" required onchange="onSingleMainHeadChange()"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Head Code <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select id="singleHeadCode" class="form-control input-sm" required>
+                                <option value="">-- Select Head Code --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Amount (&#8377;) <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="number" id="singleAmount" class="form-control input-sm" placeholder="Enter Fee Amount" min="1" step="0.01" required />
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4" id="lblSingleCode">Roll No <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" id="singleCode" class="form-control input-sm" placeholder="Enter Roll No or Admission No" required onchange="verifyHostelStudent()" />
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="verifyHostelStudent()"><i class="fa fa-search"></i> Verify</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Verified Details Preview Box -->
+                    <div class="form-group col-md-12" id="singleUserInfoBox" style="display: none;">
+                        <div class="col-md-8 col-md-offset-4">
+                            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 10px; font-size: 13px;">
+                                <div><i class="fa fa-check-circle text-success"></i> <b>Name:</b> <span id="singleDisplayVerifiedName" style="color: #15803d; font-weight: 700;"></span></div>
+                                <div style="margin-top: 4px;"><b>Details:</b> <span id="singleDisplayVerifiedDetails" style="color: #334155;"></span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="clear:both;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save"></i> Create Account</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- HOSTEL FEE STRUCTURE OFFCANVAS MODAL -->
+<div class="modal fade offcanvas" id="HostelFeeStructureOffcanvasModal" tabindex="-1" role="dialog" aria-labelledby="offcanvasTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="offcanvasTitle"><i class="fa fa-list-alt"></i> Hostel Fee Structure</h4>
+            </div>
+            <div class="modal-body">
+                <!-- Offcanvas Filter Controls -->
+                <div class="row" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 10px; margin-bottom: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+                    <div class="col-sm-5" style="padding-left: 5px; padding-right: 5px;">
+                        <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 3px; display: block;">Academic Year</label>
+                        <select id="offcanvasAcademicyearList" class="form-control input-sm" onchange="onOffcanvasAcYearChange()"></select>
+                    </div>
+                    <div class="col-sm-4" style="padding-left: 5px; padding-right: 5px;">
+                        <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 3px; display: block;">Frequency</label>
+                        <select id="offcanvasFrequencyList" class="form-control input-sm" onchange="loadOffcanvasFeeStructure()">
+                            <option value="0">-- select --</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-3" style="padding-left: 5px; padding-right: 5px; display: flex; flex-direction: column; justify-content: flex-end;">
+                        <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: transparent; margin-bottom: 3px; display: block;">&nbsp;</label>
+                        <a href="javascript:;" onclick="openAddEditFeeStructure()" class="btn btn-sm btn-primary" title="Add or Edit Fee Structure" style="font-weight: 600; font-size: 11px; padding: 5px 8px; text-align: center; white-space: nowrap; width: 100%;">
+                            <i class="fa fa-pencil-square-o"></i> Add / Edit
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Offcanvas Fee Structure Table & Widgets Container -->
+                <div id="dvOffcanvasFeeStructureBind"></div>
+            </div>
+        </div>
+    </div>
+</div>

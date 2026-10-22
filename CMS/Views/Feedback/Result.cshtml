@@ -1,0 +1,159 @@
+﻿@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@{
+    ViewBag.Title = "Result";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/multi-select/multiselect.css" rel="stylesheet" />
+    <link href="http://cdn.rawgit.com/davidstutz/bootstrap-multiselect/master/dist/css/bootstrap-multiselect.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/assets/plugins/intro-js/introjs.css" rel="stylesheet" />
+
+
+<!-- begin #content -->
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Feedback</a></li>
+        <li class="active">Feedback Entry</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Feedback <small></small></h1>
+    <!-- end page-header -->
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Feedback Entry</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="col-md-12">
+                    <div class="form-horizontal">
+                        <div class="col-md-6">
+                            <label class="col-md-3 control-label">Class List</label>
+                            <div class="col-md-9" data-step="1" data-intro="Select Course">
+                                @*@Html.DropDownList("mchkCourseList", Model.CourseList, new { @class = "form-control listbox" })*@
+                                @Html.DropDownListFor(m => m.ClassList, Model.ClassList, "---Select---", new { @class = "form-control select2" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="col-md-3 control-label">Course List</label>
+                            <div class="col-md-9" data-step="1" data-intro="Select Course">
+                                @*@Html.DropDownList("mchkCourseList", Model.CourseList, new { @class = "form-control listbox" })*@
+                                @Html.DropDownListFor(m => m.CourseList, Model.CourseList, "---Select---", new { @class = "form-control select2" })
+                            </div>
+
+                            <div class="col-md-12">
+                                @*<a href="#" class="btn btn-warning pull-left" id="btnSearch" data-original-title="Click to search" title="Click to search" data-step="2" data-intro="Search"> <i class="ion-ios-search-strong"> </i></a>*@
+                                <br />
+                                <span class="pull-right hidden-print ">
+                                    <a href="@Url.Action("PrintOptions","Feedback")" title="Click to Export Option" id="sExport" class="btn btn-sm btn-success m-b-10 disabled"><i class="fa fa-download m-r-5"></i> Export Options</a>
+                                    <a href="javascript:;" id="sPrint" onclick="printDiv('divResult')" class="btn btn-sm btn-success m-b-10 disabled"><i class="fa fa-print m-r-5"></i> Print</a>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12" id="divResult">
+              
+
+                </div>
+                
+
+            }
+        </div>
+    </div>
+
+
+</div>
+<!-- end #content -->
+
+
+
+
+   <script>
+       //ContentLoad = function () {
+          
+       //}
+        $('#CourseList').on('change', function () {
+            if ($('#CourseList').val() == '') {
+                $('#sExport').addClass("disabled");
+                $('#sPrint').addClass("disabled");
+                $('#divResult').empty();
+            }else{
+
+             var sCourseId = $('#CourseList').val();
+             var sClassId = $('#ClassList').val();
+
+
+            $.ajax({
+
+                url: "@Url.Action("LoadFeedbackResult", "Feedback")",
+                async: false,
+                data: {
+                    CourseId: sCourseId, ClassId:sClassId
+                },
+
+                success: function (result) {
+                    if (result != null) {
+
+                        $("#divResult").html(result); // HTML DOM replace
+                        $('#sExport').removeClass("disabled");
+                        $('#sPrint').removeClass("disabled");
+                    }
+                },
+                error: function (ex) {
+                    alert("No records...!");
+                    $('#divResult').empty();
+
+                }
+            });
+
+            }
+
+        });
+
+
+
+        $('#ClassList').on('change', function () {
+       var inp = $('#ClassList').val();
+            $.ajax({
+                url: "@Url.Action("GetCourseListByClassId", "Feedback")",
+                async: false,
+                data: { sClassId: inp },
+                success: function (option) {
+                    var select = $('#CourseList');
+                    select.empty();
+                    select.append('<option value="" >---Select---</option>' + option);
+
+                },
+                error: function (ex) {
+                    alert(ex);
+                }
+
+            });
+
+        });
+
+        function printDiv(divName) {
+            var printContents = document.getElementById(divName).innerHTML;
+            var originalContents = document.body.innerHTML;
+
+            document.body.innerHTML = printContents;
+
+            window.print();
+
+            document.body.innerHTML = originalContents;
+        }
+    </script>
+@*<script src="~/Content/assets/plugins/intro-js/intro.js"></script>*@
+

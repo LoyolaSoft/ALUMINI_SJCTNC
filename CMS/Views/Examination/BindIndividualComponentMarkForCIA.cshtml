@@ -1,0 +1,133 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@using CMS.Utility;
+
+@{
+    Layout = null;
+
+}
+
+
+
+<div class="col-md-12 text-center">
+    <h5>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME  , </h5>
+    <h5> INTERNAL ASSESSMENT (CIA)</h5>
+</div>
+
+<br />
+<hr />
+<div class="col-md-12 ">
+    @if (Model.liCIA_Staff_Info != null && Model.liCIA_Staff_Info.Count > 0)
+    {
+        <table>
+            <tr>
+                <td><b>Course Name &nbsp;&nbsp;&nbsp; : </b></td>
+                <td class="semi-bold"> @Model.liCIA_Staff_Info.FirstOrDefault().COURSE_TITLE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td><b>Staff Name(s) &nbsp;&nbsp;&nbsp; : </b></td>
+                <td class="semi-bold">@Model.liCIA_Staff_Info.FirstOrDefault().STAFF_NAME </td>
+            </tr>
+            <tr>
+                <td><b>Course Code &nbsp;&nbsp;&nbsp;&nbsp; : </b></td>
+                <td class="semi-bold">@Model.liCIA_Staff_Info.FirstOrDefault().COURSE_CODE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td><b>Semester &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : </b></td>
+                <td class="semi-bold" id="sSemester">@Model.liCIA_Staff_Info.FirstOrDefault().SEMESTER_ID</td>
+            </tr>
+            <tr>
+                <td><b>Department &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: </b></td>
+                <td class="semi-bold">@Model.liCIA_Staff_Info.FirstOrDefault().DEPARTMENT &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td><b>Class Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: </b></td>
+                <td class="semi-bold">@Model.liCIA_Staff_Info.FirstOrDefault().CLASS_NAME</td>
+            </tr>
+        </table>
+    }
+</div>
+
+<br />
+
+<div class="col-md-12 ">
+    <table class="table table-hover table-bordered" border="1">
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Roll No</th>
+                @*<th>Register No</th>*@
+                <th>Name of the Candidate</th>
+                @{
+                    if (Model.liCIA_Marks_Info != null && Model.liCIA_Marks_Info.Count > 0)
+                    {
+                        var liGroupComponent = Model.liCIA_Marks_Info.GroupBy(x => x.COURSE_GROUP_ID).OrderBy(x=>x.FirstOrDefault().ORDER_ID).ToList();
+                        if (liGroupComponent != null && liGroupComponent.Count > 0)
+                        {
+                            foreach (var item in liGroupComponent)
+                            {
+                                <th>@item.FirstOrDefault().COMPONENT</th>
+                            }
+                        }
+                    }
+                }
+                <th>Student's Signature</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{if (Model.liCIA_Marks_Info != null && Model.liCIA_Marks_Info.Count > 0)
+                {
+                    int count = 0; string sCourseMark = string.Empty;
+                    //var OrderByCIATotal = Model.liCIA_Marks_Info.OrderBy(x => x.ROLL_NO).ToList();
+                    var liGroupComponent = Model.liCIA_Marks_Info.GroupBy(x => x.COURSE_GROUP_ID).ToList();
+                    var liGroupStudent = Model.liCIA_Marks_Info.GroupBy(x => x.STUDENT_ID).OrderBy(x => x.FirstOrDefault().ROLL_NO).ToList();
+                    foreach (var ciaItem in liGroupStudent)
+                    {
+                        var liStudent = Model.liCIA_Marks_Info.Where(x => x.STUDENT_ID == ciaItem.FirstOrDefault().STUDENT_ID).ToList();
+                        <tr>
+                            <td>@{ count++; } @count</td>
+                            <td>@liStudent.FirstOrDefault().ROLL_NO</td>
+                            @*<td>@liStudent.FirstOrDefault().REGISTER_NO</td>*@
+                            <td>@liStudent.FirstOrDefault().FIRST_NAME.ToUpper()</td>
+
+                            @{
+                                foreach (var item in liGroupComponent)
+                                {
+                                    var liComponentMark = Model.liCIA_Marks_Info.Where(x => x.STUDENT_ID == ciaItem.FirstOrDefault().STUDENT_ID && x.COURSE_GROUP_ID == item.FirstOrDefault().COURSE_GROUP_ID).ToList();
+                                    if (liComponentMark != null && liComponentMark.Count > 0)
+                                    {
+                                        if (liComponentMark.FirstOrDefault().COURSE_GROUP_MARK == "-1")
+                                        {
+                                            <td>A</td> sCourseMark = "A";
+                                        }
+                                        else
+                                        {
+                                            <td>@liComponentMark.FirstOrDefault().COURSE_GROUP_MARK</td>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <td>0</td>
+                                    }
+                                }
+                            }
+                            <td></td>
+                        </tr>
+                      }
+                  }
+            }
+        </tbody>
+    </table>
+    <br />
+    <div class="col-lg-12">
+        <table>
+            <tr>
+                <td style="width:1000px;">Class Teacher</td>
+                <td style="width:800px;">Head</td>
+                <td>Principal</td>
+            </tr>
+        </table>
+
+        <hr />
+    </div>
+
+</div>

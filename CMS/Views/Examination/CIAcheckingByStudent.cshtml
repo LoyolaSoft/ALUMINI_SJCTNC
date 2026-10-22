@@ -1,0 +1,87 @@
+﻿
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">List CIA Marks</li>
+    </ol>
+    <h1 class="page-header">List CIA Marks</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List CIA Marks</h4>
+        </div>
+        <div class="panel-body noPadding">
+            <br><br>
+            <div class="col-md-12">
+                    <div class="col-md-6 form-group">
+                        @Html.Label("Academic Year", htmlAttributes: new { @class = "col-md-4 control-label " })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(m => m.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "---select---", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(m => m.AcademicYearList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                <div class="col-md-12 form-group" id="dvBind">
+
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+</div>
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<script>
+    function ContentLoad()
+    {
+     
+    }
+    $('.selectpicker').selectpicker('refresh');
+    $('#AcademicYearList').on('change', function ()
+    {
+        if ($('#AcademicYearList').val())
+        {
+            $.ajax({
+                url: "/Examination/BindCIAcheckingByStudent",
+                type: "post",
+                data: { sAcademicYear: $('#AcademicYearList option:selected').text() },
+                success: function (data)
+                {
+                    $('#dvBind').html('');
+                    $('#dvBind').append(data);
+                   
+                },
+                error: function (ex) {
+                    $('#dvBind').html('');
+                    swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+                }
+            });
+        }
+        else 
+        {
+            swal({ title: "Info !", text: "Please try it again", showConfirmButton: false, timer: 1800, type: 'info', animation: true });
+
+        }
+
+    });
+   
+</script>
+

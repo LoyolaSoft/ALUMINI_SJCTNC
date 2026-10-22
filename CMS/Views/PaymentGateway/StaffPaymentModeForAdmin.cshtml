@@ -1,0 +1,162 @@
+@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+@{
+    ViewBag.Title = "StaffPaymentModeForAdmin";
+    Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<style>
+    .widget {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        background-color: #ffffff;
+        transition: transform 0.3s ease;
+    }
+
+    .widget:hover {
+        transform: scale(1.02);
+    }
+
+    .widget-header {
+        padding: 10px 15px;
+        border-bottom: 1px solid #ddd;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        background-color: #0f4c75;
+    }
+
+    .widget-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .widget-body {
+        padding: 15px;
+        font-size: 14px;
+    }
+
+    .widget-separator {
+        margin: 0;
+        border-top: 1px solid #eee;
+    }
+</style>
+
+<div id="AlertId" class="" data-bs-toggle="notification"
+     data-title="Alert"
+     data-btn="true"
+     data-autoclose-time="3000"
+     data-autoclose="true"
+     data-btn-attr="data-click='trigger-details'"></div>
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li class="breadcrumb-item"><a href="javascript:;">Home</a></li>
+        <li class="breadcrumb-item active">Staff Online Payment Methods</li>
+    </ol>
+    <br /><br />
+
+    <div class="row">
+        @if (Model.liPAYMENT_MODE_CHARGES != null && Model.liPAYMENT_MODE_CHARGES.Count > 0)
+        {
+            foreach (var item in Model.liPAYMENT_MODE_CHARGES)
+            {
+                <div class="col-md-3 col-sm-6" title="Pay by @item.PAYMENT_MODE_NAME">
+                    <div class="widget">
+                        <header class="widget-header">
+                            <h3 class="widget-title text-white">@item.PAYMENT_MODE_NAME</h3>
+                        </header>
+                        <div class="widget-body p-t-lg">
+                            <h5>Fee Amount : @item.FEE_AMOUNT</h5>
+                            <h5>Convenience Charges: @item.TRANSACTION_FEE</h5>
+                            <h5>GST on Convenience Charges : @item.GST_AMOUNT_ON_TRANSACTION_FEE</h5>
+                            <h5><b>Total : @item.TOTAL_AMOUNT</b></h5>
+                            <input type="hidden" id="@item.PAYMENT_MODE" value="@item.PAYMENT_MODE" />
+                        </div>
+                        <hr class="widget-separator">
+                        <center>
+                            <input type="button" title="Click to Pay by @item.PAYMENT_MODE_NAME"
+                                   onclick="CreateOrder('EDVIRON', '@item.TOTAL_AMOUNT','@item.PAYMENT_MODE_ID')"
+                                   name="Pay" class="btn btn-success" value="Pay Now" />
+                        </center>
+                        <br />
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-primary">No Payment methods enabled.</div>
+        }
+
+        <div>
+            <input type="hidden" id="sFrequencyTypeId" value="@Model.liFeeStudentAccount.FirstOrDefault().FREQUENCY_TYPE_ID" />
+            <input type="hidden" id="sFeeRootId" value="@Model.liFeeStudentAccount.FirstOrDefault().FEE_ROOT_ID" />
+            <input type="hidden" id="sStudentId" value="@Model.liFeeStudentAccount.FirstOrDefault().STUDENT_ID" />
+            <input type="hidden" id="sPaymentTypeId" value="@Model.liFeeStudentAccount.FirstOrDefault().PAYMENTTYPEID" />
+            <input type="hidden" id="sAmount" value="@Model.liPAYMENT_MODE_CHARGES.FirstOrDefault().FEE_AMOUNT" />
+            <input type="hidden" id="sAcademicYear" value="@Model.liFeeStudentAccount.FirstOrDefault().ACADEMIC_YEAR" />
+            <input type="hidden" id="sFrequencyId" value="@Model.liFeeStudentAccount.FirstOrDefault().FREQUENCY_ID" />
+            <input type="hidden" id="sSelectionID" value="@(Request.QueryString["sSelectionID"] ?? Request.QueryString["sHead"])" />
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker('refresh');
+    });
+
+    function CreateOrder(paymentMode, totalAmount, paymentModeId) {
+        var ajaxUrl = "@Url.Action("CreateStaffOrder", "EdvironPayment")";
+        var baseAmount = $('#sAmount').val();
+        var amountToPay = totalAmount || baseAmount;
+
+        // Disable buttons to prevent double-click
+        $('input[name="Pay"]').prop('disabled', true).val('Processing...');
+
+        $.ajax({
+            url: ajaxUrl,
+            method: "POST",
+            datatype: "json",
+            async: true,
+            data: {
+                sFrequencyTypeId: $('#sFrequencyTypeId').val(),
+                sFeeRootId: $('#sFeeRootId').val(),
+                sFrequencyId: $('#sFrequencyId').val(),
+                sAcademicYear: $('#sAcademicYear').val(),
+                sStudentId: $('#sStudentId').val(),
+                sPaymentMode: paymentModeId,
+                sPaymentTypeId: $('#sPaymentTypeId').val(),
+                sAmount: $('#sAmount').val(),
+                sSelectionID: $('#sSelectionID').val()
+            },
+            success: function (data) {
+                if (data.status) {
+                    window.location.href = data.PaymentList;
+                } else {
+                    $('input[name="Pay"]').prop('disabled', false).val('Pay Now');
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Notice',
+                        text: data.Message || 'Something went wrong',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            },
+            error: function () {
+                $('input[name="Pay"]').prop('disabled', false).val('Pay Now');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Internal Server Error ..!',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+    }
+</script>

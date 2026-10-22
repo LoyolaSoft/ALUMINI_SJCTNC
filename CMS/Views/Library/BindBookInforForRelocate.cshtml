@@ -1,0 +1,152 @@
+﻿@model CMS.ViewModel.ViewModel.LibraryViewModel
+@{
+    ViewBag.Title = "BindBookInforForRelocate";
+}
+
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<input type="hidden" value="@Model.ObjBookDetails.BOOK_ID" id="txtrBookId" />
+<div class="form-group col-md-12">
+
+    <div class="form-group col-md-6">
+        @Html.LabelFor(model => model.sStatusDDL, "Old status", htmlAttributes: new { @class = "form-group col-md-3" })
+
+        <div class="col-md-9">
+            <select class="selectpicker show-menu-arrow show-tick drop-down form-control  input-sm" data-live-search="true" data-parsley-required="true" id="oldStatus">
+                <option value="">---select---</option>
+                @foreach (var item in Model.liStatus)
+                {
+                    <option value="@item.STATUS_ID">@item.STATUS</option>
+                }
+            </select>
+        </div>
+    </div>
+
+        <div class="form-group col-md-6">
+            @Html.LabelFor(model => model.sStatusDDL, "New status", htmlAttributes: new { @class = "form-group col-md-3" })
+
+            <div class="col-md-9">
+                <select class="selectpicker show-menu-arrow show-tick drop-down form-control  input-sm" data-live-search="true" data-parsley-required="true" id="newStatus">
+                    <option value="">---select---</option>
+                    @foreach (var item in Model.liStatus)
+                    {
+                        <option value="@item.STATUS_ID">@item.STATUS</option>
+                    }
+                </select>
+            </div>
+       </div> 
+
+
+    <div class="form-group col-md-6">
+        @Html.LabelFor(model => model.sDisciplineDDL, "Old Discipline", htmlAttributes: new { @class = "form-group col-md-3" })
+
+        <div class="col-md-9">
+            <select class="selectpicker show-menu-arrow show-tick drop-down form-control  input-sm" data-live-search="true" data-parsley-required="true" id="oldDescipline">
+                <option value="">---select---</option>
+                @foreach (var item in Model.liDiscipline)
+                {
+                    <option value="@item.DISCIPLINE_ID">@item.DISCIPLINE_NAME</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group col-md-6">
+        @Html.LabelFor(model => model.sDisciplineDDL, "New Discipline", htmlAttributes: new { @class = "form-group col-md-3" })
+
+        <div class="col-md-9">
+            <select class="selectpicker show-menu-arrow show-tick drop-down form-control  input-sm" data-live-search="true" data-parsley-required="true" id="newDescipline">
+                <option value="">---select---</option>
+                @foreach (var item in Model.liDiscipline)
+                {
+                    <option value="@item.DISCIPLINE_ID">@item.DISCIPLINE_NAME</option>
+                }
+            </select>
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <a class="btn btn-primary pull-right" href="javascript:;" id="btnSubmit"> Submit </a>
+    </div>
+
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+<script>
+
+    function ContentLoad() {
+        // Document Ready Function .
+
+
+    }
+
+    var sStatus=@Html.Raw(Json.Encode(Model.ObjBookDetails.STATUS));
+    if(sStatus!=null && sStatus!="")
+    {
+        $("#oldStatus  option[value="+sStatus+"]").prop('selected',true);
+        $("#oldStatus").prop('disabled',true);
+
+    }
+
+    var sDiscipline=@Html.Raw(Json.Encode(Model.ObjBookDetails.DISCODE));
+    if(sDiscipline!=null && sDiscipline!="")
+    {
+        $("#oldDescipline  option[value="+sDiscipline+"]").prop('selected',true);
+        $("#oldDescipline").prop('disabled',true);
+    }
+
+    $('.selectpicker').selectpicker({
+        size: 5
+    });
+    $('.selectpicker').selectpicker('refresh');
+
+
+
+    $('#btnSubmit').on('click', function ()
+    {
+        if($('#newStatus').val() && $('#newDescipline').val())
+        {
+            var JsonData='{"BOOK_ID":"' + $('#txtrBookId').val() + '","STATUS":"'+$('#newStatus').val()+'","DISCODE":"'+$('#newDescipline').val()+'"}';
+            $.ajax({
+                url: '@Url.Action("SaveBookRelocate", "Library")',
+                method: 'POST',
+                datatype: 'json',
+                data: {sJsonBookDetails:JsonData},
+                success: function (data)
+                {
+                    if (data.ErrorCode == "417")
+                    {
+                        swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                    if (data.ErrorCode == "200") {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                        loadContent('/Library/BookRelocate');
+
+
+                    }
+                    if (data.ErrorCode == "406") {
+                        swal({ title: "Info !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+
+                    }
+
+
+
+
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error !", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+        else
+        {
+            swal({ title: "Info !", text: "Please select all the fields", showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+        }
+
+    });
+
+</script>

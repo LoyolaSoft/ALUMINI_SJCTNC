@@ -1,0 +1,296 @@
+﻿@model CMS.ViewModel.ViewModel.OBEViewModel
+@{
+    ViewBag.Title = "OBECoLevelCalculationForCoe";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+@*<link href="~/Content/assets/plugins/intro-js/introjs.css" rel="stylesheet" />*@
+<link href="~/Content/assets/printout1.css" media="print" rel="stylesheet" />
+
+<style>
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        margin: 0;
+    }
+
+    #staticcolumn {
+        position: sticky;
+        left: 0;
+        z-index: 0;
+    }
+</style>
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">PO and PSO Mapping</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">PO and PSO Mapping<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">PO and PSO Mapping</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-horizontal">
+
+                    <div class="form-group  col-md-12">
+                        <div class="form-group col-md-4">
+                            @Html.Label("Academic Year", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.AcademicYearList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            @Html.Label("Semester", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.SemesterList, (Model.SemesterList != null) ? Model.ExamSetting : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.SemesterList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            @Html.Label("Courrse Code", htmlAttributes: new { @class = "col-md-4 control-label " })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.CourseList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-12 form-group">
+                        <div class="col-md-4 form-group">
+                            @Html.Label("Mapping Type", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                <select id="ddlMapping" class="form-control    selectpicker show-menu-arrow show-tick">
+                                    <option value="1">Po</option>
+                                    <option value="2">PsO</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4 pull-right">
+                            <div class="col-md-8">
+                                <a id="submit" href="#" onclick="BindData()" class="btn btn-primary pull-right">Get</a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-horizontal">
+                    <div class="col-lg-12 landScape" id="dvOBEMarkbind"></div>
+                </div>
+            }
+            <div class="col-lg-12 row">
+                <div class="col-md-6 pull-right">
+                    <div class="col-md-6"><a href="#" class="btn-success btn pull-right" id="btnSubmit" title="Click To Save Marks">Submit</a></div>
+                    <div class="col-md-6"><a href="#" class="btn-primary btn pull-right" id="btnVerify" title="Click To Save Marks">Hod's' Verification</a></div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+<!-- end #content -->
+
+
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+@*<script src="~/Content/assets/plugins/intro-js/intro.js"></script>
+    <script>
+        $(document).ready(function () {
+            setTimeout(function () {
+                introJs().start();
+            }, 500);
+
+        });
+    </script>*@
+
+<script>
+        function ContentLoad() {
+
+
+        }
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+    $('.selectpicker').selectpicker('refresh');
+
+    $('#SemesterList').on('change', function ()
+        {
+            $('#dvOBEMarkbind').empty();
+        $.ajax({
+            url: '@Url.Action("FetchCourseByAcademicYearandSemester", "OBE")',
+            method:'POST',
+            datatype: 'json',
+            data: { sSemesterId: $('#SemesterList').val(), sAcYear: $('#AcademicYearList Option:selected').text() },
+            success: function (data)
+            {
+                if (data.Message != null && data.Message != '')
+                {
+                    swal({ title: " Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                } else
+                {
+                    $('#CourseList').empty();
+                    $('#CourseList').append(data.sResult); // cms-sSemesterId
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+
+
+
+
+
+    function BindData() {
+        if ($('#SemesterList').val() ) {
+            $('#dvOBEMarkbind').empty();
+            var AcademicYear = $("#AcademicYearList option:selected").text();
+
+            $.ajax({
+                url: "@Url.Action("BindOBEPoandPso", "OBE")",
+                method: "POST",
+                datatype: "json",
+                data: { sSemesterId: $('#SemesterList').val(), sACYear: AcademicYear, sCourseId: $('#CourseList').val(), sMapping: $('#ddlMapping').val()},
+                success: function (data) {
+                    $('#dvOBEMarkbind').append(data);
+                    $('.selectpicker').selectpicker('refresh');
+
+                }, error: function (error) {
+                    alert('Internal Server Error .....!');
+                }
+            });
+        }
+        else {
+            alert('Please Choose All Fields .....!');
+        }
+
+        };
+
+    $('#btnSubmit').on('click', function () {
+        var count = 0;
+        if (parseInt($('#CourseList').val()) != 0) {
+            addLoadingPanel();
+            var sCourseId = $('#CourseList').val();
+            var sMapping= $('#ddlMapping').val();
+            var sJson;
+            if (sJson == null) {
+                sJson = '{"OBECOPOMatrix":[';
+                $('#tblobeCOPOMatrix tbody tr').each(function () {
+                    $(this).find('td').each(function () {
+                        if ($(this).find('input[type="number"]').val()) {
+                            sJson += '{"OBE_MAPPING_ID":"' + $(this).find('input[type="number"]').attr("copomatrixid") + '","OBE_COLEVEL_ID":"' + $(this).find('input[type="number"]').attr("colevel") + '","OBE_POLEVEL_ID":"' + $(this).find('input[type="number"]').attr("polevel") + '",';
+                            sJson += '"OBE_CO_PO_MARK":"' + $(this).find('input[type="number"]').val() + '","COURSE_ID":"' + sCourseId + '","PO_TYPE":"' + sMapping+'"},';
+                            count++;
+                        }
+                    });
+                }); if (count > 0) {
+                    sJson = sJson.slice(0, -1);
+                }
+                sJson += ']}';
+                // alert(sJson);
+            }
+            $.ajax({
+                url: "@Url.Action("SaveBindOBECOPOMatrix", "OBE")",
+                async: false,
+                method: "POST",
+                content: "application/json; charset=utf-8",
+                data: { sJsonData: sJson },
+                success: function (data) {
+                    if (data.ErrorCode = "200") {
+                        alert(data.Message);
+                    }
+                    BindData()
+                    removeload();
+                }, error: function (e) {
+                    removeload();
+                    alert(e);
+                }
+            });
+        } else {
+
+            alert('Please select course...!');
+        }
+    });
+
+    $('#btnVerify').on('click', function () {
+        var sCourseId = $('#CourseList').val();
+        var sMapping = $('#ddlMapping').val();
+
+        $.ajax({
+            url: "@Url.Action("VerifyOBECOPOMatrix", "OBE")",
+            async: false,
+            method: "POST",
+            content: "application/json; charset=utf-8",
+            data: { sCourseId: sCourseId, sMapping: sMapping },
+            success: function (data) {
+                if (data.ErrorCode = "200") {
+                    alert(data.Message);
+                }
+                BindData()
+                removeload();
+                }, error: function (e) {
+                    removeload();
+                    alert(e);
+                }
+        });
+    });
+
+    function printDiv(divName) {
+         
+
+        var printContents = document.getElementById(divName).innerHTML;
+        const imgData = myChart.canvas.toDataURL();
+        const img = new Image();
+        img.src = imgData;
+        img.onload = function () {
+            const printWindow = window.open('', 'Print Chart');
+            printWindow.document.write('<html><head><title>Print Chart</title></head><body>');
+            printWindow.document.write('<div class="table table-hover table-bordered table-striped table-responsive">' + printContents + '</div>');
+            printWindow.document.write('<img src="' + imgData + '" style="width:100%">');
+            printWindow.document.write('</body></html>');
+            printWindow.print();
+
+        }
+
+    }
+
+</script>
+
+
+
+
+
+
+
+

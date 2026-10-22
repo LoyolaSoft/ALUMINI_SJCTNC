@@ -1,0 +1,185 @@
+﻿@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+
+@{
+    ViewBag.Title = "MessFeeReport";
+   // Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    int count = 0;
+}
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="content" id="content">
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li class="active">Mess Fee Receipt</li>
+        </ol>
+        <h2 class="page-header"> Mess Fee Receipt</h2>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Mess Fee Receipt</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+
+                    <div class="col-md-12 table-responsive">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        @if (Model.liFeeStudentAccount != null)
+                        {
+                            var GroupFrequencies = Model.liFeeStudentAccount.GroupBy(x => x.TRANSACTION_ID);
+
+                            foreach (var dataitem in GroupFrequencies)
+                            {
+                                <div id="dvprint_@dataitem.FirstOrDefault().TRANSACTION_ID">
+                                    @{var TransactionList = Model.liFeeStudentAccount.Where(s => s.TRANSACTION_ID == dataitem.FirstOrDefault().TRANSACTION_ID).ToList();}
+                                    <div style="page-break-after:always !important;page-break-inside:avoid !important;">
+                                        @if (TransactionList != null && TransactionList.Count > 0)
+                                        {   //this to print receipt header
+
+                                            <div class="col-md-8 col-lg-offset-2">
+                                                <div class="form-group col-xs-5">
+                                                    <h6>
+                                                        <label>Receipt No:</label>@TransactionList.FirstOrDefault().RECEIPT_NO
+                                                    </h6>
+                                                </div>
+                                                <div class="form-group col-xs-4">
+                                                    <h6>
+                                                        <label>Mess Fee Receipt</label>
+                                                    </h6>
+                                                </div>
+                                                <div class="form-group col-xs-3">
+                                                    <h6>
+                                                        <label>Date:</label>@TransactionList.FirstOrDefault().PAYMENT_DATE
+                                                    </h6>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-8 col-lg-offset-2">
+                                                @if (Model.liCollegeDetails != null)
+                                                {
+                                                    foreach (var item in Model.liCollegeDetails)
+                                                    {
+                                                        <center>
+                                                            <table>
+                                                                <tr>
+                                                                    <td><center><strong>@item.COLLEGE_NAME</strong></center></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td><b> @item.GRADE</b></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="text-center">
+                                                                        @item.UNIVERSITY
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </center>
+                                                    }
+                                                }
+                                            </div>
+                                            <div class="col-md-8 col-lg-offset-2">
+                                                <table class="table-condensed" cellpadding="5">
+                                                    <tr>
+                                                        <td><b>Name</b></td>
+                                                        <td><b>@TransactionList.FirstOrDefault().FIRST_NAME</b></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td><b>Register No</b></td>
+                                                        <td>@TransactionList.FirstOrDefault().REGISTER_NO</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><b>Payment Type</b></td>
+                                                        <td>
+                                                            @TransactionList.FirstOrDefault().PAYMENT_MODE
+                                                        </td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td><b>Programme</b></td>
+                                                        <td>@TransactionList.FirstOrDefault().PROGRAMME_NAME</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        }
+
+
+                                        @if (TransactionList != null && TransactionList.Count > 0)
+                                        {
+                                            <div class="col-md-8 col-lg-offset-2">
+                                                <table class="table table-bordered table-hover" cellpadding="50" width="100%">
+                                                    <tr class="text-center">
+                                                        <th width="70px">#</th>
+                                                        <th>
+                                                            PARTICULARS
+                                                        </th>
+                                                        <th class="text-center">
+                                                            AMOUNT
+                                                        </th>
+                                                    </tr>
+                                                    @{ count = 0; }
+                                                    @foreach (var item in TransactionList)
+                                                    {
+                                                        <tr>
+                                                            <td width="70px">
+                                                                &nbsp;&nbsp;&nbsp;@{ count++;}@count
+                                                            </td>
+                                                            <td> &nbsp;&nbsp;&nbsp; @item.MAIN_HEAD</td>
+                                                            <td class="text-center"><i class="fa fa-inr"></i>@item.BALANCE &nbsp;&nbsp;&nbsp;</td>
+                                                        </tr>
+                                                    }
+                                                    <tr>
+                                                        <td></td>
+                                                        <td class="text-right">TOTAL  &nbsp;&nbsp;&nbsp;</td>
+                                                        <td class="text-center"><i class="fa fa-inr"></i>@TransactionList.FirstOrDefault().COLLECTED  &nbsp;&nbsp;&nbsp;</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+
+                                            <hr />
+                                            <br />
+                                        }
+                                    </div>
+
+
+                                </div>
+                                <div class="col-md-12"><button class="btn bg-green pull-right m-b-5" onclick="printDiv('dvprint_@dataitem.FirstOrDefault().TRANSACTION_ID');">Print</button></div>
+                            }
+
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger"><p class="text-center">Your Account is not Created Please wait..!</p></div>
+                        }
+                    </div>
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+    <script>
+
+        function printDiv(divName) {
+            var printContents = document.getElementById(divName).innerHTML;
+            var originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            loadContent('/Fee/MessFeeReport');
+        }
+    </script>
+
+
+
+
+

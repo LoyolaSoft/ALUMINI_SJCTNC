@@ -1,0 +1,137 @@
+﻿@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+@{
+    ViewBag.Title = "StudentAttendanceViewForAdmin";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+    <link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/css/style.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">List Attendance Status</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Attendance Status</h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Attendance Status</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+
+                    <div class="form-group  col-md-12">
+                        <div class="form-group col-md-6">
+                            @Html.LabelFor(model => model.ProgrammeList, "Program List", htmlAttributes: new { @class = "control-label col-md-5" })
+                            <div class="col-md-7">
+                                @Html.DropDownListFor(model => model.ProgrammeList, (Model.ProgrammeList != null) ? Model.ProgrammeList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.ProgrammeList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            @Html.LabelFor(model => model.ClassList, "Class List", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-7">
+                                @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.ClassList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div id="dvAttendanceStatusBind"></div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script>
+        function ContentLoad() {
+            // Document Ready Function .
+        }
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+    </script>
+    <script>
+        $('#ProgrammeList').on('change', function () {
+            var ProgrammeId = $('#ProgrammeList').val();
+            $.ajax({
+                url: "@Url.Action("GetStudentListByClassId", "Attendance")",
+                async: false,
+                data: { sProgrammeId: ProgrammeId },
+                success: function (option) {
+                    var dvStudentList = $('#ClassList');
+                    dvStudentList.empty();
+                    dvStudentList.append(option.sResult).selectpicker('refresh');
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+
+            });
+        });
+        $('#ClassList').on('change', function () {
+            var ProgrammeId = $('#ProgrammeList').val();
+            var ClassId = $('#ClassList').val();
+            $.ajax({
+                url: "@Url.Action("BindAttendanceStatusByClassIdAndProgrammeId", "Attendance")",
+                async: false,
+                data: { sClassId: ClassId, sProgrammeId: ProgrammeId },
+                success: function (option) {
+                    var dvdvAttendanceStatusBind = $('#dvAttendanceStatusBind');
+                    dvdvAttendanceStatusBind.empty();
+                    dvdvAttendanceStatusBind.append(option);
+                    $("#AttendanceStatusList").DataTable({
+                        dom: "lBfrtip", buttons: [{
+                            extend: "copy", className: "btn-sm"
+                        }
+                        , {
+                            extend: "excel", className: "btn-sm"
+                        }
+                        , {
+                            extend: "pdf", className: "btn-sm"
+                        }
+                        ], responsive: !0, "paging": false, "ordering": false
+                    });
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+        });
+    </script>

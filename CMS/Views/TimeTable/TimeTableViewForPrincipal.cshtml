@@ -1,0 +1,204 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+@{
+    ViewBag.Title = "TimeTableViewForPrincipal";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">TimeTable View Principal</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">TimeTable View Principal</h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">TimeTable View Principal</h4>
+        </div>
+        <div class="panel-body">
+            <!-- BEGIN nav-tabs -->
+            <ul class="nav nav-tabs" id="nav-tabs">
+                <li class="nav-item active">
+                    <a href="#nvClassWise" class="nav-link active" data-toggle="tab" id="ClassWise" aria-expanded="true">ClassWise</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#nvStaffWise" id="StaffWise" class="nav-link" data-toggle="tab">StaffWise</a>
+                </li>
+                <li>
+                    <a href="#nvFreeHourStaff" class="nav-link" id="FreeHourStaff" data-toggle="tab">FreeHourStaff</a>
+                </li>
+            </ul>
+            <!-- END nav-tabs -->
+            <!-- BEGIN tab-content -->
+            <div class="tab-content tab-content-bordered">
+                <!-- BEGIN tab-pane -->
+                <div class="tab-pane fade active in" id="nvClassWise">
+                    <div class="form-horizontal">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.ClassList, "Class", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "selectpicker form-control", data_live_search = "true", @data_size = 5, })
+                                        @Html.ValidationMessageFor(model => model.ClassList, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div id="dvBindClassTimeTable">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- END tab-pane -->
+                <!-- BEGIN tab-pane -->
+                <div class="tab-pane fade" id="nvStaffWise">
+                    <div class="form-horizontal">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.StaffList, "Class", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.StaffList, (Model.StaffList != null) ? Model.StaffList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "selectpicker form-control", data_live_search = "true", @data_size = 5, })
+                                        @Html.ValidationMessageFor(model => model.StaffList, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div id="dvBindStaffTimeTable">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- END tab-pane -->
+                <!-- BEGIN tab-pane -->
+                <div class="tab-pane fade" id="nvFreeHourStaff">
+                    <div id="dvClassWise">
+                    </div>
+                </div>
+                <!-- END tab-pane -->
+                <!-- BEGIN tab-pane -->
+                <div class="tab-pane fade" id="nvGenderWise">
+
+                    <div id="dvGenderWise">
+                    </div>
+                </div>
+                <!-- END tab-pane -->
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+    $('.selectpicker').selectpicker({
+        size: 4
+    });
+</script>
+<script>
+    function ContentLoad() {
+        // Document Ready Function .
+    }
+    $('#ClassList').on('change', function () {
+        var vClassId = $('#ClassList').val();
+        if (vClassId != 0) {
+            $.ajax({
+                url: '@Url.Action("BindTimeTableInfo", "TimeTable")',
+                data: { sClassId: vClassId },
+                success: function (option) {
+                    var dvTT = $('#dvBindClassTimeTable');
+                    dvTT.empty();
+                    dvTT.append(option);
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+
+        } else {
+            alert('Please Select Class...!!!');
+        }
+    });
+
+
+    $('#StaffList').on('change', function () {
+        var staffId = $('#StaffList').val();
+        if (staffId != 0) {
+            $.ajax({
+                url: '@Url.Action("BindStaffWiseTimeTable", "TimeTable")',
+                data: { sStaffId: staffId },
+                success: function (option) {
+                    var dvTT = $('#dvBindStaffTimeTable');
+                    dvTT.empty();
+                    dvTT.append(option);
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+
+        } else {
+            alert('Please Select Class...!!!');
+        }
+    });
+</script>
+
+<script>
+    var sCourseId;
+    var sStaffId;
+    var Is_Static = null;
+    $("table.table td.editable").live("click", function () {
+        var ClassId = $('#ClassList').val();
+        var SelectedClassId = $('#ClassList').val();
+        var HourId = $(this).attr('cms-hourid');
+        var DayId = $(this).attr('cms-dayid');
+        var HourType = $(this).attr('cms-hourtype');
+        var TimeTableId = $(this).attr('cms-timetalbeid');
+        var SemesterId = $(this).attr('cms-semesterid');
+        var CourseId = $(this).attr('cms-courseid');
+        var StaffId = $(this).attr('cms-staffid');
+        var tCount = $(this).attr('cms-tcount');
+
+        var sJson;
+        sJson = '{"Count":"' + tCount + '","Class_Id":"' + ClassId + '","S_CLASS_ID":"' + SelectedClassId + '","Day_Order_Id":"' + DayId + '","Hour_Id":"' + HourId + '","hourType":"' + HourType + '","Time_Table_Id":"' + TimeTableId + '","Semester_Id":"' + SemesterId + '","Course_Id":"' + CourseId + '","Staff_Id":"' + StaffId + '"}';
+        $.ajax({
+            url: '@Url.Action("EditClassWiseTimeTable", "TimeTable")',
+            data: { sTimetable: sJson },
+           success: function (data) {
+                $('#dvMultiTimeTable').empty();
+                $('#dvMultiTimeTable').append(data);
+                $('#MultiTimeTable').modal();
+                $('.selectpicker').selectpicker('refresh');
+            },
+            error: function (xhr, textStatus, error) {
+                alert('Internal Server Error !');
+            }
+        });
+    });
+</script>
+
+
+

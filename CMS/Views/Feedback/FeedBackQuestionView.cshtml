@@ -1,0 +1,431 @@
+﻿
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@using CMS.ViewModel.Model
+@{
+    ViewBag.Title = "FeedBackQuestionView";
+    Layout = null;
+    int sCount = 0;
+}
+
+@*<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />*@
+@if (Model.sErrorMessage != null)
+{
+
+}
+else
+{
+    <div class="panel-body">
+        <div class="form-group col-md-12">
+            <!-- begin widget-chat -->
+            @*<div class="widget-chat widget-chat-rounded m-b-30" data-id="widget">
+                <!-- begin widget-chat-header -->
+                <div class="widget-chat-header">
+                    <div class="widget-chat-header-icon">
+                        <i class="fab fa-earlybirds width-30 height-30 f-s-20 bg-yellow text-inverse text-center rounded-corner" style="line-height: 30px"></i>
+                    </div>
+                    <div class="widget-chat-header-content">
+                        <h4 class="widget-chat-header-title">Company Discussion Group</h4>
+                        <p class="widget-chat-header-desc">55 members, 4 online</p>
+                    </div>
+                </div>
+                <!-- end widget-chat-header -->
+                </div>*@
+            <div class="col-md-12">
+                <center>
+                    <img src="@Model.AssesseePhoto" height="100" width="100">
+                </center>
+            </div>
+            <div class="form-group  col-md-6">
+                @*<lable>Assessor Name : <b id="txtAssessor">@Model.AssessorName</b></lable>
+                    <br />*@
+                <lable>Assesee Name : <b id="txtAssessee">@Model.AssesseeName</b></lable>
+            </div>
+
+        </div>
+
+        <div class="box-body row">
+            @*<div class="form-group  col-md-12">
+                    @foreach (var item in Model.ObjectiveList)
+                    {
+                        <div class="" style="display:inline-block">
+                            <span class="label label-warning label-lg">
+                                <b> @item.OBJECTIVESHORTTERM</b> - @item.OBJECTIVES
+                            </span>
+                        </div>
+                    }
+                </div>*@
+            <div class="form-group col-md-12 table-responsive">
+                <table class="table table-hover table-bordered" id="tblFeedBackAnswer">
+                    <thead>
+                        <tr><th>Q.No</th><th>Questions</th><th>Answers</th></tr>
+                    </thead>
+
+                    @{
+                        //if (Model.sValidateStaff == "0")
+                        //{
+                        if (Model.QuestionList != null)
+                        {
+                            string sQuestionType = string.Empty;
+                            bool bFlag = true;
+                            var qestionGroup = Model.QuestionList.GroupBy(o => o.GROUP_TITLE).OrderBy(o => o.Key).ToList();
+                            foreach (var QuestionGroupItem in qestionGroup)
+                            {
+                                foreach (var QuestionItem in Model.QuestionList.Where(o=>o.GROUP_TITLE== QuestionGroupItem.FirstOrDefault().GROUP_TITLE))
+                                {
+
+                                    sCount++;
+                                    // group objective by question
+                                    var liObjective = new List<FBOBJECTIVES>();
+                                    if (Model.ObjectiveList != null && Model.ObjectiveList.Count > 0)
+                                    {
+                                        liObjective = Model.ObjectiveList.Where(x => x.FEEDBACK_ID == QuestionItem.FEEDBACK_ID && x.QUESTION_ID == QuestionItem.QUESTION_ID).ToList();
+                                    }
+
+
+                                    if (bFlag)
+                                    {
+                                        sQuestionType = QuestionItem.GROUP_TITLE;
+                                        <tr class="text-center">
+                                           
+                                            <td colspan="3" ><h3 style=" color: #008376;"><b>@sQuestionType </b></h3> @{ bFlag = false; } </td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        if (!sQuestionType.Equals(QuestionItem.GROUP_TITLE))
+                                        {
+                                            <tr class="text-center">
+                                                
+                                                <td colspan="3"> @{ sQuestionType = QuestionItem.GROUP_TITLE; } <h3  style=" color: #008376;"><b>@sQuestionType </b></h3></td>
+                                            </tr>
+                                        }
+                                    }
+
+                                    <tr id="trQuestionStart">
+                                        <td>@sCount</td>
+
+                                        <td width="" cms-question-id="@QuestionItem.QUESTION_ID" id="Ques">
+                                            <div class="">
+                                                @if (!string.IsNullOrEmpty(QuestionItem.QUESTION))
+                                                {
+                                                    @*@QuestionItem.QUESTION*@
+                                                    <b>@QuestionItem.QUESTION </b><br /> @QuestionItem.TAMIL_QUESTION
+
+                                                }
+                                            </div>
+                                        </td>
+                                        <td width="35%" id="">
+                                            <div class="">
+                                                @foreach (var ObjectiveItem in liObjective)
+                                                {
+                                                    if (!String.IsNullOrEmpty(ObjectiveItem.OBJECTIVE_ID) && ObjectiveItem.OBJECTIVE_ID != "0")
+                                                    {
+                                                        <div class="radio radio-css radio-inline radio-inverse">
+                                                            @Html.RadioButton(QuestionItem.QUESTION_ID, ObjectiveItem.OBJECTIVE_ID, new { @id = "fb+" + @QuestionItem.QUESTION_ID + ObjectiveItem.OBJECTIVE_ID })
+                                                            @*<input type="radio" name="radioInlineCss" id="fb+@QuestionItem.QUESTION_ID" value="" checked="">*@
+                                                            <label for="fb+@QuestionItem.QUESTION_ID@ObjectiveItem.OBJECTIVE_ID">
+                                                                <b> @ObjectiveItem.OBJECTIVES   </b> <br /> @ObjectiveItem.TAMIL_OBJECTIVES
+                                                            </label>
+                                                        </div>
+                                                        <br />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="col-md-12 form-group">
+                                                            <textarea type="text" id="fb+@QuestionItem.QUESTION_ID" class="form-control " name="@QuestionItem.QUESTION_ID" data-parsley-required="true"></textarea>
+                                                        </div>
+                                                    }
+
+                                                }
+                                            </div>
+                                        </td>
+
+                                    </tr>
+                                }
+
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="2"><p class="text-yellow">No Records avilable</p> </td></tr>
+                        }
+
+                        //else
+                        //{
+                        //    <tr>
+                        //        <td colspan="2">
+                        //            <p class="text-yellow">You have given feedback to this staff</p>
+                        //        </td>
+                        //    </tr>
+                        //}
+
+
+
+
+                    }
+                </table>
+            </div>
+            <div class="col-md-1 form-group pull-right">
+                <a class="btn btn-primary" id="btnSubmit">Submit</a>
+            </div>
+            <div class="col-md-1 form-group pull-right ">
+                <a class="btn btn-danger" id="btnCancel">Cancel</a>
+            </div>
+            @*<div class="col-md-12"><button class="btn bg-green pull-right m-b-5" onclick="printDiv('tblFeedBackAnswer')">Print</button></div>*@
+
+
+
+
+        </div>
+    </div>
+}
+
+@*<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>*@
+<script>
+            //var tbl = $('#tblFeedBackAnswer').DataTable();
+
+            // this is for showing notification from the begining itself
+            var message=@Html.Raw(Json.Encode(Model.sErrorMessage));
+            if(message!=null && message!="")
+            {
+                alertMessage(message);
+            }
+            function alertMessage(Message)
+            {
+                swal({ title: "Info !", text:Message, showConfirmButton: false, timer: 1500, type: 'info', animation: true });
+
+                // this is for reducing one value form frating value becaues it is added in the ajax feedback member on chage event
+                var val = $('#FbRating').val();
+                $('#FbRating').attr('value', '');
+                val = parseInt(val) - 1;
+                $('#FbRating').attr('value', val);
+
+                //swal({
+
+                //    title: "Feedback!",
+                //    text: Message,
+                //    showConfirmButton: false,
+                //    icon: "success",
+                //    timer: 1500,
+                //    animation: true ,
+                //});
+            }
+
+
+            // this is for showing feedback rating from the begining itself
+            @*var ObjectiveItems=@Html.Raw(Json.Encode(Model.ObjectiveList));
+            if(ObjectiveItems!=null && ObjectiveItems.length>0)
+            {
+                var text="";
+                for(var i=0;i<ObjectiveItems.length;i++)
+                {
+                    text+=" "+ObjectiveItems[i].OBJECTIVESHORTTERM+"-"+ObjectiveItems[i].OBJECTIVES;
+                }
+                if($('#FbRating').val()=="1")
+                {
+                    StatusNotification(text);
+                }
+
+            }*@
+            function StatusNotification(Text)
+            {
+
+                swal({ title: "Feedback Ratings !", text:Text, icon: 'success', animation: true });
+            }
+
+
+
+
+
+
+</script>
+
+
+<script>
+
+            // this is for saving feedback answer
+            $('#btnSubmit').on("click", function () {
+                var ArrayAnswer = '{"liFB_Answer":[';
+                var nCount = 0;
+                var sStatus = 0;
+                var isTextBox=false;
+                $('#tblFeedBackAnswer tbody tr').each(function () {
+                    if ($(this).attr('id') == "trQuestionStart") {
+                        var QuestionId = $(this).find("#Ques").attr("cms-question-id");
+                        var names = [];
+
+                        // redio button
+                        $(this).find('input[name="' + QuestionId + '"]').each(function () {
+                            // Creates an array with the names of all the different checkbox group.
+                            names[$(this).attr('name')] = true;
+                        });
+
+
+                        //check text box
+                        if($(this).find('textarea[name="' + QuestionId + '"]').length)
+                        {
+                            isTextBox=true;
+                        }
+
+                        if(isTextBox==true)
+                        {
+                            if ($(this).find('textarea[name="' + QuestionId + '"]').val())
+                            {
+
+                                ArrayAnswer += '{"QUESTION":"' + QuestionId + '","ANSWER_IN_TEXT":"' + $(this).find('textarea[name="' + QuestionId + '"]').val() + '"},';
+                                nCount++;
+                            }
+                            else
+                            {
+                                sStatus++;
+                                swal({ title: "Error !", text: "Please attend all questions!", showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            for (name in names)
+                            {
+                                var radio_buttons = $("input[name='" + name + "']");
+
+                                if (radio_buttons.filter(':checked').length == 0)
+                                {
+                                    // alert("All feedback questions are mandatory!");
+                                    sStatus++;
+                                    swal({ title: "Error !", text: "Please attend all questions!", showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+                                    return false;
+                                    break;
+
+                                }
+
+                                else
+                                {
+                                    if ($(radio_buttons).is(':checked'))
+                                    {
+
+                                        ArrayAnswer += '{"QUESTION":"' + name + '","ANSWER":"' + $("input[name='" + name + "']:checked").val() + '"},';
+                                        nCount++;
+                                    }
+                                    else {
+                                        // alert("e");
+                                        // If you need to use the result you can do so without
+                                        // another (costly) jQuery selector call:
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+
+                if (nCount != 0 && sStatus==0) {
+                    ArrayAnswer = ArrayAnswer.slice(0, -1);
+                    ArrayAnswer += ']}';
+
+
+                    var fbStudentId="";
+                    var Assessee = $("#FeedbackMember").val();
+                    var FeedBackRoleId = $("#FeedBackRoleSettingList").val();
+                    var AssesseeRole = $("#FeedBackRoleSettingList option:selected").attr("cms-assessee-role");
+                    var sSupFbRole= $("#FeedBackRoleSettingList option:selected").attr("cms-sup-fb-role-id");
+                    var ClassId="0";
+                    var CourseId="0";
+                    var attrClass = $('#FeedbackMember option:selected').attr('cms-class-id');
+
+                    if (typeof attrClass !== typeof undefined && attrClass !== false) {
+                        // Element has this attribute
+                        ClassId=$('#FeedbackMember option:selected').attr("cms-class-id")!="" ?$('#FeedbackMember option:selected').attr("cms-class-id"):"0";
+                    }
+                    var valCourse = $('#StudentCourseList').val();
+                    if (typeof valCourse !== typeof undefined && valCourse !== false) {
+                        // Element has this attribute
+                        CourseId=$('#StudentCourseList').val()!="" ?$('#StudentCourseList').val():"0";
+                    }
+
+
+                    var FeedBackId = $("#FeedBackSettingList").val();
+                    var JsonData;
+                    JsonData = '{"FBSTUDENT_ID":"' + fbStudentId + '","ASSESSOR":"","CLASS_ID":"' + ClassId + '","ASSESSEE":"' + Assessee + '","FEEDBACK_ID":"' + FeedBackId + '","FEEDBACK_ROLE_ID":"' + FeedBackRoleId + '","ROLE":"' + AssesseeRole + '","QUESTION":"","ANSWER":"","COURSE_ID":"' + CourseId + '","SUP_FEEDBACK_ROLE_ID":"'+ sSupFbRole +'"}';
+
+                    $.ajax({
+                        url: "@Url.Action("SaveFeedBackAnswer", "FeedBack")",
+                        method: "POST",
+                        datatype: "json",
+                        data: { sJsonData: JsonData, sFeedBackAnswer: ArrayAnswer },
+                        success: function (data) {
+                            if (data.Message != null && data.Message != "") {
+                                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 5000, type: 'success', animation: true });
+                                //  loadContent1('/FeedBack/AddFeedBackQuestions?sFeedBackId=' + $('#FeedBackId').val() + '&sFeedBackRoleId=' + $('#FeedBackRoleId').val() + '&sQuestionId=' + $('#QuestionId').val() + '');
+                                //var SupFeedBackRoleId = $("#FeedBackRoleSettingList option:selected").attr("cms-sup-fb-role-id");
+                                //loadContent1('/FeedBack/BindFeedBackAnswerFields?sSupFeedBackRoleId='+SupFeedBackRoleId+'',"divAnswerView");
+                                //var select = $("#divAnswerView1");
+                                //select.empty();
+                                var divAppend = $("#divAnswerView1");
+                                divAppend.html('');
+                                $("#FeedBackSettingList option[value='']").attr('selected', true);
+
+                                $("#FeedBackRoleSettingList option[value='']").attr('selected', true);
+
+                                $('.selectpicker').selectpicker('Refresh');
+                            }
+                            else {
+
+                            }
+
+                        }, error: function (error) {
+                            swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+                        }
+                    });
+
+
+                }
+                else if (sStatus!=0)
+                {
+                    swal({ title: "Info !", text: "Please attend all questions!", showConfirmButton: false, timer: 5000, type: 'info', animation: true });
+                }
+                else {
+                    swal({ title: "Error !", text: "Something is went wrong . please check your Input  !", showConfirmButton: false, timer: 5000, type: 'error', animation: true });
+                    return false;
+                }
+            });
+
+
+
+            //cancel
+            $('#btnCancel').click(function(){
+
+
+                //var SupFeedBackRoleId = $("#FeedBackRoleSettingList option:selected").attr("cms-sup-fb-role-id");
+                //loadContent1('/FeedBack/BindFeedBackAnswerFields?sSupFeedBackRoleId='+SupFeedBackRoleId+'',"divAnswerView");
+                var divAppend = $("#divAnswerView1");
+                divAppend.html('');
+                $("#divAnswerView").empty();
+
+                $("#FeedBackSettingList option[value='']").attr('selected', true);
+
+                $("#FeedBackRoleSettingList option[value='']").attr('selected', true);
+
+                $('.selectpicker').selectpicker('Refresh');
+            });
+
+
+            //function printDiv(divName) {
+
+            //    var printContents = document.getElementById(divName).innerHTML;
+            //    var originalContents = document.body.innerHTML;
+            //    document.body.innerHTML = printContents;
+            //    window.print();
+            //    document.body.innerHTML = originalContents;
+
+            //}
+
+
+</script>
+
+
+

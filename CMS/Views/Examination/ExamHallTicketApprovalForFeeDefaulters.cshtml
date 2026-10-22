@@ -1,0 +1,297 @@
+﻿
+@model CMS.ViewModel.Model.TransferCertificate
+
+@{
+    ViewBag.Title = "ExamHallTicketApprovalForFeeDefaulters";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<!-- ================== END PAGE LEVEL CSS STYLE ================== -->
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="#">Home</a></li>
+        <li class="active">Fee Defaulters List</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Fee Defaulters List</h1>
+    <!-- end page-header -->
+    <!-- begin panel -->
+    <div class="panel panel-primary" data-sortable-id="ui-general-1">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Fee Defaulters List</h4>
+        </div>
+        <div class="panel-body">
+            <div id="loader" style="display:none; position:fixed; top:70%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+                <img src="~/Content/assets/img/loading-7528_128.gif" alt="Loading..." />
+            </div>
+            <div class="col-md-12 form-horizontal">
+
+                <div class="form-horizontal">
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div class="row">
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-4">Academic Year</label>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.AcademicYear, (Model.AcademicYear != null) ? Model.AcademicYear : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true", @id = "ADAcademicYear" })
+                                @Html.ValidationMessageFor(model => model.AcademicYear, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="control-label col-md-4">Exam Setting</label>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.ExamSetting, (Model.ExamSetting != null) ? Model.ExamSetting : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(model => model.ExamSetting, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <button id="btnGet" class="btn btn-primary">Get</button>
+                        </div>
+                    </div>
+                   
+                </div>
+
+                @*<div class="row pull-right">
+                    <div class="col-md-6 btnPrintDiv">
+                        <button class="btn btn-success btnPrint" onclick="printDiv()"> Print </button>
+                    </div>
+                    <div class="col-md-6 btnExcelDiv">
+                        <button class="btn btn-primary btnExport" onclick="Export()"> Export </button>
+                    </div>
+                </div>*@
+            </div>
+
+            <hr />
+            <br />
+            <div class="form-group col-md-12">
+                <div id="divbind"></div>
+            </div>
+        </div>
+
+
+    </div>
+    <!-- end panel -->
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+
+
+
+<script>
+    $('.selectpicker').selectpicker({
+        size: 4
+    });
+
+
+
+
+    $("#ADAcademicYear").on("change", function () {
+        FetchFeeDefaulters();
+        LoadExamSetting();
+    });
+
+    $("#ExamSetting").on("change", function () {
+        FetchFeeDefaulters();
+    });
+
+    $("#btnGet").on("click", function () {
+        FetchFeeDefaulters();
+    });
+    function LoadExamSetting()
+                         {
+        var Acyear = $("#ADAcademicYear option:selected").text()
+
+                             {
+                                 $.ajax({
+                                     url: "@Url.Action("GetExamSettingByACYear", "Examination")",
+                                     method: "POST",
+                                     datatype: "json",
+                                     data: { sAcyear: Acyear},
+                                     success: function (data) {
+                                         $("#ExamSetting").empty();
+                                         $("#ExamSetting").append("<option>--- Select ---</option>"+ data);
+                                         $('.selectpicker').selectpicker('refresh');
+                                     }, error: function (error) {
+                                         alert('Internal Server Error ! ');
+                                     }
+                                 });
+                             }
+    };
+
+    function FetchFeeDefaulters()
+    {
+        var ExamSetting = $("#ExamSetting").val();
+        var AcademicYear = $('#ADAcademicYear option:selected').text();
+        if ( $("#ExamSetting").val() && $('#ADAcademicYear option:selected').text() && ExamSetting != "--- Select ---")
+            {
+                if (AcademicYear == '' || AcademicYear == '0') {
+                    alert('Please Choose All The Values...!!!');
+                    return false;
+            }
+            $('#loader').show();
+                $.ajax({
+                    url: "@Url.Action("BindFeeDefaultersForHTApproval", "Examination")",
+                    method: "POST",
+                    datatype: "json",
+                    data: {  sAcademicYear: AcademicYear, sExamSetting: ExamSetting },
+                    success: function (data) {
+                        $("#divbind").empty();
+                        $("#divbind").append(data);
+                        $(".btnPrintDiv").show();
+                        $(".btnExcelDiv").show();
+                        table = $("#tblStudentList").DataTable({ "bPaginate": true });//{ "bPaginate": false }
+                        $("#tblStudentList_filter").addClass("dataTables_filter pull-right");
+                        $(".pagination").addClass("pagination pull-right");
+                        $('#loader').hide();
+                    }, error: function (error) {
+                        alert('Internal Server Error !');
+                        $('#loader').hide();
+                    }
+                });
+            }
+    };
+
+
+    ApproveToHallTickt = function (StudentID, ApprovalStatus)
+    {
+        var ExamSetting = $("#ExamSetting").val();
+        var AcademicYear = $('#ADAcademicYear option:selected').text();
+        if (!confirm('Are you sure to approve this student for hall ticket despite unpaid fees?'))
+        {
+            return false;
+        }
+
+        // Get approval reason
+        var remark = prompt('Please enter the approval reason and approving authority (e.g., "Approved by Secretary"):');
+        if (remark === null || remark.trim() === "") {
+            alert("Approval requires a valid reason. Operation cancelled.");
+            return false;
+        }
+
+        // Get permission duration
+        var daysCount;
+        while (true)
+        {
+            daysCount = prompt('How many days to grant permission (1-365)? (Enter a value between 1 and 365 days)');
+
+            if (daysCount === null) {
+                alert("Operation cancelled.");
+                return false;
+            }
+
+            if (daysCount.trim() === "") {
+                alert("Please enter a valid number of days.");
+                continue;
+            }
+
+            if (isNaN(daysCount)) {
+                alert("Please enter a numeric value.");
+                continue;
+            }
+
+            daysCount = parseInt(daysCount);
+            if (daysCount < 1 || daysCount > 365) {
+                alert("Please enter a value between 1 and 365 days.");
+                continue;
+            }
+
+            break;
+        }
+
+            $.ajax({
+                url: "@Url.Action("ApproveToGetExamHallTicket","Examination")",
+                method: "POST",
+                datatype: "html",
+                data: { sStudentID: StudentID, sexamSetting: ExamSetting, sApprovalStatus: ApprovalStatus, sAcYear: AcademicYear, sDaysCount: daysCount, sRemark: remark },
+                success: function (data) {
+                    if (data.Message != null && data.Message != "") {
+                        if (data.ErrorCode == "200") {
+                            $('#btnCancel').click();
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'success', animation: true });
+                            FetchFeeDefaulters();
+                        }
+                        else if (data.ErrorCode == "417") {
+                            swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+                        }
+                        else if (data.ErrorCode == "503") {
+                            swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+                        }
+                        else if (data.ErrorCode == "406") {
+                            swal({ title: "Info", text: data.Message, showConfirmButton: false, timer: 2000, type: 'info', animation: true });
+                        }
+                        else {
+                            swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+
+                        }
+                    }
+
+                }, error: function (error) {
+
+                    alert('Internal Server Error !');
+                }
+            });
+    }
+
+
+    function printDiv() {
+        var table = $('#tblStudentList').DataTable();
+        table.destroy();
+        var printContents = document.getElementById('divbind').innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        FetchFeeDefaulters();
+    }
+</script>
+
+<script>
+
+    function Export() {
+        var title = "ExamVerificationReport";
+        var table = $('#tblStudentList').DataTable();
+        table.destroy();
+        let file = new Blob([$('#divbind').html()], { type: "application/vnd.ms-excel" });
+        let url = URL.createObjectURL(file);
+        let a = $("<a />", {
+            href: url,
+            download: title + ".xls"
+        }).appendTo("body").get(0).click();
+        table = $("#tblStudentList").DataTable({ "bPaginate": true });//{ "bPaginate": false }
+        $("#tblStudentList_filter").addClass("dataTables_filter pull-right");
+        $(".pagination").addClass("pagination pull-right");
+    }
+
+</script>
+
+
+

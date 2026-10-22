@@ -1,0 +1,1009 @@
+@model List<CMS.ViewModel.Model.FEE_STUDENT_ACCOUNT>
+@{
+    ViewBag.Title = "Pay Hostel Fee";
+    Layout = null; // Loaded dynamically via SPA container
+}
+
+<!-- Google Fonts and FontAwesome -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<style>
+    /* Modern Dashboard Styling */
+    .student-receipts-container {
+        padding: 20px 0;
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Premium Banner */
+    .profile-banner {
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        border-radius: 16px;
+        padding: 30px;
+        color: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+        border: none;
+    }
+
+    .profile-banner::after {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        bottom: -100px;
+        right: -50px;
+        pointer-events: none;
+    }
+
+    .profile-avatar {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 600;
+        margin-right: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(10px);
+    }
+
+    .profile-details h2 {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 0 5px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .profile-details p {
+        font-size: 15px;
+        margin: 0;
+        opacity: 0.85;
+        font-weight: 400;
+    }
+
+    .profile-meta-item {
+        display: inline-block;
+        margin-right: 25px;
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 6px 12px;
+        border-radius: 30px;
+        margin-top: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .profile-meta-item i {
+        margin-right: 6px;
+        color: #00c6ff;
+    }
+
+    /* Modern Glass Panel */
+  /*  .receipts-panel {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        margin-bottom: 25px;
+    }*/
+
+    .panel-heading-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-top: 0;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        letter-spacing: -0.5px;
+    }
+
+    .panel-heading-title i {
+        margin-right: 10px;
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.1);
+        padding: 10px;
+        border-radius: 12px;
+        font-size: 18px;
+    }
+
+    /* Receipt Table Customizations */
+    .custom-receipts-table {
+        width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0 12px !important;
+        margin-top: 10px;
+    }
+
+    .custom-receipts-table th {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        font-size: 12px !important;
+        letter-spacing: 0.5px !important;
+        padding: 16px !important;
+        border: none !important;
+    }
+
+    .custom-receipts-table tbody tr {
+        background: #ffffff !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+        transition: all 0.25s ease;
+        border-radius: 12px !important;
+    }
+
+    .custom-receipts-table tbody tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06) !important;
+        background: #fdfdfd !important;
+    }
+
+    .custom-receipts-table td {
+        padding: 18px 16px !important;
+        border-top: 1px solid #f1f5f9 !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        font-size: 14px !important;
+        color: #334155 !important;
+    }
+
+    .custom-receipts-table td:first-child {
+        border-left: 1px solid #f1f5f9 !important;
+        border-top-left-radius: 12px !important;
+        border-bottom-left-radius: 12px !important;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    .custom-receipts-table td:last-child {
+        border-right: 1px solid #f1f5f9 !important;
+        border-top-right-radius: 12px !important;
+        border-bottom-right-radius: 12px !important;
+    }
+
+    /* Unpaid Badge */
+    .badge-unpaid {
+        background: rgba(239, 68, 68, 0.1) !important;
+        color: #ef4444 !important;
+        padding: 6px 12px !important;
+        border-radius: 30px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        display: inline-block !important;
+        border: 1px solid rgba(239, 68, 68, 0.2) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Paid Badge */
+    .badge-paid {
+        background: rgba(16, 185, 129, 0.1) !important;
+        color: #10b981 !important;
+        padding: 6px 12px !important;
+        border-radius: 30px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        display: inline-block !important;
+        border: 1px solid rgba(16, 185, 129, 0.2) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Pay Now Button */
+    .btn-pay-now {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 12px 24px !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 15px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none !important;
+        justify-content: center;
+    }
+
+    .btn-pay-now i {
+        margin-right: 8px;
+        font-size: 16px;
+    }
+
+    .btn-pay-now:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45) !important;
+        opacity: 0.95 !important;
+        color: #ffffff !important;
+        text-decoration: none !important;
+    }
+
+    .btn-pay-now:active {
+        transform: translateY(1px) !important;
+    }
+
+    .btn-pay-now.disabled, .btn-pay-now:disabled {
+        background: #cbd5e1 !important;
+        box-shadow: none !important;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    /* View Receipt Button */
+    .btn-view-receipt {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 13px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3) !important;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none !important;
+        justify-content: center;
+    }
+
+    .btn-view-receipt i {
+        margin-right: 6px;
+        font-size: 14px;
+    }
+
+    .btn-view-receipt:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45) !important;
+        opacity: 0.95 !important;
+        color: #ffffff !important;
+        text-decoration: none !important;
+    }
+
+    .btn-view-receipt:active {
+        transform: translateY(1px) !important;
+    }
+
+    /* Selection Summary Bar */
+    .selection-summary-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+
+    /* Mobile-responsive styles */
+    @@media (max-width: 767px) {
+        .student-receipts-container {
+            padding: 10px 0 !important;
+        }
+
+        .receipts-panel {
+            padding: 1px !important;
+            border-radius: 12px !important;
+        }
+
+        /* Convert Table into Cards on Mobile */
+        .table-responsive {
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+        }
+
+        .custom-receipts-table {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            width: 100% !important;
+        }
+
+        .custom-receipts-table thead,
+        .custom-receipts-table tbody,
+        .custom-receipts-table tr,
+        .custom-receipts-table td {
+            display: block !important;
+            width: 100% !important;
+        }
+
+        .custom-receipts-table thead {
+            display: none !important; /* Hide headings on mobile */
+        }
+
+        .custom-receipts-table tbody tr {
+            margin-bottom: 20px !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            padding: 15px !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+            background: #ffffff !important;
+            transform: none !important;
+        }
+
+        .custom-receipts-table td {
+            padding: 10px 0 !important;
+            border: none !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px !important;
+        }
+
+        /* Checkbox/Selection Row Style */
+        .custom-receipts-table td:first-child {
+            border-bottom: 1px dashed #e2e8f0 !important;
+            padding-bottom: 12px !important;
+            margin-bottom: 8px !important;
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
+            border-left: none !important;
+            justify-content: flex-start !important;
+            gap: 12px;
+        }
+        
+        .custom-receipts-table td:first-child::before {
+            content: "Selection:";
+            font-weight: 600;
+            color: #64748b;
+            font-size: 13px;
+            margin-right: auto;
+        }
+
+        /* Stack Fee Head vertically to allow wrapping of long titles */
+        .custom-receipts-table td:nth-child(2) {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 4px;
+        }
+
+        .custom-receipts-table td:nth-child(2)::before {
+            content: "Fee Head:";
+            font-weight: 600;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .custom-receipts-table td:nth-child(2) strong {
+            width: 100% !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            display: block !important;
+            font-size: 14px !important;
+            line-height: 1.4 !important;
+            text-align: left !important;
+        }
+
+        .custom-receipts-table td:nth-child(3)::before {
+            content: "Amount:";
+            font-weight: 600;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .custom-receipts-table td:nth-child(4)::before {
+            content: "Status:";
+            font-weight: 600;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* Action/Pay Button Row Style */
+        .custom-receipts-table td:last-child {
+            border-top: 1px dashed #e2e8f0 !important;
+            padding-top: 12px !important;
+            margin-top: 8px !important;
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+            border-right: none !important;
+            display: block !important;
+        }
+
+        .custom-receipts-table td:last-child form,
+        .custom-receipts-table td:last-child button {
+            width: 100% !important;
+        }
+
+        /* Hide bottom total pending row on mobile (since it is highlighted at the top) */
+        .custom-receipts-table tr.total-pending-row {
+            display: none !important;
+        }
+
+        /* Scale Outstanding Balance highlight card on mobile */
+        .total-pending-highlight-banner {
+            padding: 15px 18px !important;
+            margin-bottom: 15px !important;
+        }
+        
+        .total-pending-highlight-banner div:first-child div:first-child {
+            font-size: 11px !important;
+            letter-spacing: 0.5px !important;
+        }
+        
+        .total-pending-highlight-banner div:first-child div:last-child {
+            font-size: 26px !important;
+        }
+        
+        .total-pending-highlight-banner div:last-child {
+            width: 46px !important;
+            height: 46px !important;
+            padding: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        .total-pending-highlight-banner div:last-child i {
+            font-size: 18px !important;
+        }
+
+        /* Dynamic Selection Bottom Bar */
+        .selection-summary-bar {
+            flex-direction: column !important;
+            gap: 12px !important;
+            text-align: center !important;
+            padding: 15px !important;
+        }
+
+        .selection-summary-bar button {
+            width: 100% !important;
+        }
+
+        /* Modal Dialog Mobile Tweaks */
+        .modal-dialog {
+            margin: 10px !important;
+        }
+
+        .modal-body {
+            padding: 15px !important;
+        }
+
+        #printableReceipt {
+            padding: 15px !important;
+        }
+
+        #printableReceipt .row > div {
+            margin-bottom: 15px !important;
+        }
+    }
+</style>
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Fee Due List</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Fee Due List</h4>
+        </div>
+        <div class="panel-body">
+
+            @if (Model != null && Model.Count > 0)
+            {
+                var studentName = Model.FirstOrDefault().FIRST_NAME;
+                var registerNo = Model.FirstOrDefault().REGISTER_NO;
+                var totalAmount = Model.Sum(o => Convert.ToDouble(o.BALANCE));
+
+                <!-- 1. Profile Banner -->
+                @*<div class="profile-banner">
+                    <div class="d-flex align-items-center" style="display: flex;">
+                        <div class="profile-avatar">
+                            <i class="fa fa-user"></i>
+                        </div>
+                        <div class="profile-details">
+                            <h2>@studentName</h2>
+                            <p>Hostel Fee Payment Portal</p>
+
+                            <div>
+                                <span class="profile-meta-item">
+                                    <i class="fa fa-id-card-o"></i> Register No: @registerNo
+                                </span>
+                                <span class="profile-meta-item">
+                                    <i class="fa fa-building-o"></i> Holy Cross College Hostel
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+
+                <!-- 2. Payment Details Panel -->
+                <div class="receipts-panel">
+                    @*<div class="panel-heading-title">
+                        <i class="fa fa-money"></i> Hostel Fee Breakdown
+                    </div>*@
+
+                    <!-- Total Outstanding Balance Banner -->
+                    <div class="total-pending-highlight-banner" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 12px; padding: 20px 25px; margin-bottom: 20px; color: #ffffff; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                        <div>
+                            <div style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 5px;">Total Outstanding Balance</div>
+                            <div style="font-size: 32px; font-weight: 800; color: #10b981; line-height: 1;">&#8377; @totalAmount</div>
+                        </div>
+                        <div style="background: rgba(16, 185, 129, 0.1); padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                            <i class="fa fa-money" style="font-size: 24px; color: #10b981;"></i>
+                        </div>
+                    </div>
+
+                    <div class="alert-info alert" style="border-radius: 8px; font-weight: 500;">
+                        <span class="label label-inverse m-r-5" style="background: #1e293b;">NOTE!</span>
+                        Please do not press back button or refresh when you make payment.
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table custom-receipts-table">
+                            <thead>
+                                <tr>
+                                    <th width="60px" class="text-center">
+                                        <input type="checkbox" id="selectAllHeads" />
+                                    </th>
+                                    <th>Fee Head</th>
+                                    <th width="150px" class="text-right">Amount</th>
+                                    <th width="120px" class="text-center">Status</th>
+                                    <th width="140px" class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ int index = 0; }
+                                @foreach (var item in Model)
+                                {
+                                    index++;
+                                    var balanceVal = 0.0;
+                                    double.TryParse(item.BALANCE, out balanceVal);
+                                    bool isPaid = (balanceVal <= 0);
+                                    <tr>
+                                        <td class="text-center">
+                                            @if (isPaid)
+                                            {
+                                                <i class="fa fa-check-circle text-success" style="font-size: 18px;" title="Paid"></i>
+                                            }
+                                            else
+                                            {
+                                                 <input type="checkbox" class="fee-checkbox" data-id="@item.HEAD_ID" data-amount="@item.BALANCE" data-freq-id="@item.FREQUENCY_ID" data-academic-year="@item.ACADEMIC_YEAR" />
+                                            }
+                                        </td>
+                                        <td>
+                                            <strong>@(string.IsNullOrEmpty(item.HEAD_NAME) ? item.HEAD : item.HEAD_NAME)</strong>
+                                        </td>
+                                        <td class="text-right">
+                                            @if (isPaid)
+                                            {
+                                                <span class="text-success" style="font-weight: 600;">&#8377; @item.DEBIT</span>
+                                            }
+                                            else
+                                            {
+                                                <strong style="color: #0f172a; font-size: 15px;">&#8377; @item.BALANCE</strong>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (isPaid)
+                                            {
+                                                <span class="badge-paid">Paid</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge-unpaid">Pending</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (isPaid)
+                                            {
+                                                <button type="button" class="btn btn-view-receipt" data-txn-id="@item.TRANSACTION_ID" style="padding: 8px 16px !important; font-size: 13px !important; width: 100%;">
+                                                    <i class="fa fa-file-text-o"></i> View Receipt
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <form method="get" action="@Url.Action("PaymentModeForAdmin", "PaymentGateway")" style="margin: 0;">
+                                                    <input type="hidden" name="sFrequencyTypeId" value="@CMS.Utility.Common.FrequencyType.HostelFee" />
+                                                    <input type="hidden" name="sFrequencyId" value="@item.FREQUENCY_ID" />
+                                                    <input type="hidden" name="sFeeRootId" value="@CMS.Utility.Common.FeeRoot.HostelFee" />
+                                                    <input type="hidden" name="sStudentId" value="@Session[CMS.Utility.Common.SESSION_VARIABLES.USER_ID]" />
+                                                    <input type="hidden" name="sAmount" value="@item.BALANCE" />
+                                                    <input type="hidden" name="sAcademicyear" value="@item.ACADEMIC_YEAR" />
+                                                    <input type="hidden" name="sHead" value="@item.HEAD_ID" />
+                                                    <input type="hidden" name="sSelectionID" value="@item.HEAD_ID" />
+                                                    <button type="submit" class="btn btn-pay-now" style="padding: 8px 16px !important; font-size: 13px !important; width: 100%;">
+                                                        <i class="fa fa-credit-card"></i> Pay Now
+                                                    </button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+
+                                <tr class="total-pending-row" style="background: #f8fafc !important;">
+                                    <td colspan="2" class="text-right">
+                                        <strong style="font-size: 18px; color: #1e293b;">Total Pending Amount:</strong>
+                                    </td>
+                                    <td class="text-right">
+                                        <strong style="color: #10b981; font-size: 20px;">&#8377; @totalAmount</strong>
+                                    </td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Selection Summary Bar -->
+                    <div class="selection-summary-bar" id="summaryBar" style="display: none; margin-top: 20px;">
+                        <div style="font-size: 16px; color: #334155; font-weight: 500;">
+                            Selected <span id="selectedCount" style="font-weight: 700; color: #2563eb;">0</span> head(s): 
+                            <span style="font-weight: 700; font-size: 18px; color: #0f172a; margin-left: 10px;">&#8377; <span id="selectedTotalAmount">0.00</span></span>
+                        </div>
+                        <button type="button" id="btnPaySelected" class="btn btn-pay-now">
+                            <i class="fa fa-credit-card"></i> Pay Selected
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Empty State -->
+                <div class="receipts-panel text-center" style="padding: 60px 20px;">
+                    <div style="font-size: 50px; color: #cbd5e1; margin-bottom: 15px;">
+                        <i class="fa fa-exclamation-circle"></i>
+                    </div>
+                    <h4 style="color: #475569; font-weight: 700; margin-bottom: 10px; font-size: 22px;">No Payment Pending</h4>
+                    <p class="text-muted" style="font-size: 15px; max-width: 400px; margin: 0 auto 25px auto;">
+                        Your account is not available or you have no pending hostel fees. Please submit your Hostel Renewal Form if you haven't already.
+                    </p>
+                    <a href="#" class="btn btn-pay-now disabled">
+                        <i class="fa fa-credit-card"></i> Pay Now
+                    </a>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal fade" id="receiptModal" tabindex="-1" role="dialog" aria-labelledby="receiptModalLabel">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.2);">
+      <div class="modal-header" style="background: #1e293b; color: white; padding: 20px; border-bottom: none;">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8; font-size: 24px;"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="receiptModalLabel" style="font-weight: 700; font-family: 'Outfit';"><i class="fa fa-file-text-o"></i> E-Receipt Details</h4>
+      </div>
+      <div class="modal-body" style="padding: 30px; background: #f8fafc;">
+        
+        <!-- Printable Receipt Container -->
+        <div id="printableReceipt" style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); font-family: 'Outfit';">
+            
+            <!-- College Header -->
+            <div class="text-center" style="margin-bottom: 25px; border-bottom: 2px dashed #e2e8f0; padding-bottom: 20px;">
+                <h3 id="receiptCollegeName" style="margin: 0 0 5px 0; font-weight: 700; color: #1e293b; font-size: 22px;">COLLEGE NAME</h3>
+                <p id="receiptCollegeAddress" style="margin: 0; color: #64748b; font-size: 14px;">College Address</p>
+                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 13px;">
+                    <i class="fa fa-phone"></i> <span id="receiptCollegePhone">Phone</span> | 
+                    <i class="fa fa-envelope"></i> <span id="receiptCollegeEmail">Email</span>
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <span style="background: #10b981; color: white; padding: 6px 16px; border-radius: 30px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Hostel Fee Payment Receipt</span>
+            </div>
+
+            <!-- Student & Transaction Meta Grid -->
+            <div class="row" style="margin-bottom: 25px;">
+                <div class="col-sm-6 col-xs-12" style="margin-bottom: 15px;">
+                    <h5 style="color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 11px; margin-bottom: 8px; letter-spacing: 0.5px;">Student Details</h5>
+                    <table style="width: 100%; font-size: 14px;">
+                        <tr>
+                            <td style="padding: 4px 0; color: #475569; font-weight: 500;">Name:</td>
+                            <td id="receiptStudentName" style="padding: 4px 0; color: #0f172a; font-weight: 700; text-align: right;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #475569; font-weight: 500;">Register No:</td>
+                            <td id="receiptRegisterNo" style="padding: 4px 0; color: #0f172a; font-weight: 700; text-align: right;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #475569; font-weight: 500;">Roll No:</td>
+                            <td id="receiptRollNo" style="padding: 4px 0; color: #0f172a; font-weight: 700; text-align: right;">-</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-sm-6 col-xs-12" style="margin-bottom: 15px;">
+                    <h5 style="color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 11px; margin-bottom: 8px; letter-spacing: 0.5px;">Transaction Details</h5>
+                    <table style="width: 100%; font-size: 14px;">
+                        <tr>
+                            <td style="padding: 4px 0; color: #475569; font-weight: 500;">Receipt No:</td>
+                            <td id="receiptNo" style="padding: 4px 0; color: #0f172a; font-weight: 700; text-align: right;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #475569; font-weight: 500;">Transaction ID:</td>
+                            <td id="receiptTxnId" style="padding: 4px 0; color: #0f172a; font-weight: 700; text-align: right; word-break: break-all;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #475569; font-weight: 500;">Order ID:</td>
+                            <td id="receiptOrderId" style="padding: 4px 0; color: #0f172a; font-weight: 700; text-align: right; word-break: break-all;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #475569; font-weight: 500;">Payment Date:</td>
+                            <td id="receiptDate" style="padding: 4px 0; color: #0f172a; font-weight: 700; text-align: right;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #475569; font-weight: 500;">Payment Mode:</td>
+                            <td id="receiptMode" style="padding: 4px 0; color: #0f172a; font-weight: 700; text-align: right; text-transform: uppercase;">-</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Itemized Table -->
+            <h5 style="color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 11px; margin-bottom: 10px; letter-spacing: 0.5px;">Paid Particulars</h5>
+            <div class="table-responsive">
+                <table class="table" style="margin-bottom: 0; font-size: 14px; border: 1px solid #e2e8f0; border-radius: 8px; border-collapse: separate; overflow: hidden;">
+                    <thead>
+                        <tr style="background: #f8fafc;">
+                            <th style="border-bottom: 1px solid #e2e8f0; color: #475569; font-weight: 600;">Particulars</th>
+                            <th class="text-right" style="border-bottom: 1px solid #e2e8f0; color: #475569; font-weight: 600; width: 150px;">Amount Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receiptItemsBody">
+                        <!-- Dynamic lines -->
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: #f8fafc; font-weight: 700; font-size: 16px;">
+                            <td style="border-top: 2px solid #e2e8f0; color: #1e293b;">Total Amount Paid</td>
+                            <td class="text-right" id="receiptTotalAmount" style="border-top: 2px solid #e2e8f0; color: #10b981;">&#8377; 0.00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Receipt Footer Declaration -->
+            <div style="margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div style="font-size: 12px; color: #94a3b8; font-style: italic;">
+                    * This is a computer generated document, signature is not required.
+                </div>
+                <div class="text-center" style="border-top: 1px solid #cbd5e1; width: 150px; padding-top: 5px; font-size: 13px; font-weight: 600; color: #475569;">
+                    Cashier / Accounts
+                </div>
+            </div>
+            
+        </div>
+      </div>
+      <div class="modal-footer" style="background: #f1f5f9; border-top: none; padding: 15px 30px;">
+        <button type="button" class="btn btn-default" data-dismiss="modal" style="border-radius: 8px; font-weight: 600; padding: 8px 20px;"><i class="fa fa-times"></i> Close</button>
+        <button type="button" class="btn btn-success" id="btnPrintReceipt" style="border-radius: 8px; font-weight: 600; padding: 8px 25px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);"><i class="fa fa-print"></i> Print Receipt</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    function ContentLoad() {
+        if(typeof speak === "function") {
+            speak('Please do not press back button or refresh when you make payment');
+        }
+
+        // Selection elements
+        var selectAllCheckbox = document.getElementById('selectAllHeads');
+        var feeCheckboxes = document.querySelectorAll('.fee-checkbox');
+        var selectedCountDisplay = document.getElementById('selectedCount');
+        var selectedTotalAmountDisplay = document.getElementById('selectedTotalAmount');
+        var summaryBar = document.getElementById('summaryBar');
+        var btnPaySelected = document.getElementById('btnPaySelected');
+
+        if(feeCheckboxes.length > 0) {
+            function updateTotal() {
+                var total = 0;
+                var checkedCount = 0;
+                var allChecked = true;
+
+                feeCheckboxes.forEach(function(cb) {
+                    if (cb.checked) {
+                        total += parseFloat(cb.getAttribute('data-amount') || 0);
+                        checkedCount++;
+                    } else {
+                        allChecked = false;
+                    }
+                });
+
+                if (selectedCountDisplay) selectedCountDisplay.innerText = checkedCount;
+                if (selectedTotalAmountDisplay) selectedTotalAmountDisplay.innerText = total.toFixed(2);
+                
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = allChecked && feeCheckboxes.length > 0;
+                }
+
+                if (summaryBar) {
+                    if (checkedCount > 0) {
+                        summaryBar.style.display = 'flex';
+                    } else {
+                        summaryBar.style.display = 'none';
+                    }
+                }
+            }
+
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    var isChecked = this.checked;
+                    feeCheckboxes.forEach(function(cb) {
+                        cb.checked = isChecked;
+                    });
+                    updateTotal();
+                });
+            }
+
+            feeCheckboxes.forEach(function(cb) {
+                cb.addEventListener('change', updateTotal);
+            });
+            
+            // Initialize total on load
+            updateTotal();
+        } else {
+            // No unpaid fees
+            if (selectAllCheckbox) {
+                selectAllCheckbox.disabled = true;
+            }
+        }
+
+        // Pay Selected Click Handler
+        if (btnPaySelected) {
+            btnPaySelected.addEventListener('click', function() {
+                var selectedHeads = [];
+                var totalAmount = 0;
+                var firstChecked = null;
+
+                document.querySelectorAll('.fee-checkbox:checked').forEach(function(cb) {
+                    selectedHeads.push(cb.getAttribute('data-id'));
+                    totalAmount += parseFloat(cb.getAttribute('data-amount') || 0);
+                    if (!firstChecked) {
+                        firstChecked = cb;
+                    }
+                });
+
+                if (selectedHeads.length === 0) {
+                    alert("Please select at least one fee head.");
+                    return;
+                }
+
+                var freqId = firstChecked.getAttribute('data-freq-id');
+                var studentId = '@Session[CMS.Utility.Common.SESSION_VARIABLES.USER_ID]';
+                var academicYear = firstChecked.getAttribute('data-academic-year');
+
+                var url = '@Url.Action("PaymentModeForAdmin", "PaymentGateway")' + 
+                          '?sFrequencyTypeId=@CMS.Utility.Common.FrequencyType.HostelFee' +
+                          '&sFrequencyId=' + freqId +
+                          '&sFeeRootId=@CMS.Utility.Common.FeeRoot.HostelFee' +
+                          '&sStudentId=' + studentId +
+                          '&sAmount=' + totalAmount.toFixed(2) +
+                          '&sAcademicyear=' + academicYear +
+                          '&sHead=' + selectedHeads.join(',') +
+                          '&sSelectionID=' + selectedHeads.join(',');
+
+                window.location.href = url;
+            });
+        }
+
+        // Receipt AJAX Loader
+        $(document).on('click', '.btn-view-receipt', function() {
+            var txnId = $(this).attr('data-txn-id');
+            if (!txnId) {
+                alert("Transaction ID not found.");
+                return;
+            }
+            
+            var $btn = $(this);
+            var originalHtml = $btn.html();
+            $btn.html('<i class="fa fa-spinner fa-spin"></i> Loading...').prop('disabled', true);
+            
+            $.ajax({
+                url: '@Url.Action("GetHostelFeeReceipt", "Hostel")',
+                type: 'GET',
+                data: { transactionId: txnId },
+                success: function(response) {
+                    $btn.html(originalHtml).prop('disabled', false);
+                    if (response.status) {
+                        debugger;
+                        // Populate College Details
+                        $('#receiptCollegeName').text(response.college.name || 'Holy Cross College');
+                        $('#receiptCollegeAddress').text(response.college.address || '');
+                        $('#receiptCollegePhone').text(response.college.phone || '');
+                        $('#receiptCollegeEmail').text(response.college.email || '');
+                        
+                        // Populate Student Details
+                        $('#receiptStudentName').text(response.student.name || '');
+                        $('#receiptRegisterNo').text(response.student.registerNo || '');
+                        $('#receiptRollNo').text(response.student.rollNo || '');
+                        
+                        // Populate Payment Details
+                        $('#receiptNo').text(response.payment.receiptNo || '-');
+                        $('#receiptTxnId').text(response.payment.transactionId || '-');
+                        $('#receiptOrderId').text(response.payment.orderId || '-');
+                        $('#receiptDate').text(response.payment.date || '-');
+                        $('#receiptMode').text(response.payment.mode || '-');
+                        // Populate breakdown items
+                        var itemsHtml = '';
+                        var total = 0;
+                        if (response.items && response.items.length > 0) {
+                            var getValueByKey = function(arr, key) {
+                                if (!arr) return null;
+                                if (Array.isArray(arr)) {
+                                    var found = arr.find(function(x) {
+                                        return x && x.Key && x.Key.toUpperCase() === key.toUpperCase();
+                                    });
+                                    return found ? found.Value : null;
+                                }
+                                if (arr[key] !== undefined && arr[key] !== null) return arr[key];
+                                var upper = key.toUpperCase();
+                                if (arr[upper] !== undefined && arr[upper] !== null) return arr[upper];
+                                var lower = key.toLowerCase();
+                                if (arr[lower] !== undefined && arr[lower] !== null) return arr[lower];
+                                return null;
+                            };
+
+                            response.items.forEach(function (item) {
+                                debugger;
+                                var rawAmt = getValueByKey(item, 'PAID_AMOUNT');
+                                var amt = parseFloat(rawAmt || 0);
+                                total += amt;
+                                var headName = getValueByKey(item, 'HEAD_NAME') || 'Fee Particular';
+                                itemsHtml += '<tr>' +
+                                    '<td>' + headName + '</td>' +
+                                             '<td class="text-right" style="font-weight: 600;">&#8377; ' + amt.toFixed(2) + '</td>' +
+                                             '</tr>';
+                            });
+                        }
+                        $('#receiptItemsBody').html(itemsHtml);
+                        $('#receiptTotalAmount').html('&#8377; ' + total.toFixed(2));
+                        
+                        // Show modal
+                        $('#receiptModal').modal('show');
+                    } else {
+                        alert(response.Message || "Failed to load receipt details.");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $btn.html(originalHtml).prop('disabled', false);
+                    alert("Error fetching receipt: " + error);
+                }
+            });
+        });
+
+        // Print Handler
+        $('#btnPrintReceipt').off('click').on('click', function() {
+            var printContents = document.getElementById('printableReceipt').innerHTML;
+            var printWindow = window.open('', '', 'height=600,width=800');
+            printWindow.document.write('<html><head><title>Payment Receipt</title>');
+            printWindow.document.write('<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">');
+            printWindow.document.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">');
+            printWindow.document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">');
+            printWindow.document.write('<style>body { font-family: "Outfit", sans-serif; padding: 20px; } .text-right { text-align: right; } .text-center { text-align: center; }</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(printContents);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(function() {
+                printWindow.print();
+                printWindow.close();
+            }, 500);
+        });
+    }
+</script>

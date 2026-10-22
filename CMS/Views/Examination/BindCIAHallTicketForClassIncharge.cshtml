@@ -1,0 +1,111 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@using CMS.Utility;
+@{ 
+    var litest =new List<CMS.ViewModel.Model.FetchHallTicket>();   
+}
+
+@if (Model.liFetchHallTicket != null && Model.liFetchHallTicket.Count() > 0 && Model.liCollegeDetails != null && Model.liCollegeDetails.Count > 0 && Model.liExamRegistrationModel != null && Model.liExamRegistrationModel.Count > 0)
+{
+    if (Model.liCollegeDetails != null && Model.liCollegeDetails.Count > 0)
+    {
+        var StudentList = Model.liFetchHallTicket.GroupBy(s => s.STUDENT_ID).ToList();
+        if (StudentList != null && StudentList.Count > 0)
+        {
+            foreach (var item in StudentList)
+            {
+                var Individual = Model.liFetchHallTicket.Where(s => s.STUDENT_ID == item.FirstOrDefault().STUDENT_ID).ToList();
+                var info = Model.liExamRegistrationModel.Where(s => s.STUDENT_ID == item.FirstOrDefault().STUDENT_ID).ToList();
+                //var liGroupBy = Model.liFetchHallTicket.GroupBy(x => x.BLOCK_CODE).Select(x => new CMS.ViewModel.Model.FetchHallTicket() { BLOCK_CODE = x.FirstOrDefault().BLOCK_CODE, BLOCK_NAME = x.FirstOrDefault().BLOCK_NAME }).ToList();
+                var test = Individual.GroupBy(s => s.BLOCK_CODE).ToList();
+                <div style="page-break-after:always !important;page-break-inside:avoid !important;">
+                    <div class="form-group col-xs-12">
+                        <div class="form-group col-xs-2">
+                            <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO)" style="width:150px; height:150px" />
+                        </div>
+                        <div class="form-group col-xs-8 text-center ">
+                            <h4>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME </h4>
+                            <h5>@Model.liCollegeDetails.FirstOrDefault().PLACE .</h5>
+                            <h6>@Model.liCollegeDetails.FirstOrDefault().UNIVERSITY.</h6>
+                            <h6>
+                                @Html.Raw(Model.liCollegeDetails.FirstOrDefault().GRADE.Replace("rd", "<sup>rd</sup>")) <br />
+                                CIA EXAMINATION HALL TICKET<br />
+                                SEMESTER &nbsp;<b>@Model.liExamRegistrationModel.FirstOrDefault().SEMESTER_NAME</b> &nbsp;&nbsp; MONTH & YEAR &nbsp;&nbsp; @Model.liExamRegistrationModel.FirstOrDefault().MONTH<b></b>
+                            </h6>
+                        </div>
+
+                        <div class="form-group col-xs-2">
+                            @{
+                                if (!string.IsNullOrEmpty(@Individual.FirstOrDefault().PHOTO))
+                                {
+                                    <img src="@Individual.FirstOrDefault().PHOTO" alt="Photo" style="width:150px; height:150px" />
+                                }
+                                else
+                                {
+                                    <div src="" style="border:2px solid gray;width:100px; height:130px;"><p style="text-align:center;">AFFIX HERE YOUR PASSPORT SIZE PHOTOGRAPH TAKEN WITHIN A PERIOD OF THREE MONTHS</p></div>
+                                }
+                            }
+                        </div>
+                    </div>
+                    <table class="table" border="0" cellpadding="30" cellspacing="30">
+                        <tr>
+                            <td><b>Name : </b>&nbsp;@info.FirstOrDefault().NAME</td>
+                            <td><b>Date Of Birth : </b> &nbsp; @info.FirstOrDefault().DATE_OF_BIRTH</td>
+                            <td><b>Roll No : </b> &nbsp; @info.FirstOrDefault().ROLL_NO</td>
+                        </tr>
+                        <tr>
+                            <td><b>Main :</b> &nbsp;@info.FirstOrDefault().DEPARTMENT </td>
+                            <td><b>Semester : </b> &nbsp;@info.FirstOrDefault().SEMESTER_NAME </td>
+                            <td><b>Register No : </b> &nbsp;@info.FirstOrDefault().REGISTER_NO </td>
+                        </tr>
+                    </table>
+                    <table align="left" style="width:100%; border:1px solid; table-layout:fixed;">
+                        <thead>
+                            <tr>
+                                <th width="15% !important" style="border:1px solid; padding:10px;" align="left">CODE</th>
+                                <th width="30% !important" style="border:1px solid; padding:10px;" align="left">TITLE</th>
+                                <th width="13% !important" style="border:1px solid; padding:10px;" align="left">DATE</th>
+                                <th width="17% !important" style="border:1px solid; padding:10px;" align="left">TIME</th>
+                                <th width="15% !important" style="border:1px solid; padding:10px;" align="left">SEAT</th>
+                                <th width="10% !important" style="border:1px solid; padding:10px;" align="left">STAFF</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var items in Individual)
+                            {                                
+                                <tr>
+                                    <td width="15% !important" style="border:1px solid; padding:10px;" align="left">@items.COURSE_CODE</td>
+                                    <td width="30% !important" style="border:1px solid; padding:10px;" align="left">@items.COURSE_TITLE</td>
+                                    <td width="13% !important" style="border:1px solid; padding:10px;" align="left">@items.EXAM_DATE</td>
+                                    <td width="17% !important" style="border:1px solid; padding:10px;" align="left">@items.EXAM_TIME</td>
+                                    <td width="15% !important" style="border:1px solid; padding:10px;" align="left">@items.SEAT_CODE</td>
+                                    <td width="10% !important" style="border:1px solid; padding:10px;" align="left"></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="form-group col-xs-12">
+                        <p><b>SeatDescription</b> : &nbsp;
+                        BlockCode - RoomNo - Position</p>
+                    </div>
+                    <div class="form-group">
+                        @if (test != null && test.Count > 0)
+                        {
+                            int nCount = 0;
+                            foreach (var items in test)
+                            {                               
+                                <div class="col-xs-4">
+                                    <label>@{nCount++;} @nCount . @items.FirstOrDefault().BLOCK_CODE  : @items.FirstOrDefault().BLOCK_NAME</label>
+                                </div>
+                                            }
+                                        }
+                    </div>
+
+                </div>
+                                            }
+                                        }
+
+
+
+                                    }
+                                }
+

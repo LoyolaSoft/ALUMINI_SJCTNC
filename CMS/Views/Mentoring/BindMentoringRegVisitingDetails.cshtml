@@ -1,0 +1,198 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    ViewBag.Title = "BindMentoringRegVisitingDetails";
+}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+<div class="panel panel-default">
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered" id="tbladmin">
+                <thead>
+                    <tr>
+                        <th>S.No.</th>
+                        <th>Roll No</th>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Visit Date</th>
+                        <th>Visit Time</th>
+                        <th>Visit Duration</th>
+                        <th>Matter Discussed</th>
+                        <th>Conclusion Arrived</th>
+                        <th>Action Taken</th>
+                        <th>General Impression</th>
+                        <th>Next Visit Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.liRegularvisitdetails != null && Model.liRegularvisitdetails.Any())
+                    {
+                        int count = 0;
+                        foreach (var item in Model.liRegularvisitdetails)
+                        {
+                            count++;
+                            <tr>
+                                <td>@count</td>
+                                <td>@item.ROLL_NO</td>
+                                <td>@item.FIRST_NAME</td>
+                                <td>@item.CLASS_CODE</td>
+                                <td>@item.VISIT_DATE</td>
+                                <td>@item.VISIT_TIME</td>
+                                <td>@item.VISIT_DURATION</td>
+                                <td>@item.MATTER_DISCUSSED</td>
+                                <td>@item.CONCLUSION_ARRIVED_AT</td>
+                                <td>@item.ACTION_TAKEN</td>
+                                <td>@item.GENERAL_IMPRESSION</td>
+                                <td>@item.DATE_OF_NEXT_VISIT</td>
+                                <td class="text-center">
+                                    <a href="#myModal" data-toggle="modal" onclick="openEditPage('@item.STUDENT_ID')" title="Edit">
+                                        <i class="fa fa-edit text-primary"></i>
+                                    </a>
+                                    <a href="#" onclick="Delete('@item.STUDENT_ID', '@item.ROLL_NO')" title="Delete">
+                                        <span class="glyphicon glyphicon-trash text-danger"></span>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="15" class="text-center">No records found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="myModalLabel">Edit Mentoring Regular Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="editContainer">
+               
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-danger" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveChanges">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+
+
+    function openEditPage(studentId) {
+    $.ajax({
+        url: '@Url.Action("GetMentoringDetails", "Mentoring")',
+        type: 'GET',
+        data: { studentId: studentId },
+        success: function (data) {
+            if (data) {
+
+                $('#editContainer').html(data);
+                $('#myModal').modal.empty;
+                $('#myModal').modal('show');
+            } else {
+                alert('No data found for the provided student ID.');
+            }
+        },
+        error: function (xhr, status, error) {
+            alert('An error occurred: ' + error);
+        }
+    });
+    }
+
+    $('#saveChanges').click(function () {
+    var formData = $('#editForm').serialize();
+
+    $.ajax({
+        url: '@Url.Action("UpdateMentoringDetails", "Mentoring")',
+        type: 'POST',
+        data: formData,
+        success: function (response) {
+            if (response.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Update successful',
+                    text: response.message || 'The operation was successful.',
+                    confirmButtonText: 'OK'
+                });
+                $('#myModal').modal('hide');
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Update failed',
+                    text: response.errorMessage || 'Something went wrong.',
+                    confirmButtonText: 'Try Again'
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'An error occurred',
+                text: error,
+                confirmButtonText: 'OK'
+            });
+        }
+    });
+});
+
+    function Delete(studentId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: `You are about to delete the student`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+
+            $.ajax({
+                url: "@Url.Action("DeleteMentorDetails", "Mentoring")",
+                type: 'POST',
+                data: { studentId: studentId },
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire(
+                            'Deleted!',
+                            response.message,
+                            'success'
+                        );
+
+                        location.reload();
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            response.message,
+                            'error'
+                        );
+                    }
+                },
+                error: function () {
+                    Swal.fire(
+                        'Error!',
+                        'An error occurred while processing the request.',
+                        'error'
+                    );
+                }
+            });
+        }
+    },2000);
+}
+</script>

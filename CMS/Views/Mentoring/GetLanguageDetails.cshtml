@@ -1,0 +1,166 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    Layout = null;
+}
+
+<div class="form-container mt-3" id="dvLanguageDetails">
+    <h4 class="text-center mb-4"><b><i class="fa fa-language"></i> Student Language Proficiency</b></h4>
+
+    <div class="row mb-3">
+        <div class="col-md-6 form-group">
+            <label for="LANG_DROPDOWN">Add Language</label>
+            <div class="input-group">
+                <select id="LANG_DROPDOWN" class="form-control">
+                    <option value="">-- Select Language --</option>
+                    <option value="4">English</option>
+                    <option value="5">Hindi</option>
+                    <option value="1">French</option>
+                    <option value="2">Urdu</option>
+                    <option value="3">Tamil</option>
+                    <option value="6">Kannada</option>
+                    <option value="7">Malayalam</option>
+                    <option value="8">Telugu</option>
+                </select>
+                <span class="input-group-btn">
+                    <button class="btn btn-info" type="button" onclick="addLanguageToTable()">
+                        <i class="fa fa-plus"></i> Add
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover" id="tblLanguageProficiency">
+            <thead class="bg-silver">
+                <tr>
+                    <th>Language</th>
+                    <th class="text-center">Read</th>
+                    <th class="text-center">Write</th>
+                    <th class="text-center">Speak</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody id="LANG_TABLE_BODY">
+                @* Default languages *@
+                <tr data-language-id="4">
+                    <td>English</td>
+                    <td class="text-center"><input type="checkbox" value="1" class="lang-read"></td>
+                    <td class="text-center"><input type="checkbox" value="2" class="lang-write"></td>
+                    <td class="text-center"><input type="checkbox" value="3" class="lang-speak"></td>
+                    <td class="text-center"><button class="btn btn-xs btn-danger" onclick="$(this).closest('tr').remove()"><i class="fa fa-trash"></i></button></td>
+                </tr>
+                <tr data-language-id="3">
+                    <td>Tamil</td>
+                    <td class="text-center"><input type="checkbox" value="1" class="lang-read"></td>
+                    <td class="text-center"><input type="checkbox" value="2" class="lang-write"></td>
+                    <td class="text-center"><input type="checkbox" value="3" class="lang-speak"></td>
+                    <td class="text-center"><button class="btn btn-xs btn-danger" onclick="$(this).closest('tr').remove()"><i class="fa fa-trash"></i></button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4">
+        <button id="btnSaveLanguageDetails" class="btn btn-primary">
+            <i class="fa fa-save"></i> Save Language Proficiences
+        </button>
+    </div>
+</div>
+
+<script>
+    function addLanguageToTable() {
+        var dropdown = document.getElementById("LANG_DROPDOWN");
+        var langId = dropdown.value;
+        var langText = dropdown.options[dropdown.selectedIndex].text;
+
+        if (!langId) {
+            swal('Warning', 'Please select a language first', 'warning');
+            return;
+        }
+
+        var tableBody = document.getElementById("LANG_TABLE_BODY");
+        var existing = tableBody.querySelector('tr[data-language-id="' + langId + '"]');
+
+        if (existing) {
+            swal('Note', 'This language is already in the list', 'info');
+            return;
+        }
+
+        var newRow = document.createElement("tr");
+        newRow.setAttribute("data-language-id", langId);
+        newRow.innerHTML = `
+            <td>${langText}</td>
+            <td class="text-center"><input type="checkbox" value="1" class="lang-read"></td>
+            <td class="text-center"><input type="checkbox" value="2" class="lang-write"></td>
+            <td class="text-center"><input type="checkbox" value="3" class="lang-speak"></td>
+            <td class="text-center"><button class="btn btn-xs btn-danger" onclick="$(this).closest('tr').remove()"><i class="fa fa-trash"></i></button></td>
+        `;
+        tableBody.appendChild(newRow);
+    }
+
+    $(document).ready(function () {
+        var langSaveBusy = false;
+
+        $('#btnSaveLanguageDetails').on('click', function () {
+            if (langSaveBusy) return;
+            langSaveBusy = true;
+
+            var studentId = typeof selectedStudentId !== 'undefined' ? selectedStudentId : null;
+
+            if (!studentId) {
+                swal('Error', 'Student identification failed', 'error');
+                langSaveBusy = false;
+                return;
+            }
+
+            var languageData = [];
+            $('#LANG_TABLE_BODY tr').each(function () {
+                var langId = $(this).data('language-id');
+                if (langId) {
+                    languageData.push({
+                        LANGUAGE_ID: langId,
+                        READ_ID: $(this).find('.lang-read').is(':checked') ? "Yes" : "No",
+                        WRITE_ID: $(this).find('.lang-write').is(':checked') ? "Yes" : "No",
+                        SPEAK_ID: $(this).find('.lang-speak').is(':checked') ? "Yes" : "No"
+                    });
+                }
+            });
+
+            if (languageData.length === 0) {
+                swal('Warning', 'No language data to save', 'warning');
+                langSaveBusy = false;
+                return;
+            }
+
+            $(this).prop('disabled', true);
+
+            var formData = new FormData();
+            formData.append("FORMDATA", JSON.stringify({ STUDENT_ID: studentId }));
+            formData.append("LANGUAGE", JSON.stringify(languageData));
+
+            $.ajax({
+                url: '@Url.Action("SaveLanguageDetails", "Mentoring")',
+                type: 'POST',
+                contentType: false,
+                processData: false,
+                data: formData,
+                success: function (res) {
+                    if (res.success !== false) {
+                        swal('Success', 'Language proficiency saved successfully', 'success');
+                    } else {
+                        swal('Error', res.message || 'Failed to save data', 'error');
+                    }
+                },
+                error: function () {
+                    swal('Error', 'Server error during save', 'error');
+                },
+                complete: function() {
+                    $('#btnSaveLanguageDetails').prop('disabled', false);
+                    langSaveBusy = false;
+                }
+            });
+        });
+    });
+</script>
+

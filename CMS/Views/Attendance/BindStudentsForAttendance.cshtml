@@ -1,0 +1,196 @@
+﻿@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+
+@using CMS.Utility;
+@{ Layout = null; string sSelected = "selected";
+    int count = 0;
+    if (Model.attendanceEntry != null && Model.attendanceEntry.Count > 0)
+    {
+    <div class="row">
+        <div class="form-horizontal">
+            <div class="col-md-12">
+                <div class="col-md-6">
+                    <strong for="CourseCode" class="control-label">Class : </strong>
+                    <label id="txtClass"></label><br />
+                    <strong for="CourseTitle" class="control-label">Course : </strong>
+                    <label id="txtCourse"></label>
+
+                </div>
+                @*<div class="col-lg-6 row m-b-5">
+                    @Html.Label("Search:", htmlAttributes: new { @class = "col-md-4 control-label " })
+                    <div class="col-md-8">
+                        <input type="text" name="name" id="search" class="form-control" value="" />
+                    </div>
+
+                </div>*@
+            </div>
+            <br />
+
+        </div>
+       
+    </div>
+        
+        <br /><br />
+        <div class="col-md-12 form-group">
+            <div class="table-responsive">
+                <table class="table table-bordered table-responsive table-hover" id="tblAttendance">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>First Name</th>
+                            <th>Class</th>
+                            <th>Roll No</th>
+                            <th>Register No</th>
+                            <th>Attendance Type</th>
+                            <th class="hidden">Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var student in Model.attendanceEntry)
+                        {
+                            <tr cms-attendance-id="@student.ATTENDANCE_ID" cms-student-id="@student.STUDENT_ID" cms-s-class-id="@student.S_CLASS_ID" cms-date="@DateTime.Now.ToString("yyyy-MM-dd")" cms-staff-id="@Session[Common.SESSION_VARIABLES.USER_ID].ToString()">
+                                <td>@{count++;}@count</td>
+                                <td>@student.FIRST_NAME</td>
+                                <td>@student.CLASS_NAME</td>
+                                <td>@student.ROLL_NO</td>
+                                <td>@student.REGISTER_NO</td>
+                                <td>
+                                    <select class="form-control attendaceColorChange" id="attendanceType">
+                                        @if (Model.attendanceTypes!=null && Model.attendanceTypes.Count>0)
+	                                    {
+		                                     foreach (var attendanceType in Model.attendanceTypes)
+                                             {
+                                                <option value="@attendanceType.ATTENDANCE_TYPE_ID" @if (attendanceType.ATTENDANCE_TYPE_ID == student.ATTENDANCE_TYPE_ID) { @sSelected   }>
+                                                    @attendanceType.ATTENDANCE_TYPE
+                                                </option>
+                                             }
+                                        }
+                                    </select>
+                                </td>
+                                <td class="hidden">
+                                    <select class="form-control" id="reason">
+                                        <option value="0">--Select--</option>
+                                        @if (Model.reasons!=null && Model.reasons.Count>0)
+	                                    {
+		                                    foreach (var reason in Model.reasons)
+                                            {
+                                                <option value="@reason.REASON_ID" @if (reason.REASON_ID == student.REASON_ID) { @sSelected   }>
+                                                    @reason.REASON
+                                                </option>
+                                            }
+                                        }
+                                        
+
+                                    </select>
+                                </td>
+
+
+                            </tr>
+                                    }
+                    </tbody>
+                </table>
+            </div>
+            
+        </div>
+     }
+}
+
+
+<script>
+    $(document).ready(function () {
+        $('#tblAttendance tbody tr').each(function () {
+            $(this).find('select[id="attendanceType"]').each(function () {
+                var attType = $(this).val(); // Assuming 'Absent' is the value for absent in your options
+                if (attType == "1") {
+                    $(this).css('background-color', '#d4edda');
+                }
+                else if (attType == "2") {
+                    $(this).css('background-color', '#f8d7da');
+                }
+                else if (attType == "3") {
+                    $(this).css('background-color', '#fff3cd');
+                }
+                else if (attType == "4") {
+                    $(this).css('background-color', '#ebafe6');
+                }
+                else if (attType == "5") {
+                    $(this).css('background-color', '#afcaeb');
+                }
+                else {
+                    $(this).css('background-color', '#d4edda');
+                }
+
+            });
+        });
+    });
+    //$("#btnAllOD").on('click', function () {
+    //    $('#btnreasondiv').removeClass('hidden')
+    //});
+    //$("#btnAllabsent").on('click', function () {
+    //    $('#btnreasondiv').addClass('hidden')
+    //})
+    $(document).ready(function () {
+        $('#Allpresent').click(function (e) {
+            e.preventDefault();
+            $('#tblAttendance tbody tr').each(function () {
+                $(this).find('select[id="attendanceType"]').each(function () {
+                    $(this).val('1'); // Assuming 'Absent' is the value for absent in your options
+                    $(this).css('background-color', '#d4edda'); // Green for present
+                });
+            });
+        });
+
+        $('#btnAllabsent').click(function (e) {
+            e.preventDefault();
+            $('#tblAttendance tbody tr').each(function () {
+                $(this).find('select[id="attendanceType"]').each(function () {
+                    $(this).val('2'); // Assuming 'Absent' is the value for absent in your options
+                    $(this).css('background-color', '#f8d7da'); // Red for absent
+                });
+            });
+        });
+
+        $('#btnAllOD').click(function (e) {
+            e.preventDefault();
+            $('#tblAttendance tbody tr').each(function () {
+                $(this).find('select[id="attendanceType"]').each(function () {
+                    $(this).val('3');
+                    $(this).css('background-color', '#fff3cd');
+                });
+            });
+        });
+        $('#overallReasonID').change(function () {
+            var selectedReason = $(this).val();
+
+            $('#tblAttendance tbody tr').each(function () {
+                $(this).find('select[id="reason"]').val(selectedReason);
+            });
+        });
+        $('.attendaceColorChange').change(function () {
+            var selectedType = $(this).val();
+            if (selectedType == "1") {
+                $(this).css('background-color', '#d4edda');
+            }
+            else if (selectedType == "2") {
+                $(this).css('background-color', '#f8d7da');
+            }
+            else if (selectedType == "3") {
+                $(this).css('background-color', '#fff3cd');
+            }
+            else if (selectedType == "4") {
+                $(this).css('background-color', '#ebafe6');
+            }
+            else if (selectedType == "5") {
+                $(this).css('background-color', '#afcaeb');
+            }
+            else {
+                $(this).css('background-color', '#d4edda');
+            }
+
+        });
+
+    });
+
+
+
+</script>

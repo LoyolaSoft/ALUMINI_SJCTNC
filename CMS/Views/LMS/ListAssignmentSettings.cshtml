@@ -1,0 +1,582 @@
+﻿@model CMS.ViewModel.ViewModel.LMSViewModel
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Assignment Setting</li>
+    </ol>
+    <h1 class="page-header">Assignment Setting</h1>
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Assignment Setting</h4>
+        </div>
+
+        <div class="panel-body" data-parsley-validate="true" id="Pbody">
+            <div class="col-md-12 form-horizontal">
+                <div class="table-responsive">
+                    <div class="form-group col-md-12 text-right">
+                        <a href="#AssignmentSetting-dialog" class="btn btn-success mr-2" data-toggle="modal">
+                            <i class="fa fa-plus"></i> Add
+                        </a>
+                        <a href="#AssignmentSetting-Excel" class="btn btn-success" data-toggle="modal">
+                            <i class="fa fa-plus"></i> Excel Export
+                        </a>
+                    </div>
+
+                    <br /><br />
+                    @{int No = 0;}
+                    <table class="col-md-12 table table-hover table-bordered" id="tblAssignmentSetting">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Topic</th>
+                                <th>Class</th>
+                                <th>Staff Name</th>
+                                <th>Student Name</th>
+                                <th>Course</th>
+                                <th>Description</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Active</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.liassignmentsetting != null)
+                            {
+                                foreach (var item in Model.liassignmentsetting)
+                                {
+                                    <tr>
+                                        <td>@{No++; } @No</td>
+                                        <td>@item.ASSIGNMENT_NAME</td>
+                                        <td>@item.CLASS_NAME</td>
+                                        <td>@item.FIRST_NAME</td>
+                                        <td>@item.STUDENT_NAME</td>
+                                        <td>@item.COURSE_TITLE</td>
+                                        <td>@item.DESCRIPTION</td>
+                                        <td>@item.START_DATE</td>
+                                        <td>@item.END_DATE</td>
+                                        <td>
+                                            @if (item.IS_ACTIVE == "1")
+                                            {
+                                                <a href="javascrip:;" class="text-success"><i class="fa fa-check"></i></a>
+                                            }
+                                            else
+                                            {
+                                                <a href="javascrip:;" class="text-danger"><i class="fa fa-times"></i></a>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a href="#AssignmentSetting-dialog" onclick="FetchSettingInfo(@item.ASSIGNMENT_SETTING_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+                                            @if (item.IS_ACTIVE == "1")
+                                            {
+                                                <a href="javascrip:;" onclick="GetConfirm(@item.ASSIGNMENT_SETTING_ID)" data-toggle="modal" class="text-danger"><i class="fa fa-trash"></i></a>
+                                            }
+
+                                        </td>
+                                    </tr>
+                                }
+                            }
+
+                        </tbody>
+                    </table>
+                    <br />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Begin Modal -->
+
+<div class="modal" id="AssignmentSetting-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit  Setting</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12" id="dvValidate" data-parsley-validate="true">
+
+                                <!-- Class -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Class</label>
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(m => m.CLASSLIST, (Model.CLASSLIST != null) ? Model.CLASSLIST : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true" })
+                                        @Html.ValidationMessageFor(m => m.CLASSLIST, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <!-- Course -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Course</label>
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(m => m.COURSELIST, (Model.COURSELIST != null) ? Model.COURSELIST : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true" })
+                                        @Html.ValidationMessageFor(m => m.COURSELIST, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Student</label>
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(m => m.sCourseList, (Model.sCourseList != null) ? Model.sCourseList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true", @multiple = "multiple", @data_actions_box = "true" })
+                                        @Html.ValidationMessageFor(m => m.sCourseList, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+
+                                <!-- Setting Name-->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Topic</label>
+                                    <div class="col-md-9">
+                                        <input type="text" id="txtSettingName" class="form-control" placeholder="Enter Setting Name" data-parsley-required="true">
+                                    </div>
+                                </div>
+                                <!-- Discription-->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Description</label>
+                                    <div class="col-md-9">
+                                        <textarea id="txtDescription" class="form-control" rows="3" placeholder="Enter Description" data-parsley-required="true"></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Total Mark -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Total Mark</label>
+                                    <div class="col-md-9">
+                                        <input type="text" id="txtTotalMark" class="form-control" placeholder="Total Mark">
+                                    </div>
+                                </div>
+
+
+                                <!-- Start Date -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Start Date</label>
+                                    <div class="col-md-9">
+                                        <div class="input-group date" id="datetimepicker1">
+                                            <input type="text" id="txtStartDate" class="form-control input-sm" placeholder="Select Date" data-parsley-required="true" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- End Date -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">End Date</label>
+                                    <div class="col-md-9">
+                                        <div class="input-group date" id="datetimepicker2">
+                                            <input type="text" id="txtEndDate" class="form-control input-sm" placeholder="Select Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" data-dismiss="modal" class="btn btn-sm btn-primary">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal" id="AssignmentSetting-Excel">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="excelModalLabel">Upload and Update Excel</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12" id="dvValidate" data-parsley-validate="true">
+
+
+                                <!-- Class -->
+                                <div class="form-group col-md-12 mb-3">
+                                    <div class="row align-items-center">
+                                        <label class="col-md-3 col-sm-12 control-label">Class</label>
+                                        <div class="col-md-9 col-sm-12">
+                                            @Html.DropDownListFor(m => m.CLASSLIST,
+                                                (Model.CLASSLIST != null) ? Model.CLASSLIST : Enumerable.Empty<SelectListItem>(),
+                                                "-- Select --",
+                                                new
+                                                {
+                                                    @class = "form-control selectpicker show-menu-arrow show-tick",
+                                                    @data_live_search = "true",
+                                                    @data_parsley_required = "true",
+                                                    id = "excelCls"
+                                                })
+                                            @Html.ValidationMessageFor(m => m.CLASSLIST, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Course -->
+                                <div class="form-group col-md-12 mb-3">
+                                    <div class="row align-items-center">
+                                        <label class="col-md-3 col-sm-12 control-label">Course</label>
+                                        <div class="col-md-9 col-sm-12">
+                                            @Html.DropDownListFor(m => m.COURSELIST,
+                                                (Model.COURSELIST != null) ? Model.COURSELIST : Enumerable.Empty<SelectListItem>(),
+                                                "-- Select --",
+                                                new
+                                                {
+                                                    @class = "form-control selectpicker show-menu-arrow show-tick",
+                                                    @data_live_search = "true",
+                                                    @data_parsley_required = "true",
+                                                    id = "excelCourse"
+                                                })
+                                            @Html.ValidationMessageFor(m => m.COURSELIST, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Download & Upload -->
+                                <div class="form-group col-md-12 mt-3">
+                                    <div class="row">
+
+                                        <div class="col-md-4 col-sm-12 mb-2">
+                                            <a href="@Url.Action("DownloadClassCourseExcel", "YourController")" class="btn btn-success btn-block">
+                                                <i class="fa fa-download"></i> Download Excel
+                                            </a>
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-12 mb-2">
+                                            <input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls" />
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-12 mb-2">
+                                            <button type="button" class="btn btn-primary btn-block" id="btnUploadExcel">
+                                                <i class="fa fa-upload"></i> Upload Excel
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                     
+                        </div>
+                        </div>
+                        </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+<!-- End Modal -->
+<!-- Hidden Filed -->
+
+<input type="text" id="hdSettingId" class="hidden" />
+<!-- Hidden Filed -->
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+        // Document Ready Function .
+        handleDatepicker = function ()
+        {
+            "use strict";
+            $("#txtEndDate,#txtStartDate").datepicker({
+                todayHighlight: true,
+                autoclose: true,
+                startDate:new Date(),
+                format: "dd/mm/yyyy",
+                orientation: "right bottom"
+            });
+        }
+        handleDatepicker();
+
+    $('#tblAssignmentSetting').DataTable();
+
+    // On Submit Setting ...
+    $('#btnSubmit').on('click', function () {
+
+    var isValid = true;
+
+    if ($('#dvValidate').parsley().validate() !== true) isValid = false;
+
+    if (!isValid) {
+        myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+        return false;
+    }
+
+    var fileInput = $('#txtFilePath')[0].files[0];
+
+    // JSON data same style as your existing code
+    var JsonData = '{"COURSEWISE_ATTACHMENT_ID":"' + $('#CourseAttid').val() + '",\
+                     "SUBJECT":"' + $('#txSubject').val() + '",\
+                     "DESCRIPTION":"' + $('#txtDescription').val() + '",\
+                     "TITLE":"' + $('#txTitle').val() + '",\
+                     "UNIT":"' + $('#txtunit').val() + '",\
+                     "QUESTION_PAPER_TYPE_ID":"' + $('#LMSQUESTIONPAPERTYPE').val() + '",\
+                     "QUESTION_PAPER_ID":"' + $('#LMSQUESTIONPAPER').val() + '",\
+                     "CLASS_ID":"' + $('#CLASSLIST').val() + '",\
+                     "NOTES_ID":"' + $('#LMSCLASSNOTES').val() + '",\
+                     "HOUR":"' + $('#txthour').val() + '",\
+                     "METHOD":"' + $('#txtMetod').val() + '",\
+                     "RESOURCE":"' + $('#txtresourse').val() + '",\
+                     "ASSESSMENT":"' + $('#txassenment').val() + '",\
+                     "RUBRIC":"' + $('#txrubric').val() + '",\
+                     "ANY_OTHER":"' + $('#txother').val() + '",\
+                     "COURSE_ID":"' + $('#COURSELIST').val() + '",\
+                     "FILE_PATH":"' + $('#hdnFilePath').val() + '"\
+                    }';
+
+    var formData = new FormData();
+    formData.append("sSaveCourseWiseAttachment", JsonData);
+
+    if (fileInput) {
+        formData.append("UploadFile", fileInput);
+    }
+
+    $.ajax({
+        url: '@Url.Action("UpdateCourseWiseAttachments", "LMS")',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function (data) {
+            alert(data.Message);
+            loadContent('/LMS/ListAssignmentSettings');
+        },
+        error: function () {
+            alert('Internal Server Error!');
+        }
+    });
+
+});
+
+</script>
+
+<script>
+
+
+    // Delete Setting ...
+    function GetConfirm(ID)
+    {
+        if (!confirm('Are you sure to delete ?'))
+        {
+            return false;
+        }
+        else
+        {
+            $.ajax({
+                url:"@Url.Action("DeleteAssignmentSetting", "LMS")",
+                method: "POST",
+                datatype:"json",
+                data: { sSettingId: ID },
+                success:function(data)
+                {
+                    alert(data.Message);
+                    loadContent('/LMS/ListAssignmentSettings');
+                },error:function(error)
+                {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+    }
+
+    // Fetch Settin Info ...
+    function FetchSettingInfo(ID)
+    {
+        $.ajax({
+            url:"@Url.Action("FetchAssignmentSetting", "LMS")",
+            method: "POST",
+            datatype:"json",
+            data: { sSettingId: ID },
+            success:function(data)
+            {
+                if (data.Message != null && data.Message != '')
+                {
+                    alert(data.Message);
+                } else
+                {
+                    $('#txtSettingName').val(data[0].ASSIGNMENT_NAME);
+                    $('#txtDescription').val(data[0].DESCRIPTION);
+                    $('#CLASSLIST').val(data[0].CLASS_ID);
+                    $('#txtTotalMark').val(data[0].TOTAL_MARK);
+                    $('#txtStartDate').val(data[0].START_DATE);
+                    $('#txtEndDate').val(data[0].END_DATE);
+                    $('#hdSettingId').val(data[0].ASSIGNMENT_SETTING_ID);
+                    $('#COURSELIST').val(data[0].COURSE_ID);
+                    var selectedStudents = data[0].STUDENT_ID ? data[0].STUDENT_ID.split(',') : [];
+                    $('#sCourseList').val(selectedStudents);
+                    $('.selectpicker').selectpicker('refresh');
+                    $('#chIsActive').attr('value', data.oResult[0].IS_ACTIVE);
+                    if (data.oResult[0].IS_ACTIVE == "1") {
+                        $("#chIsActive").prop("checked", true);
+                    }
+                }
+            },error:function(error)
+            {
+                alert('Internal Server Error ! ');
+            }
+        });
+    }
+
+
+
+
+
+</script>
+
+<script>
+$("#AssignmentSetting-dialog").on("hidden.bs.modal", function ()
+    {
+        $('#txtSettingName').val('');
+        $('#txtDescription').val('');
+        $('#txtTotalMark').val('');
+        $('#txtStartDate').val('');
+        $('#txtEndDate').val('');
+        //$('#CLASSLIST').val('');
+        // $('#COURSELIST').val('');
+    $('#CLASSLIST').selectpicker('val', '');
+    $('#COURSELIST').selectpicker('val', '');
+    $('#sCourseList').selectpicker('val', '');
+
+ });
+
+      $('#CLASSLIST').on('change', function () {
+
+    $.ajax({
+        url: '@Url.Action("FetchCourseByClassidandStaffId", "LMS")',
+        type: 'POST',
+        dataType: 'json',
+        data: { sClassid: $('#CLASSLIST').val() },
+
+        success: function (data) {
+
+            $('#sCourseList').empty();
+            $('#COURSELIST').empty();
+
+            if (data.Message && data.Message !== '') {
+                alert(data.Message);
+            } else {
+                $('#sCourseList').append('<option value="">--- Select ---</option>' + data.sResultS);
+                $('#COURSELIST').append('<option value="">--- Select ---</option>' + data.sResult);
+
+                $('.selectpicker').selectpicker('refresh');
+            }
+        },
+
+        error: function () {
+            alert('Internal Server Error!');
+        }
+    });
+
+});
+
+</script>
+
+<script>
+   $('#btnUploadExcel').click(function () {
+    var file = $('#excelFile')[0].files[0];
+    if (!file) {
+        alert('Select an Excel file');
+        return;
+    }
+
+    // Get selected Class and Course IDs
+       var classId = $('#excelCls').val();
+       var courseId = $('#excelCourse').val();
+
+    if (!classId || !courseId) {
+        alert('Please select Class and Course.');
+        return;
+    }
+
+    var formData = new FormData();
+    formData.append('excelFile', file);
+    formData.append('classId', classId);
+    formData.append('courseId', courseId);
+
+    $.ajax({
+        url: '@Url.Action("UploadStudentWiseAssignmentExcel", "LMS")',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function (res) {
+            alert(res.Message);
+            loadContent('/LMS/ListAssignmentSettings');
+            //$('#AssignmentSetting-dialog').modal('hide')
+
+        }, error: function (error) {
+            alert('Internal Server Error !');
+        }
+    });
+   });
+
+
+    $('#excelCls').on('change', function () {
+
+    $.ajax({
+        url: '@Url.Action("FetchCourseByClassidandStaffId", "LMS")',
+        type: 'POST',
+        dataType: 'json',
+        data: { sClassid: $('#excelCls').val() },
+
+        success: function (data) {
+
+            $('#excelCourse').empty();
+
+            if (data.Message && data.Message !== '') {
+                alert(data.Message);
+            } else {
+                $('#excelCourse').append('<option value="">--- Select ---</option>' + data.sResult);
+
+                $('.selectpicker').selectpicker('refresh');
+            }
+        },
+
+        error: function () {
+            alert('Internal Server Error!');
+        }
+    });
+
+});
+
+
+</script>
+

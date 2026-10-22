@@ -1,0 +1,391 @@
+@model List<CMS.ViewModel.Model.FEE_STUDENT_ACCOUNT>
+@{
+    ViewBag.Title = "Pay All Staff Fee Dues";
+    Layout = null; // Loaded dynamically via SPA container
+}
+
+<!-- Google Fonts and FontAwesome -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<style>
+    .student-receipts-container {
+        padding: 20px 0;
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .profile-banner {
+        background: linear-gradient(135deg, #1f4068 0%, #162447 100%);
+        border-radius: 16px;
+        padding: 30px;
+        color: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+        border: none;
+    }
+
+    .profile-banner::after {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        bottom: -100px;
+        right: -50px;
+        pointer-events: none;
+    }
+
+    .profile-details h2 {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 0 5px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .profile-meta-item {
+        display: inline-block;
+        margin-right: 25px;
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 6px 12px;
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .profile-meta-item i {
+        margin-right: 6px;
+        color: #00c6ff;
+    }
+
+    .custom-receipts-table {
+        width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0 8px !important;
+        margin-top: 10px;
+    }
+
+    .custom-receipts-table th {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        font-size: 12px !important;
+        letter-spacing: 0.5px !important;
+        padding: 16px !important;
+        border: none !important;
+    }
+
+    .custom-receipts-table tbody tr.freq-header-row {
+        background: #f1f5f9 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+    }
+
+    .custom-receipts-table tbody tr.freq-child-row td {
+        background: #ffffff !important;
+        border-top: 1px solid #f1f5f9 !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        font-size: 13px !important;
+        color: #475569 !important;
+        padding: 10px 16px !important;
+    }
+
+    .custom-receipts-table td {
+        padding: 14px 16px !important;
+        font-size: 14px !important;
+        color: #334155 !important;
+    }
+
+    .badge-unpaid {
+        background: rgba(239, 68, 68, 0.1) !important;
+        color: #ef4444 !important;
+        padding: 6px 12px !important;
+        border-radius: 30px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        display: inline-block !important;
+        border: 1px solid rgba(239, 68, 68, 0.2) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-paid {
+        background: rgba(16, 185, 129, 0.1) !important;
+        color: #10b981 !important;
+        padding: 6px 12px !important;
+        border-radius: 30px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        display: inline-block !important;
+        border: 1px solid rgba(16, 185, 129, 0.2) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-pay-now {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 10px 20px !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none !important;
+        justify-content: center;
+    }
+
+    .btn-pay-now i {
+        margin-right: 6px;
+    }
+
+    .btn-pay-now:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45) !important;
+        color: #ffffff !important;
+    }
+
+    /* Mobile View card layout styles */
+    .mobile-fee-card {
+        border-left: 4px solid #ef4444;
+        transition: all 0.2s ease;
+    }
+
+    .mobile-fee-card.paid {
+        border-left: 4px solid #10b981;
+    }
+
+    /* Helper utility classes for responsiveness */
+    @@media (max-width: 767px) {
+        .hidden-xs-custom {
+            display: none !important;
+        }
+        .visible-xs-custom {
+            display: block !important;
+        }
+    }
+    @@media (min-width: 768px) {
+        .hidden-xs-custom {
+            display: block !important;
+        }
+        .visible-xs-custom {
+            display: none !important;
+        }
+    }
+</style>
+
+<div id="content" class="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">Staff Fee Due List</li>
+    </ol>
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <h4 class="panel-title">All Outstanding Staff Fee Dues</h4>
+        </div>
+        <div class="panel-body">
+            @if (Model != null && Model.Count > 0)
+            {
+                var staffName = Model.FirstOrDefault().FIRST_NAME;
+                var staffCode = Model.FirstOrDefault().REGISTER_NO;
+                var totalAmount = Model.Sum(o => Convert.ToDouble(o.BALANCE));
+
+                <div class="profile-banner">
+                    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div class="profile-details" style="flex: 1; min-width: 200px;">
+                            <h2 style="color: #ffffff !important; margin: 0 0 5px 0;">@staffName</h2>
+                            <div style="margin-top: 8px;">
+                                <span class="profile-meta-item" style="margin-top: 0; display: inline-block;">
+                                    <i class="fa fa-id-badge"></i> Staff Code: @staffCode
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="receipts-panel">
+                    <div class="total-pending-highlight-banner" style="background: linear-gradient(135deg, #1b262c 0%, #0f4c75 100%); border-radius: 12px; padding: 20px 25px; margin-bottom: 20px; color: #ffffff; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                        <div>
+                            <div style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #bbe1fa; margin-bottom: 5px;">Total Outstanding Balance</div>
+                            <div style="font-size: 32px; font-weight: 800; color: #10b981; line-height: 1;">&#8377; @totalAmount.ToString("F2")</div>
+                        </div>
+                        <div style="background: rgba(16, 185, 129, 0.1); padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                            <i class="fa fa-money" style="font-size: 24px; color: #10b981;"></i>
+                        </div>
+                    </div>
+
+                    <div class="alert-info alert" style="border-radius: 8px; font-weight: 500;">
+                        <span class="label label-inverse m-r-5" style="background: #1e293b;">NOTE!</span>
+                        Please do not press the back button or refresh while processing your payment.
+                    </div>
+
+                    <!-- DESKTOP VIEW (Grouped Table View) -->
+                    <div class="table-responsive hidden-xs-custom">
+                        <table class="table custom-receipts-table">
+                            <thead>
+                                <tr>
+                                    <th>Fee Category / Particular</th>
+                                    <th width="180px" class="text-right">Amount Due</th>
+                                    <th width="140px" class="text-center">Status</th>
+                                    <th width="180px" class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var freqGroup in Model.GroupBy(x => new { x.FREQUENCY_ID, x.FREQUENCY_TYPE, x.ACADEMIC_YEAR, x.STUDENT_ID, x.FEE_ROOT_ID }))
+                                {
+                                    var freqId = freqGroup.Key.FREQUENCY_ID;
+                                    var freqName = freqGroup.Key.FREQUENCY_TYPE;
+                                    var totalFreqBalance = freqGroup.Sum(x => { double b = 0; double.TryParse(x.BALANCE, out b); return b; });
+                                    var totalFreqPaid = freqGroup.Sum(x => { double d = 0; double.TryParse(x.DEBIT, out d); return d; });
+                                    bool isFreqPaid = totalFreqBalance <= 0;
+                                    var headIds = string.Join(",", freqGroup.Select(x => x.HEAD_ID));
+
+                                    <tr class="freq-header-row" style="background: #f8fafc; font-weight: bold; border-top: 2px solid #e2e8f0;">
+                                        <td>
+                                            <strong style="color: #1e293b; font-size: 15px;">@freqName</strong>
+                                        </td>
+                                        <td class="text-right">
+                                            <strong style="color: #0f172a; font-size: 15px;">&#8377; @((isFreqPaid ? totalFreqPaid : totalFreqBalance).ToString("F2"))</strong>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="@(isFreqPaid ? "badge-paid" : "badge-unpaid")">@(isFreqPaid ? "Paid" : "Pending")</span>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (isFreqPaid)
+                                            {
+                                                <span class="text-success"><i class="fa fa-check"></i> Complete</span>
+                                            }
+                                            else
+                                            {
+                                                <form method="get" action="@Url.Action("StaffPaymentModeForAdmin", "EdvironPayment")" style="margin: 0;">
+                                                    <input type="hidden" name="sFrequencyTypeId" value="ALL" />
+                                                    <input type="hidden" name="sFrequencyId" value="ALL" />
+                                                    <input type="hidden" name="sFeeRootId" value="ALL" />
+                                                    <input type="hidden" name="sStudentId" value="@freqGroup.Key.STUDENT_ID" />
+                                                    <input type="hidden" name="sAmount" value="@totalFreqBalance.ToString("F2")" />
+                                                    <input type="hidden" name="sAcademicyear" value="@freqGroup.Key.ACADEMIC_YEAR" />
+                                                    <input type="hidden" name="sHead" value="@headIds" />
+                                                    <input type="hidden" name="sSelectionID" value="@headIds" />
+                                                    <button type="submit" class="btn btn-pay-now" style="padding: 6px 14px !important; font-size: 12px !important; width: 100%;">
+                                                        <i class="fa fa-credit-card"></i> Pay Now
+                                                    </button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+
+                                    foreach (var head in freqGroup)
+                                    {
+                                        var headBal = 0.0;
+                                        double.TryParse(head.BALANCE, out headBal);
+                                        var headPaid = 0.0;
+                                        double.TryParse(head.DEBIT, out headPaid);
+                                        <tr class="freq-child-row">
+                                            <td style="padding-left: 30px !important;">
+                                                <i class="fa fa-caret-right text-muted m-r-5"></i> 
+                                                @(string.IsNullOrEmpty(head.HEAD_NAME) ? head.HEAD : head.HEAD_NAME)
+                                            </td>
+                                            <td class="text-right">
+                                                &#8377; @((isFreqPaid ? headPaid : headBal).ToString("F2"))
+                                            </td>
+                                            <td colspan="2"></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- MOBILE VIEW (Frequency-wise Cards Layout) -->
+                    <div class="visible-xs-custom">
+                        @foreach (var freqGroup in Model.GroupBy(x => new { x.FREQUENCY_ID, x.FREQUENCY_TYPE, x.ACADEMIC_YEAR, x.STUDENT_ID, x.FEE_ROOT_ID }))
+                        {
+                            var freqId = freqGroup.Key.FREQUENCY_ID;
+                            var freqName = freqGroup.Key.FREQUENCY_TYPE;
+                            var totalFreqBalance = freqGroup.Sum(x => { double b = 0; double.TryParse(x.BALANCE, out b); return b; });
+                            var totalFreqPaid = freqGroup.Sum(x => { double d = 0; double.TryParse(x.DEBIT, out d); return d; });
+                            bool isFreqPaid = totalFreqBalance <= 0;
+                            var headIds = string.Join(",", freqGroup.Select(x => x.HEAD_ID));
+
+                            <div class="mobile-fee-card @(isFreqPaid ? "paid" : "unpaid")" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                                <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center;">
+                                        @if (isFreqPaid)
+                                        {
+                                            <i class="fa fa-check-circle text-success" style="font-size: 20px; margin-right: 12px;"></i>
+                                        }
+                                        <div>
+                                            <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;">@freqName</h4>
+                                            <span style="font-size: 11px; color: #64748b;">Academic Year: @(freqGroup.FirstOrDefault().ACADEMIC_YEAR)</span>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 16px; font-weight: 800; color: #0f172a;">&#8377; @((isFreqPaid ? totalFreqPaid : totalFreqBalance).ToString("F2"))</div>
+                                        <span class="@(isFreqPaid ? "badge-paid" : "badge-unpaid")" style="font-size: 10px !important; padding: 3px 8px !important; margin-top: 4px;">@(isFreqPaid ? "Paid" : "Pending")</span>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
+                                    <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px;">Particulars:</div>
+                                    @foreach (var head in freqGroup)
+                                    {
+                                        var headBal = 0.0;
+                                        double.TryParse(head.BALANCE, out headBal);
+                                        var headPaid = 0.0;
+                                        double.TryParse(head.DEBIT, out headPaid);
+                                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #475569; margin-bottom: 4px;">
+                                            <span><i class="fa fa-caret-right text-muted" style="margin-right: 6px;"></i> @(string.IsNullOrEmpty(head.HEAD_NAME) ? head.HEAD : head.HEAD_NAME)</span>
+                                            <span style="font-weight: 500;">&#8377; @((isFreqPaid ? headPaid : headBal).ToString("F2"))</span>
+                                        </div>
+                                    }
+                                </div>
+
+                                @if (!isFreqPaid)
+                                {
+                                    <div style="margin-top: 14px;">
+                                        <form method="get" action="@Url.Action("StaffPaymentModeForAdmin", "EdvironPayment")" style="margin: 0;">
+                                            <input type="hidden" name="sFrequencyTypeId" value="ALL" />
+                                            <input type="hidden" name="sFrequencyId" value="ALL" />
+                                            <input type="hidden" name="sFeeRootId" value="ALL" />
+                                            <input type="hidden" name="sStudentId" value="@freqGroup.Key.STUDENT_ID" />
+                                            <input type="hidden" name="sAmount" value="@totalFreqBalance.ToString("F2")" />
+                                            <input type="hidden" name="sAcademicyear" value="@freqGroup.Key.ACADEMIC_YEAR" />
+                                            <input type="hidden" name="sHead" value="@headIds" />
+                                            <input type="hidden" name="sSelectionID" value="@headIds" />
+                                            <button type="submit" class="btn btn-pay-now" style="padding: 10px 16px !important; font-size: 14px !important; width: 100%;">
+                                                <i class="fa fa-credit-card"></i> Pay Now
+                                            </button>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="receipts-panel text-center" style="padding: 60px 20px;">
+                    <div style="font-size: 50px; color: #cbd5e1; margin-bottom: 15px;">
+                        <i class="fa fa-check-circle-o text-success"></i>
+                    </div>
+                    <h4 style="color: #475569; font-weight: 700; margin-bottom: 10px; font-size: 22px;">All Fees Paid!</h4>
+                    <p class="text-muted" style="font-size: 15px; max-width: 400px; margin: 0 auto 25px auto;">
+                        There are no outstanding dues registered on your account at this time.
+                    </p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<script>
+    function ContentLoad() {
+        // Initialization if needed
+    }
+</script>

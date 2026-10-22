@@ -1,0 +1,137 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "DisplaySemesterMarksForStudent";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    int nCount = 0;
+    string sClass = string.Empty;
+    string sResult = string.Empty;
+}
+
+
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">Exam Mark Details</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Exam Mark Details<small></small></h1>
+    <!-- end page-header -->
+   
+                
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h3 class="panel-title"> Semester Mark Details </h3>
+        </div>
+        <div class="panel-body">
+        @{
+            if (Model.liStudentList != null && Model.liStudentList.Count > 0)
+            {
+                int Count = 0;
+                foreach (var stuitem in Model.liStudentList)
+                {
+                    <div class="form-group panel-group" id="accordion">
+                        <div class="panel panel-info overflow-hidden">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">
+                                    <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#@stuitem.STUDENT_ID" aria-expanded="true">
+                                        <i class="fa fa-plus-circle pull-right"></i>
+                                        @{Count++;} @Count . @stuitem.FIRST_NAME ( @stuitem.ROLL_NO )
+                                    </a>
+                                </h3>
+                            </div>
+                            <div id="@stuitem.STUDENT_ID" class="panel-collapse collapse form-group">
+                                <div class="panel-body">
+                                    @using (Html.BeginForm())
+                                    {
+                                        @Html.AntiForgeryToken()
+
+                                        <div class="col-md-12 form-horizontal">
+                                            @{
+                                            if (Model.liSemesterList != null && Model.liSemesterList.Count > 0)
+                                            {
+                                                    <table class="table table-bordered">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>#</th>
+                                                                <th>Semester</th>
+                                                                <th>Code</th>
+                                                                <th>Course</th>
+                                                                <th>Internal</th>
+                                                                <th>External</th>
+                                                                <th>Total</th>
+                                                                @*<th>Credit</th>
+                                                                <th>Grade</th>
+                                                                <th>Grade Point</th>*@
+                                                                <th>Month/Year</th>
+                                                                <th>Result</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @{
+                                                                
+                                                        nCount = 0;
+                                                        if (Model.liSemesterList != null && Model.liSemesterList.Count > 0)
+                                                        {
+                                                            var liSemesterList = Model.liSemesterList.Where(x => x.STUDENT_ID == stuitem.STUDENT_ID).ToList();
+                                                            if (liSemesterList != null && liSemesterList.Count > 0)
+                                                            {
+                                                                foreach (var item in liSemesterList)
+                                                                {
+
+                                                                    if (item.RESULT == "F" && item.RESULT == "W")
+                                                                    {
+                                                                        sClass = "text-danger";
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        sClass = string.Empty;
+                                                                    }
+                                                                    <tr class="@sClass">
+                                                                        <td>@{nCount++;} @nCount</td>
+                                                                        <td>@item.SEMESTER</td>
+                                                                        <td>@item.COURSE_CODE</td>
+                                                                        <td>@item.COURSE_TITLE</td>
+                                                                        <td>@item.INTERNAL_MARK</td>
+                                                                        <td>@item.EXTERNAL_MARK</td>
+                                                                        <td>@item.TOTAL</td>
+                                                                        @*<td>@item.CREDIT</td>
+                                                                        <td>@item.GRADE</td>
+                                                                        <td>@item.GRADE_POINT</td>*@
+                                                                        <td>@item.M_PASS</td>
+                                                                        <td>@if (item.RESULT == "F") { sResult = "FAIL"; } else if (item.RESULT == "W") { sResult = "With Held"; } else if (item.RESULT == "A") { sResult = "Absent"; } else { sResult = "PASS"; } @sResult</td>
+                                                                    </tr>
+                                                                                    }
+                                                                                }
+
+                                                                            }
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                                        }
+                                            }
+                                        </div>
+                                                                        }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+        </div>
+    </div> 
+                                                                  
+</div>
+<!-- end #content -->

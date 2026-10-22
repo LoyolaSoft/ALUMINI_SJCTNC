@@ -1,0 +1,398 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{ 
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/summernote/summernote.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <!-- begin breadcrumb -->
+        <ol class="breadcrumb pull-right">
+            <li><a @*href="@Url.Action("Student", "DashBoard")"*@ href="javascript:;">Home</a></li>
+            <li class="active">Exam Questions</li>
+        </ol>
+        <!-- end breadcrumb -->
+        <!-- begin page-header -->
+        <h1 class="page-header">Exam Questions<small></small></h1>
+        <!-- end page-header -->
+
+        <div class="panel panel-primary" id="panel">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Exam Questions</h4>
+            </div>
+            <div class="panel-body"  id="dvValidate" data-parsley-validate="true">
+
+                <div class="col-md-12  form-group">
+                    
+                    <div class="col-md-6">
+
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Section</label>
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(m => m.Section, (Model.Section != null) ? Model.Section : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Department</label>
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(m => m.DepartmentList, (Model.DepartmentList != null) ? Model.DepartmentList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Semester Type</label>
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(m => m.Semester, (Model.Semester != null) ? Model.Semester : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Course</label>
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(m => m.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+                        
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Question Level</label>
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(m => m.QUESTION_LEVEL, (Model.QUESTION_LEVEL != null) ? Model.QUESTION_LEVEL : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Unit</label>
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(m => m.Unit, (Model.Unit != null) ? Model.Unit : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true", data_parsley_required = "true" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-12">
+                            <div class="checkbox checkbox-css col-md-3">
+                                <input type="checkbox" id="Is_Repeat" onclick="RepeatToggle()"/>
+                                <label for="Is_Repeat">Is Repeat</label>
+                            </div>
+                        </div>
+                       
+                        <div class="form-group hidden" id="dvRepeatYear">
+                            <label class="control-label col-md-3">Repeat Year</label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtRepeatYear" placeholder="Repeat Year"  data-parsley-type="number" value="0" />
+                            </div>      
+                        </div>
+
+                        <div class="form-group" id="dvNotRepeatYear">
+                            <label class="control-label col-md-3">Not Repeat Year</label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtNotRepeatYear" placeholder="Not Repeat Year"  data-parsley-type="number" value="0" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="form-group col-md-12">
+                    <label class="col-md-4"> Is Either Or Question </label>
+                    <label id="lblEitherOr" class="col-md-1"></label>
+                    <a class="btn btn-success pull-right" href="#MatchTheFollowing-dialog" data-toggle="modal"><i class="fa fa-plus"> Equation </i></a>
+                </div>
+                
+
+                <div class="col-md-12 form-group">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label"> Question </label>
+                        <div class="col-md-11">
+                            <input type="text" id="txtQuestion" class="summernote form-control" placeholder="Enter Your Question">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12 form-group hidden" id="dvEitherOrQuestion">
+                    <div class="form-group">
+                        <label class="col-md-1 control-label"> Either Question </label>
+                        <div class="col-md-11">
+                            <input type="text" id="txtEitherOrQuestion" class="summernote form-control" placeholder="Enter Either Question">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12 form-group pull-right">
+                    <a href="javascript:;" class="btn btn-primary pull-right" onclick="Submit()"> Submit </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model.liQuestions != null && Model.liQuestions.Count > 0)
+{
+    <input type="hidden" id="hdDepartmentId" value="@Model.liQuestions.FirstOrDefault().DEPARTMENT" />
+    <input type="hidden" id="hdSemester" value="@Model.liQuestions.FirstOrDefault().SEMESTER"/>
+    <input type="hidden" id="hdSectionId" value="@Model.liQuestions.FirstOrDefault().SECTION_ID" />
+    <input type="hidden" id="hdCourseId" value="@Model.liQuestions.FirstOrDefault().COURSE_ID"/>
+    <input type="hidden" id="hdUnitId" value="@Model.liQuestions.FirstOrDefault().UNIT_ID"/>
+    <input type="hidden" id="hdQuestionLevelId" value="@Model.liQuestions.FirstOrDefault().QUESTION_LEVEL"/>
+    <input type="hidden" id="hdIsRepeat" value="@Model.liQuestions.FirstOrDefault().IS_REPEAT"/>
+    <input type="hidden" id="hdtxtRepeatYear" value="@Model.liQuestions.FirstOrDefault().REPEAT_YEAR"/>
+    <input type="hidden" id="hdtxtNotRepeatYear" value="@Model.liQuestions.FirstOrDefault().NOT_REPEAT_YEAR"/>
+    <input type="hidden" id="hdtxtQuestion" value="@(new HtmlString(Model.GetStrigFromBase64String(Model.liQuestions.FirstOrDefault().QUESTION))) " />
+    <input type="hidden" id="hdtxtEitherOrQuestion" value="@(new HtmlString(Model.GetStrigFromBase64String(Model.liQuestions.FirstOrDefault().EITHER_OR_QUESTION))) "/>
+    <input type="hidden" id="hdtxtQuestionId" value="@Model.liQuestions.FirstOrDefault().QUESTION_ID"/>
+}
+
+<input type="hidden" id="hdQuestionId" value="" />
+<div class="modal" id="MatchTheFollowing-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Math Equations</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    @{
+                        Html.RenderPartial("Equation");
+                    }
+                </div>
+                <label id="l"></label>
+            </div>
+            <div class="modal-footer">
+
+                @*<a href="javascript:;" id="btnCopy" class="btn btn-sm btn-primary" onclick="">Copy</a>*@
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Content/assets/plugins/summernote/summernote.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+    $('.selectpicker').selectpicker({ size: 6 });
+    $('.selectpicker').selectpicker('refresh');
+    function ContentLoad()
+    {
+        handleSummernote();
+        // Document ready function ...
+
+        BindRecords();
+    }
+
+    handleSummernote = function ()
+    {
+        $(".summernote").summernote({
+            placeholder: "Add Your Question"
+        })
+    }
+
+    function RepeatToggle()
+    {
+        if ($('#Is_Repeat').is(':checked'))
+        {
+            $('#dvRepeatYear').removeClass('hidden');
+            $('#dvNotRepeatYear').addClass('hidden');
+            //$('#txtRepeatYear').addAttr('data-parsley-required', 'true');
+            //$('#txtNotRepeatYear').removeAttr('data-parsley-required');
+        } else
+        {
+            $('#dvNotRepeatYear').removeClass('hidden');
+            $('#dvRepeatYear').addClass('hidden');
+            //$('#txtNotRepeatYear').addAttr('data-parsley-required', 'true');
+            //$('#txtRepeatYear').removeAttr('data-parsley-required');
+        }
+    }
+</script>
+
+<script>
+    function BindRecords()
+    {
+        $('#hdQuestionId').val($('#hdtxtQuestionId').val());
+        var Code = $('#hdtxtQuestion').val();
+        var Code2=$('#hdtxtEitherOrQuestion').val();
+        $("#txtQuestion").summernote('code', Code);
+        $("#txtEitherOrQuestion").summernote('code', Code);
+        $('#Section').val($('#hdSectionId').val());
+        $('#DepartmentList').val($('#hdDepartmentId').val());
+        $('#Semester').val($('#hdSemester').val());
+        FetchCourse();
+        
+        $('#QUESTION_LEVEL').val($('#hdQuestionLevelId').val());
+        $('#Unit').val($('#hdUnitId').val());
+        if ($('#hdIsRepeat').val() == '1')
+        {
+            $('#Is_Repeat').click();
+        }
+        $('#txtRepeatYear').val($('#hdtxtRepeatYear').val());
+        $('#txtNotRepeatYear').val($('#hdtxtNotRepeatYear').val());
+        //$('#txtQuestion').val();
+        
+        $('.selectpicker').selectpicker('refresh');
+    }
+</script>
+
+@* Fetch Course By Department & SemesterId*@
+<script>
+    $('#DepartmentList').on('change', function ()
+    {
+        FetchCourse();
+    });
+
+    $('#Semester').on('change', function ()
+    {
+        FetchCourse();
+    });
+
+
+    function FetchCourse()
+    {
+        if ($('#DepartmentList').val() && $('#Semester').val())
+        {
+            $.ajax({
+                url: '/Examination/FetchCourseByDepartmentAndSemesterTypeId',
+                method: 'POST',
+                datatype: 'json',
+                data: { sDepartmentId: $('#DepartmentList').val(), sSemesterTypeId: $('#Semester').val() },
+                success: function (data)
+                {
+                    $('#CourseList').empty();
+                    if (data.ErrorCode == "200")
+                    {
+                        $('#CourseList').append(data.sResult);
+                        $('#CourseList').val($('#hdCourseId').val());
+                        $('.selectpicker').selectpicker('refresh');
+                    } else
+                    {
+                        swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                    }
+                }, error: function (error)
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+    }
+</script>
+
+@* On Course Change *@
+<script>
+    $('#CourseList').on('change', function ()
+    {
+        if ($('#CourseList').val())
+        {
+            $.ajax({
+                url: '/Examination/FetchSettingByCourseId',
+                method:'POST',
+                datatype:'json',
+                data: { sCourseId: $('#CourseList').val(), sSectionId: $('#Section').val() },
+                success: function (data)
+                {
+                    if (data.Message != null && data.Message != '')
+                    {
+                        swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                    } else
+                    {
+                        if (data[0].IS_EITHEROR=="1") 
+                        {
+                            $('#dvEitherOrQuestion').removeClass('hidden');
+                            $('#lblEitherOr').text('Yes');
+                        } else
+                        {
+                            $('#dvEitherOrQuestion').addClass('hidden');
+                            $('#lblEitherOr').text('No');
+                        }
+                    }
+                }, error: function (error) 
+                {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+    });
+</script>
+
+@* On Submit *@
+<script>
+    function Submit()
+    {
+        // Validation Check ,...
+        var isValid = true;
+        if ($('#dvValidate').parsley().validate() !== true) isValid = false;
+        if (!isValid)
+        {
+            //gritter-info,danger,success,warning,default
+            swal({ title: "Warning !", text: 'Something went wrong ! Please check your inputs !', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+        var SummerNote = $("#txtQuestion").summernote('code');
+        var str = btoa(unescape(encodeURIComponent(SummerNote)));
+        var Question = str;
+
+        var SummerNote2 = $("#txtEitherOrQuestion").summernote('code');
+        var str2 = btoa(unescape(encodeURIComponent(SummerNote2)));
+        var Question2 = str2;
+        ///txtEitherOrQuestion
+        //$('#Section').val();
+        //$('#DepartmentList').val();
+        //$('#Semester').val();
+        //$('#CourseList').val();
+        //$('#QUESTION_LEVEL').val();
+        //$('#Unit').val();
+        //$('#Is_Repeat').val();
+        //$('#txtRepeatYear').val();
+        //$('#txtNotRepeatYear').val();
+        var IsRepeat = 0;
+        if ($('#Is_Repeat').is(':checked'))
+            IsRepeat = 1;
+
+        var JsonData = null;
+        JsonData = '{"QUESTION_ID":"' + $('#hdQuestionId').val() + '",\
+                     "COURSE_ID":"' + $('#CourseList').val() + '",\
+                     "SECTION_ID":"' + $('#Section').val() + '",\
+                     "QUESTION_LEVEL":"' + $('#QUESTION_LEVEL').val() + '",\
+                     "QUESTION":"' + Question + '",\
+                     "EITHER_OR_QUESTION":"'+ Question2 +'",\
+                     "UNIT_ID":"' + $('#Unit').val() + '",\
+                     "IS_REPEAT":"' + IsRepeat + '",\
+                     "REPEAT_YEAR":"' + $('#txtRepeatYear').val() + '",\
+                     "NOT_REPEAT_YEAR":"' + $('#txtNotRepeatYear').val() + '"\
+                    }';
+        $.ajax({
+            url: '/Examination/SaveExamQuestions',
+            method:'POST',
+            datatype:'json',
+            data: { sJson: JsonData },
+            success: function (data)
+            {
+                if (data.ErrorCode == "200")
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                } else
+                {
+                    swal({ title: "Failed !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                }
+            }, error: function (error) 
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+    
+</script>

@@ -1,0 +1,339 @@
+﻿@model IEnumerable<CMS.ViewModel.Model.StudentTalents>
+
+<div id="dvTalents">
+    <div class="row">
+        <div class="form-group pull-right">
+            <a href="#Talents-dialog" class="btn btn-sm btn-success pull-right" data-toggle="modal"><i class="fa fa-plus"></i></a>
+        </div>
+    </div>
+    <div class="table-responsive row">
+        @{int count = 0;}
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Date</th>
+                    <th>Talent Area</th>
+                    <th>Talent Activity Type</th>
+                    <th>Talent Discription</th>
+                    <th>Status</th>
+                    <th>Grade</th>
+                    <th>Remarks</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model!=null)
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@{count++;} @count</td>
+                            <td>@Html.DisplayFor(modelItem => item.Date)</td>
+                            <td>@Html.DisplayFor(modelItem => item.TalentArea)</td>
+                            <td>@Html.DisplayFor(modelItem => item.TalentActivityType)</td>
+                            <td>@Html.DisplayFor(modelItem => item.TalentDiscription)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Grade)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Remarks)</td>
+                            <td>
+                                <a href="#Talents-dialog" onclick="GetTalentsValues(@item.TalentsId)" data-toggle="modal" class="fa fa-edit text-primary"></a>
+                                <a href="javascript:;" onclick="GetConfirm(@item.TalentsId)" class="fa fa-trash text-danger"></a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td>No Data Found ...!</td>
+                    </tr>
+                }
+              
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+
+        
+        $(document).ready(function ()
+        {
+            $("#btnEditTalents").hide();
+            ////FormMultipleUpload.init();
+            handleDatePicker = function ()
+            {
+                "use strict";
+                $("#Date").datepicker({
+                    todayHighlight: true,
+                    autoclose: true,
+                    endDate: new Date(),
+                    format: "dd/mm/yyyy",
+                    orientation: "right bottom"
+                    // 'top': top,
+                    // 'left': left
+                });
+            }
+            handleDatePicker();
+
+            BindDDLTalents = function ()
+            {
+                $.ajax({
+                    url: "@Url.Action("BindDDLTalents", "Student")",
+                    method: "POST",
+                    datatype: "json",
+                    success: function (data)
+                    {
+                        var json = JSON.parse(data);
+                        $("#Grade").empty();
+                        $("#Grade").append('<option value="">-- select --</option>' + json.Grade);
+
+                        $("#TalentActivityType").empty();
+                        $("#TalentActivityType").append('<option value="">-- select --</option>' + json.TalentActivity);
+
+                        $("#TalentArea").empty();
+                        $("#TalentArea").append('<option value="">-- select --</option>' + json.TalentArea);
+                    }, error: function (error)
+                    {
+                        alert('Internal Server Error ! ');
+                    }
+                });
+            }
+            BindDDLTalents();
+        });
+
+        
+        // Fetch Student Talents ...
+        GetStuTalents = function ()
+        {
+            $.ajax({
+                url:"@Url.Action("AddStuTalentsInfo", "Student")",
+                method:"POST",
+                datatype:"json",
+                success:function(data)
+                {
+                    $("#dvTalents").empty();
+                    $("#dvTalents").append(data);
+                },error:function(error)
+                {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+
+        // Delete Talents ...
+        function GetConfirm(ID)
+        {
+            if (!confirm('Are you sure to delete ?'))
+            {
+                return false;
+            } else
+            {
+                $.ajax({
+                    url:"@Url.Action("DeleteTalents", "Student")",
+                    method: "POST",
+                    datatype:"json",
+                    data: { sTalentsId: ID },
+                    success:function(data)
+                    {
+                        alert(data);
+                        GetStuTalents();
+                    },error:function(error)
+                    {
+                        alert('Internal Server Error ! ');
+                    }
+                });
+            }
+        }
+
+        // Bind Talents To Controls ...
+        GetTalentsValues=function(ID)
+        {
+            $.ajax({
+                url:"@Url.Action("BindTalent", "Student")",
+                method:"POST",
+                datatype:"json",
+                data: { sTalentsId: ID },
+                success:function(data)
+                {
+                    $("#Date").val(data.Date);
+                    $("#TalentArea").val(data.TalentArea);
+                    $("#TalentActivityType").val(data.TalentActivityType);
+                    $("#TalentDiscription").val(data.TalentDiscription);
+                    $("#Status").val(data.Status);
+                    $("#Grade").val(data.Grade);
+                    $("#Remarks").val(data.Remarks);
+                    $("#btnTalents").hide();
+                    $("#btnEditTalents").show();
+                },error:function(error)
+                {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+
+        //Insert Talents 
+        $("#btnTalents").on("click", function ()
+        {
+            var isValid = true;
+            if ($('#nav-tab1-12').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //gritter-info,danger,success,warning,default
+                myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+            var Date = $("#Date").val();
+            var TalentArea = $("#TalentArea").val();
+            var TalentActivityType = $("#TalentActivityType").val();
+            var TalentDiscription = $("#TalentDiscription").val();
+            var Status = $("#Status").val();
+            var Grade = $("#Grade").val();
+            var Remarks = $("#Remarks").val();
+            var JsonData;
+            if (JsonData == null)
+            {
+                JsonData = '{"Date":"' + Date + '","TalentArea":"' + TalentArea + '","TalentActivityType":"' + TalentActivityType + '","TalentDiscription":"' + TalentDiscription + '","Status":"' + Status + '","Grade":"' + Grade + '","Remarks":"' + Remarks + '"}';
+            }            
+            $.ajax({
+                url: "@Url.Action("InsertTalents", "Student")",
+                method: "POST",
+                datatype: "json",
+                data: { JsonTalents: JsonData },
+                success: function (data)
+                {
+                    alert(data);
+                    GetStuTalents();
+                },error:function(error)
+                {
+                    alert('Session time out try again ....!');
+                }
+            });
+        });
+
+        //Update Talents 
+        $("#btnEditTalents").on("click", function ()
+        {
+            var isValid = true;
+            if ($('#nav-tab1-12').parsley().validate() !== true) isValid = false;
+            if (!isValid) {
+                //gritter-info,danger,success,warning,default
+                myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+                return false;
+            }
+            var Date = $("#Date").val();
+            var TalentArea = $("#TalentArea").val();
+            var TalentActivityType = $("#TalentActivityType").val();
+            var TalentDiscription = $("#TalentDiscription").val();
+            var Status = $("#Status").val();
+            var Grade = $("#Grade").val();
+            var Remarks = $("#Remarks").val();
+            var JsonData;
+            if (JsonData == null)
+            {
+                JsonData = '{"Date":"' + Date + '","TalentArea":"' + TalentArea + '","TalentActivityType":"' + TalentActivityType + '","TalentDiscription":"' + TalentDiscription + '","Status":"' + Status + '","Grade":"' + Grade + '","Remarks":"' + Remarks + '"}';
+            }
+        
+            $.ajax({
+                url: "@Url.Action("UpdateTalents", "Student")",
+                method: "POST",
+                datatype: "json",
+                data: { JsonTalents: JsonData },
+                success: function (data)
+                {
+                    alert(data);
+                    GetStuTalents();
+                },error:function(error)
+                {
+                    alert('Session time out try again ....!');
+                }
+            });
+        });
+    </script>
+</div>
+
+
+<div class="modal fade" id="Talents-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 class="modal-title">Talents</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Date</label>
+                                    <div class="col-md-9">
+                                        <div class="input-group date" id="datetimepicker1">
+                                            <input type="text" class="form-control input-sm" id="Date" placeholder="Select Date" data-parsley-required="true"/>
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Talent Area</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" id="TalentArea">
+                                            <option value="">-- select --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Talent Activity Type</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" id="TalentActivityType">
+                                            <option value="">-- select --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Talent Discription</label>
+                                    <div class="col-md-9">
+                                        <textarea class="form-control" id="TalentDiscription" rows="3" placeholder="Enter Discription" data-parsley-length="[3,100]" data-parsley-required="true"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Status</label>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control input-sm" id="Status" placeholder="Status" data-parsley-length="[3,30]" data-parsley-required="true"/>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Grade</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" id="Grade">
+                                            <option value="">-- select --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Remarks</label>
+                                    <div class="col-md-9">
+                                        <textarea class="form-control" id="Remarks" rows="3" placeholder="Enter Remarks" data-parsley-length="[3,100]" data-parsley-required="true"></textarea>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnTalents" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" id="btnEditTalents" class="btn btn-sm btn-primary" data-dismiss="modal">Update</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>

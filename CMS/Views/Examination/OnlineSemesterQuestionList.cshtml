@@ -1,0 +1,394 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "OnlineSemesterQuestionList";
+    // Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Examination</a></li>
+        <li class="active">List Online Exam Questions</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">List Online Exam Questions<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Online Exam Questions</h4>
+        </div>
+        <div class="panel-body">
+            <div class="col-md-12 form-horizontal">
+                <!-- Class -->
+                <div class="col-md-4 form-group">
+                    @Html.Label("Class", htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                    </div>
+                </div>
+
+                <!-- Course -->
+                <div class="col-md-4 form-group">
+                    @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-3" })
+                    <div class="col-md-9">
+                        @Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                    </div>
+                </div>
+
+                <div class="col-md-4 form-group hidden" id="btnAddButton">
+                     <a class="btn btn-success pull-right" onclick="AddModal();" href="#OnlineExamQuestions-dialog" data-toggle="modal"><i class="fa fa-plus"> &nbsp; Add </i></a>
+                </div>
+            </div>
+
+            <div class="col-md-12 form-horizontal">
+                <div id="dvBindOnlineExamQuestions"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/ Edit Begin Modal -->
+<div class="modal" id="OnlineExamQuestions-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit Online Exam Questions</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="col-md-12">
+
+                        <!-- Class -->
+                        <div class="col-md-12 form-group">
+                            <label class="control-label" id="lblClass"></label>
+                        </div>
+
+                        <!-- Course -->
+                        <div class="col-md-12 form-group">
+                            <label class="control-label" id="lblCourse"></label>
+                        </div>
+
+                        <!-- Options Need -->
+                        <div class="col-md-12 form-group hidden" id="dvOptionNeed">
+                            <label class="col-md-2">Options</label>
+                            <div class="col-md-6">
+                                <input type="number" id="txtOption" class="form-control" />
+                            </div>
+                        </div>
+
+                        <!-- Add Button -->
+                        @*<div class="col-md-4 form-group hidden" id="dvAddButton">
+                            <a href="javascript:;" id="btnAdd" onclick="AddTextBox()" class="btn btn-success"> <i class="fa fa-plus"></i> Add</a>
+                        </div>*@
+
+                    </div>
+
+                    <div id="dvQuestions"></div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Modal -->
+
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+    //var nTextBoxCount = 0;
+    var sSettingId = null;
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+
+        $('.selectpicker').selectpicker({
+            size: 5
+        });
+        $('.selectpicker').selectpicker('refresh');
+
+        // On Class Change .
+        $("#ClassList").on("change", function ()
+        {
+            var Class = $("#ClassList").val();
+            $.ajax({
+                url: "@Url.Action("FetchCourseByClassId", "Examination")",
+                method: "POST",
+                datatype: "json",
+                data: { sClassId: Class },
+                success: function (data)
+                {
+                    $("#CourseList").empty();
+                    $("#CourseList").append(data.sResult);
+                    $('.selectpicker').selectpicker('refresh');
+                    
+                }, error: function (error)
+                {
+                    alert('Internal Server Error .!');
+                }
+            });
+        });
+
+    // On Course Change ,..
+    $("#CourseList").on("change", function ()
+    {
+        if ($("#CourseList").val()!=0)
+        {
+            GetQuizResult();
+            $('#btnAddButton').removeClass('hidden');
+        } else
+        {
+            alert('Please Select Class To Continue !');
+        }
+    });
+
+    
+
+    // On GEtting Question List ,...
+    function GetQuizResult()
+    {
+        if ($("#CourseList").val() && $("#ClassList").val() )
+        {
+            $.ajax({
+                url:'@Url.Action("BindOnlineExamQuestions", "Examination")',
+                method:'POST',
+                datatype:'json',
+                data: { sClassId: $("#ClassList").val(), sCourseId: $("#CourseList").val()},
+                success: function (data)
+                {
+                    $('#dvBindOnlineExamQuestions').empty();
+                    if (data.Message != null && data.Message != '')
+                    {
+                        alert(data.Message);
+                    } else
+                    {
+                        $('#dvBindOnlineExamQuestions').append(data);
+                        $('#btnPrint').removeClass('hidden');
+                    }
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        } else
+        {
+            alert('Please Select All Options To Continue !');
+            return false;
+        }
+    }
+    // On Print Click .
+    $('#btnPrint').on('click', function ()
+    {
+        var printContents = document.getElementById('dvOnlineQuiz').innerHTML;
+        var originalContents = document.body.innerHTML;
+
+        document.body.innerHTML = printContents;
+
+        window.print();
+
+        document.body.innerHTML = originalContents;
+        //loadContent('/Examination/OnlineQuizMatchTheFollowingResultForCourseStaff');
+        GetQuizResult();
+    });
+
+    // On Option Change
+    $("#txtOption").on("change", function ()
+    {
+        var value = $("#txtOption").val();
+        if (value > 10)
+        {
+            alert('Invalid Option .! Maximum Option is 10 .');
+            value = 10;
+            $("#txtOption").val('10');
+        }
+        var Option = '';
+        var j = 0;
+        $('#dvQuestions').empty();
+        for (var i = 0; i < value; i++)
+        {
+            
+            j++;
+            Option += '<div class="col-md-12 form-group">';
+            Option += '<label class = "control-label col-md-2">' + j + ' .)</label>';
+            Option += '<div class="col-md-9">';
+            Option += '<input type="text" id="OnlineExamQuestions' + i + '" cms-sQuestionId="" class="form-control" placeholder="Enter Your Options" maxlength="145">';
+            Option += '</div>';
+            Option += '</div>';
+        }
+        $('#dvQuestions').append(Option);
+    });
+
+
+    // On Delete ,...
+    function GetConfrim(Id)
+    {
+        if (!confirm('Are you sure to delete ?'))
+        {
+            return false;
+        }
+       // alert(Id);
+        $.ajax({
+            url: '@Url.Action("DeleteOnlineExamQuestions", "Examination")',
+            method:'POST',
+            datatype:'json',
+            data: { sExamQuestionId: Id },
+            success: function (data)
+            {
+                alert(data.Message);
+                if (data.sResult == "1")
+                {
+                    GetQuizResult();
+                }
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+
+    // When Add Button Click 
+    function AddModal()
+    {
+        $('#lblClass').text($("#ClassList Option:selected").text());
+        $('#lblCourse').text($("#CourseList Option:selected").text());
+        $('#dvOptionNeed').removeClass('hidden');
+        //$('#dvAddButton').addClass('hidden');
+    }
+
+
+    // When Modal Add Button Click For More Text Box ,..
+    //function AddTextBox()
+    //{
+    //    Count++;
+    //    var i = Count;
+    //    var j = Count + 1;
+    //    if (j > 10)
+    //    {
+    //        alert('Invalid Option .! Maximum Option is 10 .');
+    //        Count--;
+    //        return false;
+    //    }
+    //
+    //    Option += '<div class="col-md-12 form-group">';
+    //    Option += '<label class = "control-label col-md-2">' + j + ' .)</label>';
+    //    Option += '<div class="col-md-9">';
+    //    Option += '<input type="text" id="OnlineExamQuestions' + i + '" cms-sQuestionId="" class="form-control" placeholder="Enter Your Options" maxlength="145">';
+    //    Option += '</div>';
+    //    Option += '</div>';
+    //  
+    //    $('#dvQuestions').append(Option);
+    //};
+
+    // On Edit Function ,...
+    function GetExaminationInfoById(sQuestionId) {
+        $('#lblClass').text($("#ClassList Option:selected").text());
+        $('#lblCourse').text($("#CourseList Option:selected").text());
+        //$('#dvAddButton').removeClass('hidden');
+        $('#dvOptionNeed').addClass('hidden');
+
+        $.ajax({
+            url: '@Url.Action("FetchOnlineExamQuestionsById", "Examination")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sQuestionId: sQuestionId },
+            success: function (data) {
+                if (data.Message != null && data.Message != '') {
+                    alert(data.Message);
+                } else {
+                    var j = 0;
+                    var Option = '';
+                    $.each(data, function (i, element) {
+                        j++;
+                        Option += '<div class="col-md-12 form-group">';
+                        Option += '<label class = "control-label col-md-2">' + j + ' .)</label>';
+                        Option += '<div class="col-md-9">';
+                        Option += '<input type="text" value="' + element.QUESTION + '" id="OnlineExamQuestions' + i + '" cms-sQuestionId="' + element.EXAM_QUESTIONS_ID + '" class="form-control" placeholder="Enter Your Options" maxlength="145">';
+                        Option += '</div>';
+                        Option += '</div>';
+                        //nTextBoxCount = i;
+                    });
+                    $("#txtOption").val('1');
+                    $('#dvQuestions').empty();
+                    $('#dvQuestions').append(Option);
+                }
+
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+
+    // On Submit Click ,...
+    $('#btnSubmit').on('click', function ()
+    {
+        var sJsonData = '{"liExamQuestions":[';
+        var nJsonCount = 0;
+        sSettingId = $('#hdSettingId').val();
+        var value = $("#txtOption").val();
+        for (var i = 0; i < value; i++)
+        {
+            if ($('#OnlineExamQuestions'+i).val())
+            {
+                sJsonData += '{"CLASS_ID":"' + $('#ClassList').val() + '","COURSE_ID":"' + $('#CourseList').val() + '","QUESTION":"' + $('#OnlineExamQuestions' + i).val() + '","SEMESTER_ID":"' + $('#CourseList Option:selected').attr('cms-sSemesterId') + '","EXAM_SETTING_ID":"' + sSettingId + '","EXAM_QUESTIONS_ID":"' + $('#OnlineExamQuestions' + i).attr('cms-sQuestionId') + '"},';
+                nJsonCount++;
+            }
+        }
+
+        if (nJsonCount != 0)
+        {
+            sJsonData= sJsonData.slice(0, -1);
+            sJsonData += ']}';
+        } else
+        {
+            alert('Please Fill The Questions To Continue !');
+            return false;
+        }
+
+        $.ajax({
+            url:'@Url.Action("SaveOnlineExamQuestions", "Examination")',
+            method:'POST',
+            datatype:'json',
+            data: { sJsonSaveData: sJsonData },
+            success: function (data)
+            {
+                alert(data.Message);
+                GetQuizResult();
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+    });
+
+
+    // When Modal Close ,...
+    $(function () {
+        $('#OnlineExamQuestions-dialog').on('hidden.bs.modal', function (e)
+        {
+            $('#dvQuestions').empty();
+            $("#txtOption").val('');
+        });
+    });
+</script>
+

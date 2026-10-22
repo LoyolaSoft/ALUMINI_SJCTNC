@@ -1,0 +1,247 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<div class="col-md-12">
+    <br />
+    <div class="pull-right">
+
+        <a href="#ModalLeave-dialog" class="btn btn-primary" data-toggle="modal">
+            <i class="fa fa-plus"></i> Leave Update
+        </a>
+    </div>
+
+    <br><br>
+    <table class="table table-hover table-bordered" id="tblCertificatetRequested">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Reason</th>
+                <th>Created Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.liCertificaeteissueLeave != null && Model.liCertificaeteissueLeave.Count > 0)
+            {
+                int count = 0;
+                foreach (var item in Model.liCertificaeteissueLeave)
+                {
+                    <tr marksheetdisid="@item.LEAVEREQUEST_ID">
+                        <td>@{count++;} @count</td>
+                        <td>@item.FROM_DATE</td>
+                        <td>@item.TO_DATE</td>
+                        <td>@item.REASON</td>
+                        <td>@item.CREATED_DATE</td>
+                        <td>
+                            <a href="#ModalLeave-dialog" onclick="FetchCertificateLeaveUpdateById(@item.LEAVEREQUEST_ID)" data-toggle="modal" class="text-primary" title="Edit"><i class="fa fa-edit"></i></a>
+                            <a href="javascrip:;" onclick="GetConfirm(@item.LEAVEREQUEST_ID)" class="text-danger" title="Delete"><i class="fa fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+
+            }
+
+        </tbody>
+    </table>
+</div>
+
+<div class="modal" id="ModalLeave-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit Leave Update</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="placemententry">
+
+                <input type="hidden" id="LeaveRequestId" value="" />
+                <div class="">
+                    <label>Leave From</label>
+                    <input type="text" class="form-control datepicker" id="fromDate" placeholder="DD/MM/YYYY" />
+                </div>
+                <div class="">
+                    <label>Leave To</label>
+                    <input type="text" class="form-control datepicker" id="toDate" placeholder="DD/MM/YYYY" />
+                </div>
+
+                <div class="">
+                    <label>Reason for Leave</label>
+                    <textarea class="form-control" id="leaveReason" rows="3"></textarea>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnUpdateLeaveStatus" onclick="SaveData()" class="btn btn-sm btn-primary">Submit</a>
+                <a href="javascript:;" id="btnCancel" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+        <input type="hidden" id="placeID" value="" />
+    </div>
+</div>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+
+<script>
+    $(".datepicker").datepicker({
+        format: "dd/mm/yyyy",
+        autoclose: true
+    });
+
+    // function to convert dd/mm/yyyy → Date
+    function parseDate(str) {
+        var parts = str.split("/");
+        return new Date(parts[2], parts[1] - 1, parts[0]); // yyyy, mm-1, dd
+    }
+
+    // validate when either date changes
+    $("#fromDate, #toDate").on("change", function () {
+        var fromDateVal = $("#fromDate").val();
+        var toDateVal = $("#toDate").val();
+
+        if (fromDateVal && toDateVal) {
+            var fromDate = parseDate(fromDateVal);
+            var toDate = parseDate(toDateVal);
+
+            if (toDate < fromDate) {
+                alert("Leave To Date cannot be earlier than Leave From Date.");
+                $("#toDate").val(""); // clear invalid value
+            }
+        }
+    });
+    function parseToDate(str) {
+        var parts = str.split("/");
+        return new Date(parts[2], parts[1] - 1, parts[0]); // yyyy, mm-1, dd
+    }
+    $("#fromDate").on("changeDate", function (e) {
+        var fromDate = e.date; // this is already a JS Date
+        $("#toDate").datepicker("setStartDate", fromDate);
+    });
+    function FetchCertificateLeaveUpdateById(LeaveRequestId) {
+    //$('#pBody').parsley().destroy();
+
+        if (LeaveRequestId != null) {
+        $.ajax({
+
+             url: '@Url.Action("FetcCertificateIssueLeaveById", "Alumnae")',
+            type: "POST",
+            datatype: 'json',
+            data: { sLeaveRequestId: LeaveRequestId },
+            success: function (data)
+            {
+                if (data.Message != null) {
+                    swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+                else
+                {
+                    if (data.oResult[0] != null)
+                    {
+                        $('#fromDate').attr('value', data.oResult[0].FROM_DATE);
+                        $('#toDate').attr('value', data.oResult[0].TO_DATE);
+                        $('#leaveReason').attr('value', data.oResult[0].REASON);
+                        $('#LeaveRequestId').attr('value', data.oResult[0].LEAVEREQUEST_ID);
+                        $('.selectpicker').selectpicker('refresh');
+
+                    }
+                }
+            },
+            error: function (ex) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+}
+
+$("#btnUpdateLeaveStatus").click(function () {
+    var payload = {
+        FROM_DATE: $("#fromDate").val(),
+        TO_DATE: $("#toDate").val(),
+        REASON: $("#leaveReason").val(),
+        LEAVEREQUEST_ID: $("#LeaveRequestId").val()
+    };
+
+    if (!payload.FROM_DATE || !payload.TO_DATE) {
+        swal("Warning", "Please select both From and To dates", "warning");
+        return;
+    }
+
+    $.ajax({
+        url: "@Url.Action("SaveorUpdateLeaveRequestedStatus", "Alumnae")",
+        type: "POST",
+        data: { sJsonData: JSON.stringify({ JSON_CERTIFICATE_ISSUE_LEAVE: [payload] }) },
+        success: function (data) {
+            if (data.ErrorCode == "406") {
+                swal("Error", data.Message, "error");
+            } else {
+                swal("Success", data.Message, "success");
+                $("#leaveModal").modal("hide");
+                $(".modal-backdrop").remove();
+                $("body").removeClass("modal-open");
+                BindCertificateLeaveUpdateList()
+            }
+        },
+        error: function () {
+            swal("Error", "Internal Server Error", "error");
+        }
+    });
+});
+
+GetConfirm = function (LeaveRequestId) {
+
+    swal({
+        title: "Are you sure want to Delete?",
+        text: "",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonClass: "btn-danger",
+        confirmButtonText: "Yes, I agree!",
+        closeOnConfirm: false
+    },
+        function () {
+
+            $.ajax({
+                url: "/Alumnae/DeleteCertificateIssueLeave",
+                type: "post",
+                data: { sLeaveRequestId: LeaveRequestId },
+                success: function (data) {
+
+                    if (data.Message != null && data.Message != "") {
+                        swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 2000, type: 'success', animation: true });
+                        BindCertificateLeaveUpdateList()
+
+                    }
+                },
+                error: function (ex) {
+                    swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 2000, type: 'error', animation: true });
+
+                }
+
+
+            });
+        });
+
+}
+
+function Add()
+{
+    nFileCount = 0; nCount = 0;
+    //$('#pBody').parsley().destroy();
+
+    $('#fromDate').attr('value', '');
+    $('#toDate').attr('value', '');
+    $('#leaveReason').attr('value', '');
+    $('#LeaveRequestId').attr('value', '');
+
+
+    $('.selectpicker').selectpicker('refresh');
+}
+</script>

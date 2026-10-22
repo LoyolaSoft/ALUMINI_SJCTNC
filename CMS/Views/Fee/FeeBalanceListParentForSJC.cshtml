@@ -1,0 +1,146 @@
+﻿@model CMS.ViewModel.ViewModel.FeeTransactionViewModel
+
+@{
+    ViewBag.Title = "FeeBalanceListForSJC";
+    Layout = null;
+}
+
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Fee</a></li>
+        <li class="active">Fee Balance List</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Fee Balance<small></small></h1>
+    <!-- end page-header -->
+    @{ int count = 0;}
+
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h3 class="panel-title"> Student </h3>
+        </div>
+        <div class="panel-body">
+            @{
+                if (Model.lstStudentPersonalInfo != null && Model.lstStudentPersonalInfo.Count > 0)
+                { int Count=0;
+                    foreach (var stuitem in Model.lstStudentPersonalInfo)
+                    {
+                        <div class="form-group panel-group" id="accordion">
+                            <div class="panel panel-info overflow-hidden">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">
+                                        <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#@stuitem.STUDENT_ID" aria-expanded="true">
+                                            <i class="fa fa-plus-circle pull-right"></i>
+                                            @{Count++;} @Count . @stuitem.FIRST_NAME ( @stuitem.ROLL_NO )
+                                        </a>
+                                    </h3>
+                                </div>
+                                <div id="@stuitem.STUDENT_ID" class="panel-collapse collapse form-group">
+                                <div class="panel-body">
+                                @using (Html.BeginForm())
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <div class="col-md-12 form-horizontal">
+                                            <div class="panel-body table-responsive">
+                                                <table class="table table-hover table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>Frequency</th>
+                                                            <th>Amount</th>
+                                                            <th>Action</th>
+                                                            <th>Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    @if (Model.liFeeStudentAccount != null && Model.liFeeStudentAccount.Count > 0)
+                                                    {
+                                                        var liFeeStudentAccount = Model.liFeeStudentAccount.Where(x => x.STUDENT_ID == stuitem.STUDENT_ID).ToList();
+                                                        foreach (var item in liFeeStudentAccount)
+                                                        {
+                                                        <tr>
+                                                            <td>@{count++;} @count</td>
+                                                            <td>@item.FREQUENCY_NAME</td>
+                                                            @if (item.BALANCE != "0")
+                                                            {
+                                                                <td><i class="fa fa-inr f-s-14"> @item.BALANCE</i></td>
+                                                                <td>
+                                                                @if (item.FREQUENCY_NAME == "Bus Fee")
+                                                                {
+                                                                   <a href="https://easypay.axisbank.co.in/easyPay/makePayment?mid=MzM1NDU%3D" target="_blank" class="btn btn-success " title="Go for Payment"><i class="ion-card"></i> Proceed to Pay</a>
+                                                                }
+                                                                else if (item.FREQUENCY_NAME == "Hostel Fee")
+                                                                {
+                                                                     <a href="https://easypay.axisbank.co.in/easyPay/makePayment?mid=MzM1NDY%3D" target="_blank" class="btn btn-success " title="Go for Payment"><i class="ion-card"></i> Proceed to Pay</a>
+                                                                }
+                                                                else if (item.FREQUENCY_NAME == "Semester Fee")
+                                                                {
+                                                                    <a href="https://easypay.axisbank.co.in/easyPay/makePayment?mid=NDI0ODY%3D" target="_blank" class="btn btn-success " title="Go for Payment"><i class="ion-card"></i> Proceed to Pay</a>
+                                                                }
+                                                                else if (item.FREQUENCY_NAME == "Exam Fee")
+                                                                {
+                                                                    <a href="https://easypay.axisbank.co.in/easyPay/makePayment?mid=NDE0ODY%3D" target="_blank" class="btn btn-success " title="Go for Payment"><i class="ion-card"></i> Proceed to Pay</a>
+                                                                }
+                                                                @*<a href="javascript:;"><i class="ion-card"></i> Proceed to Pay</a>*@
+                                                                </td>
+                                                                <td><label class="label label-danger f-s-12">Not Paid</label></td>
+                                                             }
+                                                             else
+                                                             {
+                                                                <td><label class="fa fa-inr f-s-14"> @item.DEBIT</label></td>
+                                                                <td><i class="ion-ios-checkmark-outline fa-2x text-success"></i></td>
+                                                                <td>
+                                                                    <label class="label label-success f-s-12">Paid</label>
+                                                                    @if (Model.liFeeTransaction != null && Model.liFeeTransaction.Count > 0)
+                                                                    {
+                                                                        string sTransactionNo = string.Empty;
+                                                                        var liTrasaction = Model.liFeeTransaction.Where(x => x.FREQUENCY == item.FREQUENCY_ID && x.STUDENT_ID==item.STUDENT_ID).ToList();
+                                                                        if (liTrasaction != null && liTrasaction.Count > 0)
+                                                                        {
+                                                                            sTransactionNo = string.Join(",", liTrasaction.Select(x => x.FEE_TRANSACTION_BANK).ToList());
+                                                                            <label> URN NO : @sTransactionNo </label>
+                                                                         }
+                                                                     }
+                                                                </td>
+                                                             }
+                                                        </tr>
+                                                       }
+                                                   }
+                                                   else
+                                                   {
+                                                        <tr><td> No Records Found..! </td> </tr>
+                                                   }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                    </div>
+                                 }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                      }
+                  }
+            }
+        </div>
+     </div>
+</div>
+<script>
+    function ContentLoad() {
+        // Document Ready Function .
+        speak('Please do not press back button or refresh when you make payment');
+    }
+
+
+</script>
+

@@ -1,0 +1,322 @@
+@model CMS.ViewModel.ViewModel.FeeReportViewModel
+@{
+    ViewBag.Title = "BusFeeReport";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Fee</a></li>
+        <li class="active">Bus Fee Report</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Bus Fee Report</h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Bus Fee Report (Student & Staff)</h4>
+        </div>
+
+        <div class="panel-body">
+            <div id="loader" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+                <img src="~/Content/assets/img/loading-7528_128.gif" alt="Loading..." />
+            </div>
+
+            <div class="col-md-12 form-horizontal">
+                <ul class="nav nav-tabs">
+                    <li class="nav-items active" id="tabStudentPaid">
+                        <a href="#studentPaidPane" data-toggle="tab" class="nav-link active" onclick="SetTab('student_paid')">
+                            <i class="fa fa-graduation-cap"></i> <span>Student Paid Date Wise</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabStudentBalance">
+                        <a href="#studentBalancePane" data-toggle="tab" class="nav-link" onclick="SetTab('student_balance')">
+                            <i class="fa fa-balance-scale"></i> <span>Student Balance Report</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabStudentFreq">
+                        <a href="#studentFreqPane" data-toggle="tab" class="nav-link" onclick="SetTab('student_freq')">
+                            <i class="fa fa-list-alt"></i> <span>Student Frequency Wise</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabStaffPaid">
+                        <a href="#staffPaidPane" data-toggle="tab" class="nav-link" onclick="SetTab('staff_paid')">
+                            <i class="fa fa-user"></i> <span>Staff Paid Date Wise</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabStaffBalance">
+                        <a href="#staffBalancePane" data-toggle="tab" class="nav-link" onclick="SetTab('staff_balance')">
+                            <i class="fa fa-money"></i> <span>Staff Balance Report</span>
+                        </a>
+                    </li>
+                    <li class="nav-items" id="tabStaffFreq">
+                        <a href="#staffFreqPane" data-toggle="tab" class="nav-link" onclick="SetTab('staff_freq')">
+                            <i class="fa fa-users"></i> <span>Staff Frequency Wise</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <input type="hidden" id="hdnActiveTab" value="student_paid" />
+
+                <div class="tab-content" style="padding: 15px 0;">
+                    <!-- Filter Area -->
+                    <div class="row">
+                        <!-- Academic Year Filter -->
+                        <div class="form-group col-md-3">
+                            <label class="control-label col-md-4">Academic Year</label>
+                            <div class="col-md-8">
+                                @Html.DropDownList("AcademicYearList", (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control selectpicker show-menu-arrow show-tick drop-down", @data_live_search = "true" })
+                            </div>
+                        </div>
+
+                        <!-- Date range wrapper for Paidwise Tabs -->
+                        <div id="divDateFilters">
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-4">From Date</label>
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input class="form-control date-picker" id="txtFromDate" placeholder="From Date" autocomplete="off" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-4">To Date</label>
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input class="form-control date-picker" id="txtToDate" placeholder="To Date" autocomplete="off" />
+                                        <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Frequency wrapper -->
+                        <div id="divFrequencyFilter">
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-4">Frequency</label>
+                                <div class="col-md-8">
+                                    <select id="FrequencyList" class="form-control selectpicker show-menu-arrow show-tick" data-live-search="true">
+                                        <option value="">All Frequencies</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Head wrapper -->
+                        <div id="divHeadFilter" style="display:none;">
+                            <div class="form-group col-md-3">
+                                <label class="control-label col-md-4">Heads</label>
+                                <div class="col-md-8">
+                                    <select id="MainHeadList" class="form-control selectpicker show-menu-arrow show-tick" data-live-search="true" multiple data-actions-box="true" title="All Heads">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 text-right">
+                            <button class="btn btn-sm btn-primary" onclick="GetBusReport()"> <i class="fa fa-search"></i> Get </button>
+                            <button class="btn btn-sm btn-success btnPrint hidden" onclick="printDiv('dvReportBind')"> <i class="fa fa-print"></i> Print </button>
+                            <button class="btn btn-sm btn-primary btnExport hidden" onclick="Export()"> <i class="fa fa-file-excel-o"></i> Export </button>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="margin-top: 10px; margin-bottom: 20px;" />
+                <div id="dvReportBind" class="table-responsive"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        ContentLoad();
+    });
+
+    function ContentLoad() {
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.date-picker').datepicker({
+            format: 'dd/mm/yyyy',
+            todayHighlight: true,
+            autoclose: true
+        });
+
+        var currentYear = $('#AcademicYearList option:selected').text();
+        if (currentYear && currentYear !== "-- Select --") {
+            LoadBusFrequencies(currentYear);
+        }
+    }
+
+    $('#AcademicYearList').on('change', function () {
+        var vAcademicyear = $('#AcademicYearList option:selected').text();
+        LoadBusFrequencies(vAcademicyear);
+    });
+
+    function LoadBusFrequencies(vAcademicyear) {
+        if (!vAcademicyear || vAcademicyear === "-- Select --") {
+            $('#FrequencyList').empty().append('<option value="">All Frequencies</option>');
+            $('#MainHeadList').empty();
+            $('.selectpicker').selectpicker('refresh');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("FetchBusFrequencyByAcademicYear", "Fee")',
+            data: { Academicyear: vAcademicyear },
+            success: function (objResult) {
+                $('#FrequencyList').empty().append('<option value="">All Frequencies</option>' + (objResult.sResult || ''));
+                $('.selectpicker').selectpicker('refresh');
+            }
+        });
+    }
+
+    $('#FrequencyList').on('change', function () {
+        var vAcademicyear = $('#AcademicYearList option:selected').text();
+        var vFrequency = $(this).val();
+        if (!vFrequency) {
+            $('#MainHeadList').empty();
+            $('.selectpicker').selectpicker('refresh');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("FetchBusHeadsByFrequencyId", "Fee")',
+            data: { sFrequencyId: vFrequency, Academicyear: vAcademicyear },
+            success: function (objResult) {
+                $('#MainHeadList').empty().append(objResult.sResult || '');
+                $('.selectpicker').selectpicker('refresh');
+            }
+        });
+    });
+
+    function SetTab(tabName) {
+        $('#hdnActiveTab').val(tabName);
+        $('#dvReportBind').empty();
+        $('.btnPrint').addClass('hidden');
+        $('.btnExport').addClass('hidden');
+
+        // Toggle Date filters vs Head filters
+        if (tabName.endsWith('_paid')) {
+            $('#divDateFilters').show();
+            $('#divHeadFilter').hide();
+        } else if (tabName.endsWith('_balance')) {
+            $('#divDateFilters').hide();
+            $('#divHeadFilter').show();
+        } else if (tabName.endsWith('_freq')) {
+            $('#divDateFilters').hide();
+            $('#divHeadFilter').show();
+        }
+        $('.selectpicker').selectpicker('refresh');
+    }
+
+    function GetBusReport() {
+        var tab = $('#hdnActiveTab').val();
+        var acYear = $('#AcademicYearList option:selected').text();
+        var fromDate = $('#txtFromDate').val();
+        var toDate = $('#txtToDate').val();
+        var frequency = $('#FrequencyList').val();
+        var head = $('#MainHeadList').val();
+        if (Array.isArray(head)) {
+            head = head.join(',');
+        }
+
+        if (!acYear || acYear === "-- Select --") {
+            swal("Error!", "Please select Academic Year.", "error");
+            return;
+        }
+
+        if (tab.endsWith('_paid')) {
+            if (!fromDate || !toDate) {
+                swal("Error!", "Please choose From and To Dates.", "error");
+                return;
+            }
+        }
+
+        $('#loader').show();
+
+        $.ajax({
+            url: '@Url.Action("BindBusFeeReport", "Fee")',
+            method: 'POST',
+            data: {
+                sTab: tab,
+                sAcYear: acYear,
+                FromDate: fromDate,
+                ToDate: toDate,
+                sFrequency: frequency,
+                sHead: head
+            },
+            success: function (data) {
+                $('#loader').hide();
+                $('#dvReportBind').html(data);
+                
+                if ($.fn.DataTable.isDataTable('#tblBusFeeReport')) {
+                    $('#tblBusFeeReport').DataTable().destroy();
+                }
+                
+                $('#tblBusFeeReport').DataTable({
+                    "paging": true,
+                    "lengthChange": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": true,
+                    "autoWidth": false,
+                    "responsive": true
+                });
+
+                $('.btnPrint').removeClass('hidden');
+                $('.btnExport').removeClass('hidden');
+            },
+            error: function () {
+                $('#loader').hide();
+                swal("Error!", "Failed to fetch report data.", "error");
+            }
+        });
+    }
+
+    function printDiv(divId) {
+        var printContents = document.getElementById(divId).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        
+        // Reload to restore JS events
+        loadContent('/Fee/BusFeeReport');
+    }
+
+    function Export() {
+        var table = $('#tblBusFeeReport').DataTable();
+        if (table) {
+            var data = table.buttons.exportData();
+            window.location = "data:text/csv;charset=utf-8," + encodeURIComponent(data.body);
+        }
+    }
+</script>

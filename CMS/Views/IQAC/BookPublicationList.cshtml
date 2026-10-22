@@ -1,0 +1,431 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+
+
+@{
+    Layout = null;
+    int ncount = 0;
+}
+
+
+<div class="form-horizontal">
+
+    <div class="col-md-12 table-responsive">
+        <div class="form-group col-md-12 pull-right">
+            <a class="btn btn-success pull-right" data-toggle="modal" href="#BookPublish-dialog"><i class="fa fa-plus"></i> Add</a>
+        </div> <br />
+        <table class="table table-bordered" id="tblIQAC">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Chapter</th>
+                    <th>Book Title</th>
+                    <th>Chapter Title</th>
+                    <th>Publisher</th>
+                    <th>Year</th>
+                    <th>ISBN</th>
+                    <th>Single Author</th>
+                    <th>Editor/Co-Editor</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    if (Model.liBookPublication != null && Model.liBookPublication.Count > 0)
+                    {
+                        foreach (var item in Model.liBookPublication)
+                        {
+                            <tr>
+                                <td>@{ncount++;} @ncount</td>
+                                <td>@item.CHAPTER</td>
+                                <td>@item.BOOK_TITLE</td>
+                                <td>@item.CHAPTER_TITLE</td>
+                                <td>@item.PUBLISHER</td>
+                                <td>@item.PUBLICATION_YEAR</td>
+                                <td>@item.ISBN_NUMBER</td>
+                                <td>@item.SINGLE_AUTHOR</td>
+                                <td>@item.EDITOR</td>
+                                <td>
+                                    <a class="text-primary" href="#BookPublish-dialog" onclick="FetchBookPublicationById(@item.IQAC_BOOK_PUBLICATION_ID)" data-toggle="modal"><i class="fa fa-edit"></i></a>
+                                    <a class="text-danger" href="javascript:;" onclick="GetConfrim(@item.IQAC_BOOK_PUBLICATION_ID)"><i class="fa fa-trash"></i></a>
+                                </td>
+                            </tr>
+                                        }
+                                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Begin Honour Modal -->
+<div class="modal" id="BookPublish-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">  Book Publish Info</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal row">
+                    <div class="col-md-12" id="dvBookPublish" data-parsley-validate="true">
+
+                        <div class="form-group">
+                            @Html.Label("Publication Type", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <select class="selectpicker form-control" id="ddlPublicationType" onchange="ManageControles()"> 
+                                    <option value="">-- Select --</option>
+                                    <option value="1"> Chapter </option>
+                                    <option value="2"> Book </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        @*<div class="form-group">
+                            @Html.Label("Chapter", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtBookPublishChapter" data-parsley-required="true" placeholder="Chapter" data-parsley-maxlength="60" />
+                            </div>
+                        </div>*@
+
+                        <div class="form-group">
+                            @Html.Label("Book Title", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtBookPublishBookTitle"  placeholder="Book Title" data-parsley-maxlength="500" />
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="dvBookChapterTitle">
+                            @Html.Label("Chapter Title", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtBookPublishChapterTitle"  placeholder="Chapter Title" data-parsley-maxlength="500" />
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            @Html.Label("Publisher", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtBookPublishPublisher" data-parsley-required="true" placeholder="Publisher" data-parsley-maxlength="100" />
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            @Html.Label("Year", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtBookPublishYear" data-parsley-type="number" data-parsley-required="true" placeholder="Year (Number)" data-parsley-maxlength="4" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("ISBN Number", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="txtBookPublishISBN" data-parsley-required="true" placeholder="ISBN Number (Number)" data-parsley-maxlength="20" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Single Author", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <div class="radio radio-css radio-success">
+                                    <input type="radio" name="Author" id="SingleAuthor_1" value="1" data-parsley-required="true" />
+                                    <label for="SingleAuthor_1">
+                                        Yes
+                                    </label>
+                                </div>
+                                <div class="radio radio-css">
+                                    <input type="radio" name="Author" id="SingleAuthor_2" value="2" />
+                                    <label for="SingleAuthor_2">
+                                        No
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Editor/Co-Editor", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <div class="radio radio-css radio-success">
+                                    <input type="radio" name="Editor" id="Editor1" value="1" data-parsley-required="true" />
+                                    <label for="Editor1">
+                                        Yes
+                                    </label>
+                                </div>
+                                <div class="radio radio-css ">
+                                    <input type="radio" name="Editor" id="Editor2" value="2" />
+                                    <label for="Editor2">
+                                        No
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            @Html.Label("File Upload", htmlAttributes: new { @class = "col-md-3 control-label" })
+                            <div class="col-md-9">
+                                <div class="btn btn-primary" onclick="FileClick('BookPublicationUpload')"> <i class="fa fa-plus"></i>  File</div><br />
+                                <input type="file" id="BookPublicationUpload" class="hidden" multiple="multiple" onchange="LoadFile('BookPublicationUploadData', 'BookPublicationUpload')" />
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="BookPublicationUploadData">
+                            <div class="form-group col-md-12 table-responsive">
+                                <div class="col-md-1"></div>
+                                <div class="col-md-10">
+                                    <table class="table table-bordered table-hover" id="tbl_BookPublicationUpload">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>File</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbBookPublicationUpload"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="btnSubmit" class="btn btn-sm btn-primary" onclick="SubmitData()">Submit</a>
+                <a href="javascript:;" id="btnCancel" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="hdBookPublicationId" />
+<!-- End Subject Association Modal -->
+<script>
+
+    function ManageControles()
+    {
+        // data-parsley-required="true"
+        if ($('#ddlPublicationType').val() == "1") // Chapter
+        {
+            $('#txtBookPublishChapterTitle').attr('data-parsley-required', true);
+            $('#txtBookPublishBookTitle').removeAttr('data-parsley-required');
+            $('#dvBookChapterTitle').show();
+        } else if ($('#ddlPublicationType').val() == "2") // Book 
+        {
+            $('#txtBookPublishBookTitle').attr('data-parsley-required', true);
+            $('#txtBookPublishChapterTitle').removeAttr('data-parsley-required');
+            $('#dvBookChapterTitle').hide();
+        }
+    }
+
+
+    function SubmitData()
+    {
+        var isValid = true;
+        if ($('#dvBookPublish').parsley().validate() !== true) isValid = false;
+        if (!isValid)
+        {
+            //gritter-info,danger,success,warning,default
+            swal({ title: "Warning !", text: 'Something went wrong ! Please check your inputs !', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+
+        //for image update
+        var BookPublicationImagePath = '';
+        var FilePath = '';
+        var fCount = 0;
+        var iCount = 0;
+        $('#BookPublicationUploadData').find("table tbody tr").each(function () {
+            if ($(this).attr("cms-img-path")) {
+                BookPublicationImagePath += $(this).attr("cms-img-path") + ",";
+                fCount = parseInt(fCount) + 1;
+            }
+            else {
+                if ($(this).attr("id")) {
+                    FilePath += $(this).attr("id") + ",";
+                    iCount = parseInt(iCount) + 1;
+                }
+            }
+        });
+
+        if (fCount > 0) {
+            BookPublicationImagePath = BookPublicationImagePath.slice(0, -1);
+            BookPublicationImagePath += '';
+            //clearing formdata sJsonData
+            if (formData.has('sPhoto')) {
+                formData.delete("sPhoto");
+            }
+            formData.append("sPhoto", BookPublicationImagePath);
+        }
+        if (iCount > 0) {
+            FilePath = FilePath.slice(0, -1);
+            FilePath += '';
+        }
+
+
+
+        var sAuthor = 0;
+        if ($('#SingleAuthor_1').is(':checked'))
+        {
+            sAuthor = 1;
+        } else if ($('#SingleAuthor_2').is(':checked'))
+        {
+            sAuthor = 2;
+        }
+
+        var Editor = 0;
+        if ($('#Editor1').is(':checked'))
+        {
+            Editor = 1;
+        } else if ($('#Editor2').is(':checked'))
+        {
+            Editor = 2;
+        }
+
+        if (formData.has('sJsonData')) {
+            formData.delete("sJsonData");
+        }
+        var sJsonData = '{"IQAC_BOOK_PUBLICATION_ID":"' + $('#hdBookPublicationId').val() + '",\
+                          "CHAPTER":"' + $('#ddlPublicationType').val() + '",\
+                          "BOOK_TITLE":"' + $('#txtBookPublishBookTitle').val() + '",\
+                          "CHAPTER_TITLE":"' + $('#txtBookPublishChapterTitle').val() + '",\
+                          "PUBLISHER":"' + $('#txtBookPublishPublisher').val() + '",\
+                          "PUBLICATION_YEAR":"' + $('#txtBookPublishYear').val() + '",\
+                          "ISBN_NUMBER":"' + $('#txtBookPublishISBN').val() + '",\
+                          "SINGLE_AUTHOR":"' + sAuthor + '",\
+                          "EDITOR":"' + Editor + '","FILE_PATH":"' + FilePath + '"}';
+        formData.append("sJsonData", sJsonData);
+        $.ajax({
+            url: '@Url.Action("SaveBookPublication", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (data)
+            {
+                if (data.ErrorCode == "200")
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    $('#btnCancel').click();
+                    $('#liBookPublication').click();
+                } else
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+
+
+    function FetchBookPublicationById(Id)
+    {
+        $.ajax({
+            url: '@Url.Action("FetchBookPublicationById", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sBookPublicationId: Id },
+            success: function (data)
+            {
+                if (data.Message!=null && data.Message!='')
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                } else
+                {
+                    $('#hdBookPublicationId').val(data[0].IQAC_BOOK_PUBLICATION_ID);
+                    $('#ddlPublicationType').val(data[0].CHAPTER);
+                    $('#txtBookPublishBookTitle').val(data[0].BOOK_TITLE);
+                    $('#txtBookPublishChapterTitle').val(data[0].CHAPTER_TITLE);
+                    $('#txtBookPublishPublisher').val(data[0].PUBLISHER);
+                    $('#txtBookPublishYear').val(data[0].PUBLICATION_YEAR);
+                    $('#txtBookPublishISBN').val(data[0].ISBN_NUMBER);
+                    BindFileInfo(data[0].FILE_PATH, 'tbBookPublicationUpload', 'BookPublicationUploadData');
+                    if (data[0].SINGLE_AUTHOR == "1")
+                    {
+                        $('#SingleAuthor_1').click();
+                    } else if (data[0].SINGLE_AUTHOR == "2")
+                    {
+                        $('#SingleAuthor_2').click();
+                    }
+
+                    if (data[0].EDITOR == "1") {
+                        $('#Editor1').click();
+                    } else if (data[0].EDITOR == "2") {
+                        $('#Editor2').click();
+                    }
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+    function GetConfrim(Id)
+    {
+        if(!confirm('Are you sure to delete ?'))
+        {
+            return false;
+        }
+
+        $.ajax({
+            url:'@Url.Action("DeleteBookPublication", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sBookPublicationId: Id },
+            success: function (data)
+            {
+                if (data.ErrorCode == "200")
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    $('#liBookPublication').click();
+                } else
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+
+
+    $(function () {
+        $('#BookPublish-dialog').on('hidden.bs.modal', function (e) {
+            if (formData.has('sJsonData')) {
+                formData.delete("sJsonData");
+            }
+
+            var entries = formData.entries();
+            for(var pair of entries)
+            {
+                formData.delete(pair[0]);
+            }
+            nFileCount = 0; nCount = 0;
+            $('#hdBookPublicationId').val('');
+            $('#txtBookPublishChapter').val('');
+            $('#txtBookPublishBookTitle').val('');
+            $('#txtBookPublishChapterTitle').val('');
+            $('#txtBookPublishPublisher').val('');
+            $('#txtBookPublishYear').val('');
+            $('#txtBookPublishISBN').val('');
+
+            if ($('#SingleAuthor_1').is(':checked'))
+                $('#SingleAuthor_1').attr('checked', false);
+            else if ($('#SingleAuthor_2').is(':checked'))
+                $('#SingleAuthor_2').attr('checked', false);
+
+            if ($('#Editor1').is(':checked'))
+                $('#Editor1').attr('checked',false);
+            else if ($('#Editor2').is(':checked'))
+                $('#Editor2').attr('checked',false);
+
+            $('.selectpicker').selectpicker('refresh');
+        });
+    });
+</script>

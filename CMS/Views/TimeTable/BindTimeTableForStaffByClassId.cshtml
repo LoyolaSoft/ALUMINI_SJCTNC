@@ -1,0 +1,77 @@
+﻿@model CMS.ViewModel.ViewModel.TimeTableViewModel
+    @{ 
+        Layout = null;
+    }
+<table class="table table-bordered" id="TimeTableLForStaffist">
+    @if (Model.lstHours != null)
+    {
+        <thead>
+            <tr>
+                <th></th>
+
+                @foreach (var dataitem in Model.lstHours)
+                {
+                    <th><b> Hour - @dataitem.HOUR</b></th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.lstDayOrders != null)
+            {
+                string sCourse = string.Empty;
+                foreach (var dataitem in Model.lstDayOrders)
+                {
+                    <tr cms-timetableid="@dataitem.DAY_ORDER_ID">
+                        <td><b> Day- @dataitem.DAY</b></td>
+                        @if (Model.lstTimeTable != null)
+                        {
+                            var TimeTableList = Model.lstTimeTable.Where(s => s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+
+                            foreach (var item in Model.lstHours)
+                            {
+                                var TimeTable = TimeTableList.Where(s => s.Hour_Id == item.HOUR_ID).ToList();
+                                if (TimeTable != null && TimeTable.Count > 0)
+                                {
+                                    <td id="tdTimeTable" cms-semesterid="@TimeTable.FirstOrDefault().Semester_Id" cms-courseid="@TimeTable.FirstOrDefault().Course_Id" cms-dayid="@TimeTable.FirstOrDefault().Day_Order_Id" cms-hourtype="@TimeTable.FirstOrDefault().hour_type_id" cms-staffid="@TimeTable.FirstOrDefault().Staff_Id" class="editable" cms-hourid="@TimeTable.FirstOrDefault().Hour_Id" cms-timetalbeid="@TimeTable.FirstOrDefault().Time_Table_Id">
+                                        @*@TimeTable.FirstOrDefault().hourType*@
+                                        @if (@TimeTable.FirstOrDefault().Course_Id != "0" || @TimeTable.FirstOrDefault().Course_Id != "")
+                                        {
+                                            @TimeTable.FirstOrDefault().COURSE_TITLE
+                                            sCourse = "(" + TimeTable.FirstOrDefault().COURSE_CODE + ")";
+                                            @sCourse
+                                        }
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="editable" cms-hourid="@item.HOUR_ID" cms-dayid="@dataitem.DAY_ORDER_ID"></td>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach (var item in Model.lstHours)
+                            {
+                                <td class="editable" cms-hourid="@item.HOUR_ID" cms-dayid="@dataitem.DAY_ORDER_ID"></td>
+                            }
+                        }
+                    </tr>
+                }
+
+            }
+            else
+            {
+                <tr>
+                    <td><p>No records available !!!</p></td>
+                </tr>
+            }
+
+        </tbody>
+    }
+    else
+    {
+        <tr>
+            <td><p>No records available !!!</p></td>
+        </tr>
+    }
+</table>

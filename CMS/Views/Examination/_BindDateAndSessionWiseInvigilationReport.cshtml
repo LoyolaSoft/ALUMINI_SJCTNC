@@ -1,0 +1,326 @@
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    Layout = null;
+    var college = (Model.liCollegeDetails != null && Model.liCollegeDetails.Count > 0) ? Model.liCollegeDetails.FirstOrDefault() : null;
+    string collegeName = college != null ? college.COLLEGE_NAME : "St. JOSEPH'S COLLEGE OF ARTS & SCIENCE (Autonomous)";
+    string collegePlace = college != null ? (string.IsNullOrEmpty(college.PLACE) ? college.COLLEGE_ADDRESS : college.PLACE) : "CUDDALORE - 1";
+    string collegeHeader = (collegeName ?? "").ToUpper() + " :: " + (collegePlace ?? "").ToUpper();
+}
+
+<style>
+    .invigilation-report-wrapper {
+        font-family: Arial, Helvetica, sans-serif;
+        color: #000;
+        background: #f8f9fa;
+        padding: 15px 0;
+    }
+
+    .invigilation-page {
+        width: 100%;
+        max-width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto 30px auto;
+        padding: 8mm 10mm;
+        background: #fff;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        box-shadow: 0 0 10px rgba(0,0,0,0.15);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .invigilation-header {
+        text-align: center;
+        margin-bottom: 2mm;
+    }
+
+    .invigilation-header h4 {
+        margin: 0 0 1.5mm 0;
+        font-size: 14px;
+        font-weight: bold;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        color: #000;
+        line-height: 1.2;
+    }
+
+    .invigilation-header h5 {
+        margin: 1.5mm 0;
+        font-size: 12px;
+        font-weight: bold;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        color: #000;
+        line-height: 1.2;
+    }
+
+    .invigilation-meta {
+        font-size: 11px;
+        font-weight: bold;
+        color: #000;
+        line-height: 1.35;
+        margin-top: 1mm;
+    }
+
+    .invigilation-meta p {
+        margin: 0;
+    }
+
+    .invigilation-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        margin-top: 2mm;
+        margin-bottom: 0;
+    }
+
+    .invigilation-table th, 
+    .invigilation-table td {
+        border: 1px solid #000;
+        padding: 0 6px;
+        vertical-align: middle;
+        box-sizing: border-box;
+    }
+
+    .invigilation-table th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+        text-align: center;
+        text-transform: uppercase;
+        font-size: 11px;
+        height: 8.5mm;
+    }
+
+    .invigilation-table tbody tr {
+        height: 9.4mm;
+    }
+
+    .invigilation-table tbody td {
+        height: 9.4mm;
+        font-size: 11px;
+        line-height: 1.2;
+    }
+
+    .invigilation-table td.col-sno {
+        width: 6%;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .invigilation-table td.col-name {
+        width: 42%;
+        text-align: left;
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .invigilation-table td.col-hall {
+        width: 36%;
+        text-align: left;
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .invigilation-table td.col-sign {
+        width: 16%;
+        text-align: center;
+    }
+
+    .invigilation-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        font-size: 10.5px;
+        font-weight: bold;
+        color: #000;
+        padding-top: 2mm;
+        margin-top: 2mm;
+        line-height: 1.35;
+    }
+
+    .invigilation-footer-left {
+        text-align: left;
+        line-height: 1.35;
+        flex: 1;
+    }
+
+    .invigilation-footer-center {
+        text-align: center;
+        flex: 1;
+    }
+
+    .invigilation-footer-right {
+        text-align: right;
+        flex: 1;
+    }
+
+    @@media print {
+        @@page {
+            size: A4 portrait;
+            margin: 8mm 10mm;
+        }
+
+        body * {
+            visibility: hidden;
+        }
+
+        #divDateSessionReport,
+        #divDateSessionReport *,
+        .invigilation-report-wrapper, 
+        .invigilation-report-wrapper * {
+            visibility: visible;
+        }
+
+        .invigilation-report-wrapper {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+        }
+
+        .invigilation-page {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: 280mm !important;
+            min-height: 280mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            box-sizing: border-box !important;
+        }
+
+        .invigilation-page.no-break-last {
+            page-break-after: auto !important;
+            break-after: auto !important;
+        }
+
+        .invigilation-table th {
+            background-color: #eee !important;
+            height: 8.5mm !important;
+            padding: 0 6px !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .invigilation-table tbody tr {
+            height: 9.4mm !important;
+        }
+
+        .invigilation-table tbody td {
+            height: 9.4mm !important;
+            padding: 0 6px !important;
+            line-height: 1.2 !important;
+        }
+
+        .btn, .breadcrumb, .page-header, .panel-heading, .nav-tabs {
+            display: none !important;
+        }
+    }
+</style>
+
+<div class="invigilation-report-wrapper" id="invigilationReportPrintArea">
+    @if (Model.LiDateSessionWiseInvigilationGroups != null && Model.LiDateSessionWiseInvigilationGroups.Count > 0)
+    {
+        int totalGroups = Model.LiDateSessionWiseInvigilationGroups.Count;
+        for (int gIdx = 0; gIdx < totalGroups; gIdx++)
+        {
+            var group = Model.LiDateSessionWiseInvigilationGroups[gIdx];
+            bool isLastGroup = (gIdx == totalGroups - 1);
+            int runningSNo = 0;
+            int totalPagesInGroup = group.TotalPages;
+
+            for (int pIdx = 0; pIdx < group.Pages.Count; pIdx++)
+            {
+                var pageItems = group.Pages[pIdx];
+                bool isLastPageOfGroup = (pIdx == group.Pages.Count - 1);
+                bool isAbsoluteLastPage = isLastGroup && isLastPageOfGroup;
+
+                <div class="invigilation-page @(isAbsoluteLastPage ? "no-break-last" : "")">
+                    <div>
+                        @* Header *@
+                        <div class="invigilation-header">
+                            <h4>@collegeHeader</h4>
+                            <h5>LIST OF INVIGILATORS :: @(string.IsNullOrEmpty(group.ExamTitle) ? "EXAMINATION" : group.ExamTitle)</h5>
+                            <div class="invigilation-meta">
+                                <p class="invigilation-meta-date">Date of Exam : @group.ExamDate</p>
+                                <p class="invigilation-meta-session">Session : @group.SessionDisplayName</p>
+                            </div>
+                        </div>
+
+                        @* Table *@
+                        <table class="invigilation-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 6%;">S. No</th>
+                                    <th style="width: 42%;">NAME OF THE INVIGILATOR</th>
+                                    <th style="width: 36%;">NAME OF THE HALL</th>
+                                    <th style="width: 16%;">SIGNATURE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in pageItems)
+                                {
+                                    runningSNo++;
+                                    string deptPrefix = !string.IsNullOrWhiteSpace(item.DEPARTMENT_CODE) ? (item.DEPARTMENT_CODE.Trim() + ", ") : "";
+                                    string glSuffix = (item.STAFF_CODE != null && item.STAFF_CODE.ToUpper().Contains("GL")) ? " (GL)" : "";
+                                    string invigilatorName = deptPrefix + (item.FIRST_NAME ?? "").Trim() + glSuffix;
+
+                                    <tr>
+                                        <td class="col-sno">@runningSNo</td>
+                                        <td class="col-name" title="@invigilatorName">@invigilatorName</td>
+                                        <td class="col-hall" title="@item.HALL_NAME">@item.HALL_NAME</td>
+                                        <td class="col-sign">&nbsp;</td>
+                                    </tr>
+                                }
+                                @for (int emptyRow = pageItems.Count + 1; emptyRow <= 25; emptyRow++)
+                                {
+                                    <tr class="empty-row">
+                                        <td class="col-sno">&nbsp;</td>
+                                        <td class="col-name">&nbsp;</td>
+                                        <td class="col-hall">&nbsp;</td>
+                                        <td class="col-sign">&nbsp;</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @* Footer *@
+                    <div class="invigilation-footer">
+                        <div class="invigilation-footer-left">
+                            <div>Date of Exam : @group.ExamDate</div>
+                            <div>Session : @group.SessionDisplayName</div>
+                        </div>
+                        <div class="invigilation-footer-center">
+                            Page @(pIdx + 1) of @totalPagesInGroup
+                        </div>
+                        <div class="invigilation-footer-right">
+                            &nbsp;
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    }
+    else
+    {
+        <div class="alert alert-info text-center" style="margin: 20px;">
+            <i class="fa fa-info-circle"></i> No invigilation records found for the selected criteria.
+        </div>
+    }
+</div>

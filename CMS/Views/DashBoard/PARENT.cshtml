@@ -1,0 +1,922 @@
+﻿@model CMS.ViewModel.ViewModel.DashboardViewModel
+@{
+    ViewBag.Title = "PARENT";
+    Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    //Layout = null;
+    string CourseCode = string.Empty;
+    string ttTimeTable = string.Empty;
+    string sDayOrder = string.Empty;
+}
+@using CMS.Utility
+
+
+
+<style>
+    #ourmanna-verse {
+        padding: 10px;
+        margin: 10px;
+        /*background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(0, 0, 0, 0.3);*/
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+    }
+
+    #mannaverse {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    #mannaverse-reference:before {
+        content: "- ";
+    }
+
+    #mannaverse-reference {
+        text-align: right;
+        font-size: 12px;
+    }
+
+    #mannaverse-version {
+        color: #ddd;
+    }
+</style>
+
+
+
+<link href="~/Content/assets/plugins/fullcalendar/fullcalendar.print.css" rel="stylesheet" media='print' />
+<link href="~/Content/assets/plugins/fullcalendar/fullcalendar.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/morris/morris.css" rel="stylesheet" />
+<div id="content" class="content">
+
+
+
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">ParentDashboard</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Parent Dashboard</h1>
+    <div class="row">
+        <!-- begin col-3 -->
+        <div class="col-lg-12">
+            <div class="widget widget-stats bg-gradient-blue">
+                <div class="stats-icon"><i class="fa fa-inbo"></i></div>
+                <div class="stats-info">
+                    <h4>Word Of The Day</h4>
+                    <p><div id="ourmanna-verse">Loading...</div></p>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="widget widget-stats bg-gradient-blue">
+                <div class="stats-icon"><i class="fa fa-calendar"></i></div>
+                <div class="stats-info">
+                    <h4>Day Order</h4>
+                    <p>
+                        @if (!string.IsNullOrEmpty(Session[Common.SESSION_VARIABLES.DAY_ORDER].ToString()))
+                        {
+                            sDayOrder = Session[Common.SESSION_VARIABLES.DAY_ORDER].ToString();
+                        }
+                        else
+                        {
+                            sDayOrder = "0";
+                        }
+                        @sDayOrder
+                    </p>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- end col-3 -->
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="widget widget-stats bg-gradient-aqua">
+                <div class="stats-icon"><i class="fa fa-qrcode"></i></div>
+                <div class="stats-info">
+                    <h4>Attendance Percentage</h4>
+                    <p>
+                        @*@{
+                                var percentage =ViewBag.CurrentSemAttendancePercentage;
+                            }
+                            @percentage*@
+                        0
+                    </p>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- end col-3 -->
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="widget widget-stats bg-gradient-purple">
+                <div class="stats-icon"><i class="fa fa-tachometer"></i></div>
+                <div class="stats-info">
+                    <h4>Courses</h4>
+                    <p>
+                        @*@if (Model.liCourseDetails!=null && Model.liCourseDetails.Count>0)
+                            {
+                                nCourses = Model.liCourseDetails.Count;
+                            }
+                            @nCourses*@
+                        0
+                    </p>
+                </div>
+                <div class="stats-link">
+                    <a href="#Course-dialog" data-toggle="modal">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- end col-3 -->
+        <!-- begin col-3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="widget widget-stats bg-gradient-orange">
+                <div class="stats-icon"><i class="ion-ios-clock"></i></div>
+                <div class="stats-info">
+                    <h4>Time</h4>
+                    <p id="currenttime"></p>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- end col-3 -->
+    </div>
+    <!-- begin row -->
+    <div class="row">
+
+
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="panel ">
+                        <div class="panel-heading">
+                            <div class="panel-heading-btn">
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                            </div>
+                            <h3 class="panel-title"><i class="fa fa-inbox"></i> Notice Board</h3>
+                        </div>
+                        <div class="panel-body noPadding">
+                            <div class="col-md-12 table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Description</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>
+                                                <img src="~/Content/assets/img/New_Gif.gif" /> Exam Result For November 2019
+                                            </td>
+                                            <td><a href="javascript:;" onclick="loadContent('/Examination/SemesterResultForParent')" class="btn btn-success"> View </a></td>
+                                        </tr>
+                                        @*<tr>
+                                            <td>2</td>
+                                            <td>
+                                                <img src="~/Content/assets/img/New_Gif.gif" /> About College
+                                            </td>
+                                            <td><a href="www.sjctnc.edu.in"  onclick="loadContent('/Examination/SemesterResultForParent')" target="_blank" class="btn btn-success"> View </a></td>
+                                        </tr>*@
+                                    </tbody>
+                                </table>
+                            </div>
+                            @*<div class="media media-sm">
+                                    <a class="media-center" href="javascript:;">
+                                        <p>NME Course</p>
+                                    </a>
+                                    <div class="media-body">
+                                        <h3>
+                                            @if (Model.liNMERegisteredStudent != null)
+                                            {
+                                                foreach (var item in Model.liNMERegisteredStudent)
+                                                {
+                                                    @item.COURSE_TITLE <br />
+                                                }
+                                            }
+                                        </h3>
+                                    </div>
+                                    <a class="media-center" href="javascript:;">
+                                        <p>Certificate Course</p>
+                                    </a>
+                                    <div class="media-body">
+                                        <h3>
+                                            @if (Model.liCertificateRegisteredStudent != null)
+                                            {
+                                                @Model.liCertificateRegisteredStudent.FirstOrDefault().COURSE_TITLE
+                                            }
+                                        </h3>
+                                    </div>
+                                    <a class="media-center" href="javascript:;">
+                                        <p>Library</p>
+                                    </a>
+                                    <div class="media-body">
+                                        @if (Model.liLibrarybookApprovedAnounce != null && Model.liLibrarybookApprovedAnounce.Count > 0)
+                                        {
+                                            foreach (var item in Model.liLibrarybookApprovedAnounce)
+                                            {
+                                                <h3>@item.STATUS</h3>
+                                            }
+                                        }
+                                    </div>
+                                </div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @*<div class="col-md-12">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel ">
+                            <div class="panel-heading">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-inbox"></i>Exam Report</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="col-md-12 table-responsive">
+                                    <center><h4>Main Papers</h4></center>
+                                    <div class="" id="chartdiv" data-colors="#0079fd,#41c94f,#1ab394">
+
+                                    </div>
+                                    <br>
+                                    <br>
+                                    <div class="col-md-12">
+                                        <label>Note:Only passed subject has taken for calculation</label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>*@
+        <!-- begin col-4 -->
+        <!-- <div class="col-md-4">
+              <div class="panel panel-inverse">
+                  <div class="panel-heading">
+                      <div class="panel-heading-btn">
+                          <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                          <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                          <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                          <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                      </div>
+                      <h4 class="panel-title">Calendar</h4>
+                  </div>
+                  <div class="panel-body">
+                      <div id="datepicker-inline" class="datepicker-full-width"><div></div></div>
+                  </div>
+              </div>
+          </div> -->
+        <!-- end col-4 -->
+    </div>
+    <!--begin timetablerow -->
+    @*<div class="row">
+            <div class="col-sm-12">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel">
+                            <div class="panel-heading bg-blue">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript: ;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-calendar-o"></i> Timetable</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="row myMargin table-responsive" id="Timetable">
+                                    <table class="table table-bordered text-center" id="TimeTableClassWiseList">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                @if (Model.lstHours != null)
+                                                {
+                                                    foreach (var dataitem in Model.lstHours)
+                                                    {
+                                                        <th><b> Hour- @dataitem.HOUR</b></th>
+                                                    }
+                                                }
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.lstDayOrders != null)
+                                            {
+                                                foreach (var dataitem in Model.lstDayOrders)
+                                                {
+                                                    <tr cms-timetableid="@dataitem.DAY_ORDER_ID">
+                                                        <td><b> Day- @dataitem.DAY</b></td>
+                                                        @foreach (var item in Model.lstHours)
+                                                        {
+                                                            if (Model.liTimetable != null && Model.liTimetable.Count > 0)
+                                                            {
+                                                                var TimeTableList = Model.liTimetable.Where(s => s.Day_Order_Id == dataitem.DAY_ORDER_ID).ToList();
+                                                                var TimeTable = TimeTableList.Where(s => s.Hour_Id == item.HOUR_ID).ToList();
+                                                                if (TimeTable != null && TimeTable.Count > 0)
+                                                                {
+
+                                                                    ttTimeTable = TimeTable.FirstOrDefault().Time_Table_Id;
+                                                                    if (TimeTable.Count > 1)
+                                                                    {
+                                                                        ttTimeTable = string.Join(",", TimeTable.Select(x => x.Time_Table_Id.ToString()).ToArray());
+
+                                                                    }
+                                                                    <td id="tdTimeTable">
+                                                                        @foreach (var item1 in TimeTable)
+                                                                        {
+                                                                            @item1.COURSE_TITLE
+                                                                            { CourseCode = "(" + @item1.COURSE_CODE + ")"; }
+                                                                            if (CourseCode != "()")
+                                                                            {
+                                                                                @CourseCode <br />
+                                                                                    @item1.STAFF_CODE
+                                                                            }
+                                                                            <br>
+                                                                        }
+
+                                                                    </td>
+
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td class="editable" cms-dayid="@dataitem.DAY_ORDER_ID" cms-hourid="@item.HOUR_ID"></td>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <td class="editable" cms-dayid="@dataitem.DAY_ORDER_ID" cms-hourid="@item.HOUR_ID"></td>
+                                                            }
+                                                        }
+                                                    </tr>
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td><p>No records available !!!</p></td>
+                                                </tr>
+                                            }
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+    <!--begin calendar row-->
+    @*<div class="row">
+            <div class="col-sm-12">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel">
+                            <div class="panel-heading bg-blue">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript: ;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-calendar-o"></i>Academic Calendar</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="row myMargin" id="divcalendar">
+                                    <div id="calendar" class="vertical-box-column p-15 calendar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+
+    <!-- Begin Event
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-flag"></i> Events</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="row myMargin" id="event">
+                                    <marquee direction="up" scrolldelay="150" onmouseover="stop();" onmouseout="start();">
+                                        <div class="height-sm" @*data-scrollbar="true"*@>
+                                            @if (Model.liCalenderEvents != null && Model.liCalenderEvents.Count > 0)
+                                            {
+                                                <ul class="media-list media-list-with-divider media-messaging">
+                                                    @foreach (var item in Model.liCalenderEvents)
+                                                    {
+                                                        <li class="media media-sm">
+                                                            <a href="javascript:;" class="pull-left">
+                                                                <img src="" alt="" class="media-object rounded-corner" />
+                                                            </a>
+                                                            <div class="media-body">
+                                                                <h5 class="media-heading"><b>@item.EVENT_START_DATE</b></h5>
+                                                                <p>
+                                                                    @item.EVENT_NAME
+                                                                </p>
+                                                            </div>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            }
+                                        </div>
+                                    </marquee>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel">
+                            <div class="panel-heading bg-purple">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title"><i class="fa fa-calendar-o"></i>Tasks</h3>
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="row myMargin" id="Tasks">
+
+                                        <marquee direction="up" scrolldelay="150" onmouseover="stop();" onmouseout="start();">
+                                            <div class="height-sm" @*data-scrollbar="true"*@>
+    @if (Model.liAssignment != null && Model.liStaff != null)
+    {
+
+
+                                                <ul class="media-list media-list-with-divider media-messaging">
+
+                                                    @foreach (var item in Model.liStaff)
+                                                    {
+
+                                                        var TempList = Model.liAssignment.Where(s => s.STAFF_ID == item.STAFF_ID && s.COURSE_ID == item.COURSE_ID).ToList();
+
+                                                        foreach (var list in TempList)
+                                                        {
+                                                            <li class="media media-sm">
+                                                                @if (@item.PHOTO != "")
+                                                                {
+                                                                    @*<a class="media-left" href="javascript:;">
+                                                                            <img src="@item.PHOTO" alt="" class="media-object rounded-corner">
+                                                                        </a>*@
+                                                                }
+                                                                else
+                                                                {
+                                                                    @*<a class="media-left" href="javascript:;">
+                                                                            <img src="~/Content/assets/img/user-1.jpg" alt="" class="media-object rounded-corner">
+                                                                        </a>*@
+                                                                }
+                                                                <div class="media-body">
+                                                                    @*<a href="@Url.Action("AssignmentSubmission", "Student", new {sCourseid= @list.COURSE_ID,sAssigmentId= @list.ASSIGNMENT_ID,sAssignmentTitle=@list.ASSIGNMENT_TITLE,sCoursecode=@list.COURSE_CODE })">*@
+                                                                    <h5 class="media-heading"><b>@list.DATE_FROM</b></h5>
+
+                                                                    <p>Course- @list.COURSE_CODE</p>
+                                                                    <p>Title - @list.ASSIGNMENT_TITLE</p>
+                                                                    <p>Staff - @list.STAFF_NAME</p>
+                                                                    @Html.Raw(@list.DESCRIPTION)
+                                                                    <span class="badge badge-primary">Submition Date: @list.SUBMISSION_DATE</span>
+                                                                    @*@{HtmlString html = new HtmlString(list.DESCRIPTION);}*@
+
+                                                                    @*</a>*@
+                                                                </div>
+                                                            </li>
+                                                        }
+
+                                                    }
+                                                </ul>
+
+
+    }
+                                            </div>
+                                        </marquee>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel">
+                            <div class="panel-heading bg-purple">
+                                <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                                </div>
+                                <h3 class="panel-title">
+                                <i class="fa fa-calendar-o"></i>
+                                Notification
+                                </h3>
+
+                            </div>
+                            <div class="panel-body noPadding">
+                                <div class="row myMargin" id="notification">
+                                    <marquee direction="up" scrolldelay="150" onmouseover="stop();" onmouseout="start();">
+                                        <div class="height-sm" @*data-scrollbar="true"*@>
+                                            @if (Model.liNotification != null && Model.liNotification.Count > 0)
+                                            {
+                                                <ul class="media-list media-list-with-divider media-messaging">
+                                                    @foreach (var item in Model.liNotification)
+                                                    {
+                                                        <li class="media media-sm">
+                                                            <a href="javascript:;" class="pull-left">
+                                                                <img src="" alt="" class="media-object rounded-corner" />
+                                                            </a>
+                                                            <div class="media-body">
+                                                                <h5 class="media-heading"><b>@item.NOTIFIED_DATE</b></h5>
+                                                                <p>
+                                                                    @item.NOTIFICATION
+                                                                </p>
+                                                            </div>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            }
+                                        </div>
+                                    </marquee>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="modal" id="Course-dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h4 class="modal-title">List Course Details </h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-horizontal row">
+                            <div class="col-md-12 table-responsive">
+                                <table class="table table-hover table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <td>#</td>
+                                            <td>Sem</td>
+                                            <td>Course Code</td>
+                                            <td>Course Title</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.liCourseDetails!=null && Model.liCourseDetails.Count>0)
+                                        {
+                                            int nCount = 0;
+                                            foreach (var item in Model.liCourseDetails)
+                                            {
+                                                <tr>
+                                                    <td>@{nCount++;} @nCount</td>
+                                                    <td>@item.SEMESTER_ID</td>
+                                                    <td>@item.COURSE_CODE</td>
+                                                    <td>@item.COURSE_TITLE</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                                <br />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        -->
+</div>
+
+
+@section scripts{
+    <script src="~/Content/assets/plugins/morris/raphael.min.js"></script>
+    <script src="~/Content/assets/plugins/morris/morris.js"></script>
+    <script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap.min.js"></script>
+    <script src="~/Content/assets/plugins/jquery-jvectormap/jquery-jvectormap-world-merc-en.js"></script>
+    <script src="~/Content/assets/plugins/fullcalendar/lib/moment.min.js"></script>
+    <script src="~/Content/assets/plugins/fullcalendar/fullcalendar.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script src="~/Content/assets/js/calendar.demo.min.js"></script>
+    <script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="~/Content/assets/js/dashboard.min.js"></script>
+    @*<script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>*@
+    @*<script src="http://www.ourmanna.com/verses/api/js/" type="text/javascript"></script>*@
+    <script>
+
+        $(document).ready(function ()
+        {
+
+            var events = [];
+            //   Dashboard.init();
+            handleDashboardDatepicker = function () {
+                "use strict";
+                $("#datepicker-inline").datepicker({
+                    todayHighlight: !0
+                }
+                )
+            }
+            var refreshTimerId;
+
+            function startTimer() {
+                refreshTimerId = setInterval(function () {
+                    if (document.getElementById("currenttime")) {
+                        document.getElementById("currenttime").innerHTML = new Date().toLocaleTimeString();
+                    }
+                }, 1000);
+            }
+
+            startTimer();
+            handleDashboardDatepicker();
+
+            //App.init();
+            //GetCalender DayOrder....
+            @*GetCalender = function ()
+            {
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("GetCalender", "Student")",
+                    success: function (data) {
+                        $.each(data, function (i, v) {
+                            events.push({
+                                id: v.DAY_ID,
+                                dayorderid: v.DAY_ORDER_ID,
+                                title: v.DAY_ORDER,
+                                start: v.SYEAR + "-" + v.SMONTH + v.SDAY,
+                                end: v.EYEAR + "-" + v.EMONTH + v.EDAY,
+                                color: v.COLOR,
+                                holiday: v.IS_HOLIDAY,
+                                allDay: v.DAY_ORDER
+                            });
+                        })
+                        handleCalendarDemo(events);
+                    }, error: function (error) {
+                        alert('Falied To Get Record ...!');
+                    }
+                });
+            }*@
+
+            // GetCalenderEvents ...
+            @*GetCalenderEvent = function ()
+            {
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("GetCalenderEvent", "Student")",
+                    success: function (data) {
+                        $.each(data, function (i, v) {
+                            if (v.EVENT_ID != '')
+                            {
+                                if (v.DAY_ORDER != '')
+                                {
+                                    events.push({
+                                        id: v.EVENT_ID,
+                                        title: v.DAY_ORDER,
+                                        start: v.SYEAR + "-" + v.SMONTH + v.SDAY,
+                                        end: v.EYEAR + "-" + v.EMONTH + v.EDAY,
+                                        color: v.COLOR,
+                                        description: v.EVENT_DESCRIPTION,
+                                        EventType: v.EVENT_TYPE,
+                                        type: "event",
+                                        allDay: true
+                                    });
+                                }
+                            } else
+                            {
+                                if (v.DAY_ORDER != '')
+                                {
+                                    events.push({
+                                        id: v.DAY_ID,
+                                        dayorderid: v.DAY_ORDER_ID,
+                                        title: v.DAY_ORDER,
+                                        start: v.SYEAR + "-" + v.SMONTH + v.SDAY,
+                                        end: v.EYEAR + "-" + v.EMONTH + v.EDAY,
+                                        color: v.COLOR,
+                                        description: v.EVENT_DESCRIPTION,
+                                        holiday: v.IS_HOLIDAY,
+                                        EventType: v.EVENT_TYPE,
+                                        type:"dayorder",
+                                        allDay: true
+                                    });
+
+                                }
+                                //alert('day_order');
+                            }
+
+                        })
+                        handleCalendarDemo(events);
+                    }, error: function (error) {
+                        alert('Falied To Get Record ...!');
+                    }
+                });
+            }
+            GetCalenderEvent();*@
+
+            //Chart();
+        });
+
+        @*function Chart()
+        {
+
+            var marks = @Html.Raw(Json.Encode(ViewBag.liSemstermark));
+
+            var JsonData='[';
+            for(var i = 0; i < marks.length; i++)
+            {
+
+
+                JsonData += '{"y":"SEM-'+ marks[i].M_PASS + '","a":'+marks[i].TOTAL+'},';
+
+            }
+            JsonData = JsonData.slice(0, -1);
+            JsonData += ']';
+
+            var obj = JSON.parse(JsonData);
+            var $arrColors = ['#0079fd', '#26B99A',  '#f8465d', '#a550dd','#f6ac24','#24e3f6'];
+            Morris.Line({
+                element:'chartdiv',
+                data: obj,
+                ymax: 100,
+                xkey: 'y',
+                gridTextSize: 10,
+                ykeys: ['a'],
+                parseTime: false,
+                hideHover: true,
+                lineWidth: '6px',
+                stacked: true,
+                labels: ['Percentage A'],
+                barColors:function (row, series, type) {
+                    return $arrColors[row.x];
+                }
+
+
+            });
+        }*@
+
+
+    </script>
+
+
+    @* Calender Script *@
+    <script>
+        // For flag updates
+        var IsFlag = 0;
+        var Title = null;
+        var StartDate = null;
+        var EndDate = null;
+        var JsonData = null;
+        var blue = "#007aff",
+        blueLight = "#409bff",
+        blueDark = "#005bbf",
+        aqua = "#5AC8FA",
+        aquaLight = "#83d6fb",
+        aquaDark = "#4396bb",
+        green = "#4CD964",
+        greenLight = "#79e38b",
+        greenDark = "#39a34b",
+        orange = "#FF9500",
+        orangeLight = "#ffb040",
+        orangeDark = "#bf7000",
+        dark = "#222222",
+        grey = "#bbbbbb",
+        purple = "#5856D6",
+        purpleLight = "#8280e0",
+        purpleDark = "#4240a0",
+        red = "#FF3B30";
+
+        handleCalendarDemo = function (events) {
+            $("#external-events .fc-event").each(function () {
+                $(this).data("event", {
+                    title: $.trim($(this).text()), stick: !0, color: $(this).attr("data-color") ? $(this).attr("data-color") : ""
+                }),
+               $(this).draggable({
+                   zIndex: 999, revert: !0, revertDuration: 0,
+               })
+            });
+            var e = new Date,
+            t = e.getFullYear(),
+            r = e.getMonth() + 1;
+            r = 10 > r ? "0" + r : r,
+            $("#calendar").fullCalendar({
+                header: {
+                    left: "month,agendaWeek,agendaDay", center: "title", right: "prev,today,next "
+                }
+                , droppable: !0, drop: function (date) {
+                    //$(this).draggable
+                    $("#DragDate").val(convert(date));
+                    //alert(date);
+                }, eventReceive: function (event) {
+                    var DragDate = $("#DragDate").val();
+                    var Json = null;
+                    Json = '{"EVENT_TITLE":"' + event.title + '","COLOR":"' + event.color + '","StartDate":"' + DragDate + '"}';
+                    // DragExternalEvent(Json)
+                }
+                , selectable: !0, selectHelper: !0, select: function (e, t) {
+
+
+                }
+                , editable: !0, eventLimit: !0, events, eventDrop: function (event) {
+
+
+                }, eventClick: function (calEvent, jsEvent, view) {
+
+                    // this is for updating day order
+                    if (calEvent.color == "GRAY") {
+                        // for dayorder updating and inserting
+                        IsFlag = 1;
+
+                        $('#dayOrderDate').attr('value', calEvent.start.format('DD/MM/YYYY'));
+                        $('#dayOrderEndDate').attr('value', calEvent.end.format('DD/MM/YYYY'));
+                        $('#dayId').attr('value', calEvent.id);
+
+                        $('#cbxIsHoliday').removeAttr("checked");
+
+                        $('#ddlDayOrderList option[value=' + calEvent.dayorderid + ']').attr('selected', 'selected');
+                        $('.selectpicker').selectpicker('refresh');
+
+
+                        if (calEvent.holiday == "1") {
+                            $('#cbxIsHoliday').attr("checked", "checked");
+                        }
+
+                        if ($('#IsHoliday').hide())
+                            $('#IsHoliday').show();
+
+                        $('#Event-dialog').modal('show');
+
+                        if ($('#DayorderFields').hide())
+                            $('#DayorderFields').show();
+
+                        $('#EventFields').hide();
+
+                    }
+                }, eventResizeStop: function (event, view) {
+                    alert(view.end);
+                }, eventRender: function (event, element) {
+
+                    //if (event.rendering == 'background') {
+                    //    element.append(event.title);
+                    //}
+                }
+            })
+
+        }
+
+
+    </script>
+}

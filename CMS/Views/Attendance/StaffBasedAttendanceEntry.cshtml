@@ -1,0 +1,249 @@
+﻿@model CMS.ViewModel.ViewModel.AttendanceViewModel
+@{
+    ViewBag.Title = "StaffBasedAttendanceEntry";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Attendance</a></li>
+        <li class="active">Absentees Entry</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Absentees Entry<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Absentees Entry</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-horizontal">
+                    <div class="form-group  col-md-12">
+                        <div class="col-md-4 hidden " data-step="1" data-intro="Choose Class">
+                            @Html.Label("Date", htmlAttributes: new { @class = "col-md-3 control-label " })
+                            <div class="col-md-8">
+                                @Html.Editor("AttendanceDate", new { htmlAttributes = new { @class = "form-control", placeholder = "Select Date " } })
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            @Html.Label("Shift", htmlAttributes: new { @class = "col-md-4 control-label pull-left" })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.Shift, (Model.Shift != null) ? Model.Shift : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                            </div>
+                        </div>
+                        @*<div class="col-md-6" data-step="2" data-intro="Choose Course">
+                                @Html.Label("Hours", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                <div class="col-md-8">
+                                    @Html.DropDownList("HoursList", Enumerable.Empty<SelectListItem>(), new { @class = "form-control  select2" })
+                                </div>
+
+                            </div>*@
+                        <div class="col-md-4">
+                            @Html.Label("Hours", htmlAttributes: new { @class = "col-md-4 control-label pull-left" })
+                            <div class="col-md-8">
+                                @*@Html.DropDownListFor(model => model.Hours, (Model.Hours != null) ? Model.Hours : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })*@
+                                <select class="selectpicker show-menu-arrow show-tick drop-down form-control  input-sm" id="Hours">
+                                    <option value=""> -- Select -- </option>
+                                    @if (Model.hourList != null && Model.hourList.Count > 0)
+                                    {
+
+                                        foreach (var item in Model.hourList)
+                                        {
+                                            <option value="@item.HOUR_ID" cms-CourseId="@item.COURSE_ID" cms-sSemesterId="@item.SEMESTER_ID"> @item.HOUR</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="divAttendanceEntry" class="row col-lg-12"></div>
+                <div class="col-lg-12">
+                    <a href="#" class="btn-success btn disabled " id="btnSubmit">Submit</a>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/flot/jquery.flot.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+@*<script src="~/Content/assets/plugins/intro-js/intro.js"></script>*@
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        $('.selectpicker').selectpicker('refresh');
+        $('#Hours').on('change', function () {
+            BindAttendance();
+        });
+        function ContentLoad()
+        {
+            // Document Ready Function .
+            $("#AttendanceDate").datepicker({
+                todayHighlight: true,
+                autoclose: true,
+                endDate: new Date(),
+                format: "dd/mm/yyyy",
+                orientation: "right bottom",
+                defaultDate: new Date()
+            });
+        }
+
+        $('#Shift').on('change', function myfunction()
+        {
+            $('#divAttendanceEntry').empty();
+            $.ajax({
+                url: "@Url.Action("StaffBasedFetchHoursByShift", "Attendance")",
+                async: false,
+                method: 'post',
+                data: { sShiftId: $('#Shift').val() },
+                success: function (data)
+                {
+                    if (data.ErrorCode=='200')
+                    {
+                        $('#Hours').empty();
+                        $('#Hours').append(data.sResult);
+                        $('.selectpicker').selectpicker('refresh');
+                    } else
+                    {
+                        alert(data.Message);
+                    }
+                },
+                error: function (xhr, textStatus, error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        });
+
+        $('#btnSubmit').on('click', function () {
+            var Search = $('input[type="search"]').val();
+            if (Search != '') {
+                alert('Please Clear the Search Box !...');
+                return false;
+            }
+            var attendanceDate = $("#AttendanceDate").val();
+            //if (attendanceDate == '') {
+            //    alert('Attendance date is missing !!!');
+            //    return false;
+            //}
+
+            var AllPrasent = 0;
+            if ($('#chNoAbsentees').is(':checked'))
+            {
+                AllPrasent = 1;
+            }
+            var flag = false;
+            var sflag = false;
+            var sJsonData = '{"ATT_ABSENTEE_LIST":[';
+            var sJson = '{"ATT_ABSENTEE_LIST":[';
+            $('#tblAttendance tbody tr').each(function () {
+                var AttendanceId;
+                var StudentId;
+                var SClassId;
+                var AttendanceDate = $(this).attr("cms-date");
+                var StaffId = $(this).attr("cms-staff-id");
+                StudentId = $(this).attr('cms-student-id');
+                AttendanceId = $(this).attr('cms-attendance-id');
+                SClassId = $(this).attr('cms-s-class-id');
+                if (sflag == false)
+                {
+                    sJsonData += '{"ENTRY_DATE":"' + AttendanceDate + '","STAFF_ID":"' + StaffId + '","ENTRY_ID":"' + StaffId + '","ATTENDENCE_DATE":"' + attendanceDate + '","ATTENDANCE_ID":"' + $(this).attr('cms-attendance-id') + '","COURSE_ID":"' + $('#hdCourseId').val() + '","HOUR_FROM":"' + $('#Hours').val() + '","HOUR_TO":"' + $('#Hours').val() + '","STUDENT_ID":"' + StudentId + '","CLASS_ID":"' + $('#hdClassId').val() + '","S_CLASS_ID":"' + SClassId + '","ATTENDANCE_TYPE_ID":"' + $(this).find('#attendanceType option:selected').val() + '","REASON_ID":"' + $(this).find('#reason option:selected').val() + '"}]}';
+                    sflag = true;
+                }
+                if ($(this).find('#attendanceType option:selected').text().toLowerCase().trim() != 'Present'.toLowerCase() || AttendanceId != '')
+                {
+
+                    sJson += '{"ENTRY_DATE":"' + AttendanceDate + '","STAFF_ID":"' + StaffId + '","ENTRY_ID":"' + StaffId + '","ATTENDENCE_DATE":"' + attendanceDate + '","ATTENDANCE_ID":"' + $(this).attr('cms-attendance-id') + '","COURSE_ID":"' + $('#hdCourseId').val() + '","HOUR_FROM":"' + $('#Hours').val() + '","HOUR_TO":"' + $('#Hours').val() + '","STUDENT_ID":"' + StudentId + '","CLASS_ID":"' + $('#hdClassId').val() + '","S_CLASS_ID":"' + SClassId + '","ATTENDANCE_TYPE_ID":"' + $(this).find('#attendanceType option:selected').val() + '","REASON_ID":"' + $(this).find('#reason option:selected').val() + '"},'
+                    flag=true;
+                }
+            });
+
+                sJson = sJson.slice(0, -1) + ']}';
+                $.ajax({
+                    url: "@Url.Action("AttendanceEntry", "Attendance")",
+                    async: false,
+                    method: 'post',
+                    data: { sJsonString: sJson, IsAllPrasent: AllPrasent, sFlag: flag, sJsonData: sJsonData },
+                    success: function (data)
+                    {
+                        alert(data.Message);//'Successful request,Please verify Absentees list !!');
+                        BindAttendance();
+                    },
+                    error: function (xhr, textStatus, error) {
+                        alert(error + "\n");
+                        $('#btnSubmit').addClass("disabled");
+                    }
+                });
+        });
+        function BindAttendance() {
+            $('#divAttendanceEntry').empty();
+            $('#btnSubmit').removeClass("disabled");
+            var input1 = $('#ClassList').val();
+            var input2 = $('#Hours').val();
+            var CourseId = $('#Hours Option:selected').attr('cms-CourseId');
+            var SemesterId = $('#Hours Option:selected').attr('cms-sSemesterId');
+            var sStaffId = $('#Hours Option:selected').attr('cms-sStaffId');
+            var oTable;
+            var attendanceDate = $("#AttendanceDate").val();
+            //if (attendanceDate != '') {
+                $.ajax({
+                    url: "@Url.Action("StaffBasedLoadStudentsForAttendance", "Attendance")",
+                    async: false,
+                    data: { sClassId: input1,sStaffId:sStaffId, sHourId: input2, sAttendanceDate: attendanceDate, sCourseId: CourseId, sSemesterId: SemesterId },
+                    success: function (sResult) {
+                        var select = $('#divAttendanceEntry');
+                        select.empty();
+                        select.append(sResult);
+                        $("#tblAttendance").DataTable({ "bPaginate": false });
+                        //$('.dataTables_filter').hide();
+                        //$('#search').on('keyup', function () {
+                        //    oTable.search(this.value).draw();
+                        //});
+                    },
+                    error: function (xhr, textStatus, error) {
+                        alert(error + "\n");
+                    }
+
+                });
+            //} else {
+            //    alert('Missing Attendance Date !!!');
+            //}
+        }
+</script>
+
+
+
+
+
+
+
+
+
+

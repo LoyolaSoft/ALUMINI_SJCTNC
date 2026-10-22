@@ -1,0 +1,1193 @@
+
+@model CMS.ViewModel.ViewModel.WebsiteViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "AchievementsList";
+    Layout = null;
+}
+<style>
+    .upload-btn-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    #btnImage {
+        border: 1px solid gray;
+        color: gray;
+        background-color: white;
+        padding: 7px 15px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .upload-btn-wrapper input[type=file] {
+        font-size: 100px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+    }
+
+    /* Premium Offcanvas Styles for HomeAchievement-dialog */
+    #HomeAchievement-dialog.modal {
+        padding-right: 0 !important;
+        overflow: hidden !important;
+    }
+
+    #HomeAchievement-dialog.modal .modal-dialog {
+        position: fixed;
+        margin: 0 !important;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        height: 100%;
+        width: 80% !important;
+        max-width: none !important;
+        z-index: 1050;
+        transform: translate3d(100%, 0, 0);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Slide-in/out transitions */
+    #HomeAchievement-dialog.modal.in .modal-dialog {
+        transform: translate3d(0, 0, 0);
+    }
+
+    #HomeAchievement-dialog.modal.fade .modal-dialog {
+        transform: translate3d(100%, 0, 0);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #HomeAchievement-dialog.modal.fade.in .modal-dialog {
+        transform: translate3d(0, 0, 0);
+    }
+
+    #HomeAchievement-dialog.modal .modal-content {
+        height: 100%;
+        border-radius: 0 !important;
+        border: none;
+        box-shadow: -8px 0 30px rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+        background: #ffffff;
+    }
+
+    #HomeAchievement-dialog.modal .modal-header {
+        flex-shrink: 0;
+        border-bottom: 1px solid #eaeaea;
+        background-color: #fcfcfc;
+        padding: 18px 24px;
+    }
+
+    #HomeAchievement-dialog.modal .modal-title {
+        font-weight: 600;
+        color: #333333;
+        font-size: 18px;
+    }
+
+    #HomeAchievement-dialog.modal .close {
+        font-size: 24px;
+        color: #999;
+        opacity: 0.8;
+        outline: none;
+        margin-top: 2px;
+        transition: color 0.2s;
+    }
+
+    #HomeAchievement-dialog.modal .close:hover {
+        color: #333;
+    }
+
+    #HomeAchievement-dialog.modal .modal-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: 24px;
+        background: #ffffff;
+    }
+
+    #HomeAchievement-dialog.modal .modal-footer {
+        flex-shrink: 0;
+        border-top: 1px solid #eaeaea;
+        background-color: #fcfcfc;
+        padding: 16px 24px;
+        margin-top: 0;
+        text-align: right;
+    }
+
+    #HomeAchievement-dialog.modal .modal-footer .btn {
+        padding: 8px 16px;
+        font-weight: 500;
+        border-radius: 6px;
+    }
+
+    /* Desktop View width 80% */
+    @@media (min-width: 768px) {
+        #HomeAchievement-dialog.modal .modal-dialog {
+            width: 80% !important;
+        }
+    }
+
+    /* Mobile View width 100% */
+    @@media (max-width: 767px) {
+        #HomeAchievement-dialog.modal .modal-dialog {
+            width: 100% !important;
+        }
+    }
+</style>
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Buttons/css/buttons.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightbox2@2.11.3/dist/css/lightbox.min.css">
+<link href="~/Content/assets/plugins/summernote/summernote.css" rel="stylesheet" />
+
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">Website</a></li>
+        <li class="active">Campus News</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Campus News<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-primary" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Campus News</h4>
+        </div>
+        <div class="panel-body">
+            <div class="form-group col-md-12">
+                <a class="btn btn-success pull-right form-group m-b-5" href="#HomeAchievement-dialog" onclick="Add()" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add"> Add</i></a>
+            </div>
+            @if (Model.liWebsiteEvent != null && Model.liWebsiteEvent.Count > 0)
+            {
+                var count = 0;
+                <div class="form-group col-md-12 table-responsive">
+                    <table class="table table-hover table-bordered" id="tblAchievementList">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Department</th>
+                                <th>Category</th>
+                                <th>Image</th>
+                                <th>File</th>
+                                <th>Title</th>
+
+                                <th>Link</th>
+                                <th>Approver_1</th>
+                                <th>Approver_2</th>
+                                <th>Action</th>
+                                <th>Date</th>
+                                <th>Descritpion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+
+                            @foreach (var item in Model.liWebsiteEvent)
+                            {
+                                var splitImgPath = item.IMG_PATH.Split(',');
+                                count = count + 1;
+                                int imgcount = 0;
+                                <tr>
+                                    <td>@count</td>
+
+
+                                    <td>@item.DEPARTMENT</td>
+                                    <td>@item.ACHIEVEMENT_NAME</td>
+                                    <td>
+                                        @foreach (var items in splitImgPath)
+                                        {
+                                            imgcount++;
+
+
+
+                                            //var imgpath = "/" +items;
+                                            //var imgpath = items;
+                                            //var imgpath = "/" + items.Replace(@"\", "/");
+                                            //var imgpath = "/" + items.Replace(@"\", "/").TrimStart('/');
+                                            if (imgcount == 1)
+                                            {
+                                                @*<img src="@item.IMG_PATH" height="100" width="100" />*@
+                                                <a href="@items" data-lightbox="image-@item.ACHIEVEMENT_ID" data-title="Image @item.ACHIEVEMENT_ID">
+
+                                                    <img src="@items" class="" alt="..." height="100" width="100">
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a href="@items" data-lightbox="image-@item.ACHIEVEMENT_ID" data-title="Image @item.ACHIEVEMENT_ID" class="hidden">
+
+                                                    <img src="@items" class="" alt="..." height="100" width="100">
+                                                </a>
+                                            }
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (item.FILE_PATH != null && item.FILE_PATH != "")
+                                        {
+                                            <a href="@item.FILE_PATH" target="_blank"><i class="fa fa-file-pdf-o" style="font-size:48px;color:red"></i></a>
+                                        }
+                                        else
+                                        {
+                                            <a href="#" target="_blank"></a>
+                                        }
+                                    </td>
+                                    <td>@item.TITLE</td>
+
+
+                                    <td><a href="@item.LINK" target="_blank">@item.LINKTEXT</a> </td>
+                                    @if (item.APPROVE_LEVEL1 == "0")
+                                    {
+                                        <td class="text-info">Pending</td>
+                                    }
+                                    else if (item.APPROVE_LEVEL1 == "1")
+                                    {
+                                        <td class="text-success">Approved</td>
+                                    }
+                                    else if (item.APPROVE_LEVEL1 == "2")
+                                    {
+                                        <td class="text-danger">Canceled</td>
+                                    }
+                                    else
+                                    {
+                                        <td></td>
+                                    }
+                                    @if (item.APPROVER_LEVEL2 == "0")
+                                    {
+                                        <td class="text-info">Pending</td>
+                                    }
+                                    else if (item.APPROVER_LEVEL2 == "1")
+                                    {
+                                        <td class="text-success">Approved</td>
+                                    }
+                                    else if (item.APPROVER_LEVEL2 == "2")
+                                    {
+                                        <td class="text-danger">Canceled</td>
+                                    }
+                                    else
+                                    {
+                                        <td></td>
+                                    }
+
+                                    @if (item.APPROVE_LEVEL1 == "0")
+                                    {
+
+                                        <td>
+
+                                            <a href="#HomeAchievement-dialog" onclick="FetchAchievementById(@item.ACHIEVEMENT_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+
+                                            <a href="javascrip:;" onclick="GetConfirm(@item.ACHIEVEMENT_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td></td>
+                                    }
+                                    <td>@item.DATE</td>
+                                     <td>
+                                         @{
+                                             var descRaw = item.DESCRIPTION ?? "";
+                                             var plainText = System.Text.RegularExpressions.Regex.Replace(descRaw, "<.*?>", string.Empty).Replace("&nbsp;", " ").Trim();
+                                             if (plainText.Length > 200)
+                                             {
+                                                 var truncated = plainText.Substring(0, 200) + "...";
+                                                 <span>@truncated</span>
+                                                 <a href="javascript:;" class="text-primary view-full-desc-btn" style="margin-left: 5px; font-weight: bold;">(View All)</a>
+                                                 <div class="hidden-full-desc" style="display:none;">@Html.Raw(descRaw)</div>
+                                             }
+                                             else
+                                             {
+                                                 @Html.Raw(descRaw)
+                                             }
+                                         }
+                                     </td>
+                                </tr>
+                            }
+
+
+
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <br />
+                <div class=" text-center bg-warning">
+
+                    <h3>No Records Found </h3>
+
+                </div>
+            }
+
+            <div class="modal fade" id="HomeAchievement-dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title">Add/Edit Campus News</h4>
+                        </div>
+                        <div class="modal-body" data-parsley-validate="true" id="IQACProject">
+                            <div class="row">
+                                <div class="col-md-4 form-group">
+                                    <label class="control-label">Organizing Unit</label>
+                                    <div>
+                                        @Html.DropDownListFor(m => m.sDepartmentList, (Model.sDepartmentList != null) ? Model.sDepartmentList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                                        @Html.ValidationMessageFor(m => m.sDepartmentList, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    <label class="control-label">Category</label>
+                                    <div>
+                                        @Html.DropDownListFor(m => m.sAchievement, (Model.sAchievement != null) ? Model.sAchievement : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                                        @Html.ValidationMessageFor(m => m.sAchievement, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    <label class="control-label">SDG</label>
+                                    <div>
+                                        @Html.DropDownListFor(m => m.sSdgList, (Model.sSdgList != null) ? Model.sSdgList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_parsley_required = "true", @data_live_search = "true" })
+                                        @Html.ValidationMessageFor(m => m.sSdgList, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 form-group hidden" id="dvStaffList">
+                                    <label class="control-label">Staff List</label>
+                                    <div>
+                                        @Html.DropDownListFor(m => m.sStaffList, (Model.sStaffList != null) ? Model.sStaffList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control input-sm", @data_live_search = "true", @multiple = "multiple", @data_action_box = "true" })
+                                        @Html.ValidationMessageFor(m => m.sStaffList, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-8 form-group">
+                                    <label class="control-label">Title</label>
+                                    <div>
+                                        <input type="text" id="txtATitle" class="form-control" placeholder="Event Title" data-parsley-required="true" data-parsley-maxlength="100">
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    <label class="control-label">Date</label>
+                                    <div>
+                                        <input type="text" id="txtDate" class="datepicker date form-control" data-parsley-required="true" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 form-group">
+                                    <label class="control-label">Description (Report)</label>
+                                    <div>
+                                        <textarea id="txtDescription" class="summernote form-control" name="content"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <label class="control-label">Link</label>
+                                    <div>
+                                        <input type="text" id="link" class="form-control" placeholder="Event Link">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label class="control-label">Link Text</label>
+                                    <div>
+                                        <input type="text" id="linkText" class="form-control" placeholder="Enter Link Text">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <label class="control-label">Image Upload</label>
+                                    <div>
+                                        <div class="btn btn-primary" onclick="ImageClick('imageUpload')"> <i class="fa fa-plus"></i> Select Image</div>
+                                        <input type="file" id="imageUpload" class="hidden" multiple="multiple" onchange="LoadImage('dvImageUpload', 'imageUpload')" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label class="control-label">File Upload</label>
+                                    <div>
+                                        <div class="btn btn-primary" onclick="FileClick('ActivityUpload')"> <i class="fa fa-plus"></i> Select File</div>
+                                        <input type="file" id="ActivityUpload" class="hidden" multiple="multiple" onchange="LoadFile('dvActivityUpload', 'ActivityUpload')" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 form-group hidden" id="dvImageUpload">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover" id="tbl_imageUpload">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>File</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbimageUpload"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 form-group hidden" id="dvActivityUpload">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover" id="tbl_ActivityUpload">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>File</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbActivityUpload"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <a href="javascript:;" id="btnSubmit" onclick="SaveData()" class="btn btn-sm btn-primary">Submit</a>
+                            <a href="javascript:;" id="btnCancel" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+                        </div>
+                    </div>
+                    <input type="hidden" id="AchievementID" value="" />
+                </div>
+            </div>
+
+            <!-- Modal for Full Description View -->
+            <div class="modal fade" id="fullDescriptionModal" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content" style="border-radius: 6px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                        <div class="modal-header" style="background-color: #fafafa; border-bottom: 1px solid #eaeaea;">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" style="font-weight: 600; color: #333;">Description Details</h4>
+                        </div>
+                        <div class="modal-body" id="fullDescriptionContent" style="max-height: 550px; overflow-y: auto; padding: 24px; line-height: 1.6; font-size: 14px; color: #444;">
+                            <!-- Full description HTML will be dynamically inserted here -->
+                        </div>
+                        <div class="modal-footer" style="background-color: #fafafa; border-top: 1px solid #eaeaea;">
+                            <button type="button" class="btn btn-sm btn-default" data-dismiss="modal" style="border-radius: 4px; padding: 6px 12px;">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/flot/jquery.flot.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lightbox2@2.11.3/dist/js/lightbox.min.js"></script>
+<script src="~/Content/assets/plugins/summernote/summernote.min.js"></script>
+<script>
+    $('#txtDescription').summernote({
+        height: 450,                    // set editor height
+        minHeight: null,                // set minimum height of editor
+        maxHeight: null,                // set maximum height of editor
+        focus: true,                    // set focus to editable area after initializing summernote
+        callbacks: {
+            onImageUpload: function (files) {
+                for (let i = 0; i < files.length; i++) {
+                    UploadImage(files[i]);
+                }
+            }
+        }
+    });
+    var formData = new FormData();
+    $("#sAchievement").on('change', function () {
+        var achievementID = $("#sAchievement").val();
+        if (achievementID == "2" || achievementID == "8") {
+            $("#dvStaffList").removeClass('hidden')
+        }
+        else {
+            $("#dvStaffList").addClass('hidden')
+
+        }
+    })
+    function ContentLoad() {
+
+    }
+
+
+    $(document).ready(function () {
+        $(".date").datepicker({
+            todayHighlight: true,
+            autoclose: true,
+            format: "dd/mm/yyyy",
+            orientation: "right bottom"
+        });
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+        $("#tblAchievementList").DataTable({
+            dom: "lBfrtip", buttons: [{
+                extend: "copy", className: "btn-sm"
+            }
+                , {
+                extend: "excel", className: "btn-sm"
+            }
+                , {
+                extend: "pdf", className: "btn-sm"
+            }
+            ], responsive: !0, "paging": true, "ordering": true
+        });
+
+        $(document).on('click', '.view-full-desc-btn', function () {
+            var fullHtml = $(this).siblings('.hidden-full-desc').html();
+            $('#fullDescriptionContent').html(fullHtml);
+            $('#fullDescriptionModal').modal('show');
+        });
+    });
+    function FetchAchievementById(sAchievement) {
+        //$('#pBody').parsley().destroy();
+
+        if (sAchievement != null) {
+            $.ajax({
+
+                 url: '@Url.Action("FetchAchievementsById", "Website")',
+                type: "POST",
+                datatype: 'json',
+                data: { sAchievement: sAchievement },
+                success: function (data) {
+                    if (data.Message != null) {
+                        swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                    }
+                    else {
+                        if (data[0] != null) {
+                            $('#txtDate').attr('value', data[0].DATE);
+                           // $('#txtDescription').attr('value', data[0].DESCRIPTION);
+                            $('#sDepartmentList option[value="' + data[0].DEPARTMENT_ID + '"]').attr("selected", "selected");
+                            $('#sAchievement option[value="' + data[0].ACHIEVEMNT_CATEGORY + '"]').attr("selected", "selected");
+                            $('#AchievementID').attr('value', data[0].ACHIEVEMENT_ID);
+                            $('#sStaffList').attr('value', data[0].STAFF_ID);
+                            if (data[0].ACHIEVEMNT_CATEGORY == "2" || data[0].ACHIEVEMNT_CATEGORY == "8") {
+                                $("#dvStaffList").removeClass('hidden')
+                            }
+                            //for (data.oResult[0].STAFF_ID) {
+                            //    $('#sSdgList option[value="' + data.oResult[0].SDG_ID + '"]').attr("selected", "selected");
+
+                            //}
+                            $('#txtDescription').summernote('code', data[0].DESCRIPTION);
+
+                            $('#sSdgList option[value="' + data[0].SDG_ID + '"]').attr("selected", "selected");
+
+                            $('#txtATitle').attr('value', data[0].TITLE);
+                            $('#linkText').attr('value', data[0].LINKTEXT);
+                            $('#link').attr('value', data[0].LINK);
+                          /*  $('#img').attr("src", data.oResult[0].IMG_PATH);*/
+                            BindFileInfo(data[0].FILE_PATH, 'tbActivityUpload', 'dvActivityUpload');
+                            //BindImageInfo(data.oResult[0].IMG_PATH, 'tbimageUpload', 'dvImageUpload');
+                            BindImageInfo(data[0].IMG_PATH, 'tbimageUpload', 'dvImageUpload');
+                            $('.selectpicker').selectpicker('refresh');
+
+                        }
+                    }
+                },
+                error: function (ex) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                }
+            });
+        }
+    }
+    var fileExtension = "";
+
+    function SaveData() {
+    // The global 'formData' object already contains the new files from LoadImage()
+
+    // 1. Validate the form
+    if ($('#IQACProject').parsley().validate() !== true) {
+        swal({ title: "Warning", text: "Something went wrong! Please check your inputs.", showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+        return false;
+    }
+
+    // 2. Check if at least one image exists (either old or new)
+    var existingImages = $('#dvImageUpload').find("tbody tr[cms-img-path]").length;
+    var newImages = $("#imageUpload")[0].files.length;
+    if (existingImages === 0 && newImages === 0) {
+        swal({ title: "Warning", text: "Please upload at least one image!", showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+        return false;
+    }
+
+    // 3. Get EXISTING file paths (for updates)
+    var existingImagePaths = [];
+    $('#dvImageUpload').find("tbody tr").each(function () {
+        if ($(this).attr("cms-img-path")) {
+            existingImagePaths.push($(this).attr("cms-img-path"));
+        }
+    });
+
+    var existingFilePaths = [];
+    $('#dvActivityUpload').find("tbody tr").each(function () {
+        if ($(this).attr("cms-file-path")) { // Make sure your HTML uses cms-file-path
+            existingFilePaths.push($(this).attr("cms-file-path"));
+        }
+    });
+
+    // Append existing paths to formData
+    if (existingImagePaths.length > 0) {
+        formData.append("photo", existingImagePaths.join(','));
+    }
+    if (existingFilePaths.length > 0) {
+        formData.append("sfiles", existingFilePaths.join(','));
+    }
+
+    // 4. Get all other form values
+    var SummerNote = $('#txtDescription').summernote('code');
+    var HtmlContent = encodeURI(SummerNote);
+    var sAchieveId = $('#AchievementID').val();
+    var sTitle = $('#txtATitle').val();
+    var slinkText = $('#linkText').val();
+    var sLink = $('#link').val();
+    var Department = $('#sDepartmentList').val();
+    var SAcategory = $('#sAchievement').val();
+    var date = $('#txtDate').val();
+    var sdgList = $('#sSdgList').val();
+    var staffId = String($('#sStaffList').val());
+
+    // 5. Create the JSON data. Note: IMG_PATH and FILE_PATH are now empty strings.
+    // The server will generate these paths from the actual uploaded files.
+    var sJsonData = `{"ACHIEVEMENT_ID":"${sAchieveId}",
+                      "ACHIEVEMNT_CATEGORY":"${SAcategory}",
+                      "DEPARTMENT":"${Department}",
+                      "DATE":"${date}",
+                      "DESCRIPTION":"${HtmlContent}",
+                      "TITLE":"${sTitle}",
+                      "SDG_ID":"${sdgList}",
+                      "LINKTEXT":"${slinkText}",
+                      "LINK":"${sLink}",
+                      "STAFF_ID":"${staffId}",
+                      "IMG_PATH":"",
+                      "FILE_PATH":""}`;
+
+    formData.append('jsonData', sJsonData);
+
+    // 6. Make the AJAX call
+    $.ajax({
+        url: '@Url.Action("SaveHomeAchievements", "Website")',
+        method: 'POST',
+        contentType: false,
+        processData: false,
+        data: formData,
+        async: false,
+        success: function (data) {
+            if (data.Message != null && data.Message != "") {
+                if (data.ErrorCode == "200") {
+                    $('#btnCancel').click();
+                    $('body').removeClass('modal-open');
+                    $('.modal-backdrop').remove();
+                    swal({ title: "Success!", text: data.Message, showConfirmButton: false, timer: 3000, type: 'success', animation: true });
+                    loadContent('/Website/AchievementsList');
+                } else {
+                    swal({ title: "Error", text: data.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+                }
+            }
+        },
+        error: function (error) {
+            alert('Internal Server Error!');
+            return false;
+        }
+    });
+}
+
+    GetConfirm = function (sProjectId) {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+
+            function () {
+                $.ajax({
+                    url: "/Website/DeleteAchievements",
+                    type: "post",
+                    data: { sAchieve: sProjectId },
+                    success: function (data) {
+                        if (data.Message != null && data.Message != "") {
+                            swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 3000, type: 'success', animation: true });
+                            loadContent('/Website/AchievementsList');
+                        }
+                    },
+                    error: function (ex) {
+                        swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 3000, type: 'error', animation: true });
+
+                    }
+
+
+                });
+            });
+
+    }
+
+    function Add() {
+        nFileCount = 0; nCount = 0;
+        //$('#pBody').parsley().destroy();
+
+        $('#txtDate').attr('value', '');
+        $('#txtDescription').attr('value', '');
+        $('#AchievementID').attr('value', '');
+        $('#txtATitle').attr('value', '');
+        $('#link').attr('value', '');
+        $('#linkText').attr('value', '');
+        $('#sdgList').attr('value', '');
+        $('#img').attr('value', '');
+        $('#inputimg').attr('value', '');
+        $('#sAchievement option[value=""]').attr("selected", "selected");
+        $('#sDepartmentList option[value=""]').attr("selected", "selected");
+        $('.selectpicker').selectpicker('refresh');
+    }
+
+</script>
+<script>
+
+    var baseimage64;
+    var extension;
+    function encodeImagetoBase64(element) {
+        if (element != null && element != "") {
+            var file = element.files[0];
+            extension = String(file.value).substr(String(file.value).lastIndexOf('.') + 1);
+            var reader = new FileReader();
+            reader.onloadend = function () {
+
+                $(".link").attr("href", reader.result);
+
+                $(".link").text(reader.result);
+
+                $('#img').attr("src", reader.result);
+                //only this is required to send file in ajax
+                baseimage64 = reader.result;
+            }
+
+
+        }
+        //this is method call
+        reader.readAsDataURL(file);
+    }
+    function getBase64AndExtension() {
+        var file = String($('#inputimg').val());
+        extension = file.split('.').pop();
+        return { base64String: baseimage64, sextension: extension }
+    }
+
+
+</script>
+<script>
+
+    var nCount = 0;
+    var nFileCount = 0;
+    var nImageCount = 0;
+    var ImgCount = 0;
+    function FileClick(FileUpload) {
+        $('#' + FileUpload).click();
+    }
+    function ImageClick(imageUpload) {
+        $('#' + imageUpload).click();
+    }
+
+    function LoadFile(divUpload, FileUpload) {
+
+        var files = document.getElementById('' + FileUpload + '').files;
+
+        if (files.length > 1 || nFileCount >= 1) {
+            swal({ title: "Warning !", text: "You can only upload a  1 files", showConfirmButton: false, timer: 3000, type: 'warning', animation: true });
+            return false;
+        }
+        var Data = '';
+        if (files.length != 0) {
+            //alert('File In');
+            //alert(document.getElementById('' + FileUpload + '').files.length);
+            for (var i = 0; i < document.getElementById('' + FileUpload + '').files.length; i++) {
+                var extension = GetFileExtension(files[i]);
+                var actualFileDom = '';
+                if (extension != null && extension != '') {
+                    if (extension == 'jpg' || extension == 'png' || extension == 'jpeg') {
+                        actualFileDom = "<li class=''>" +
+                            "<div class='document-file'>" +
+                            "<a href='#'>" +
+                            "<img src=" + window.URL.createObjectURL(files[i]) + "   alt='' cms-update='1' width='77' height='80' >" +
+                            "</a>" +
+                            "</div>" +
+                            "<div class='document-name'><a href='" + window.URL.createObjectURL(files[i]) + "' download>" + files[i].name + "</a></div>" +
+                            "</li>";
+                        //actualFileDom ="<img src=" + window.URL.createObjectURL(file) + " width=77 height=80 cms-sp=" + UniqueName + "></img>";
+                    }
+                    else {
+                        actualFileDom = "<li class=''>" +
+                            "<div class='document-file'>" +
+                            "<a href='#'>" +
+                            "<i class='fa fa-file'></i>" +
+                            "</a>" +
+                            "</div>" +
+                            "<div class='document-name'><a href='" + window.URL.createObjectURL(files[i]) + "' download  title=" + files[i].name + " cms-update='1'>" + files[i].name + "</a></div>" +
+                            "</li>";
+                        //actualFileDom = "<span style='color:green;'>" + name + "</span> ";
+                    }
+
+                    var result = "<ul class='attached-document clearfix'>" + actualFileDom + "</ul> ";
+
+                    // data.append(files[i].name, files[i]);
+                    nCount++; nFileCount++;
+                    Data += '<tr id=' + nCount + '>\
+                            <td>' + nCount + '</td>\
+                            <td>'+ result + '</td>\
+                            <td><a class="btn btn-default" onclick="FileCancel(' + nCount + ')"> Cancel </a></td>\
+                         </tr>';
+                    formData.append(files[i].name, files[i]);
+                }
+            }
+
+            $('#tb' + FileUpload).append(Data);
+            $('#' + divUpload).removeClass('hidden');
+        }
+    }
+
+    function GetFileExtension(file) {
+         
+        // Get uploaded file extension
+        var extension = file.name.split('.').pop().toLowerCase();
+        var validFileExtensions = ['doc', 'docx', 'pdf', 'txt', 'xlsx'];
+        if ($.inArray(extension, validFileExtensions) == -1) {
+            // alert("Sorry!! Upload only 'doc', 'docx', 'pdf','jpf','png','txt','xlsx' file");
+            swal({ title: "Warning !", text: "Sorry!! upload only 'doc', 'docx', 'pdf','txt','xlsx' file", showConfirmButton: false, timer: 3000, type: 'warning', animation: true });
+            return extension = null;
+        }
+        else {
+
+            fileExtension = extension;
+            return extension;
+        }
+    }
+    function LoadImage(divUpload, FileUpload) {
+        var files = document.getElementById(FileUpload).files;
+
+        if (files.length > 5 || nImageCount >= 5) {
+            swal({ title: "Warning!", text: "You can only upload a maximum of 5 files", showConfirmButton: false, timer: 3000, type: 'warning', animation: true });
+            return false;
+        }
+
+        var Data = '';
+        if (files.length != 0) {
+            for (var i = 0; i < files.length; i++) {
+                try {
+                    // Await the validation checks (extension, size, dimensions)
+                    var extension = GetImageExtension(files[i]);
+
+                    // If the image is valid, proceed with displaying it
+                    var actualFileDom = "<li class=''>" +
+                        "<div class='document-file'>" +
+                        "<a href='#'>" +
+                        "<img src=" + window.URL.createObjectURL(files[i]) + " alt='' cms-update='1' width='77' height='80'>" +
+                        "</a>" +
+                        "</div>" +
+                        "<div class='document-name'><a href='" + window.URL.createObjectURL(files[i]) + "' download>" + files[i].name + "</a></div>" +
+                        "</li>";
+
+                    var result = "<ul class='attached-document clearfix'>" + actualFileDom + "</ul>";
+
+                    // Add the image details to the table
+                    ImgCount++;
+                    nImageCount++;
+                    Data += `<tr id='${ImgCount}'>
+                    <td>${ImgCount}</td>
+                    <td>${result}</td>
+                    <td><a class="btn btn-default" onclick="ImageCancel(${ImgCount})"> Cancel </a></td>
+                 </tr>`;
+
+                    formData.append(files[i].name, files[i]);
+
+                } catch (error) {
+                    // Handle cases where the image validation failed
+                    console.log("Image validation failed for file:", files[i].name, "Reason:", error);
+                    continue; // Skip this file
+                }
+            }
+
+            // Append the valid image details to the table and show the upload section
+            $('#tb' + FileUpload).append(Data);
+            $('#' + divUpload).removeClass('hidden');
+        }
+    }
+    function GetImageExtension(file) {
+        return new Promise((resolve, reject) => {
+            // Get the uploaded file extension
+            var extension = file.name.split('.').pop().toLowerCase();
+            var validFileExtensions = ['jpeg', 'jpg', 'png'];
+
+            // Check if the file extension is valid
+            if ($.inArray(extension, validFileExtensions) == -1) {
+                swal({
+                    title: "Warning!",
+                    text: "Sorry!! Upload only 'jpeg', 'jpg', 'png' files",
+                    showConfirmButton: false,
+                    timer: 2000,
+                    type: 'warning',
+                    animation: true
+                });
+                reject('invalid_extension');
+                return;
+            }
+
+            // Check if the file size exceeds 1MB
+            if (file.size > 25 * 1024 * 1024) {
+                swal({
+                    title: "Warning!",
+                    text: "Image too big (max 1MB)",
+                    showConfirmButton: false,
+                    timer: 2000,
+                    type: 'warning',
+                    animation: true
+                });
+                reject('file_too_large');
+                return;
+            }
+
+            // Create an image object to check dimensions asynchronously
+            //var img = new Image();
+            //img.onload = function () {
+            //    // Check if the image dimensions are 1280x720 pixels
+            //    if (img.width !== 1280 || img.height !== 720) {
+            //        swal({
+            //            title: "Warning!",
+            //            text: "Image dimensions must be 1280x720 pixels",
+            //            showConfirmButton: false,
+            //            timer: 2000,
+            //            type: 'warning',
+            //            animation: true
+            //        });
+            //        reject('invalid_dimensions');
+            //    } else {
+            //        resolve(extension);
+            //    }
+            //};
+
+            //img.onerror = function () {
+            //    reject('invalid_image');
+            //};
+
+            //// Load the image from the file object
+            //img.src = URL.createObjectURL(file);
+        });
+    }
+
+
+
+    function FileCancel(rowId) {
+        var row = document.getElementById(rowId);
+        formData.delete(rowId);
+        row.parentNode.removeChild(row);
+        nFileCount--;
+        nCount--
+    }
+    function ImageCancel(rowId) {
+        var row = document.getElementById(rowId);
+        formData.delete(rowId);
+        row.parentNode.removeChild(row);
+        nImageCount--;
+        ImgCount--;
+    }
+</script>
+
+<script type="text/javascript">
+    function BindFileInfo(FilePath,TbBind,DivId)
+    {
+        if (FilePath != null && FilePath != '')
+        {
+            var str = FilePath;
+            var res = str.split(",");
+            var Data = '';
+            for (var i = 0; i < res.length; i++)
+            {
+                //fetch img encrption by img path
+                var EncryptImagePath = GetEncryptedStringByImgPath(res[i]);
+                var extension = res[i].split(".");
+                var actualFileDom = '';
+                if (extension[1] != null && extension[1] != '')
+                {
+                    if (extension[1] == 'jpg' || extension[1] == 'png')
+                    {
+                        actualFileDom = "<li class=''>" +
+                                                      "<div class='document-file'>" +
+                                                          "<a href='#'>" +
+                                                              "<img src=" + res[i] + "   alt='' cms-update='1' width='77' height='80' >" +
+                                                          "</a>" +
+                                                      "</div>" +
+                                                      "<div class='document-name'><a href='" + res[i] + "' download>" + res[i] + "</a></div>" +
+                                                  "</li>";
+                        //actualFileDom ="<img src=" + window.URL.createObjectURL(file) + " width=77 height=80 cms-sp=" + UniqueName + "></img>";
+                    }
+                    else
+                    {
+                        actualFileDom = "<li class=''>" +
+                                                  "<div class='document-file'>" +
+                                                  "<a href='#'>" +
+                                                      "<i class='fa fa-file'></i>" +
+                                                  "</a>" +
+                                                  "</div>" +
+                                                 "<div class='document-name'><a href='" + res[i] + "' download  title=" + res[i] + " cms-update='1'>" + res[i] + "</a></div>" +
+                                            "</li>";
+                        //actualFileDom = "<span style='color:green;'>" + name + "</span> ";
+                    }
+
+                    var result = "<ul class='attached-document clearfix'>" + actualFileDom + "</ul> ";
+
+                    // data.append(files[i].name, files[i]);
+                    nCount++; nFileCount++;
+
+
+                    Data += '<tr id=' + nCount + ' cms-img-path=' + EncryptImagePath + '>\
+                            <td>' + nCount + '</td>\
+                            <td>'+ result + '</td>\
+                            <td><a class="btn btn-default" onclick="FileCancel(' + nCount + ')"> Cancel </a></td>\
+                         </tr>';
+                }
+            }
+
+            $('#' + TbBind).append(Data);
+            $('#' + DivId).removeClass('hidden');
+        }
+    }
+
+
+    function GetEncryptedStringByImgPath(imgPath)
+    {
+        var Encrypt = "";
+        $.ajax({
+            url: '@Url.Action("EncryptStringForImagePath", "Website")',
+            method: 'POST',
+            async: false,
+            cache: false,
+            datatype: 'json',
+            data: { inputString: imgPath },
+            success: function (data)
+            {
+                if (data != null && data != '')
+                {
+                    Encrypt = data;
+                }
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+        return Encrypt;
+    }
+    function BindImageInfo(FilePath, TbBind, DivId) {
+        if (FilePath != null && FilePath != '') {
+            var str = FilePath;
+
+            var res = str.split(",");
+            var Data = '';
+            for (var i = 0; i < res.length; i++) {
+                res[i] = "\\" + res[i];
+                //fetch img encrption by img path
+                var EncryptImagePath = GetEncryptedStringByImgPath(res[i]);
+                var extension = res[i].split(".");
+                var actualFileDom = '';
+                if (extension[1] != null && extension[1] != '') {
+                    if (extension[1] == 'jpg' || extension[1] == 'png' || extension[1] =="jpeg") {
+                        actualFileDom = "<li class=''>" +
+                            "<div class='document-file'>" +
+                            "<a href='#'>" +
+                            "<img src=" + res[i] + "   alt='' cms-update='1' width='77' height='80' >" +
+                            "</a>" +
+                            "</div>" +
+                            "<div class='document-name'><a href='" + res[i] + "' download>" + res[i] + "</a></div>" +
+                            "</li>";
+                        //actualFileDom ="<img src=" + window.URL.createObjectURL(file) + " width=77 height=80 cms-sp=" + UniqueName + "></img>";
+                    }
+                    else {
+                        actualFileDom = "<li class=''>" +
+                            "<div class='document-file'>" +
+                            "<a href='#'>" +
+                            "<i class='fa fa-file'></i>" +
+                            "</a>" +
+                            "</div>" +
+                            "<div class='document-name'><a href='" + res[i] + "' download  title=" + res[i] + " cms-update='1'>" + res[i] + "</a></div>" +
+                            "</li>";
+                        //actualFileDom = "<span style='color:green;'>" + name + "</span> ";
+                    }
+
+                    var result = "<ul class='attached-document clearfix'>" + actualFileDom + "</ul> ";
+
+                    // data.append(files[i].name, files[i]);
+                    ImgCount++; nImageCount++;
+
+
+                    Data += '<tr id=' + ImgCount + ' cms-img-path=' + EncryptImagePath + '>\
+                        <td>' + ImgCount + '</td>\
+                        <td>'+ result + '</td>\
+                        <td><a class="btn btn-default" onclick="FileCancel(' + ImgCount + ')"> Cancel </a></td>\
+                     </tr>';
+                }
+            }
+
+            $('#' + TbBind).append(Data);
+            $('#' + DivId).removeClass('hidden');
+        }
+    }
+
+    function GetEncryptedStringByImagePath(imgPath) {
+        var Encrypt = "";
+        $.ajax({
+            url: '@Url.Action("EncryptStringForImagePath", "Website")',
+            method: 'POST',
+            async: false,
+            cache: false,
+            datatype: 'json',
+            data: { inputString: imgPath },
+            success: function (data) {
+                if (data != null && data != '') {
+                    Encrypt = data;
+                }
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+        return Encrypt;
+    }
+
+</script>

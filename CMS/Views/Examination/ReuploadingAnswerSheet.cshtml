@@ -1,0 +1,171 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    Layout = "~/Views/Shared/_OnlineExamLayout.cshtml";
+
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a @*href="@Url.Action("Staff","Dashboard")"*@ href="javascript:;">Home</a></li>
+        <li class="active">Reuploading Answer Sheet</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Reuploading Answer Sheet</h1>
+    <!-- end page-header -->
+    <!-- begin row -->
+    <div class="row">
+        <!-- begin col-12 -->
+        <div class="col-md-12">
+            <!-- begin panel -->
+           
+                    <div class="form-horizontal">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-12 table-bordered table-responsive">
+                                    @if (Model.Liexamquesions != null && Model.Liexamquesions.Count > 0)
+                                    {
+                                       
+                                        foreach (var item in Model.Liexamquesions)
+                                        {
+                                            <p class="text-break"><b>   @(new HtmlString(Model.GetStrigFromBase64String(item.QUESTION)))</b></p>
+
+                                            <div class="row " id="divanswerupdate">
+                                                <div class="col-md-6">
+                                                    <center><button class="btn btn-primary " onclick="answerVideo()" id="btnOpenCamera">Open Camera</button><br></center>
+                                                    <br>
+                                                    <video id="video" playsinline autoplay class="col-md-12 col-xs-12 col-lg-12"></video>
+                                                    <br>
+                                                    <center><br><button class="btn btn-primary" id="btncaptrue" style="margin-top:20px">Capture</button></center>
+
+                                                    <br>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <br>
+                                                    <canvas style="border:solid 1px #ddd;background-color:white;" id="canvas" class="table-responsive" width="475" height="475"> </canvas>
+                                                    <br>
+                                                    <button class="btn btn-primary hidden" id="btnSave">Save</button>
+                                                    <br>
+                                                    <pre>Please verify captured image is clear before Save</pre>
+                                                </div>
+
+                                            </div>
+                                            <input type="hidden" id="quizsaveid" value="@item.QUIZ_SAVE_ID"/>
+                                            <input type="hidden" id="questiontype" value="@item.QUESTION_TYPE_ID" />
+                                        }
+                                    }
+
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <br>
+                                <a href="@Url.Action("BindReuploadingAnswerSheets","Examination",new { sExaminvigilationId = Model.ExamInvigilationid, sStudentId = Model.Liexamquesions.FirstOrDefault().STUDENT_ID })" class="btn btn-primary pull-right" >Back</a>
+                            </div>
+
+                        </div>
+
+                    </div>
+              
+            <!-- end panel -->
+        </div>
+        <!-- end col-6 -->
+    </div>
+    <!-- end row -->
+</div>
+
+<!-- End Modal -->
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+
+    function answerVideo(){
+        if(isMobile()){
+            if(window.stream) {
+                window.stream.getTracks().forEach(track => {
+                    track.stop();
+                });
+            }
+        }
+
+        // Basic settings for the video to get from Webcam
+        const constraints =
+            {
+                audio: false,
+                video: {
+                    width: 475, height: 475, facingMode: 'environment'
+                }
+            };
+
+        // This condition will ask permission to user for Webcam access
+        if (navigator.mediaDevices.getUserMedia)
+        {
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(function (stream) {
+                    window.stream = stream;
+                    video.srcObject = stream;
+                    currentStream = stream;
+                })
+                .catch(function (err0r) {
+                    console.log("Something went wrong in answer webcam");
+                });
+
+        }
+    }
+
+    function stop(e) {
+        var stream = video.srcObject;
+        var tracks = stream.getTracks();
+
+        for (var i = 0; i < tracks.length; i++) {
+            var track = tracks[i];
+            track.stop();
+        }
+        video.srcObject = null;
+    }
+    $("#btncaptrue").click(function ()
+    {
+
+        var canvas = document.getElementById('canvas');
+        var rect = canvas.getBoundingClientRect();
+        var context = canvas.getContext('2d');
+        // Capture the image into canvas from Webcam streaming Video element
+        context.drawImage(video, 0, 0);
+        $('#btnSave').removeClass('hidden');
+    });
+    $("#btnSave").click(function ()
+    {
+        var questiontypeid = $('#questiontype').val();
+        var quizsaveid = $('#quizsaveid').val();
+        var JsonData = null;
+           // Below new canvas to generate flip/mirron image from existing canvas
+            var destinationCanvas = document.createElement("canvas");
+            var destCtx = destinationCanvas.getContext('2d');
+            destinationCanvas.height = 500;
+            destinationCanvas.width = 500;
+            destCtx.translate(video.videoWidth, 0);
+            destCtx.scale(-1, 1);
+            destCtx.drawImage(document.getElementById("canvas"), 0, 0);
+            // Get base64 data to send to server for upload
+            var imagebase64data = destinationCanvas.toDataURL("image/png");
+            imagebase64data = imagebase64data.replace('data:image/png;base64,', '');
+            $.ajax({
+                type: 'POST',
+                url:'@Url.Action("UpdateReuploadingAnswerSheets", "Examination")',
+                data: { sQuizSaveId: quizsaveid, sImagedata: imagebase64data, sQuestiontype: questiontypeid },
+                dataType: 'json',
+                success: function (data)
+                {
+                    alert(data.Message);
+
+                }
+            });
+
+    });
+</script>

@@ -1,0 +1,233 @@
+﻿@model CMS.ViewModel.ViewModel.AttendanceViewModel
+
+@*@{ 
+    Layout = null;
+}
+
+<div class="col-md-12 table-responsive">
+    @if (Model.liAttendanceReport != null && Model.liAttendanceReport.Count > 0)
+    {
+        var liGroupStudent = Model.liAttendanceReport.GroupBy(x => x.STUDENT_ID).Select(o => new CMS.ViewModel.Model.ATTENDANCE_REPORT()
+        {
+            STUDENT_ID = o.FirstOrDefault().STUDENT_ID,
+            ROLL_NO = o.FirstOrDefault().ROLL_NO,
+            REGISTER_NO = o.FirstOrDefault().REGISTER_NO,
+            FIRST_NAME = o.FirstOrDefault().FIRST_NAME,
+            MOBILE = o.FirstOrDefault().MOBILE,
+            DOB = o.FirstOrDefault().DOB
+        }).ToList();
+        // var liCourseCount = Model.liAttendanceReport.GroupBy(x => x.COURSE_CODE).ToList();
+        //<h4 class="text-center">Student Attendance Report</h4>
+
+        <br />
+        <div class="form-group"></div>
+        
+        <hr />
+
+
+        <div class="table-responsive">
+            
+            @foreach (var student in liGroupStudent)
+                {
+                <div style="page-break-after:avoid !important;page-break-inside:avoid !important;">
+
+                    <div class="col-xs-4 form-group"> <b>Roll No : </b> @student.ROLL_NO</div>
+                    <div class="col-xs-4 form-group"> <b>Register No : </b> @student.REGISTER_NO</div>
+                    <div class="col-xs-4 form-group"> <b>Name : </b> @student.FIRST_NAME</div>
+                    <div class="col-xs-4 form-group"> <b>Date : </b> @Model.sDate</div>
+                    <div class="col-xs-4 form-group"> <b>Date Of Birth : </b> @student.DOB</div>
+                    <div class="col-xs-4 form-group"> <b>Mobile : </b> @student.MOBILE</div>
+                    <table class="table table-bordered table-responsive table-hover">
+                        <thead>
+                            <tr>
+                                @*<th>#</th>
+                                <th>Course</th>
+                                <th>Hour</th>
+                                <th>Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ var liAttendance = Model.liAttendanceReport.Where(x => x.STUDENT_ID == student.STUDENT_ID).ToList();
+                                if (liAttendance != null && liAttendance.Count > 0)
+                                {
+                                    foreach (var item in liAttendance)
+                                    {
+                                        <tr>
+                                            @*<td>@{count++;}@count</td>
+                                            <td>@item.COURSE_CODE</td>
+                                            <td>@item.HOUR_ID</td>
+                                            <td>@item.ATTENDANCE_TYPE</td>
+                                        </tr>
+                                    }
+                                }
+                            }
+                        </tbody>
+                    </table>
+                    <hr />
+
+                </div>
+      }
+        </div>
+
+}
+
+
+</div>*@
+
+
+
+@{
+    Layout = null;
+    int count = 0;
+    int Present = 0;
+    double Percentage = 0;
+}
+<div class="col-md-12 table-responsive">
+    @if (Model.liAttendanceReport != null && Model.liAttendanceReport.Count > 0)
+    {
+        if (Model.liStudent != null && Model.liStudent.Count > 0)
+        {
+
+            foreach (var item in Model.liStudent)
+            {
+                var liAttendanceReport = Model.liAttendanceReport.Where(x => x.STUDENT_ID == item.STUDENT_ID).ToList();
+                    <br />
+
+                    <div style="page-break-after:avoid !important;page-break-inside:avoid !important;">
+                      
+                        <h6><b> ATTENDANCE DETAILS ! </b></h6>
+                        <hr />
+                        <div class="col-xs-6 form-group col-md-offset-2"><b> Roll No :</b> @item.ROLL_NO</div>
+                        <div class="col-xs-6 form-group"><b> Name : </b>@item.FIRST_NAME</div>
+                        <div class="col-xs-6 form-group col-md-offset-2"><b> Class : </b>@item.CLASS_NAME</div>
+                        <div class="col-xs-6 form-group"><b> Date : </b>@Model.sDate</div>
+
+                        <table class="table table-bordered table-responsive table-hover" id="tblAttendance">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Course Code</th>
+                                    <th>Course Title</th>
+                                    <th>Total hrs</th>
+                                    <th>Present Hrs</th>
+                                    <th>Absent Hrs</th>
+                                    <th>OD Hrs</th>
+                                    <th>Free Hrs</th>
+                                    <th>percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        @foreach (var student in liAttendanceReport)
+                        {
+                        <tr>
+                            <td>@{count++;}@count</td>
+                            <td>@student.COURSE_CODE</td>
+                            <td>@student.COURSE_TITLE</td>
+                            <td>@student.TOTAL_HRS</td>
+                            <td>@{ Present = Convert.ToInt32(student.TOTAL_HRS) - Convert.ToInt32(student.ABSENT); } @Present</td>
+                            <td>@student.ABSENT</td>
+                            <td>@student.OD</td>
+                            <td>@student.FREE_ATTENDANCE</td>
+                            <td>@{ Percentage = Math.Round((Convert.ToDouble(Present) / Convert.ToDouble(student.TOTAL_HRS)) * 100, 2);} @Percentage %</td>
+                        </tr>
+                                }
+                                <tr>
+                                    <td></td>
+                                    <td>Total</td>
+                                    <td></td>
+                                    <td>@{ var TotalHrs = liAttendanceReport.Sum(x => Convert.ToDouble(x.TOTAL_HRS)); } @TotalHrs</td>
+                                    <td>@{ var PresentHrs = Convert.ToDouble(liAttendanceReport.Sum(x => Convert.ToDouble(x.TOTAL_HRS))) - Convert.ToDouble(liAttendanceReport.Sum(x => Convert.ToDouble(x.ABSENT))); } @PresentHrs</td>
+                                    <td>@{ var AbsentHrs = liAttendanceReport.Sum(x => Convert.ToDouble(x.ABSENT)); } @AbsentHrs</td>
+                                    <td>@{ var ODHrs = liAttendanceReport.Sum(x => Convert.ToDouble(x.OD)); } @ODHrs</td>
+                                    <td>@{ var FreeHrs = liAttendanceReport.Sum(x => Convert.ToDouble(x.FREE_ATTENDANCE)); } @FreeHrs</td>
+                                    <td>@{ var TotalPercentage = Math.Round((PresentHrs / TotalHrs) * 100, 2); } @TotalPercentage %</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <input type="text" id="HdCount" class="hidden" value="@count" />
+                        @{ Present = 0; Percentage = 0;}    
+                        <h6><b> COMMON ATTENDANCE !</b></h6>
+                        <hr />                    
+                         <table class="table table-bordered table-responsive table-hover" id="tblCumulativeAttendance">
+                            @{ count = 0; }
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Month/Year</th>
+                                    <th>Total Days</th>
+                                    <th>Present </th>
+                                    <th>Absent </th>
+                                    <th>OD </th>
+                                    <th>Free </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.liCommonAttendance != null && Model.liCommonAttendance.Count > 0)
+                        {
+                            var liCommonAttendanceReport = Model.liCommonAttendance.Where(x => x.STUDENT_ID == item.STUDENT_ID).ToList();
+                            if (liCommonAttendanceReport != null && liCommonAttendanceReport.Count > 0)
+                            {
+                                foreach (var student in liCommonAttendanceReport)
+                                {
+                                    <tr>
+                                        <td>@{count++;}@count</td>
+                                        <td>@student.MONTH_NAME</td>
+                                        <td>@student.DAYS</td>
+                                        <td>@student.PRESENT</td>
+                                        <td>@student.ABSENT</td>
+                                        <td>@student.OD</td>
+                                        <td>@student.FREE_ATTENDANCE</td>
+                                    </tr>
+                                  }
+                              }
+
+                          }
+                            </tbody>
+                        </table>
+                    </div>
+                  }
+              }
+          }
+          else
+          {
+              <div class="alert alert-warning">
+                  Sorry . No Records Found !
+              </div>
+          }
+
+
+
+  @* @if (Model.liCommonAttendance != null && Model.liCommonAttendance.Count > 0)
+        {
+            <h6><b> CUMULATIVE ATTENDANCE !</b></h6>
+                <hr />
+                <table class="table table-bordered table-responsive table-hover" id="tblCumulativeAttendance">
+                    @{ count = 0; }
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Month/Year</th>
+                            <th>Total Days</th>
+                            <th>Present Hrs</th>
+                            <th>Absent Hrs</th>
+                            <th>OD Hrs</th>
+                            <th>Free Hrs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var student in Model.liCommonAttendance)
+                        {
+                            <tr>
+                                <td>@{count++;}@count</td>
+                                <td>@student.MONTH_NAME</td>
+                                <td>@student.DAYS</td>
+                                <td>@student.PRESENT</td>
+                                <td>@student.ABSENT</td>
+                                <td>@student.OD</td>
+                                <td>@student.FREE_ATTENDANCE</td>
+                            </tr>
+                          }
+                    </tbody>
+                </table>
+          } *@
+    </div>

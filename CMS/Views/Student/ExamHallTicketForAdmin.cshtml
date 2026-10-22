@@ -1,0 +1,298 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "ExamHallTicketForStudent";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    var noteligibleSubject = string.Empty;
+    string currentDate = DateTime.Now.ToString("dd/MM/yyyy hh:mm tt", System.Globalization.CultureInfo.InvariantCulture);
+
+}
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<style>
+    html, body {
+        height: 100%; /* Ensure the body fills the entire height */
+        margin: 0;
+    }
+
+    /*.SignDiv {
+        position: absolute;
+        bottom: 0;*/ /* Align at the bottom of the page */
+    /*width: 670px;
+        box-sizing: border-box;
+        padding-top: 40px;
+        border-top: 2px solid black;
+    }*/
+
+    .SignDiv {
+        position: absolute;
+        bottom: 186px;
+        width: 730px;
+        box-sizing: border-box;
+        border-top: 2px solid black;
+        padding-top: 15px;
+    }
+
+    .alignSpaceBetween {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    table {
+        width: 100%;
+    }
+
+    td {
+        padding: 1px;
+    }
+
+    th {
+        padding: 8px
+    }
+
+    .RollNumberPart {
+        margin-top: 10px;
+        margin-bottom: 5px;
+    }
+
+        .RollNumberPart table {
+            width: 100%; /* Stretch the table to the available space */
+            border-collapse: collapse;
+            table-layout: fixed; /* Uniform cell sizes */
+        }
+
+        .RollNumberPart td {
+            vertical-align: middle;
+        }
+
+        .RollNumberPart img {
+            display: block;
+            max-height: 90px;
+            margin: auto;
+        }
+
+    .instructionDiv {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+
+
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="@Url.Action("STUDENT","DashBoard")">Home</a></li>
+        <li><a href="@Url.Action("","Student")">Exam Hall Ticket</a></li>
+        <li class="active">Exam Hall Ticket</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Exam Hall Ticket</h1>
+    <!-- end page-header -->
+    <div class="panel panel-primary" data-sortable-id="ui-general-1">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Exam Hall Ticket</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()<div class="form-horizontal">
+
+
+                    <div class="row">
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="FR_MOBILE" class="control-label col-md-4">Roll No</label>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control col-md-4" placeholder="Enter Roll No" id="txtRollNo" />
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="checkbox" class=" col-md-4" placeholder="Enter Roll No" id="txtArrear" />
+                                    <label>Is Arrear Only </label>
+                                </div>
+                            </div>
+                        </div>
+                        @*<div class="col-md-6 form-group">
+                                <label for="FR_MOBILE" class="control-label col-md-4">Roll No</label>
+                                <input type="text" class="form-control col-md-4" placeholder="Enter Roll No" id="txtRollNo" />
+                            </div>*@
+                        <div class="col-md-2 ">
+                            <a class="btn btn-primary" onclick="BindData()" href="javascript:;" id="btnSearch"> Get</a>
+                        </div>
+                        <div class="col-sm-6 col-md-2 pull-right">
+                            <button class="btn btn-primary btnPrint" onclick="printDiv('dvBindHallTicket')"> Print </button>
+                        </div>
+                    </div>
+                    <br />
+                    <hr />
+
+
+                </div>
+
+                <div id="dvHallTicketList">
+                    <div class="col-md-12 table-responsive">
+                        <div id="dvBindHallTicket">
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+
+<script>
+    function printDiv(divId) {
+        var content = document.getElementById(divId).innerHTML;
+        var printWindow = window.open('', '', 'height=600,width=800');
+        printWindow.document.write('<html><head><title>Exam Hall Ticket</title>');
+        printWindow.document.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">');
+        printWindow.document.write('<style>');
+
+        printWindow.document.write(`
+                            @@media print {
+                                * {
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                      }
+                                body {
+                                    font-family: Times New Roman;
+                                    margin: 0;
+                                    padding: 0;
+
+                                }
+                    .notEligibleDiv{
+                        color:#e91818 !important;
+                    }
+                    .instructionDiv{
+                        Height:1180px !important;
+                            font-size: 20px;
+
+                                text-align: justify;
+                    }
+                    .instructionInsideDiv{
+                        margin-left: 50px !important;
+                        margin-right: 50px !important ;
+                    }
+
+.SignDiv {
+                        position: absolute;
+                        bottom: 50px; /* Align at the bottom of the page */
+                        width: 730px;
+                        box-sizing: border-box;
+                        border-top: 2px solid black; /* Optional */
+                        padding-top: 5px;
+}
+
+                        .SignDiv > div {
+                            text-align: center;
+                        }
+                         .clgInfoDiv{
+
+                     text-align: center !important;
+                     }
+.alignSpaceBetween{
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:flex-start;
+
+}
+.RollNumberPart {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    }
+                 .instructionDiv {
+                     display: flex;
+                     justify-content: center;
+                     align-items: center;
+                 }
+                                .container {
+                                    width: 100%;
+
+                                }
+                                table {
+                                    width: 100%;
+
+                                }
+                                td {
+
+                                    padding: 1px;
+                                }
+                                 th{
+                                      padding: 8px;
+                                 }
+                                @@page {
+                                    size: A4;
+                                    margin: 1mm;
+                                }
+                            }
+                        `);
+
+        printWindow.document.write('</style></head><body>');
+        printWindow.document.write('<div class="" style="background: linear-gradient(#e7f3fd, #e7f3fd, #e7f3fd);">');
+        printWindow.document.write(content);
+        printWindow.document.write('</div>');
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        document.body.innerHTML = document.body.innerHTML
+    }
+
+
+    $('#txtRollNo').on("keypress", function (event) {
+        var keycode = event.keyCode || event.which;
+        if (keycode == 13) {
+            event.preventDefault();
+            BindData();
+        }
+    });
+
+     function BindData()
+     {
+     var isArrear = $('#txtArrear').is(':checked') ? 1 : 0;
+
+         if ($('#txtRollNo').val())
+     {
+         $.ajax({
+             url: '@Url.Action("FetchExamHallTicketByRollNO", "Student")',
+             method: 'POST',
+             datatype: 'Json',
+             data: { sRollNo: $('#txtRollNo').val(), sArrear: isArrear },
+             success: function (data)
+             {
+                 $('#dvBindHallTicket').empty();
+                 $('#dvBindHallTicket').append(data);
+             }, error: function (error)
+             {
+                 swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+             }
+         });
+     } else
+     {
+         swal({ title: "Warning !", text: "Something went wrong try again !", showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+     }
+ }
+</script>

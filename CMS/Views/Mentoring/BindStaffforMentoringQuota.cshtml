@@ -1,0 +1,158 @@
+﻿@model CMS.ViewModel.ViewModel.MentoringViewModel
+@{
+    ViewBag.Title = "BindStaffforMentoringQuota";
+    int count = 0;
+}
+
+<style>
+    .table-container {
+        width: 100%;
+        overflow-x: auto; 
+    }
+
+    .table {
+        table-layout: fixed;
+        width: 100%;
+        word-wrap: break-word;
+    }
+
+        .table th, .table td {
+            padding: 5px;
+            font-size: 14px;
+            white-space: nowrap; 
+        }
+
+            .table td.col-md-3 {
+                max-width: 150px; 
+                white-space: normal;
+                word-wrap: break-word; 
+                overflow-wrap: break-word;
+            }
+</style>
+
+<div class="table-container">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th rowspan="2" class="text-center align-middle">#</th>
+                <th rowspan="2" class="text-center align-middle">Staff Name</th>
+                <th colspan="3" class="text-center">UG</th>
+                <th colspan="2" class="text-center">PG</th>
+                <th rowspan="2" class="text-center align-middle">Total</th>
+            </tr>
+            <tr>
+                <th class="text-center">I</th>
+                <th class="text-center">II</th>
+                <th class="text-center">III</th>
+                <th class="text-center">I</th>
+                <th class="text-center">II</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @if (Model.listaffdetails != null && Model.listaffdetails.Count > 0)
+            {
+                foreach (var item in Model.listaffdetails)
+                {
+                    count++;
+                    <tr data-staffid="@item.STAFF_ID">
+                        <td class="col-md-1">@count</td>
+                        <td class="col-md-3">@item.FIRST_NAME</td>
+                        <td class="col-md-1"><input type="number" min="0" max="30" id="ug1_@item.STAFF_ID" class="form-control input-number" /></td>
+                        <td class="col-md-1"><input type="number" min="0" max="30" id="ug2_@item.STAFF_ID" class="form-control input-number" /></td>
+                        <td class="col-md-1"><input type="number" min="0" max="30" id="ug3_@item.STAFF_ID" class="form-control input-number" /></td>
+                        <td class="col-md-1"><input type="number" min="0" max="30" id="pg1_@item.STAFF_ID" class="form-control input-number" /></td>
+                        <td class="col-md-1"><input type="number" min="0" max="30" id="pg2_@item.STAFF_ID" class="form-control input-number" /></td>
+                        <td class="col-md-3"><input type="number" id="tot_@item.STAFF_ID" class="form-control total-input" readonly value="0" /></td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+    <div class="col-md-12 form-group">
+        <button type="button" class="btn btn-primary pull-right" id="btnGet">Save</button>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<script>
+    $(document).ready(function () {
+        calculateAllTotals();
+
+        $(document).on('input', '.input-number', function () {
+            enforceMinMax(this); 
+            calculateRowTotal($(this).closest('tr'));
+        });
+
+        function calculateRowTotal(row) {
+            let total = 0;
+            row.find('.input-number').each(function () {
+                total += parseFloat($(this).val()) || 0;
+            });
+            row.find('.total-input').val(total);
+        }
+
+        function calculateAllTotals() {
+            $('tbody tr').each(function () {
+                calculateRowTotal($(this));
+            });
+        }
+
+        function enforceMinMax(input) {
+            let value = parseInt(input.value, 10);
+
+            if (isNaN(value)) {
+                input.value = "";  
+            } else if (value < 0) {
+                input.value = 0;   
+            } else if (value > 30) {
+                input.value = 30;   
+            }
+        }
+    });
+
+   $(document).on('click', '#btnGet', function () {
+    var inputData = [];
+    $('tr[data-staffid]').each(function () {
+        var staffid = $(this).data('staffid');
+
+        var ugmark1 = $('#ug1_' + staffid).val();
+        var ugmark2 = $('#ug2_' + staffid).val();
+        var ugmark3 = $('#ug3_' + staffid).val();
+        var pgmark1 = $('#pg1_' + staffid).val();
+        var pgmark2 = $('#pg2_' + staffid).val();
+        var total = $('#tot_' + staffid).val();
+
+        inputData.push({
+            STAFF_ID: staffid,
+            UG1: ugmark1,
+            UG2: ugmark2,
+            UG3: ugmark3,
+            PG1: pgmark1,
+            PG2: pgmark2,
+            TOTAL: total
+        });
+    });
+    $.ajax({
+        url: '@Url.Action("SaveStaffQuotaDetails", "Mentoring")',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(inputData),
+        dataType: 'json',
+        success: function (response) {
+            if (response.success) {
+                alert(response.message);
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("AJAX Error:", status, error);
+            alert('Error saving data. Check console for details.');
+        }
+    });
+});
+
+
+</script>

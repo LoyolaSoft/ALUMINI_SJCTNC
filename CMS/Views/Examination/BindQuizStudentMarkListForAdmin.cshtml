@@ -1,0 +1,131 @@
+﻿
+@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@using CMS.Utility
+@{
+    ViewBag.Title = "BindQuizStudentMarkListForAdmin";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+@if (Model.liQuizMarkList != null && Model.liQuizMarkList.Count > 0 && Model.liStudentPersonalInfo != null && Model.liStudentPersonalInfo.Count > 0)
+{
+    if (Model.liCollegeDetails != null)
+    {
+
+        <div class="text-center">
+
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <img src="@Url.Content(Model.liCollegeDetails.FirstOrDefault().COLLEGE_LOGO)" style="width:100px; height:100px" />
+        </div>
+        <div class="text-center">
+
+            <h3>@Model.liCollegeDetails.FirstOrDefault().COLLEGE_NAME &nbsp;&nbsp; @Model.liCollegeDetails.FirstOrDefault().PLACE .</h3>
+            <h4>@Model.liCollegeDetails.FirstOrDefault().UNIVERSITY.</h4>
+            <h5>
+                QUIZ MARK  REPORT FOR <label id="lblSettingName">m</label> &nbsp;- &nbsp;(@{if (Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] != null)
+                    { @Session[Common.SESSION_VARIABLES.ACADEMIC_YEAR_NAME] } }) <br />
+
+            </h5>
+
+
+        </div>
+                    }
+
+
+                    if (Model.liCourseInfo != null && Model.liCourseInfo.Count > 0)
+                    {
+
+                        <table cellpadding="10" cellspacing="10">
+                            <tr>
+                                <td><b>Course Name &nbsp;&nbsp;&nbsp; : </b></td>
+                                <td class="semi-bold"> @Model.liCourseInfo.FirstOrDefault().COURSE_TITLE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                <td></td>
+                                <td></td>
+                                <td><b>Staff Name(s) &nbsp;&nbsp;&nbsp; : </b></td>
+                                <td class="semi-bold">@Model.liCourseInfo.FirstOrDefault().STAFF_NAME </td>
+                            </tr>
+                            <tr>
+                                <td><b>Course Code &nbsp;&nbsp;&nbsp;&nbsp; : </b></td>
+                                <td class="semi-bold">liCourseInfo.FirstOrDefault().COURSE_CODE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                <td></td>
+                                <td></td>
+                                <td><b>Class Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : </b></td>
+                                <td class="semi-bold" id="sSemester">@Model.liCourseInfo.FirstOrDefault().CLASS_NAME</td>
+                            </tr>
+                            <tr>
+                                <td><b>Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: </b></td>
+                                <td class="semi-bold">@Model.liCourseInfo.FirstOrDefault().DATE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                <td></td>
+                                <td></td>
+                                <td><b>Total Student &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: </b></td>
+                                <td class="semi-bold">@{var totalStudent = Model.liStudentPersonalInfo.Count(x => x.STUDENT_ID != "");} @totalStudent</td>
+                            </tr>
+                        </table>
+
+                                    }
+
+
+                                    <br />
+                                    <div class="row">
+                                        <!-- begin lg-12 -->
+                                        <div class="col-lg-12 table-responsive">
+                                            <table class="table table-bordered table-hover" id="tblQuizMarkList">
+                                                <thead>
+                                                    <tr>
+                                                        <td>#</td>
+                                                        <td>Roll No</td>
+                                                        <td>Register No</td>
+                                                        <td>Name</td>
+                                                        <td>Mark</td>
+                                                        @*<td>Cia Mark</td>*@
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @{ var Count = 0;}
+                                                    @foreach (var liStu in Model.liStudentPersonalInfo)
+                                                    {
+
+                                                        var liGroup = Model.liQuizMarkList.Where(x => x.STUDENT_ID == liStu.STUDENT_ID).ToList();
+                                                        Count += 1;
+                                                        <tr>
+                                                            <td>@Count</td>
+                                                            <td>@liStu.ROLL_NO</td>
+                                                            <td>@liStu.REGISTER_NO</td>
+                                                            <td>@liStu.FIRST_NAME</td>
+
+                                                            @if (liGroup != null && liGroup.Count > 0)
+                                                            {
+                                                                var QuestionCount = liGroup.Sum(x => Convert.ToDouble(x.QUESTION_COUNT));
+                                                                var mark = liGroup.Sum(x => Convert.ToDouble(x.MARK));
+
+                                                                <td>@mark/@Model.liQuizSetting.FirstOrDefault().TOTAL_MARK</td>
+
+                                                            }
+                                                            else
+                                                            {
+                                                                <td>0</td>
+                                                                @*<td>0</td>*@
+                                                            }
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                    </div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="alert alert-danger">No Record(s) Found !</div>
+                                                        }
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+    $('#tblQuizMarkList').DataTable({
+        "paging": false
+    });
+</script>
+
+

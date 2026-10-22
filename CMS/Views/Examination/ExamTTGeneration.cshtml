@@ -1,0 +1,307 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "ExamTTGeneration";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">ExamTT Generation</li>
+    </ol>
+    <h1 class="page-header">ExamTT Generation</h1>
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">ExamTT Generation</h4>
+        </div>
+        <div class="panel-body" data-parsley-validate="true" id="Pbody">
+            <div class="form-horizontal">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="col-md-12">
+                    <div class="form-group col-md-5">
+                        @Html.LabelFor(model => model.AcademicYearList, "Academic Year", htmlAttributes: new { @class = "control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(model => model.AcademicYearList, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-5">
+                        @Html.LabelFor(model => model.ExamType, "Exam Type", htmlAttributes: new { @class = "control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.ExamType, (Model.ExamType != null) ? Model.ExamType : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(model => model.ExamType, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group col-md-5">
+                        @Html.LabelFor(model => model.ExamSetting, "Exam Setting", htmlAttributes: new { @class = "control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.ExamSetting, (Model.ExamSetting != null) ? Model.ExamSetting : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                            @Html.ValidationMessageFor(model => model.ExamSetting, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group col-md-1">
+                        <a class="btn btn-primary" id="btnGet">Get</a>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div id="dvExamTTGeneration" class="form-group col-md-12 table-responsive">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script>
+    ContentLoad = function () {
+        // Document Ready Function .
+        $('.selectpicker').selectpicker({
+            size: 5
+        });
+        $('.selectpicker').selectpicker('refresh');
+    }
+
+
+    //FetchExamSettingAccordingExamType
+    $('#ExamType').on('change', function () {
+        var vAcademicYear = $('#AcademicYearList option:selected').text();
+        var vExamType = $('#ExamType').val();
+        if (vExamType != "0" && vExamType != "2") {
+            $.ajax({
+                url: '@Url.Action("FetchCIAExamSetting", "Examination")',
+                data: { sAcademicYear: vAcademicYear },
+                success: function (objResult) {
+                    $('#ExamSetting').empty();
+                    $('#ExamSetting').append('<option value="0">-- select --</option>' + objResult.sResult);
+                    $('.selectpicker').selectpicker('refresh');
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+
+        } else if (vExamType != "0" && vExamType != "1") {
+            $.ajax({
+                url: '@Url.Action("FetchExamSetting", "Examination")',
+                data: { sAcademicYear: vAcademicYear },
+                success: function (objResult) {
+                    $('#ExamSetting').empty();
+                    $('#ExamSetting').append('<option value="0">-- select --</option>' + objResult.sResult);
+                    $('.selectpicker').selectpicker('refresh');
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+            });
+        }
+    });
+
+    $('#btnGet').on('click', function () {
+        var vAcademicYear = $('#AcademicYearList option:selected').text();
+        var vExamType = $('#ExamType').val();
+        var vExamSetting = $('#ExamSetting').val();
+        $.ajax({
+            @* url: '@Url.Action("BindExamTTGeneration", "Examination")',*@
+            url: '@Url.Action("AutomaticExamTTGeneration", "Examination")',
+            method: 'POST',
+            data: { sExamType: vExamType, sExamSetting: vExamSetting, sAutomaticTTMethods:"6" },
+            success: function (data) {
+               // $('#dvExamTTGeneration').empty();
+                if (data.ErrorCode != null && data.ErrorCode == "402") {
+                    swal({ title: "Error..!!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+                   // loadContent('/Examination/ListExamMalpracticeStudents');
+                } else {
+                    swal({ title: "Success..!!", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                    // loadContent('/Examination/ListExamMalpracticeStudents');
+                }
+                //if (data.Message != null && data.Message != '') {
+                //    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                //} else {
+                //    $('#dvExamTTGeneration').append(data);
+                //}
+            }, error: function (error) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        })
+    });
+
+
+
+
+    //EditExamTTGenerations
+
+    //$("#tblExamttGeneration").on("click", "td", function () {
+    //    alert('dfd');
+    //});
+    $("table.table td.editable").live("click", function () {
+        var vExamSetting = $('#ExamSetting').val();
+        var vExamType = $('#ExamType').val();
+        var vProgrammlevel = $(this).attr('cms-programmelevel');
+        var vProgrammeyear = $(this).attr('cms-programmeYear');
+        var vExamsession = $(this).attr('cms-Examsession');
+        var vExamdate = $(this).attr('cms-Examdate');
+        var vUgcType = $(this).attr('cms-Ugctype');
+        var sJson = null;
+        sJson = '{"EXAM_SETTING_ID":"' + vExamSetting + '","EXAM_TYPE":"' + vExamType + '","PROGRAMME_LEVEL":"' + vProgrammlevel + '","PROGRAMME_YEAR":"' + vProgrammeyear + '","EXAM_DATE":"' + vExamdate + '","EXAM_SESSION_ID ":"' + vExamsession + '","UGC_COURSE_TYPE":"' + vUgcType + '"}'
+        $.ajax({
+            url: '@Url.Action("EditExamTTGeneration", "Examination")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sEditExamTTGeneration:sJson  },
+            success: function (data) {
+                var sOption = '<option value="">--Select--</option>';
+                $('#ExamTTStructure').modal();
+                $('#txtExamDate').val(vExamdate);
+                $('#txtExamSession').val(vExamsession);
+                $('#ddlProgrammelevel').empty();
+                $('#ddlProgrammelevel').append(sOption + data.PROGRAMME_LEVEL);
+                $('#ddlProgrammeyear').empty();
+                $('#ddlProgrammeyear').append(sOption + data.PROGRAMME_YEAR);
+                $('.selectpicker').selectpicker('refresh');
+            }, error: function (error) {
+                alert(error);
+            }
+        })
+    })
+
+    $('#ddlProgrammelevel').on("change", function () {
+        BindUgcCoursetype();
+    })
+    $('#ddlProgrammeyear').on("change", function () {
+        BindUgcCoursetype();
+    })
+    function BindUgcCoursetype()
+    {
+        alert('');
+        var vddlProgrammelevel = $('#ddlProgrammelevel').val();
+        var vddlProgrammeyear = $('#ddlProgrammeyear').val()
+        if ((vddlProgrammeyear != null && vddlProgrammeyear != "0") && (vddlProgrammeyear != null && vddlProgrammeyear != "0")) {
+            $.ajax({
+                url: '@Url.Action("FetchUgcCourseTypeForExamTTStructure", "Examination")',
+                method: 'POST',
+                datatype: 'json',
+                data: { sProgrammeLevel: vddlProgrammelevel, sProgrammeYear: vddlProgrammeyear, },
+                success: function (data) {
+                    $('#ddlUgcCourseType').empty();
+                    $('#ddlUgcCourseType').append('<option value="">--Select--</option>' + data.sResult);
+                    $('.selectpicker').selectpicker('refresh');
+                }, error: function (error) {
+                    alert(error);
+                }
+            })
+        }
+    }
+</script>
+
+<div class="modal" id="Room-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            <input type="hidden" id="hdRoomId" />
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Exam Setting</label>
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.ExamType, (Model.ExamType != null) ? Model.ExamType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker form-control  input-sm", @data_live_search = "true", id = "ddExamType" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Exam Setting</label>
+                                <div class="col-md-9">
+                                    @Html.DropDownListFor(model => model.ExamSetting, (Model.ExamSetting != null) ? Model.ExamSetting : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true", id = "ddExamSetting" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="ExamTTStructure">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <input type="text" id="itemid" class="hidden">
+                        <div class="col-md-12">                            
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Exam Date</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control input-sm" disabled id="txtExamDate" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Exam Session</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control input-sm" disabled id="txtExamSession" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">ProgrammeLevel</label>
+                                <div class="col-md-9">
+                                    <select id="ddlProgrammelevel" class="selectpicker form-control input-sm" data-live-search="true">
+                                        <option value="">-- select --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">ProgrammeYear</label>
+                                <div class="col-md-9">
+                                    <select id="ddlProgrammeyear" class="selectpicker form-control input-sm" data-live-search="true">
+                                        <option value="">-- select --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">Course Type</label>
+                                <div class="col-md-9">
+                                    <select id="ddlUgcCourseType" class="selectpicker form-control input-sm" data-live-search="true">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                            </div>                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>

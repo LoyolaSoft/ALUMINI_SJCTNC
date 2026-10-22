@@ -1,0 +1,288 @@
+
+@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    ViewBag.Title = "Quiz Certificate Portal";
+    Layout = null;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<style>
+    body {
+        font-family: 'Outfit', sans-serif;
+        background-color: #f4f7fa;
+    }
+
+    .bg-premium-gradient {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 20px;
+    }
+
+    .page-header {
+        font-weight: 700;
+        color: #1e293b;
+        letter-spacing: -0.5px;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        color: #64748b;
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .btn-premium-search {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border: none;
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-premium-search:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+    }
+
+    /* Custom Scrollbar for Modal */
+    .modal-dialog-scrollable .modal-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    .modal-dialog-scrollable .modal-body::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+        animation: fadeInUp 0.5s ease forwards;
+    }
+</style>
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Dashboard</a></li>
+        <li class="active">Certificates</li>
+    </ol>
+    <h1 class="page-header">Certificates & Reports</h1>
+
+    <div class="panel glass-card border-0 shadow-sm overflow-hidden">
+        <div class="panel-body p-0">
+            <div class="container-fluid p-0">
+                <!-- Header Hero Section -->
+                <div class="bg-premium-gradient p-5 text-center text-white position-relative overflow-hidden">
+                    <div class="position-relative z-1">
+                        <h2 class="display-6 fw-bold mb-2">Student Excellence Portal</h2>
+                        <p class="lead opacity-75 mb-0">Track your progress, review detailed results, and secure your achievement certificates.</p>
+                    </div>
+                </div>
+
+                <div class="p-4 p-md-5 mt-n5 position-relative z-2">
+                    <!-- Filters Grid -->
+                    <div class="card glass-card border-0 shadow-lg mb-5 mb-md-6">
+                        <div class="card-body p-4 p-md-5">
+                            <div class="row g-4 align-items-end">
+                                <div class="col-12 col-md-3">
+                                    <span class="filter-label"><i class="far fa-calendar-alt me-2"></i>Academic Year</span>
+                                    @Html.DropDownListFor(m => m.AcademicYearList, (Model.AcademicYearList != null) ? Model.AcademicYearList : Enumerable.Empty<SelectListItem>(), "-- Select Year --", new { @class = "form-control selectpicker shadow-none", @data_live_search = "true", @id = "ddlAcademicYear", @data_style = "btn-outline-light text-dark fw-semibold" })
+                                </div>
+                                <div class="col-12 col-md-3">
+                                    <span class="filter-label"><i class="fas fa-layer-group me-2"></i>Semester Type</span>
+                                    <select class="selectpicker form-control shadow-none" id="ddlSemester" data-style="btn-outline-light text-dark fw-semibold">
+                                        <option value="0">-- Select Semester --</option>
+                                        <option value="1">Odd Semester</option>
+                                        <option value="2">Even Semester</option>
+                                        <option value="3">Non Semester</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <span class="filter-label"><i class="fas fa-book-open me-2"></i>Select Course</span>
+                                    <select id="ddlCourse" class="selectpicker form-control shadow-none" data-live-search="true" data-style="btn-outline-light text-dark fw-semibold">
+                                        <option value="">-- Choose Course --</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 col-md-2">
+                                    <button id="btnSearch" class="btn btn-primary btn-premium-search w-100 py-3 rounded-pill fw-bold">
+                                        <i class="fas fa-bolt me-2"></i>Fetch Results
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="resultsContainer" class="row g-4 justify-content-center">
+                        <div class="col-12 text-center py-5" id="initialState">
+                            <div class="opacity-50">
+                                <i class="fas fa-search fa-4x mb-4 text-primary"></i>
+                                <h4 class="fw-bold">Ready to analyze?</h4>
+                                <p class="text-muted">Select the filters above to retrieve your quiz records.</p>
+                            </div>
+                        </div>
+                        <div class="col-12 text-center py-5 d-none" id="noRecords">
+                            <div class="opacity-50">
+                                <i class="fas fa-folder-open fa-4x mb-4 text-warning"></i>
+                                <h4 class="fw-bold">No Records Found</h4>
+                                <p class="text-muted">Try adjusting your selection filters.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Result Modal -->
+    <div class="modal fade" id="quizResultModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content overflow-hidden border-0 shadow-2xl rounded-2xl">
+                <div class="modal-header bg-premium-gradient text-white border-0 py-4">
+                    <div class="modal-title">
+                        <span class="text-uppercase small opacity-75 d-block mb-1">Performance Review</span>
+                        <h5 class="fw-bold m-0" id="modalSettingName">Quiz Analysis</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="quizDetails" class="p-4 p-md-5">
+                        <!-- Content via AJAX -->
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0 py-3 px-4">
+                    <button type="button" class="btn btn-outline-secondary border-2 rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Close Review</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Certificate Modal -->
+    <div class="modal fade" id="certificateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen-md-down modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-2xl rounded-2xl overflow-hidden">
+                <div class="modal-header bg-premium-gradient text-white border-0 px-4 py-3">
+                    <h5 class="modal-title fw-bold m-0"><i class="fas fa-medal me-2 text-warning"></i>Achievement Certificate</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 bg-dark">
+                    <iframe id="certIframe" src="" style="width: 100%; height: 80vh; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+
+        $('#ddlAcademicYear').on('change', function () {
+            $('#ddlSemester').val('0').selectpicker('refresh');
+            $('#ddlCourse').empty().append('<option value="">-- Choose Course --</option>').selectpicker('refresh');
+            $('#resultsContainer').empty().append('<div class="col-12 text-center py-5" id="initialState"><div class="opacity-50"><i class="fas fa-search fa-4x mb-4 text-primary"></i><h4 class="fw-bold">Ready to analyze?</h4><p class="text-muted">Select the filters above to retrieve your quiz records.</p></div></div>');
+        });
+
+        $('#ddlSemester').on('change', function () {
+            var acYear = $('#ddlAcademicYear option:selected').text();
+            var semType = $(this).val();
+
+            if (acYear && acYear != "-- Select Year --" && semType && semType != "0") {
+                $.ajax({
+                    url: '@Url.Action("GetCoursesForCertWithSem", "Student")',
+                    type: 'POST',
+                    data: { sAcademicYear: acYear, sSemesterTypeId: semType },
+                    success: function (data) {
+                        if (data.Message != null && data.Message != '') {
+                            swal({ title: " Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                        } else {
+                            $('#ddlCourse').empty();
+                            $('#ddlCourse').append(data.sResult);
+                            $('.selectpicker').selectpicker('refresh');
+                        }
+                    }
+                });
+            } else {
+                $('#ddlCourse').empty().append('<option value="">-- Choose Course --</option>').selectpicker('refresh');
+            }
+        });
+
+        $('#btnSearch').on('click', function () {
+            var acYear = $('#ddlAcademicYear option:selected').text();
+            var courseId = $('#ddlCourse').val();
+
+            if (!acYear || acYear == "-- Select Year --" || !courseId) {
+                swal({ title: "Oops!", text: "Please select both Academic Year and Course", type: "warning" });
+                return;
+            }
+
+            $('#resultsContainer').empty().append('<div class="col-12 text-center py-5"><div class="spinner-grow text-primary" role="status"></div><p class="mt-3 fw-bold text-primary">Analyzing records...</p></div>');
+
+            $.ajax({
+                url: '@Url.Action("GetQuizResultsForCert", "Student")',
+                type: 'POST',
+                data: { sAcademicYear: acYear, sCourseId: courseId },
+                success: function (html) {
+                    if (html.trim() == "" || html.includes("No records found")) {
+                        $('#resultsContainer').empty().append($('#noRecords').clone().removeClass('d-none'));
+                    } else {
+                        $('#resultsContainer').empty().append(html);
+                    }
+                },
+                error: function() {
+                    $('#resultsContainer').empty().append('<div class="col-12 text-center py-5 text-danger"><i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Failed to load results. Please try again.</p></div>');
+                }
+            });
+        });
+    });
+
+    function viewResultDetail(settingId, settingName, courseId) {
+        var acYear = $('#ddlAcademicYear option:selected').text();
+        $('#modalSettingName').text(settingName);
+        $('#quizDetails').empty().append('<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-3">Fetching detailed report...</p></div>');
+        $('#quizResultModal').modal('show');
+
+        $.ajax({
+            url: '@Url.Action("ViewQuizResultDetail", "Student")',
+            type: 'POST',
+            data: { sSettingId: settingId, sAcademicYear: acYear, sCourseId: courseId },
+            success: function (html) {
+                $('#quizDetails').empty().append(html);
+            }
+        });
+    }
+
+    function downloadCert(settingId, mark, total) {
+        var acYear = $('#ddlAcademicYear option:selected').text();
+        var courseId = $('#ddlCourse').val();
+        var url = '@Url.Action("ViewCertificate", "Student")' + '?sSettingId=' + settingId + '&sAcademicYear=' + acYear + '&sCourseId=' + courseId + '&sMark=' + mark + '&sTotal=' + total;
+        $('#certIframe').attr('src', url);
+        $('#certificateModal').modal('show');
+    }
+
+    function printCertificate() {
+        var iframe = document.getElementById('certIframe');
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+    }
+</script>

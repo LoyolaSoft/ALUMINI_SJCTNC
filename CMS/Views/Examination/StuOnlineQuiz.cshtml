@@ -1,0 +1,171 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+
+@{
+    ViewBag.Title = "StuOnlineQuiz";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+    <style>
+        #time {
+          width: 70px;
+          height: 40px;
+          border-radius: 5%;
+          font-size: 20px;
+          color: #fff;
+          line-height: 40px;
+          text-align: center;
+          background: #0000FF
+        }
+       
+    </style>    
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a k>Home</a></li>
+        <li><a @*href="@Url.Action("Student","Dashboard")"*@ href="javascript:;">Home</a></li>
+        <li><a @*href="@Url.Action("ListQuiz","Examination")"*@ href="javascript:;" onclick="loadContent('/Examination/ListQuiz')">List Quiz</a></li>
+        <li class="active">Online Quiz Test</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Online Quiz Test</h1>
+    <!-- end page-header -->
+    
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Online Quiz</h4>
+        </div>
+        <div class="panel-body bg-gray">
+            <div class="form-horizontal">
+
+                <div class="form-group">
+                    <div class="col-md-6">
+                        @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-3" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(model => model.CourseList, Model.CourseList, "---Select---", new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-md-6 pull-right">
+                        <div id="time" class="pull-right hidden"></div>
+                        <input type="hidden" id="EndTime" value="45" />
+                    </div>
+                </div>
+
+                <div id="dvQuestionAnswer"></div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function ContentLoad() {
+        // Document Ready Function .
+    }
+    function GetQuizResult()
+    {
+        $.ajax({
+            url:"@Url.Action("QuizResult", "Examination")",
+            method: "POST",
+            datatype:"json",
+            data: { CourseId: $("#CourseList").val()},
+            success: function (data)
+            {
+                $("#dvQuestionAnswer").empty();
+                $("#dvQuestionAnswer").append(data);
+            }, error: function (error)
+            {
+                alert('Internal Server Error ! ');
+            }
+        });
+    }
+    
+</script>
+    <script>
+       
+        var refreshTimerId;
+        
+        function startTimer(duration, display) {
+            var timer = duration, hours, minutes, seconds;
+            refreshTimerId = setInterval(function () {
+                hours = parseInt(timer / 3600, 10);
+                minutes = parseInt(timer / 60, 10);
+                minutes = parseInt(minutes % 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                hours = hours < 10 ? "0" + hours : hours;
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+                if ($('#EndTime').val() != minutes)
+                {
+                    document.getElementById("time").innerHTML = minutes + " : " + seconds + " ";
+                } else {
+                    //$("#dvQuestionAnswer").attr('disabled', 'disabled');
+                    alert("Time's Up");
+                    $("#txtsubmit").val('0');
+                    $("#btnSubmit").click();
+                }
+                
+                if (++timer < 0) {
+                    timer = duration;
+                }
+            }, 1000);
+        }
+
+        function LoadTimer() {
+            var fiveMinutes = 0;
+            fiveMinutes = 60 * 60;
+            display = document.querySelector('#time');
+            startTimer(fiveMinutes, display);
+        };
+
+        function StopTimer() {
+            clearInterval(refreshTimerId);
+        };
+
+        
+
+        $("#CourseList").on("change", function ()
+        {
+            var CourseId = $("#CourseList").val();
+            $.ajax({
+                url: "@Url.Action("StuQuestionAnswer", "Examination")",
+                method: "POST",
+                datatype: "json",
+                data: { sCourseId: CourseId },
+                success: function (data) {
+                    if (data!="1") 
+                    {
+                        $("#dvQuestionAnswer").empty();
+                        $("#dvQuestionAnswer").append(data);
+                        $("#time").removeClass("hidden");
+                        StopTimer();
+                        LoadTimer();
+                        if ($("#value_01").val())
+                        {
+                            $("#time").addClass("hidden");
+                            StopTimer();
+                        }
+                        
+                    } else {
+                        GetQuizResult();
+                    }
+                        
+                }, error: function (error) {
+                    alert('Internal Server Error ...!');
+                }
+            });
+        });
+    </script>
+

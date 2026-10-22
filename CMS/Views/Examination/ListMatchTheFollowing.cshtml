@@ -1,0 +1,733 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "ListMatchTheFollowing";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+    int Count = 0;
+}
+
+@*<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />*@
+<style>
+    .note-editing-area {
+        max-height: 65px;
+    }
+    /*#TxtTitle{
+        height:150px;
+    }*/
+</style>
+@*<style>
+        . {
+            font-family: 'Bamini';
+            src: url('../../Content/assets/TamilFont/Bamini.ttf') format('truetype');
+        }
+    </style>*@
+
+<link href="~/Content/assets/plugins/summernote/summernote.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a @*href="@Url.Action("Staff","Dashboard")"*@ href="javascript:;">Home</a></li>
+        <li class="active">List Quiz Questions </li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header"> List Quiz Questions </h1>
+    <!-- end page-header -->
+    <!-- begin row -->
+    <div class="row">
+        <!-- begin col-12 -->
+        <div class="col-md-12">
+            <!-- begin panel -->
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h4 class="panel-title"> List Quiz Questions</h4>
+                </div>
+                <div class="panel-body">
+                    <div class="form-horizontal">
+                        @*<div class="row">
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Class", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 form-group">
+                                    @Html.Label("Course", htmlAttributes: new { @class = "control-label col-md-3" })
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                        @Html.ValidationMessageFor(model => model.CourseList, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-2 form-group">
+                                    <a class="btn btn-primary" id="btnGet"> Get </a>
+                                </div>
+
+                            </div>*@
+                        <div class="form-group col-md-12 pull-right">
+                            <a class="btn btn-success pull-right" href="javascript:;" onclick="loadContent('/Examination/MatchTheFollowing')"><i class="fa fa-plus"> Add </i></a>
+                        </div>
+
+
+                        <br />
+                        <br />
+
+                        <input type="hidden" id="hdErrorMessage" value="@if (!string.IsNullOrEmpty(Model.sErrorMessage)) { @Model.sErrorMessage }" />
+                        <div class="form-group col-md-12 table-responsive pull-right">
+                            <table class="table table-bordered table-hover pull-right" id="tblMatchTheFollowing">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Class</th>
+                                        <th>Course</th>
+                                        <th>Question Type</th>
+                                        <th>Question</th>
+                                        <th>Set</th>
+                                        <th>Semester</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        if (Model.liQuizMFQuestions != null && Model.liQuizMFQuestions.Count > 0)
+                                        {
+                                            foreach (var item in Model.liQuizMFQuestions)
+                                            {
+                                                <tr>
+                                                    <td>@{Count++;} @Count</td>
+                                                    <td>@item.CLASS_ID</td>
+                                                    <td>@item.COURSE_ID</td>
+                                                    <td>@item.QUESTION_TYPE</td>
+                                                    <td>@(new HtmlString(Model.GetStrigFromBase64String(item.QUESTION)))</td>
+                                                    <td>@item.SET_ID</td>
+                                                    <td>@item.SEMESTER_ID</td>
+                                                    <td>
+                                                        <a href="#MatchTheFollowing-dialog" id="qi_@item.QUIZ_ID" cms-question="@item.QUESTION" onclick="FetchMathTheFollowingById('@item.QUIZ_ID',this,'@item.QUESTION_TYPE_ID','@item.MARK')" data-toggle="modal"><i class="fa fa-edit"></i></a>
+                                                        <a href="javasript:;" onclick="GetConfirm('@item.QUIZ_ID','@item.QUESTION_TYPE_ID');"><i class="fa fa-trash text-danger"></i></a>
+                                                    </td>
+                                                </tr>
+                                                            }
+                                                        }
+                                                        if (Model.liListQuiz != null && Model.liListQuiz.Count > 0)
+                                                        {
+                                                            foreach (var item in Model.liListQuiz)
+                                                            {
+                                                                <tr>
+                                                                    <td>@{Count++;} @Count</td>
+                                                                    <td>@item.CLASS_NAME</td>
+                                                                    <td>@item.COURSE_TITLE - @item.COURSE_CODE</td>
+                                                                    <td>@item.QUESTION_TYPE</td>
+                                                                    <td>@(new HtmlString(Model.GetStrigFromBase64String(item.QUESTION)))</td>
+                                                                    <td>@item.SET_ID</td>
+                                                                    <td>@item.SEMESTER_NAME</td>
+                                                                    <td>
+                                                                        <a href="#MatchTheFollowing-dialog" id="qi_@item.QUIZ_ID" cms-question="@item.QUESTION" onclick="FetchMathTheFollowingById('@item.QUIZ_ID',this,'@item.QUESTION_TYPE_ID','@item.MARK')" data-toggle="modal"><i class="fa fa-edit"></i></a>
+                                                                        <a href="javasript:;" onclick="GetConfirm('@item.QUIZ_ID','@item.QUESTION_TYPE_ID');"><i class="fa fa-trash text-danger"></i></a>
+                                                                    </td>
+                                                                </tr>
+                                                                            }
+                                                                        }
+                                                                        if (Model.liQuizFillInBlanks != null && Model.liQuizFillInBlanks.Count > 0)
+                                                                        {
+                                                                            foreach (var item in Model.liQuizFillInBlanks)
+                                                                            {
+                                                                                <tr>
+                                                                                    <td>@{Count++;} @Count</td>
+                                                                                    <td>@item.CLASS_NAME</td>
+                                                                                    <td>@item.COURSE_TITLE - @item.COURSE_CODE</td>
+                                                                                    <td>@item.QUESTION_TYPE</td>
+                                                                                    <td>@(new HtmlString(Model.GetStrigFromBase64String(item.QUESTION)))</td>
+                                                                                    <td>@item.SET_ID</td>
+                                                                                    <td>@item.SEMESTER_NAME</td>
+                                                                                    <td>
+                                                                                        <a href="#MatchTheFollowing-dialog" id="qi_@item.QUIZ_ID" cms-question="@item.QUESTION" onclick="FetchMathTheFollowingById('@item.QUIZ_ID',this,'@item.QUESTION_TYPE_ID','@item.MARK')" data-toggle="modal"><i class="fa fa-edit"></i></a>
+                                                                                        <a href="javasript:;" onclick="GetConfirm('@item.QUIZ_ID','@item.QUESTION_TYPE_ID');"><i class="fa fa-trash text-danger"></i></a>
+                                                                                    </td>
+                                                                                </tr>
+                                                                                            }
+                                                                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- end panel -->
+        </div>
+        <!-- end col-6 -->
+    </div>
+    <!-- end row -->
+</div>
+
+
+<!-- Begin Modal -->
+
+<div class="modal" id="MatchTheFollowing-dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit Quiz</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12 form-group">
+                                <div class="col-md-8 form-group">
+                                    <label class="col-md-3 control-label">Mark</label>
+                                    <div class="col-md-9">
+                                        <input type="number" id="txtMark" class="form-control" placeholder="Enter Your Mark" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-2 form-group">
+                                    <a href="javascript:;" onclick="AddTextBox();" class="btn btn-success"><i class="fa fa-plus"> Add </i></a>
+                                </div>
+                                <div class="col-md-2 form-group">
+                                    <a class="btn btn-success" href="#equation-dialog" data-toggle="modal"><i class="fa fa-plus"> Equation </i></a>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <div id="Question">
+                                    <label class="col-md-2 control-label">Title</label>
+                                    <div class="col-md-10" id="divQuestion">
+                                        <div id="TxtTitle" class="summernote form-control" placeholder="Enter Your Title"></div>
+                                        @*<input type="text" id="TxtTitle" class="summernote form-control" placeholder="Enter Your Title" maxlength="200">*@
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group hidden" id="dvMathTheFollowing">
+                                <div class="col-md-6">
+                                    <div id="dvOptions1"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div id="dvOptions2"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 form-group" id="dvOtherType">
+                                <div id="dvOptions3"></div>
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <div class="col-md-8 form-group hidden" id="Answer">
+                                    <label class="col-md-3 control-label">Answer</label>
+                                    <div class="col-md-9" id="divAnswer">
+                                        <input type="text" id="txtAnswer" class="form-control" placeholder="Enter Your Correct Option No" style="width:140%" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="l"></label>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Modal -->
+<!-- Hidden Filed -->
+<input type="text" class="hidden" id="hdQuizId" />
+<!-- Hidden Filed -->
+@*<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>*@
+<script src="~/Content/assets/plugins/summernote/summernote.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+
+<script>
+    var Count = 0;
+    var sQuestionType = '';
+    var sOptionCode = [];
+
+    function ContentLoad() {
+        // Document Ready Function .
+        $('#tblMatchTheFollowing').DataTable();
+        var liMessage = $('#hdErrorMessage').val();
+        if (liMessage != null && liMessage != '') {
+            alert(liMessage);
+        }        
+        handleSummernote();
+        $('#TxtTitle').summernote({
+            height: 400,                 // set editor height
+            minHeight: 400,             // set minimum height of editor
+            maxHeight: 400,          // set maximum height of editor
+            focus: true                  // set focus to editable area after initializing summernote
+        });
+    }
+
+    handleSummernote = function () {
+        $(".summernote").summernote({
+            placeholder: "Add Your Option"           
+        })        
+    }
+   // $('.note-editable').css("height", "882");
+
+    function DeleteSummerNoteHeader() {
+
+        $('#dvOptions3').find(".form-group").each(function () {
+            $(this).find(".note-toolbar").remove();
+            $(this).find(".note-statusbar").remove();
+            $(this).find(".note-editing-area").css("border", "1px solid");
+            $(this).find(".note-editable").html("");
+            $(this).find(".note-editable").css("height", "50px");
+        });
+        $('#dvOptions2').find(".form-group").each(function () {
+            $(this).find(".note-toolbar").remove();
+            $(this).find(".note-statusbar").remove();
+            $(this).find(".note-editing-area").css("border", "1px solid");
+            $(this).find(".note-editable").html("");
+            $(this).find(".note-editable").css("height", "50px");
+        });
+        $('#dvOptions1').find(".form-group").each(function () {
+            $(this).find(".note-toolbar").remove();
+            $(this).find(".note-statusbar").remove();
+            $(this).find(".note-editing-area").css("border", "1px solid");
+            $(this).find(".note-editable").html("");
+            $(this).find(".note-editable").css("height", "50px");
+        });
+
+
+        //$('#divQuestion').find(".note-toolbar").remove();
+        //$('#divQuestion').find(".note-editing-area").css("border", "1px solid");
+    }
+
+
+
+    function FetchMathTheFollowingById(QUIZ_ID, e, QuestionTypeId, sMark) {
+        sOptionCode = [];
+        var Option = '';
+        var Option2 = '';
+        var Question = $(e).attr("cms-question");
+        sQuestionType = QuestionTypeId;
+        $('#hdQuizId').val(QUIZ_ID);
+        $.ajax({
+            url: "@Url.Action("FetchMatchTheFollowingByQuizId", "Examination")",
+            method: "POST",
+            datatype: "json",
+            data: { sQuizId: QUIZ_ID, sQuestionTypeId: QuestionTypeId },
+            success: function (data) {
+                if (data.sErrorMessage != null && data.sErroeMessage != '') {
+                    alert(data.sErroeMessage);
+                } else {
+                    //$('#Mark').addClass('hidden');
+                    $("#dvOptions1").empty();
+                    $("#dvOptions2").empty();
+                    $("#dvOptions3").empty();
+                    $('#txtMark').val(sMark);
+                    var sSummerObject =
+                    [{
+                        summerval: "",
+                        elementid: ""
+                    }];
+
+                    var sAnswerCode = "";
+
+                    if (QuestionTypeId == "3") {
+                        $('#dvMathTheFollowing').removeClass('hidden');
+                        $('#dvOtherType').addClass('hidden');
+
+                        // $('#Mark').removeClass('hidden');
+                        // Match The Following ...
+                        $.each(data, function (i, Quiz) {
+                            //alert(data[i].QUESTION);
+                            var j = i;
+                            j++;
+                            Option += '<div class="form-group" id="Qustion_' + i + '">';
+                            Option += '<label class = "control-label col-md-3">' + j + ' .)</label>';
+                            Option += '<div class="col-md-9">';
+
+                            //decodeURIComponent(escape(window.atob(data[i].QUESTION)))
+                            Option += '<input type="text" value="" cms-OptionId="' + Quiz.OPTION_ID + '" id="Qustions' + i + '" class="summernote form-control" placeholder="Enter Your Questions" maxlength="145">';
+                            sSummerObject.push({ summerval: decodeURIComponent(escape(window.atob(data[i].QUESTION))), elementid: "Qustions" + i });
+                            Option += '</div>';
+                            Option += '</div>';
+                            Option2 += '<div class="form-group" id="Option_' + i + '">';
+                            Option2 += '<div class="col-md-12">';
+                            //decodeURIComponent(escape(window.atob(data[i].ANSWER)))
+                            Option2 += '<input type="text" value="" id="Option' + i + '" class="summernote form-control" placeholder="Enter Your Options" maxlength="145">';
+                            sSummerObject.push({ summerval: decodeURIComponent(escape(window.atob(data[i].ANSWER))), elementid: "Option" + i });
+                            Option2 += '</div>';
+                            Option2 += '</div>';
+                            Count = i;
+                        });
+                        $("#dvOptions1").append(Option);
+                        $("#dvOptions2").append(Option2);
+                        $('#Answer').addClass('hidden');
+                    } else {
+                        $('#dvMathTheFollowing').addClass('hidden');
+                        $('#dvOtherType').removeClass('hidden');
+
+                        // Objective Type && Fill In The Blank Quiz ...
+                        $.each(data, function (i, Quiz) {
+
+                            sOptionCode.push(Quiz.OPTION);
+
+                            if (Quiz.ANSWER != null && Quiz.ANSWER != '') {
+                                //$('#divAnswer').find(".note-toolbar").remove();
+                                //$('#divAnswer').find(".note-editing-area").css("border", "1px solid");
+                                //$('#divAnswer').find(".note-statusbar").remove();
+                                //$('#divAnswer').find(".note-editable").html("");
+                                //$('#divAnswer').find(".note-editable").css("height", "50px");
+
+                                //alert(Quiz.ANSWER);
+                                // var sHtmlStr = decodeURIComponent(escape(window.atob(Quiz.ANSWER)));
+                                var AnswerOption = "";
+                                if (Quiz.ANSWER == Quiz.OPTION) {
+                                    sAnswerCode = Quiz.OPTION;
+                                }
+
+
+                            }
+                            var j = i;
+                            j++;
+                            Option += '<div class="form-group" id="Qustion_' + i + '">';
+                            Option += '<label class ="col-md-2 control-label">' + j + ' .)</label>';
+                            Option += '<div class="col-md-10">';
+                            //decodeURIComponent(escape(window.atob(data[i].OPTION)))
+                            Option += '<input type="text" value="" cms-OptionId="' + Quiz.OPTION_ID + '" id="Option' + i + '" class="summernote form-control" placeholder="Enter Your Options" maxlength="145">';
+
+                            sSummerObject.push({ summerval: decodeURIComponent(escape(window.atob(data[i].OPTION))), elementid: "Option" + i });
+
+                            //  sSummerObject[0].elementid = "Option" + i;
+
+
+                            Option += '</div>';
+                            Option += '</div>';
+                            //Option2 += '<div class="form-group" id="Option_' + i + '">';
+                            //Option2 += '<div class="col-md-9">';
+                            //Option2 += '<input type="number" value="' + Quiz.MARK + '" id="Mark' + i + '" class="form-control" placeholder="Enter Your Mark">';
+                            //Option2 += '</div>';
+                            //Option2 += '</div>';
+                            Count = i;
+
+                        });
+                        $('#Answer').removeClass('hidden');
+                        $("#dvOptions3").append(Option);
+                    }
+                    $("#TxtTitle").summernote('code', decodeURIComponent(escape(window.atob(Question))));
+                    handleSummernote();
+                    DeleteSummerNoteHeader();
+
+                    AddSummerNoteValues(sSummerObject);
+
+
+                    $('#txtAnswer').val(GetOptionIndexFromOption(sAnswerCode));
+
+                }
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+
+    function GetOptionIndexFromOption(sAnswerCode) {
+
+        var optionIndex;
+        if (sAnswerCode != "" && sAnswerCode != null) {
+
+            for (var i = 0; i < sOptionCode.length; i++) {
+
+                if (sOptionCode[i] == sAnswerCode) {
+
+                    optionIndex = parseInt(i) + 1;
+                }
+            }
+        }
+
+        return optionIndex;
+    }
+
+    function AddSummerNoteValues(sSummerObject) {
+
+
+        for (var i = 1; i < sSummerObject.length; i++) {
+
+            $("#" + sSummerObject[i].elementid + "").summernote('code', sSummerObject[i].summerval);
+        }
+    }
+
+
+
+
+    function AddTextBox() {
+        Count++;
+        var i = Count;
+        var j = Count + 1;
+        if (j > 10) {
+            alert('Invalid Option .! Maximum Option is 10 .');
+            Count--;
+            return false;
+        }
+        // alert(sQuestionType);
+
+        if (sQuestionType == "3") {
+            // Bind Match The Following Type Empty Text Box ....
+            var Option = '';
+            Option += '<div class="form-group" id="Qustion_' + i + '">';
+            Option += '<label class = "control-label col-md-3">' + j + ' .)</label>';
+            Option += '<div class="col-md-9">';
+            Option += '<input type="text" value="" id="Qustions' + i + '" cms-OptionId="" class="summernote form-control" placeholder="Enter Your Questions"  maxlength="145">';
+            Option += '</div>';
+            Option += '</div>';
+            $('#dvOptions1').append(Option);
+
+            var Option2 = '';
+            Option2 += '<div class="form-group" id="Option_' + i + '">';
+            Option2 += '<div class="col-md-12">';
+            Option2 += '<input type="text" value="" id="Option' + i + '" class="summernote form-control" placeholder="Enter Your Options"  maxlength="145">';
+            Option2 += '</div>';
+            Option2 += '</div>';
+            $('#dvOptions2').append(Option2);
+        } else {
+            // Bind Objective Type && Fill In The Blank Empty Text Box ...
+            var Option = '';
+            Option += '<div class="form-group" id="Qustion_' + i + '">';
+            Option += '<label class = "control-label col-md-2">' + j + ' .)</label>';
+            Option += '<div class="col-md-10">';
+            Option += '<input type="text" value="" id="Option' + i + '" cms-OptionId="" class="summernote form-control" placeholder="Enter Your Options"  maxlength="145">';
+            Option += '</div>';
+            Option += '</div>';
+            $('#dvOptions3').append(Option);
+
+            //var Option2 = '';
+            //Option2 += '<div class="form-group" id="Option_' + i + '">';
+            //Option2 += '<div class="col-md-9">';
+            //Option2 += '<input type="number" value="" id="Mark' + i + '" class="form-control" placeholder="Enter Your Marks">';
+            //Option2 += '</div>';
+            //Option2 += '</div>';
+            //$('#dvOptions2').append(Option2);
+        }
+
+        handleSummernote();
+        DeleteSummerNoteHeader();
+
+    }
+
+
+    $("#btnSubmit").on("click", function () {
+        // alert('Class :' + $("#ClassList").val() + 'Course :' + $("#CourseList").val() + 'Batch :' + $("#Batch").val());
+
+        var Endvalue = Count;
+
+
+        var SummerNote1 = $("#TxtTitle").summernote('code');
+        var str1 = btoa(unescape(encodeURIComponent(SummerNote1)));
+        var Question = str1;
+
+
+
+        var QuizId = $('#hdQuizId').val();
+        var ClassId = $("#ClassList").val();
+        var CourseId = $("#CourseList").val();
+        var QuestionId = $("#QuestionId").val();
+        var SetId = $('#Batch').val();
+
+        //var SummerNote2 = $("#txtAnswer").summernote('code');
+        //var str2 = btoa(unescape(encodeURIComponent(SummerNote2)));
+        //var Answer = str2;
+
+
+
+
+        var ArrayOption = '';
+        var nCount = 0;
+        ArrayOption = '{"liMF_Option":[';
+        for (var i = 0; i <= Endvalue; i++) {
+            if (sQuestionType == "3") {
+                if ($("#Option" + i).summernote('code') && $("#Qustions" + i).summernote('code')) {
+                    var SummerNote3 = $("#Option" + i).summernote('code');
+                    var str3 = btoa(unescape(encodeURIComponent(SummerNote3)));
+
+                    var SummerNote4 = $("#Qustions" + i).summernote('code');
+                    var str4 = btoa(unescape(encodeURIComponent(SummerNote4)));
+
+
+                    ArrayOption += '{"QUESTION":"' + str4 + '","ANSWER":"' + str3 + '","OPTION_ID":"' + $("#Qustions" + i).attr('cms-OptionId') + '"},';
+                    nCount++;
+                } else {
+                    alert('All the Options Must to Fill ..!');
+                    return false;
+                    break;
+                }
+            } else {
+                if ($("#Option" + i).summernote('code')) {
+                    var SummerNote5 = $("#Option" + i).summernote('code');
+                    var str5 = btoa(unescape(encodeURIComponent(SummerNote5)));
+
+                    ArrayOption += '{"OPTION_ID":"' + $("#Option" + i).attr('cms-OptionId') + '","OPTION":"' + str5 + '"},';
+                    nCount++;
+                } else {
+                    alert('All the Options Must to Fill ..!');
+                    return false;
+                    break;
+                }
+            }
+
+        }
+        if (nCount != 0) {
+            ArrayOption = ArrayOption.slice(0, -1);
+            ArrayOption += ']}';
+        } else {
+            alert('Something is went wrong . please check your code !');
+            return false;
+        }
+
+        var Answer = "";
+        if (sQuestionType == "1" || sQuestionType == "2") {
+            var Answercode = GetOptionCodeForAnswer($("#txtAnswer").val());
+            if (Answercode != null && Answercode != "" && Answercode != "W29iamVjdCBPYmplY3Rd") {
+                Answer = Answercode;
+            }
+            else {
+                alert('Your Answer Not Valuable ! Please Check You Input !');
+                return false;
+            }
+        }
+
+
+        var JsonData;
+        JsonData = '{"QUESTION":"' + Question + '","QUIZ_ID":"' + QuizId + '","QUESTION_TYPE":"' + sQuestionType + '","ANSWER_ID":"' + Answer + '","MARK":"' + $('#txtMark').val() + '"}';
+        if (!$('#txtMark').val() || $('#txtMark').val() == '0') {
+            alert('Please Enter Mark To Continue !');
+            return false;
+        }
+
+        $.ajax({
+            url: "@Url.Action("UpdateMathTheFollowingQuiz", "Examination")",
+            method: "POST",
+            datatype: "json",
+            data: { QuizQuestion: JsonData, sSaveMatchTheFollowing: ArrayOption },
+            success: function (data) {
+                alert(data.Message);
+                loadContent('/Examination/ListMatchTheFollowing');
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+    });
+
+
+
+    function GetConfirm(QuizId, QuestionType) {
+        if (!confirm('Are you sure to delete ?')) {
+            return false;
+        }
+        else {
+            $.ajax({
+                url: "@Url.Action("DeleteMatchTheFollowing", "Examination")",
+                method: "POST",
+                datatype: "json",
+                data: { sQuizId: QuizId, sQuestionType: QuestionType },
+                success: function (data) {
+                    alert(data.Message);
+                    loadContent('/Examination/ListMatchTheFollowing');
+                }, error: function (error) {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+    }
+    @*$("#btnGet").on("click", function ()
+    {
+        var ClassId = $('#ClassList').val();
+        var CourseId = $('#CourseList').val();
+        if ($('#ClassList').val() && $('#CourseList').val())
+        {
+            $.ajax({
+                url: "@Url.Action("BindMathTheFollowing", "Examination")",
+                method: "POST",
+                datatype: "json",
+                data: { sClassId: ClassId, sCourseId: CourseId },
+                success: function (data)
+                {
+
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        } else
+        {
+            alert('Please Select All The Filed To Continue !');
+            return false;
+        }
+    });
+
+
+    $('.selectpicker').selectpicker({
+        size: 5
+    });
+    $('.selectpicker').selectpicker('refresh');
+    $("#ClassList").on("change", function () {
+        var Class = $("#ClassList").val();
+        $.ajax({
+            url: "@Url.Action("FethCourseByClassId", "Examination")",
+            method: "POST",
+            datatype: "json",
+            data: { Class_Id: Class },
+            success: function (data) {
+                $("#CourseList").empty();
+                $("#CourseList").append('<option value=""> -- Select -- </option>' + data);
+                $('.selectpicker').selectpicker('refresh');
+            }, error: function (error) {
+                alert('Internal Server Error !');
+            }
+        });
+    });*@
+
+
+    function GetOptionCodeForAnswer(answer) {
+
+        var AnswerCode;
+
+        if (answer != null && answer != "") {
+
+            AnswerCode = $("#Option" + (parseInt(answer) - 1)).summernote('code');
+            AnswerCode = btoa(unescape(encodeURIComponent(AnswerCode)));
+        }
+
+
+        return AnswerCode;
+    }
+
+</script>
+<div class="modal" id="equation-dialog">
+    <div class="modal-dialog ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Math Equations</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    @{
+                        Html.RenderPartial("Equation");
+                    }
+                </div>
+                <label id="l"></label>
+            </div>
+            <div class="modal-footer">
+
+                <a href="javascript:;" id="btnCopy" class="btn btn-sm btn-primary" onclick="copyElement('image')">Copy</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>

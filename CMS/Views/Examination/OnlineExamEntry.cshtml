@@ -1,0 +1,228 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "OnlineExamEntry";
+    Layout = "~/Views/Shared/_OnlineExamLayout.cshtml";
+    int nCount = 0;
+}
+@*<link rel="stylesheet" href="~/Content/assets/plugins/jquery/jquery-1.9.1.min.js" />
+<link rel="stylesheet" href="~/Content/assets/plugins/bootstrap/css/bootstrap.min.css" />*@
+
+
+<style>
+    .note.note-default,
+    .note.note-secondary {
+        border-color: #bbb;
+        background: #e2e2e3;
+        color: #454548;
+        padding: 5px;
+    }
+
+        .note.note-default .note-icon,
+        .note.note-secondary .note-icon {
+            background: #bbb;
+        }
+
+    .alert-info {
+        color: #31708f;
+        background-color: #ffffff !important;
+        border-color: #ea092a !important;
+    }
+    .hideDiv {
+        pointer-events: none;
+    }
+    .btmRight .fa-plus {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+    } 
+
+</style>
+
+<div id="content">
+    <div class="form-horizontal" id="dvListOnlineQuestions">
+        <div class="alert alert-info">
+            <h4><b>Dear @Model.sName,</b></h4>
+            <p>
+                <ul>
+                    <li>Question pattern are from Objective , Fill In Blanks & Match The Following & Paragraph</li>
+                    <li>Time will be counted after enter into exam</li>
+                    <li>Make sure that course code and course details loaded correctly</li>
+                    <li>It is mandatory to submit the answers with in given minutes</li>
+                    <li>All The Best.Do well</li>
+                </ul>
+            </p>
+        </div>
+
+        <br>
+        <div class="col-md-12 table-responsive">
+            @{
+                <input type="hidden" id="userid" value="@Model.sUserId">
+                <input type="hidden" id="acyear" value="@Model.sAcyear">
+
+        if (Model.Liexamquesions != null && Model.Liexamquesions.Count > 0)
+        {
+            <input type="hidden" id="hdExamSettingId" value="@Model.Liexamquesions.FirstOrDefault().EXAM_SETTING_ID">
+            <input type="hidden" id="hdExamCourseId" value="@Model.Liexamquesions.FirstOrDefault().COURSE_ID">
+            <input type="hidden" id="hdInvigilationId" value="@Model.Liexamquesions.FirstOrDefault().EXAM_INVIGILATION_ID">
+
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Exam Name</th>
+                        <th>Course</th>
+                        <th>Exam Session</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                foreach (var item in Model.Liexamquesions)
+                {
+                    <tr>
+                        <td>@{nCount++;} @nCount</td>
+                        <td>@item.EXAM_NAME</td>
+                        <td>@item.COURSE_CODE - @item.COURSE_TITLE</td>
+                        <td>@item.START_TIME to @item.END_TIME</td>
+                        <td>
+                            <a class="btn btn-primary" onclick="GetExamQuestions(document.body,@item.COURSE_ID,@item.EXAM_SETTING_ID,@item.SET_ID,@item.IS_ACTIVE);" href="javascript:;">Attend</a>
+                            @if (Model.liexamquestionandanswerdetails != null && Model.liexamquestionandanswerdetails.Count > 0)
+                            {
+                                <a class="btn btn-primary" href="@Url.Action("BindReuploadingAnswerSheets","Examination", new { sExaminvigilationId = item.EXAM_INVIGILATION_ID, sStudentId =item.STUDENT_ID})">Reupload</a>
+
+                            }
+                        </td>
+
+                    </tr>
+        }
+                    }
+                </tbody>
+            </table>
+}
+else
+{
+        <div class="alert alert-info">No Exams Available...!</div>
+}
+            }
+        </div>
+    </div>
+
+
+    <div class="col-md-12" id="dvOnlineQuestions">
+
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="permission-modal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel"><b>Permissions</b> </h5>
+                @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>*@
+            </div>
+            <div class="modal-body">
+                <div id="permissionDiv" class="">                    
+                    <h4>Camera service  -  <span id="camera-status" class="badge badge-success">Status</span>  <a href="#" class="btn btn-primary" onclick="requestCamera()">Request</a> </h4>
+                    <h4>Location service -   <span id="geolocation-status" class="badge badge-success">Status</span> <a href="#" class="btn btn-primary" onclick="requestGeolocation()">Request</a></h4>
+                    <h4>IP address - <span id="clientIP" class="badge badge-secondary"></span></h4>
+                </div>
+            </div>
+            <div class="modal-footer">
+                @*<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>*@
+                <button type="button" id="btnModalOK" class="btn btn-primary hidden " data-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="setting-modal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel"><b>Setting</b> </h5>
+                @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>*@
+            </div>
+            <div class="modal-body">
+                <div id="permissionDiv" class="hideDiv">
+
+                    <h4>Please wait for a moment,your exam page is getting ready.<br /> </h4>
+                    Note: This process will take time according to your internet speed.
+                    <img src="~/Content/assets/img/loader.gif" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                @*<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>*@
+                <button type="button" id="btnModalOK" class="btn btn-primary hidden " data-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+@if (Model.Listonlineexamsetting != null && Model.Listonlineexamsetting.Count > 0)
+{
+<input type="hidden" id="camera" value="@Model.Listonlineexamsetting.FirstOrDefault().IS_NEED_CAMERA">
+<input type="hidden" id="chat" value="@Model.Listonlineexamsetting.FirstOrDefault().IS_NEED_CHAT">
+<input type="hidden" id="log" value="@Model.Listonlineexamsetting.FirstOrDefault().IS_NEED_LOG">
+<input type="hidden" id="autostart" value="@Model.Listonlineexamsetting.FirstOrDefault().IS_AUTO_START">
+}
+else
+{
+    <input type="hidden" id="camera" value="0">
+    <input type="hidden" id="chat" value="0">
+    <input type="hidden" id="log" value="0">
+    <input type="hidden" id="autostart" value="0">
+}
+
+@*<script type="text/javascript" src="~/Content/assets/plugins/jquery/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="~/Content/assets/plugins/bootstrap/js/bootstrap.min.js"></script>*@
+
+<script>
+
+    function GetExamQuestions(e, courseid, examid, setid,isactive)
+    {
+        var autostart = $('#autostart').val();
+        if (autostart != "1")
+        {
+            if (isactive == "0") {
+                swal({ title: "Exam Alert !", text: "This course is not activated . Please logout and wait for course activation !", showConfirmButton: false, timer: 2000, type: 'warning', animation: true });
+                return false;
+            }
+        }
+        (void 0 !== document.fullScreenElement && null === document.fullScreenElement || void 0 !== document.msFullscreenElement && null === document.msFullscreenElement || void 0 !== document.mozFullScreen && !document.mozFullScreen || void 0 !== document.webkitIsFullScreen && !document.webkitIsFullScreen) && (e.requestFullScreen ? e.requestFullScreen() : e.mozRequestFullScreen ? e.mozRequestFullScreen() : e.webkitRequestFullScreen ? e.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT) : e.msRequestFullscreen && e.msRequestFullscreen()),
+            $.ajax({
+                url: "/Examination/BindOnlineExamQuestionsBySection",
+                method: "POST",
+                datatype: "json",
+                data: {
+                    sCourseId: courseid,
+                    sSettingId: examid,
+                    sSetId: setid,
+                    sUserId: $('#userid').val(),
+                    sAcademicYear: $('#acyear').val(),
+                    IsAutoStart: autostart
+                },
+                success: function (data) {
+                    $("#dvListOnlineQuestions").addClass("hidden");
+                    $("#dvOnlineQuestions").empty(), $("#dvOnlineQuestions").append(data);
+
+                },
+                error: function (e) {
+                   console.log("Internal Server Error !");
+                }
+            });
+    }
+   
+
+    $.get("https://ipinfo.io", function (response)
+    {
+        // $('#hdClientIp').val(response.ip);
+    }, "json")
+  
+    $('#clientIP').text($('#hdClientIp').val());
+
+
+    
+
+</script>

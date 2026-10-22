@@ -1,0 +1,207 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+@{
+    ViewBag.Title = "Set Programme Heads";
+    // Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+
+
+    <link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;" onclick="loadContent('/Examination/SetProgrammeHeads')">List Proramme Heads</a></li>
+        <li class="active">Programme Heads</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Programme Heads<small></small></h1>
+    <!-- end page-header -->
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+            <div class="panel panel-primary">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                    </div>
+                    <h4 class="panel-title">Programme Heads</h4>
+                </div>
+                <div class="panel-body">
+
+                    <div class="form-horizontal">
+
+                        <div class="form-group  col-md-12">
+                            <div class="col-md-3">
+                                @Html.Label("Batches", htmlAttributes: new { @class = "col-md-3 control-label " })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(m => m.Batch, (Model.Batch != null) ? Model.Batch : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(m => m.Batch, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                @Html.Label("Programmes", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(m => m.Program, (Model.Program != null) ? Model.Program : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(m => m.Program, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                @Html.Label("Frequency", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                <div class="col-md-8">
+                                    @Html.DropDownListFor(m => m.FrequencyList, (Model.FrequencyList != null) ? Model.FrequencyList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                                    @Html.ValidationMessageFor(m => m.FrequencyList, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                @Html.Label("Heads", htmlAttributes: new { @class = "col-md-3 control-label " })
+                                <div class="col-md-7">
+                                    @Html.DropDownList("Heads", Enumerable.Empty<SelectListItem>(), new { @class = "form-control selectpicker show-menu-arrow show-tick", @multiple = "multiple", @data_live_search = "true" })
+
+
+                                </div>
+                                <div class="col-md-2 "><input type="button" name="name" id="btnGetProgrammeHeads" value="Get" class="btn btn-primary" /></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div id="dvLoadHeads"></div>
+                        <div><input type="button" name="name" value="Save" id="btnSave" class="btn btn-primary disabled" /></div>
+                        <input type="hidden" name="name" id="hdExamSettingId" value="@Model.examSetting.FirstOrDefault().EXAM_SETTING_ID" />
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+    }
+</div>
+
+
+    <script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+    <script>
+        ContentLoad = function () {
+            //Ready Function()
+        }
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        $('#Batch').change(function () {
+            $('#btnSave').addClass('disabled');
+            $('#dvLoadHeads').empty();
+            $('#Heads').empty().selectpicker('refresh');
+        });
+        $('#Program').change(function () {
+            $('#btnSave').addClass('disabled');
+            $('#dvLoadHeads').empty();
+            var batch = $('#Batch').val();
+            var programme = $(this).val();
+            if (batch == '') {
+                alert('Please Choose Batch');
+                return false;
+            }
+            $.ajax({
+                url: "@Url.Action("LoadHeads", "Examination")",
+                async: false,
+                data: { sProgramme: programme, sBatch: batch, sFrequency: $('#FrequencyList').val() },
+                success: function (objResult) {
+                    var select = $('#Heads');
+                    select.empty();
+                    select.append('<option value="0" >---Select---</option>' + objResult.sResult).selectpicker('refresh');
+
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+
+            });
+
+        });
+
+        $('#btnGetProgrammeHeads').click(function () {
+            $('#btnSave').removeClass('disabled');
+            loadProgramHeads();
+        });
+
+        $('#btnSave').click(function ()
+        {
+            var nJsonCount = 0;
+            var jsonProgrammeHeads = '{"ProgrammeHeads":[';
+            $('#tblProgrammeHeads tbody tr').each(function ()
+            {
+                if ($(this).find('td input').val())
+                {
+                    jsonProgrammeHeads += '{"EXAM_SETTING_ID":"' + $('#hdExamSettingId').val() + '","FREQUENCY_ID":"' + $('#FrequencyList').val() + '","SUBJECT_TYPE":"' + $(this).find('select').val() + '","PROGRAMME_HEAD_ID":"' + $(this).attr('cms-programmeheadid') + '","PROGRAMME_GROUP_ID":"' + $('#Program').val() + '","BATCH_ID": "' + $('#Batch').val() + '","AMOUNT": "' + $(this).find('td input').val() + '","HEAD_ID":"' + $(this).attr('cms-headid') + '","SEMESTER": "' + $(this).attr('cms-semester') + '","ACADEMIC_YEAR":"' + $(this).attr('cms-academicyear') + '" },';
+                    nJsonCount++;
+                }
+            });
+            if (nJsonCount != 0)
+            {
+                jsonProgrammeHeads = jsonProgrammeHeads.slice(0, -1);
+                jsonProgrammeHeads += ']}';
+            } else {
+                alert('Something Went Wrong ! Please Check Your Input !');
+                return false;
+            }
+            
+
+            $.ajax({
+                url: "@Url.Action("SaveProgrammeHeads", "Examination")",
+                async: false,
+                data: { sJsonProgrammeHeads: jsonProgrammeHeads },
+                type:'post',
+                success: function (objResult) {
+                    alert(objResult.Message);
+                    loadProgramHeads();
+                },
+                error: function (xhr, textStatus, error) {
+                    alert();
+                    alert(error + "\n");
+                }
+            });
+
+        });
+
+        function loadProgramHeads() {
+
+            var batch = $('#Batch').val();
+            var programme = $('#Program').val();
+            var Heads = String($('#Heads').val());
+            if (batch == '') {
+                alert('Please Choose Batch');
+                return false;
+            }
+            $.ajax({
+                url: "@Url.Action("BindProngrammeHeads", "Examination")",
+                async: false,
+                data: { sProgramme: programme, sBatch: batch, sHeads: Heads },
+                success: function (objResult) {
+                    var select = $('#dvLoadHeads');
+                    select.empty();
+                    select.append(objResult);
+                    $('.selectpicker').selectpicker({
+                        size: 4
+                    });
+                },
+                error: function (xhr, textStatus, error) {
+                    alert(error + "\n");
+                }
+
+            });
+        }
+    </script>
+

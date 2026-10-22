@@ -1,0 +1,181 @@
+﻿@model CMS.ViewModel.ViewModel.FeedbackViewModel
+
+@{ 
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+
+
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="@Url.Action("EXTERNALUSERS", "DASHBOARD")">Home</a></li>
+        <li class="active">E Certificate</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">E Certificate</h1>
+
+    <div class="row">
+        <div class="panel panel-primary">
+            <div class="panel-heading panel-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h3 class="panel-title"><i class="fa fa-inbox"></i> E - Certificate</h3>
+            </div>
+            <div class="panel-body noPadding">
+               <div class="col-md-12">
+                   <div class="form-group col-md-5">
+                       <label class="col-md-3 control-label"> Department </label>
+                       <div class="col-md-9">
+                           @Html.DropDownListFor(model => model.DepartmentList, (Model.DepartmentList != null) ? Model.DepartmentList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                       </div>
+                   </div>
+
+                   <div class="form-group col-md-5">
+                       <label class="col-md-3 control-label"> Course  </label>
+                       <div class="col-md-9">
+                           @Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control selectpicker show-menu-arrow show-tick", @data_live_search = "true" })
+                       </div>
+                   </div>
+
+                   <div class="form-group col-md-2">
+                       <a onclick="printDiv('dvBindCertificate')" href="javascript:;" id="btnPrint" class="btn btn-success hidden"> Print </a>
+                   </div>
+
+               </div>
+
+               <div class="col-md-12">
+                   <div id="dvBindCertificate"></div>
+               </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+
+@*<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.3/jspdf.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>*@
+
+<script>
+    function ContentLoad()
+    {
+        // Document Ready Function ...,
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+    }
+   
+    $('#DepartmentList').on('change', function ()
+    {
+        $.ajax({
+            url: '@Url.Action("FetchCourseByDepartmentId", "Feedback")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sDepartmentId: $('#DepartmentList').val() },
+            success: function (data)
+            {
+                if (data.ErrorCode != "200")
+                {
+                    swal({ title: " Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                } else
+                {
+                    $('#CourseList').empty().append(data.sResult);
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+
+
+    $('#CourseList').on('change', function ()
+    {
+        $.ajax({
+            url: '@Url.Action("GenerateECertificateForExternalFeedback", "Feedback")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sCourseId: $('#CourseList').val() },
+            success: function (data)
+            {
+                if (data.Message != "" && data.Message!=null)
+                {
+                    swal({ title: " Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                } else
+                {
+                    $('#btnPrint').removeClass('hidden');
+                    $('#dvBindCertificate').empty().append(data);
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+</script>
+
+<script>
+    function getPDF()
+    {
+        var HTML_Width = $("#dvGeneratePDF").width();
+        var HTML_Height = $("#dvGeneratePDF").height();
+        var top_left_margin = 15;
+        var PDF_Width = HTML_Width + (top_left_margin * 2);
+        var PDF_Height = (PDF_Width * 1.5) + (top_left_margin * 2);
+        var canvas_image_width = HTML_Width;
+        var canvas_image_height = HTML_Height;
+
+        var totalPDFPages = Math.ceil(HTML_Height / PDF_Height) - 1;
+
+
+        html2canvas($("#dvGeneratePDF")[0], { allowTaint: true }).then(function (canvas)
+        {
+            canvas.getContext('2d');
+
+            console.log(canvas.height + "  " + canvas.width);
+
+
+            var imgData = canvas.toDataURL("image/jpeg", 1.0);
+            var pdf = new jsPDF('p', 'pt', [PDF_Width, PDF_Height]);
+            pdf.addImage(imgData, 'JPG', top_left_margin, top_left_margin, canvas_image_width, canvas_image_height);
+
+
+            for (var i = 1; i <= totalPDFPages; i++)
+            {
+                pdf.addPage(PDF_Width, PDF_Height);
+                pdf.addImage(imgData, 'JPG', top_left_margin, -(PDF_Height * i) + (top_left_margin * 4), canvas_image_width, canvas_image_height);
+            }
+
+            pdf.save("HTML-Document.pdf");
+        });
+    };
+
+    function printDiv(divName)
+    {
+        var printContents = document.getElementById(divName).innerHTML;
+        myWindow = window.open('', '', 'width=200,height=100');
+        myWindow.document.write(printContents);
+        myWindow.document.close(); //missing code
+        myWindow.focus();
+        myWindow.print();
+        //var printContents = document.getElementById(divName).innerHTML;
+        //var originalContents = document.body.innerHTML;
+
+        //document.body.innerHTML = printContents;
+
+        //window.print();
+
+        //document.body.innerHTML = originalContents;
+        //loadContent('/Examination/ExamFilledApplicationList');
+    }
+</script>

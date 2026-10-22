@@ -1,0 +1,294 @@
+﻿@model CMS.ViewModel.ViewModel.PayrollViewModel
+@{
+    ViewBag.Title = "ListPFComponents";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-timepicker/css/bootstrap-timepicker.min.css" rel="stylesheet" />
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">List PF Components</li>
+    </ol>
+    <h1 class="page-header">List PF Components</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List PF Components</h4>
+        </div>
+        <div class="panel-body noPadding">
+            <div class="form-group col-md-12">
+                <a class="btn btn-success pull-right form-group m-b-5" href="#pfcomponentmodal" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add">Add</i></a>
+            </div>
+            <div class="form-group col-md-12 table-responsive">
+                <table class="table table-hover table-bordered" id="tblpfcomponent">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Component Name</th>
+                            <th>Component Type</th>
+                            <th>Name in Payslip</th>                         
+                            <th>Action</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @if (Model.lipfcomponents != null && Model.lipfcomponents.Count > 0)
+                        {
+                            var count = 0;
+                            foreach (var item in Model.lipfcomponents)
+                            {
+                                count = count + 1;
+
+                                <tr>
+                                    <td>@count</td>
+                                    <td>@item.PF_COMPONENT_NAME</td>
+                                    <td>@item.SALARY_COMPONENT_NAME</td>
+                                    <td>@item.NAME_IN_PAYSLIP</td>
+                                    
+                                    <td>
+                                        <a href="#pfcomponentmodal" onclick="FetchPFComponentDetails(@item.PF_COMPONENT_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+                                        <a href="javascrip:;" onclick="GetConfirm(@item.PF_COMPONENT_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+
+                                    </td>
+                                </tr>
+                            }
+
+                        }
+
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal" id="pfcomponentmodal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add/Edit</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <input type="text" id="pfcomponentid" class="hidden">
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Component Name</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="componentname" class="form-control" data-parsley-required="true">
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-12 form-group" >
+                                        <label class="col-md-4 control-label">Component Type</label>
+
+                                        <div class="col-md-8">
+                                            @Html.DropDownList("Component Type", (Model.ComponentType != null) ? Model.ComponentType : Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm itemddl", @data_live_search = "true", @id = "ComponentType" })
+                                            @Html.ValidationMessageFor(model => model.ComponentType, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label class="col-md-4 control-label">Name in Payslip</label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="nameinpayslip" class="form-control" data-parsley-required="true">
+                                        </div>
+
+                                    </div>                               
+                                   
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnsub" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-timepicker/js/bootstrap-timepicker.min.js"></script>
+
+<script>
+    function ContentLoad()
+    {
+        // Document Ready Function .
+    }
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+
+    var tbl = $('#tblpfcomponent').DataTable();
+    $('#tblpfcomponent').DataTable();
+
+    function FetchPFComponentDetails(ID)
+    {
+        if (ID != null) {
+            $.ajax({
+                url: "@Url.Action("FetchPFComponents", "Payroll")",
+                type: "post",
+                data: { sPfcomponentId: ID },
+                success: function (data)
+                {
+                    if (data != null)
+                    {
+                        $('#pfcomponentid').val(data.PF_COMPONENT_ID);
+                        $('#componentname').val(data.PF_COMPONENT_NAME);
+                        $('#ComponentType').val(data.SALARY_COMPONENT_TYPE);
+                        $('#nameinpayslip').val(data.NAME_IN_PAYSLIP);
+
+                                           
+                       $('.selectpicker').selectpicker('refresh');
+                    }
+                },
+                error: function (ex) {
+                    alert(ex.Message);
+                }
+            });
+        }
+    }
+
+    $('#btnsub').click(function ()
+    {
+
+        var isValid = true;
+        var JsonData = null;
+        if ($('#pBody').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            return false;
+        }
+      
+        JsonData = '{"PF_COMPONENT_ID":"' + $('#pfcomponentid').val() + '","PF_COMPONENT_NAME":"' + $('#componentname').val() + '","NAME_IN_PAYSLIP":"' + $('#nameinpayslip').val() + '","SALARY_COMPONENT_TYPE":"' + $('#ComponentType').val() + '"}';
+        $.ajax({
+            url: "@Url.Action("SaveorUpdatePFComponents", "Payroll")",
+            type: "post",
+            data: { sJsonData: JsonData },
+            success: function (data)
+            {
+                if (data.ErrorCode)
+                {
+                    swal({ title: "Error!", text:data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+                else
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                    loadContent('/Payroll/ListPFComponents');
+                }
+                
+
+            },
+            error: function (ex) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+
+    GetConfirm = function (ID) {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+
+function () {
+    $.ajax({
+        url: "@Url.Action("DeletePFComponents", "Payroll")",
+        type: "post",
+        data: { sPfcomponentId: ID },
+        success: function (data)
+        {
+            if (data.ErrorCode)
+            {
+                swal({ title: "Error!", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+            else
+            {
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/Payroll/ListPFComponents');
+            }
+        },
+        error: function (ex)
+        {
+            swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+        }
+
+
+    });
+    });
+
+    }
+    HideOrShow = function ()
+    {
+        if (cssRadio1.checked == true) {
+
+            $('#salarycomponent').removeClass('hidden');
+            $('#pfcomponent').addClass('hidden');
+
+
+        }
+        if (cssRadio2.checked == true) {
+            $('#pfcomponent').removeClass('hidden');
+
+            $('#salarycomponent').addClass('hidden');
+
+
+        }
+    }
+    HideOrShow1 = function ()
+    {
+        if (rbnsalary.checked == true) {
+
+            $('#salarycomp').removeClass('hidden');
+            $('#pfcomp').addClass('hidden');
+
+
+        }
+        if (rbnpfcomponent.checked == true)
+        {
+            $('#pfcomp').removeClass('hidden');
+
+            $('#salarycomp').addClass('hidden');
+
+
+        }
+    }
+</script>
+
+

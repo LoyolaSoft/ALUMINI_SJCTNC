@@ -1,0 +1,138 @@
+﻿@model CMS.ViewModel.ViewModel.LibraryViewModel
+
+@{ Layout = null; int count = 0; }
+
+<style>
+    .quiz-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .quiz-container h4 {
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 20px;
+        color: #2c3e50;
+    }
+
+    .quiz-question {
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: #f9f9f9;
+        margin-bottom: 15px;
+    }
+
+    .quiz-question p {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .quiz-question label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 15px;
+        cursor: pointer;
+    }
+
+    .quiz-question input[type="radio"] {
+        margin-right: 10px;
+        accent-color: #28a745; /* green color for selected radio */
+    }
+
+    .btn-submit {
+        width: 100%;
+        background-color: #28a745;
+        border: none;
+        color: white;
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .btn-submit:hover {
+        background-color: #218838;
+    }
+
+    @@media (max-width: 600px) {
+        .quiz-container {
+            padding: 15px;
+        }
+
+        .quiz-container h4 {
+            font-size: 20px;
+        }
+
+        .quiz-question p {
+            font-size: 15px;
+        }
+
+        .quiz-question label {
+            font-size: 14px;
+        }
+    }
+</style>
+
+<div class="quiz-container">
+    <h4>Listening Quiz</h4>
+    @if (Model.liQuizQuestion != null && Model.liQuizQuestion.Count > 0)
+    {
+        <form id="quizForm" data-listener_id="@Model.liQuizQuestion.FirstOrDefault().LISTENING_ID">
+            @foreach (var item in Model.liQuizQuestion)
+            {
+                count++;
+                <div class="quiz-question" data-id="@item.QUESTION_ID">
+                    <p>@count. @item.QUESTION_TEXT</p>
+                    <label><input type="radio" name="answer_@item.QUESTION_ID" value="A" /> @item.OPTION_A</label>
+                    <label><input type="radio" name="answer_@item.QUESTION_ID" value="B" /> @item.OPTION_B</label>
+                    <label><input type="radio" name="answer_@item.QUESTION_ID" value="C" /> @item.OPTION_C</label>
+                    <label><input type="radio" name="answer_@item.QUESTION_ID" value="D" /> @item.OPTION_D</label>
+                </div>
+            }
+            <button type="submit" class="btn-submit">Submit Answers</button>
+        </form>
+    }
+    else
+    {
+        <div class="alert alert-info">No questions available for this quiz.</div>
+    }
+</div>
+
+<script>
+    $("#quizForm").on("submit", function (e) {
+        e.preventDefault();
+        const listeningId = $("#quizForm").data("listener_id");
+
+        const answers = [];
+        $(".quiz-question").each(function () {
+            const questionId = $(this).data("id");
+            const selected = $(this).find("input[type=radio]:checked").val();
+            if (selected) {
+                answers.push({ QUESTION_ID: questionId, SELECTED_ANSWER: selected });
+            }
+        });
+
+        $.ajax({
+            url: '@Url.Action("SubmitQuizAnswers", "Library")',
+            type: 'POST',
+            data: JSON.stringify({ answers: answers, listeningId: listeningId }),
+            contentType: 'application/json; charset=utf-8',
+            success: function (res) {
+                swal("Quiz Submitted", res.message, res.success ? "success" : "error");
+                $('#quizModal').modal('hide');
+                loadContent('/Library/ListAudioForStudenListeningAudio');
+            },
+            error: function () {
+                swal("Error", "Unable to submit quiz answers.", "error");
+            }
+        });
+    });
+</script>

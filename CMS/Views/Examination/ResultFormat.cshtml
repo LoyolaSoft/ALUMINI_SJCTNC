@@ -1,0 +1,141 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+@{
+    ViewBag.Title = "ResultFormat";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+
+}
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<div class="content" id="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a @*href="@Url.Action("COE","DashBoard")"*@ href="javascript:;">Home</a></li>
+        <li class="active">Result Format</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Result Format</h1>
+    <!-- end page-header -->
+    <div class="panel panel-primary" data-sortable-id="ui-general-1">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Result Format</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-horizontal">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div class="col-md-12">
+                        <div class="form-group col-md-6">
+                            <div class="col-md-4"> Batch</div>
+
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.Batch, (Model.Batch != null) ? Model.Batch : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control", @data_live_search = "true", @id = "batch" })
+                                @Html.ValidationMessageFor(model => model.Batch, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <div class="col-md-4">Application Type</div>
+                            <div class="col-md-8"> 
+                                @Html.DropDownListFor(model => model.ApplicationType, (Model.ApplicationType != null) ? Model.ApplicationType : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control", @data_live_search = "true", @id = "apptype" })
+                                @Html.ValidationMessageFor(model => model.ApplicationType, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-md-6">
+                            <div class="col-md-4"> Department</div>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.DepartmentList, (Model.DepartmentList != null) ? Model.DepartmentList : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control", @data_live_search = "true", @id = "dept" })
+                                @Html.ValidationMessageFor(model => model.DepartmentList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <div class="col-md-4">Class Year</div>
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(model => model.ClassYear, (Model.ClassYear != null) ? Model.ClassYear : Enumerable.Empty<SelectListItem>(), "--select--", new { @class = " selectpicker show-menu-arrow show-tick drop-down form-control", @data_live_search = "true", @id = "classyear" })
+                                @Html.ValidationMessageFor(model => model.ClassYear, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-group col-md-6">
+
+                        </div>
+                        <div class="form-group col-md-6">
+                            <div class="col-md-1 col-md-offset-1 pull-right">
+                                <a id="btnSubmit" class="btn btn-primary pull-right">GO</a>
+                            </div>
+                            <div class="col-md-1 col-md-offset-1 pull-right">
+                                <a href="javascript:;" id="sPrint" onclick="printDiv('divBindCoursecompleted')" class="btn btn-success m-b-20 pull-right"><i class="fa fa-print m-r-5"></i>Print</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <br />
+                <div class="col-md-12 table-responsive" id="divBindCoursecompleted">
+
+                </div>
+            }
+        </div>
+    </div>
+
+</div>
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script>
+    ContentLoad = function ()
+        {
+
+        }
+        $('.selectpicker').selectpicker({
+            size: 4
+        });
+        $('#btnSubmit').on('click', function ()
+        {
+            var batchid = $('#batch').val();
+            var apptypeid = $('#apptype').val();
+            var depid = $('#dept').val();
+            var classyear = $('#classyear').val();
+            $.ajax({
+                url: '/Examination/BindCourseCompleted',
+                method: 'POST',
+                type: 'json',
+                data: { sDept: depid, sApplicationType: apptypeid, sBatch: batchid,sClassyear:classyear },
+                success: function (data)
+                {
+                    $('#divBindCoursecompleted').empty();
+                    $('#divBindCoursecompleted').html(data);
+                },
+                error:function()
+                {
+
+                }
+                })
+        });
+        function printDiv(divName) {
+            var printContents = document.getElementById(divName).innerHTML;
+            var originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            loadContent('/Student/SemesterMarkSheetPrint');
+        }
+</script>
+

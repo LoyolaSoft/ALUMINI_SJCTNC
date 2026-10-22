@@ -1,0 +1,413 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+
+@{
+    ViewBag.Title = "StuCourseInfo";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+
+
+    <link href="~/Content/assets/plugins/multi-select/multiselect.css" rel="stylesheet" />
+    <link href="~/Content/assets/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="content" id="content">
+        <ol class="breadcrumb pull-right">
+            <li><a href="javascript:;">Home</a></li>
+            <li><a @*href="@Url.Action("StuCourseInfoList","Student")"*@ href="javascript:;" onclick="loadContent('/Student/StuCourseInfoList')">Student Course List </a></li>
+            <li class="active">Add Student Course</li>
+        </ol>
+        <h1 class="page-header">Student Course Info </h1>
+        <div class="panel">
+            <div class="panel-heading bg-primary">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title">Add Student Course</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div class="col-md-12 form-group">
+                        <div class="col-md-5">
+                            @Html.LabelFor(model => model.ShiftList, htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.ShiftList, (Model.ShiftList != null) ? Model.ShiftList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "drop-down form-control input-sm" })
+                                @Html.ValidationMessageFor(model => model.ShiftList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            @Html.LabelFor(model => model.ClassList, htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.ClassList, (Model.ClassList != null) ? Model.ClassList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "drop-down form-control input-sm" })
+                                @Html.ValidationMessageFor(model => model.ClassList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>                    
+                    <div class="col-md-12 form-group">
+                        <div class="col-md-5">
+                            @Html.LabelFor(model => model.CourseList, htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.CourseList, (Model.CourseList != null) ? Model.CourseList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "drop-down form-control input-sm" })
+                                @Html.ValidationMessageFor(model => model.sClassList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-5">
+                            @Html.LabelFor(model => model.StaffList, htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-9">
+                                @Html.DropDownListFor(model => model.StaffList, (Model.StaffList != null) ? Model.StaffList : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "drop-down form-control input-sm" })
+                                @Html.ValidationMessageFor(model => model.StaffList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <a href="javascript:;" onclick="OnCourseChange()" class="btn btn-primary"> Get </a>
+                        </div>
+                    </div>
+                    <br /><br />
+                    <div class="col-md-12">
+                        <div class="col-md-5 m-b-5">
+                            <div id="divStudentList">
+                                <!--Need to use this filed to bind Student List-->
+                            </div>
+                        </div>
+                        <center><div class="col-md-2 hidden" id="divArrow"><h1><i class="fa fa-long-arrow-right" onclick="SendSelectedStudent()"></i></h1></div></center>
+                        <div class="col-md-5 m-b-5">
+                            <div id="divSelectedStudentList">
+                                <!--Need to use this filed to bind Selected Student List-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+
+
+    <script src="~/Content/assets/plugins/flot/jquery.flot.min.js"></script>
+    <script src="~/Content/assets/plugins/multi-select/multiselect-js.js"></script>
+    <script src="~/Content/assets/plugins/select2/dist/js/select2.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+    <script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+        $("#ClassList,#CourseList,#StaffList,#ShiftList").select2();
+    </script>
+    <script>
+        $('#ClassList').on('change', function () {
+            var vClassId = $('#ClassList').val();
+            if (vClassId != 0) {
+                $.ajax({
+                    url: '@Url.Action("BindStudentsByClassId", "Student")',
+                    data: { sClassId: vClassId },
+                    success: function (option) {
+                        var divHtml = $('#divStudentList');
+                        divHtml.empty();
+                        divHtml.html(option);
+                        $('#StudentList').DataTable({
+                            "paging": false,
+                            "ordering": false,
+                            "info": false
+                        });
+                        BindCourseByClassId();
+                    },
+                    error: function (xhr, textStatus, error) {
+                        alert(error + "\n");
+                    }
+                });
+
+            } else {
+                alert('Please Select Class !!!');
+            }
+        });
+
+        $('#CourseList').on('change', function ()
+        {           
+            $.ajax({
+                url: "@Url.Action("BindStaffByCourseId", "Student")",
+                method: "POST",
+                data: {  sCourseId: $('#CourseList').val() },
+                datatype: "json",
+                success: function (data)
+                {
+                    if (data.ErrorCode=="200") 
+                    {
+                        $('#StaffList').empty().append(data.sResult).select();
+                    }
+                }, error: function (xhr, textStatus, error) {
+                    alert(error + "\n" + textStatus + error);
+                }
+            });          
+        });
+    </script>
+    <script>
+        function OnCourseChange()
+        {
+            if ($('#CourseList').val() && $('#ClassList').val())
+            {
+                var vCourseId = $('#CourseList').val();
+                var VsClassId = $('#CourseList Option:selected').attr('cms-sClassId');
+                var vClassId = $('#ClassList').val();
+                var vStaffId=$('#StaffList').val();
+                if ($('#StaffList').val()) 
+                {
+    
+                }else 
+                {
+                    vStaffId="0";
+                }
+                $.ajax({
+                    url: '@Url.Action("BindSelectedStudentsByCourseId", "Student")',
+                    data: { sCourseId: vCourseId, sClassId: vClassId, sSelectedClassId: VsClassId, sStaffId: vStaffId },
+                    success: function (option)
+                    {
+                        var divHtml = $('#divSelectedStudentList');
+                        divHtml.empty();
+                        divHtml.html(option);
+                        $('#SelectedStudentList').DataTable({
+                            "paging": false,
+                            "ordering": false,
+                            "info": false
+                        });
+                        $('#divArrow').removeClass('hidden');
+                    },
+                    error: function (xhr, textStatus, error)
+                    {
+                        alert(error + "\n");
+                    }
+                });
+
+            } else {
+                alert('Please Select Class !!!');
+            }
+        }
+
+        
+       
+    </script>
+    <script>
+        SendSelectedStudent = function () {
+            var StudentId;
+            if (parseInt($('#ClassList').val()) != null)
+            {
+                $('#StudentList tbody tr').each(function ()
+                {
+                    $(this).find('td').each(function ()
+                    {
+                        var chkBox = $(this).find('input[type="checkbox"]');
+                        if (chkBox.is(':checked'))
+                        {
+                            StudentId = '"' + $(this).find('input[type="checkbox"]').attr("cms-studentid") + '"';
+                        }
+                    });
+                });
+                if (StudentId == null) {
+                    alert('Please select the student to move...!!!');
+                    return false;
+                }
+            }
+            var CommonRollno = '';
+            $('#StudentList tbody tr').each(function ()
+            {
+                $(this).find('td').each(function ()
+                {
+                    var chkBox = $(this).find('input[type="checkbox"]');
+                    //alert($(this).closest('tr').find('td:eq(2)').text());
+                    if (chkBox.is(':checked'))
+                    {
+                        var Rollno = ($(this).closest('tr').find('td:eq(2)').text());
+                        $('#SelectedStudentList tbody tr').each(function ()
+                        {
+                            $(this).find('td:eq(1)').each(function ()
+                            {
+                                var sRollno = ($(this).closest('tr').find('td:eq(0)').text());
+                                if (Rollno == sRollno)
+                                {
+                                    CommonRollno += '"' + Rollno + '",';
+                                }
+                            });
+                        });
+                    }
+                });
+            });
+            CommonRollno = CommonRollno.slice(0, -1);
+            if (CommonRollno != '') {
+                alert(CommonRollno+" This Student(s) Exist Already");
+                $('#StudentList tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", false);
+                    });
+                });
+                return false;
+            }
+            else {
+                $('#StudentList tbody tr').each(function ()
+                {
+                    var StudentId = $(this).attr("cms-studentid");
+                    $(this).find('td').each(function ()
+                    {
+                        var chkBox = $(this).find('input[type="checkbox"]');
+                        var Rollno = ($(this).closest('tr').find('td:eq(2)').text());
+                        var Name = ($(this).closest('tr').find('td:eq(3)').text());
+                        if (chkBox.is(':checked'))
+                        {
+                            var table = document.getElementById("SelectedStudentList");
+                            var row = table.insertRow(1);
+                            row.setAttribute("cms-studentid", StudentId);
+                            row.setAttribute("cms-rollno", Rollno);
+                            var cell1 = row.insertCell(0);
+                            var cell2 = row.insertCell(1);
+                            var cell3 = row.insertCell(2);
+                            cell1.innerHTML = Rollno;
+                            cell2.innerHTML = Name;
+                            cell3.innerHTML = '<a class="remove"><i class="fa fa-trash text-danger" title="Delete"></i></a>';
+                        }
+                    });
+                });
+                $('#StudentList tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", false);
+                    });
+                });
+            }
+        }
+        BindCourseByClassId = function ()
+        {
+            var vClassId = $('#ClassList').val();
+            $.ajax({
+                url: "@Url.Action("BindStaffAndCourseByClassId", "Student")",
+                method: "POST",
+                data: { sClassId: vClassId },
+                datatype: "json",
+                success: function (data)
+                {
+                    if (data.ErrorCode=="200") 
+                    {
+                        $('#CourseList').empty().append(data.sResult).select();                        
+                    }
+                }, error: function (xhr, textStatus, error) {
+                    alert(error + "\n" + textStatus + error);
+                }
+            });
+        }
+
+        $('#ShiftList').on('change', function ()
+        {
+            $.ajax({
+                url: "@Url.Action("FetchClassByShiftId", "SupportData")",
+                method: "POST",
+                datatype: "json",
+                data: { sShiftId: $('#ShiftList').val() },
+                success: function (data)
+                {
+                    if (data.Message!=null && data.Message!="") 
+                    {
+                        alert(data.Message);
+                    } else
+                    {
+                        $('#ClassList').empty().append(data.sResult).select();
+                    }
+                }, error: function (xhr, textStatus, error)
+                {
+                    alert(error + "\n" + textStatus + error);
+                }
+            });
+        });
+    </script>
+    <script>
+        SelectOrUnselect = function ()
+        {
+            if (AllchkID.checked == true)
+            {
+                $('#StudentList tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", true);
+                    });
+                });
+            }
+            else {
+                $('#StudentList tbody tr').each(function ()
+                {
+                    $(this).find('input[type="checkbox"]').each(function ()
+                    {
+                        $('input[type="checkbox"]').attr("checked", false);
+                    });
+                });
+            }
+        }
+    </script>
+    <script>
+        SelectedStudentUpdate = function ()
+        {
+            //$('#divSelectedStudentList').append('<div id="page-loader" class="fade in"><span class="spinner"></span></div>');
+            var ClassId = $('#ClassList').val();
+            var CourseId = $('#CourseList').val();
+            var StaffId = $('#StaffList').val();
+            var sClassId = $('#CourseList Option:selected').attr('cms-sClassId');
+            var sSemesterId = $('#CourseList Option:selected').attr('cms-sSemesterId');
+            var JsonData;
+            var JsonCount = 0;
+            JsonData = '{"SelectedStudentList":[';
+            $('#SelectedStudentList tbody tr').each(function ()
+            {
+                if ($(this).attr('cms-CourseInfoId') != '0')
+                {
+                    JsonData += '{"ROLL_NO":"' + $(this).attr("cms-rollno") + '","CLASS_ID":"' + ClassId + '","COURSE_ID":"' + CourseId + '",';
+                    JsonData += '"' + "STUDENT_ID" + '":"' + $(this).attr("cms-studentid") + '","STAFF_ID":"' + StaffId + '","S_CLASS_ID":"' + sClassId + '","SEMESTER":"' + sSemesterId + '"},';
+                    JsonCount++;
+                }
+            });
+            if (JsonCount != 0)
+            {
+                JsonData = JsonData.slice(0, -1);
+                JsonData +=']}';
+            } else
+            {
+                alert('No Changes Made ! ');
+                return false;
+            }
+            
+            $.ajax({
+                url: "@Url.Action("UpdateStuCourseInfo", "Student")",
+                method: "POST",
+                data: { sStuCourseInfo: JsonData },
+                datatype: "json",
+                success: function (data)
+                {
+                    alert(data.Message);
+                    OnCourseChange();
+                    //$('#divSelectedStudentList').remove('<div id="page-loader" class="fade in"><span class="spinner"></span></div>');
+                }, error: function (xhr, textStatus, error) {
+                    alert(error + "\n" + textStatus + error);
+                }
+            });
+        }
+    </script>
+    <script>
+        $("table.table a.remove").live("click", function () {
+            $(this).parents("tr").remove();
+        });
+    </script>
+
+

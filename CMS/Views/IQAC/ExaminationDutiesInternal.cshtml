@@ -1,0 +1,201 @@
+﻿@model CMS.ViewModel.ViewModel.IQACViewModel
+
+
+@{
+    Layout = null;
+}
+
+
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+<div id="content" class="content">
+    <!-- begin breadcrumb -->
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li><a href="javascript:;">IQAC</a></li>
+        <li class="active">Examination Duties Internal</li>
+    </ol>
+    <!-- end breadcrumb -->
+    <!-- begin page-header -->
+    <h1 class="page-header">Examination Duties Internal<small></small></h1>
+    <!-- end page-header -->
+
+    <div class="panel panel-info" id="panel">
+        <div class="panel-heading">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" id="btnReload" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">Examination Duties Internal</h4>
+        </div>
+        <div class="panel-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+
+                    <div class="form-group  col-md-12">
+                        <div class="col-md-6 ">
+                            @Html.Label("Course List", htmlAttributes: new { @class = "col-md-3 control-label " })
+                            <div class="col-md-8">
+                                @Html.DropDownListFor(m => m.sCourseList, (Model.sCourseList != null) ? Model.sCourseList : Enumerable.Empty<SelectListItem>(), "---Select---", new { @class = "form-control  selectpicker", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(m => m.sCourseList, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            @Html.Label("Month List", htmlAttributes: new { @class = "col-md-4 control-label " })
+                            <div class="col-md-8">
+                                @*@Html.DropDownListFor(m => m.sMonthList, (Model.sMonthList != null) ? Model.sMonthList : Enumerable.Empty<SelectListItem>(), new { @class = "form-control  selectpicker", @data_live_search = "true" })
+                                @Html.ValidationMessageFor(m => m.sMonthList, "", new { @class = "text-danger" })*@
+                                <select class="form-control  selectpicker" data-live-search="true" id="sMonthList">
+                                    @if (Model.liMonthList != null && Model.liMonthList.Count > 0)
+                                    {
+                                        <option value=""> -- Select -- </option>
+                                        foreach (var item in Model.liMonthList)
+                                        {
+                                            <option value="@item.DAY_ID">@item.DAY_ORDER_MONTH</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div id="dvIQACBind" data-parsley-validate="true"></div>
+            }
+            <div class="col-lg-12">
+                <a href="javascript:;" class="btn btn-success hidden" id="btnSubmit">Submit</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+        function ContentLoad()
+        {
+            // Document Ready Function .
+        }
+
+        $('.selectpicker').selectpicker({
+            size: 6
+        });
+        $('.selectpicker').selectpicker('refresh');
+</script>
+
+<script>
+    $('#sCourseList').on('change', function ()
+    {
+        if ($('#sCourseList').val() && $('#sMonthList').val())
+        {
+            BindList();
+        }
+    });
+
+    $('#sMonthList').on('change', function ()
+    {
+        if ($('#sCourseList').val() && $('#sMonthList').val())
+        {
+            BindList();
+        }
+    });
+
+    function BindList()
+    {
+        $.ajax({
+            url:'@Url.Action("BindExaminationDutiesInternal", "IQAC")',
+            method:'POST',
+            datatype:'json',
+            data: { sCourseId: $('#sCourseList').val(), sMonthId: $('#sMonthList').val() },
+            success: function (data)
+            {
+                $('#dvIQACBind').empty();
+                if (data.Message != null && data.Message != '')
+                {
+                    alert(data.Message);
+                } else
+                {
+                    $('#dvIQACBind').append(data);
+                    $('#btnSubmit').removeClass('hidden');
+                }
+            }, error: function (error)
+            {
+                alert('Internal Server Error !');
+            }
+        });
+    }
+
+    $('#btnSubmit').on('click', function ()
+    {
+        var sJsonData = '{liExaminationDutiesInternal:[';
+        $('#tblIQAC tbody tr').each(function ()
+        {
+            sJsonData += '{"IQAC_ID":"' + $(this).closest('tr').find('input:eq(0)').attr('cms-IQACID') + '","CLASS_ID":"' + $(this).attr('cms-ClassId') + '","COURSE_ID":"' + $('#sCourseList').val() + '","MONTH_ID":"' + $('#sMonthList').val() + '","PAPER_SETTING":"' + $(this).closest('tr').find('input:eq(0)').val() + '","EXAMINATION_DTATE":"' + $(this).closest('tr').find('input:eq(1)').val() + '","INVIGILATORS":"' + $(this).closest('tr').find('input:eq(2)').val() + '","PAPER":"' + $(this).closest('tr').find('input:eq(3)').val() + '","PAPERS":"' + $(this).closest('tr').find('input:eq(4)').val() + '","ASSIGNMENTS":"' + $(this).closest('tr').find('input:eq(5)').val() + '"},';
+        });
+        sJsonData.slice(0, -1);
+        sJsonData = sJsonData + "]}";
+
+        // Validation Check ,...
+        var isValid = true;
+        if ($('#dvIQACBind').parsley().validate() !== true) isValid = false;
+        if (!isValid) {
+            //gritter-info,danger,success,warning,default
+            swal({ title: "Warning !", text: 'Something went wrong ! Please check your inputs !', showConfirmButton: false, timer: 1500, type: 'warning', animation: true });
+            return false;
+        }
+        $.ajax({
+            url:'@Url.Action("SaveExaminationDutiesInternal", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sJsonData: sJsonData },
+            success: function (data)
+            {
+                if (data.ErrorCode=="200")
+                {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    BindList();
+                } else
+                {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    });
+
+    function GetConfrim(ID) {
+        if (!confirm('Are You Sure To Delete ?')) {
+            return false;
+        }
+        $.ajax({
+            url: '@Url.Action("DeleteExaminationDutiesInternal", "IQAC")',
+            method: 'POST',
+            datatype: 'json',
+            data: { sIQACID: ID },
+            success: function (data) {
+                if (data.ErrorCode == "200") {
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'success', animation: true });
+                    BindList();
+                } else {
+                    swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            }, error: function (error) {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+</script>

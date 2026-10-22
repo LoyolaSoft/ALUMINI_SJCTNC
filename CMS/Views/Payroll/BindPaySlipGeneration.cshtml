@@ -1,0 +1,300 @@
+﻿@model CMS.ViewModel.ViewModel.PayrollViewModel
+@using CMS.Utility
+@{
+    Layout = null;
+    string empty = "-";
+    double earn = 0;
+    double deduction = 0;
+    double lop = 0;
+    double netpay = 0;
+    double cma = 0;
+    double totalearn = 0;
+    int count = 0;
+
+
+}
+@if (Model.liemployee != null && Model.liemployee.Count > 0)
+{
+    var days = @System.DateTime.DaysInMonth(Convert.ToInt32(ViewBag.Year), Convert.ToInt32(ViewBag.Month));
+    var ligroupsalcomp = Model.lisalarycomponentdetails.GroupBy(o => o.COMPONENT_ID).ToList();
+    var lipfcomp = Model.lipfcomponents.GroupBy(o => o.PF_COMPONENT_ID).ToList();
+    <div class="col-md-12 table-responsive" id="divprint">
+        <br><br>
+        <table class="table table-bordered" id="tblemployeesalary">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Empolyee</th>
+                    <th>Employee Code</th>
+                    @if (ligroupsalcomp != null && ligroupsalcomp.Count > 0)
+                    {
+                        foreach (var salcomp in ligroupsalcomp)
+                        {
+                            <th>@salcomp.FirstOrDefault().COMPONENT_NAME</th>
+                        }
+                    }
+                    @if (lipfcomp != null && lipfcomp.Count > 0)
+                    {
+                        foreach (var pfcomp in lipfcomp)
+                        {
+                            <th>@pfcomp.FirstOrDefault().PF_COMPONENT_NAME</th>
+                        }
+                    }
+                    <th>CMA</th>
+                    <th>Total Earnings</th>
+                    <th>Total Deductions</th>
+                    <th>LOP</th>
+                    <th>Net Pay</th>
+
+                </tr>
+            </thead>
+            <tbody>
+
+
+                @foreach (var emp in Model.liemployee)
+                {
+                    count++;
+
+                    if (Model.lisalarycomponentdetails != null && Model.lipfcomponents.Count > 0)
+                    {
+                        var salarycomponent = Model.lisalarycomponentdetails.Where(o => o.EMPLOYEE_ID == emp.STAFF_ID).ToList();
+                        foreach (var item in salarycomponent)
+                        {
+                            if (item.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Earnings && item.IS_GROSS_PAY != "1")
+                            {
+                                earn += Convert.ToInt32(item.FLAT_AMOUNT);
+                            }
+
+                            else if (item.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Deductions)
+                            {
+                                deduction += Convert.ToInt32(item.FLAT_AMOUNT);
+                            }
+
+                        }
+                    }
+
+
+
+                    if (Model.lipfcomponents != null && Model.lipfcomponents.Count > 0)
+                    {
+                        var pfcomponent = Model.lipfcomponents.Where(o => o.EMPLOYEE_ID == emp.STAFF_ID).ToList();
+                        foreach (var item1 in pfcomponent)
+                        {
+                            if (item1.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Earnings)
+                            {
+                                earn += Convert.ToInt32(item1.FLAT_AMOUNT);
+                            }
+                            else if (item1.SALARY_COMPONENT_TYPE == Common.SALARY_COMPONENT_TYPE.Deductions)
+                            {
+                                deduction += Convert.ToInt32(item1.FLAT_AMOUNT);
+                            }
+
+
+                        }
+                    }
+
+                    if (Model.listaffattendance != null && Model.listaffattendance.Count > 0)
+                    {
+                        var staffattendance = Model.listaffattendance.Where(o => o.STAFF_ID == emp.STAFF_ID).ToList();
+                        if (staffattendance != null && staffattendance.Count > 0)
+                        {
+                            double total;
+                            total = @earn - @deduction;
+                            netpay = total / Convert.ToInt32(staffattendance.FirstOrDefault().COUNT) * days;
+                            lop = (total / days) * Convert.ToInt32(staffattendance.FirstOrDefault().COUNT);
+                        }
+                        else
+                        {
+                            netpay = @earn - @deduction;
+                        }
+
+
+                    }
+                    else
+                    {
+                        netpay = @earn - @deduction;
+                    }
+
+                    totalearn = earn;
+
+
+                    var grosspay = Model.lisalarycomponentdetails.Where(o => o.EMPLOYEE_ID == emp.STAFF_ID && o.IS_GROSS_PAY == "1").ToList();
+                    if (grosspay != null && grosspay.Count > 0)
+                    {
+                        cma = Convert.ToInt32(grosspay.FirstOrDefault().FLAT_AMOUNT) - earn;
+                        if (cma != 0)
+                        {
+                            netpay = netpay + cma;
+                            totalearn = earn + cma;
+
+                        }
+                    }
+
+
+                   
+                    <tr>
+                        <td>@count</td>
+                        <td>@emp.FIRST_NAME</td>
+                        <td>@emp.STAFF_CODE</td>
+
+                        @if (ligroupsalcomp != null && ligroupsalcomp.Count > 0)
+                        {
+
+                            foreach (var salcomp in ligroupsalcomp)
+                            {
+                                var lisal = @Model.lisalarycomponentdetails.Where(o => o.EMPLOYEE_ID == emp.STAFF_ID && o.COMPONENT_ID == salcomp.FirstOrDefault().COMPONENT_ID).ToList();
+
+                                <td  title="component" componentid="@(lisal!=null?lisal.FirstOrDefault().COMPONENTT_ID:string.Empty)" empid="@emp.STAFF_ID" amount="@(lisal!=null?lisal.FirstOrDefault().FLAT_AMOUNT:string.Empty)" ispfcomponent="0" month="@ViewBag.Month" lop="@lop" netpay="@netpay" ctemplate="@(lisal!=null?lisal.FirstOrDefault().CTEMPLATE_ID:string.Empty)">
+                                    @if (lisal != null && lisal.Count > 0)
+                                    {
+
+                                        @lisal.FirstOrDefault().FLAT_AMOUNT
+
+                                    }
+
+                                    else
+                                    {
+                                        @empty
+
+                                    }
+                                </td>
+
+
+                            }
+
+                        }
+                        @if (lipfcomp != null && lipfcomp.Count > 0)
+                        {
+
+                            foreach (var pfcomp in lipfcomp)
+                            {
+
+                                var lipf = @Model.lipfcomponents.Where(o => o.EMPLOYEE_ID == emp.STAFF_ID && o.PF_COMPONENT_ID == pfcomp.FirstOrDefault().PF_COMPONENT_ID).ToList();
+
+                                <td title="component" componentid="@(lipf!=null?lipf.FirstOrDefault().PF_COMPONENT_ID:string.Empty)" empid="@emp.STAFF_ID" amount="@(lipf!=null?lipf.FirstOrDefault().FLAT_AMOUNT:string.Empty)" ispfcomponent="1" month="@ViewBag.Month" lop="@lop" netpay="@netpay" ctemplate="@(lipf!=null?lipf.FirstOrDefault().TEMPLATE_PF_COMPONENT_ID:string.Empty)">
+                                    @if (lipf != null && lipf.Count > 0)
+                                    {
+                                        @lipf.FirstOrDefault().FLAT_AMOUNT
+
+                                    }
+                                    else
+                                    {
+                                        @empty
+                                    }
+
+                                </td>
+
+
+                            }
+
+                        }
+
+
+
+
+
+
+                        <td>@cma</td>
+                        <td>@totalearn</td>
+                        <td>@deduction</td>
+                        <td>@lop</td>
+                        <td>@netpay</td>
+
+
+                    </tr>
+                    {
+                        earn = 0;
+                        deduction = 0;
+                        lop = 0;
+                        netpay = 0;
+                        totalearn = 0;
+                        cma = 0;
+                    }
+
+
+                }
+
+
+            </tbody>
+        </table>
+    </div>
+    <br><br>
+    <div class="col-md-12">
+        <br><br>
+        <div class="col-md-1 pull-left">
+            <button class="btn btn-success" id="btnprint" onclick="printDiv('divprint')" >Print</button>
+        </div>
+        <div class="col-md-1 pull-right">
+            <button class="btn btn-primary" id="btngenerate" onclick="GeneratePayslip()">Generate</button>
+        </div>
+    </div>
+}
+else
+{
+    <br><br>
+    <div class="col-md-12 alert alert-info" style="text-align:center;">
+        No Records Found ...!
+    </div>
+}
+<script>
+    GeneratePayslip = function (ID) {
+        swal({
+            title: "Are you sure generate Payslip?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+function () {
+   
+    var JsonData = '';
+    JsonData += '{"Lisalarygeneration":[';
+    $('#tblemployeesalary tbody tr td').each(function ()
+    {
+        if ($(this).attr('title') == "component" && $(this).attr('componentid') != "")
+        {
+            JsonData += '{"EMPLOYEE_ID":"' + $(this).attr('empid') + '","COMPONENT_ID":"' + $(this).attr('componentid') + '","AMOUNT":"' + $(this).attr('amount') + '","IS_PF_COMPONENT":"' + $(this).attr('ispfcomponent') + '","LOSS_OF_PAY":"' + $(this).attr('lop') + '","NET_PAY":"' + $(this).attr('netpay') + '","MONTH":"' + $(this).attr('month') + '","CTEMPLATE_ID":"' + $(this).attr('ctemplate') + '"},';
+        }
+               
+    });
+    JsonData = JsonData.slice(0, -1);
+    JsonData += ']}';
+
+    $.ajax({
+        url: "@Url.Action("Savesalarygeneration", "Payroll")",
+        type: "post",
+        data: { sJsonData: JsonData },
+        success: function (data)
+        {
+            if (data.Message != null && data.Message != "" && data.ErrorCode!="408")
+            {
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+              
+            }
+            else
+            {
+                swal({ title: "Error !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+            }
+        },
+        error: function (ex) {
+            swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+        }
+
+
+    });
+});
+
+    }
+    function printDiv(sDivName) {
+        var printContents = document.getElementById(sDivName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+       // loadContent('/Payroll/SalaryPaySlipGeneration');
+    }
+
+</script>

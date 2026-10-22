@@ -1,0 +1,259 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    Layout = null;
+    int nCount = 0;
+}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+@if (Model.liStudent != null && Model.liStudent.Count > 0)
+{
+    <div class="row">
+        <div></div>
+       
+        <!--<div class="form-group col-md-12">
+            @Html.Label("Upload", htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                <input type="file" class="btn btn-primary pull-left fileinput-button" id="HeadExcelUpload" required />-->
+        @*<a class="btn btn-primary" onclick="ClickFile()">File</a>*@
+        <!--</div>
+        </div>-->
+    </div>
+    <div id="uploadStats" class="alert alert-info" style="display: none;">
+        <p><strong>Total Records in Excel:</strong> <span id="totalRecords">0</span></p>
+        <p><strong>Matched Records:</strong> <span id="matchedRecords">0</span></p>
+        <p><strong>Unmatched Records:</strong> <span id="unmatchedRecords">0</span></p>
+        <div id="unmatchedListContainer" style="display: none;">
+            <h4>Unmatched Records</h4>
+            <table class="table table-bordered" id="">
+                <thead>
+                    <tr>
+                        <th>Register No</th>
+                        <th>Student Name</th>
+                    </tr>
+                </thead>
+                <tbody id="unmatchedList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="page-break-after:always !important;page-break-inside:avoid !important;">
+        <table class="table table-bordered table-responsive" id="tableforupdation">
+            <thead>
+                <tr>
+                    <td>S.No.</td>
+                    <td>Roll No</td>
+                    @*<td>Register No</td>*@
+                    <td>Student Name</td>
+                    <td>ABC ID</td>
+                    <td>EMIS No</td>
+                    <td>UMIS No</td>
+                    <td>Aadhar Number</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.liStudent)
+                {
+
+                    <tr data-register-no="@item.ROLL_NO">
+                        <td>@{nCount++;}@nCount</td>
+                        <td>@item.ROLL_NO</td>
+                        @*<td>@item.REGISTER_NO</td>*@
+                        <td>@item.FIRST_NAME</td>
+                        <td><input class="form-control" type="number" value="@item.ABC_ID" placeholder="Enter ABC id" /></td>
+                        <td><input class="form-control" type="number" value="@item.EMIS_NO" placeholder="Enter EMIS ID" /></td>
+                        <td><input class="form-control" type="number" value="@item.UMIS_NO" placeholder="Enter UMIS ID" /></td>
+                        <td><input class="form-control" type="number" value="@item.AADHAR_NUMBER" placeholder="Enter Aadhar no" disabled/></td>
+                    </tr>
+
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<script>
+
+        $(".fileinput-button").on("change", function (event) {
+            let file = event.target.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+            reader.readAsArrayBuffer(file);
+
+            reader.onload = function (e) {
+                let data = new Uint8Array(reader.result);
+                let workbook = XLSX.read(data, { type: "array" });
+                let sheet = workbook.Sheets[workbook.SheetNames[0]];
+                let jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                if (jsonData.length <= 1) {
+                    alert("No data found in the file!");
+                    return;
+                }
+
+                let headers = jsonData[0]; // First row (headers)
+                let rows = jsonData.slice(1); // Remaining rows (actual data)
+
+                // Mapping headers to indexes
+                let headerIndex = {
+                    RollNo: headers.indexOf("Roll No"),
+                    Name: headers.indexOf("Student Name"),
+                    ABC: headers.indexOf("ABC ID"),
+                    EMIS: headers.indexOf("EMIS No"),
+                    UMIS: headers.indexOf("UMIS No"),
+                   
+                };
+
+                let totalRecords = rows.length-1;
+                let matchedRecords = 0;
+                let unmatchedRecords = -1 ;
+                let unmatchedData = [];
+
+                // Clear previous unmatched list
+                $("#unmatchedList").empty();
+
+                // Update table with values from Excel
+                rows.forEach(row => {
+                    let rollNo = row[headerIndex.RollNo];
+                    let studentName = row[headerIndex.Name];
+
+                    // Find row with matching Register No in the table
+                    let tableRow = $(`tr[data-register-no='${rollNo}']`);
+                    if (tableRow.length) {
+                        matchedRecords++;
+
+                        // Only update the input field if the value is not null or empty
+                        if (row[headerIndex.ABC]) {
+                            tableRow.find("td:eq(3) input").val(row[headerIndex.ABC]);
+                        }
+                        if (row[headerIndex.EMIS]) {
+                            tableRow.find("td:eq(4) input").val(row[headerIndex.EMIS]);
+                        }
+                        if (row[headerIndex.UMIS]) {
+                            tableRow.find("td:eq(5) input").val(row[headerIndex.UMIS]);
+                        }
+                       
+                    } else {
+                        unmatchedRecords++;
+                        unmatchedData.push({ RollNo: rollNo, Name: studentName });
+
+                        // Append to unmatched list
+                        $("#unmatchedList").append(
+                            `<tr>
+                        <td>${rollNo || "N/A"}</td>
+                        <td>${studentName || "N/A"}</td>
+                    </tr>`
+                        );
+                    }
+                });
+
+                // Display Statistics
+                $("#totalRecords").text(totalRecords);
+                $("#matchedRecords").text(matchedRecords);
+                $("#unmatchedRecords").text(unmatchedRecords);
+                $("#uploadStats").show();
+
+                // Show unmatched records table if there are unmatched records
+                if (unmatchedRecords > 0) {
+                    $("#unmatchedListContainer").show();
+                } else {
+                    $("#unmatchedListContainer").hide();
+                }
+
+                alert("Data populated from Excel!");
+            };
+        });
+
+    $(document).ready(function () {
+        $("#tableforupdation tbody tr").each(function () {
+            let row = $(this);
+            row.data("original-values", {
+                ABC_ID: row.find("td:eq(3) input").val(),
+                EMIS_NO: row.find("td:eq(4) input").val(),
+                UMIS_NO: row.find("td:eq(5) input").val(),
+                AADHAR_NUMBER: row.find("td:eq(6) input").val()
+            });
+        });
+    });
+
+    $(".savedata").on("click", function () {
+        $('#page-loader').addClass('hide fade in');
+        $('#page-loader').removeClass('hide');
+
+        let students = [];
+
+        $("#tableforupdation tbody tr").each(function () {
+            let row = $(this);
+            let originalValues = row.data("original-values");
+            let currentValues = {
+                ABC_ID: row.find("td:eq(3) input").val(),
+                EMIS_NO: row.find("td:eq(4) input").val(),
+                UMIS_NO: row.find("td:eq(5) input").val(),
+                AADHAR_NUMBER: row.find("td:eq(6) input").val()
+            };
+
+            // Check if any value has changed
+            if (currentValues.ABC_ID !== originalValues.ABC_ID ||
+                currentValues.EMIS_NO !== originalValues.EMIS_NO ||
+                currentValues.UMIS_NO !== originalValues.UMIS_NO ||
+                currentValues.AADHAR_NUMBER !== originalValues.AADHAR_NUMBER) {
+
+                students.push({
+                    ROLL_NO: row.data("register-no"),
+                    ABC_ID: currentValues.ABC_ID,
+                    EMIS_NO: currentValues.EMIS_NO,
+                    UMIS_NO: currentValues.UMIS_NO,
+                    AADHAR_NUMBER: currentValues.AADHAR_NUMBER
+                });
+            }
+        });
+
+        // Only proceed if there are changes
+        if (students.length === 0) {
+            $('#page-loader').removeClass('hide fade in');
+            $('#page-loader').addClass('hide');
+            alert("No changes detected to save.");
+            return;
+        }
+
+        $.ajax({
+            url: "/Student/saveOrUpdateUMISNo",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ Jsondata: JSON.stringify(students) }),
+            success: function (response) {
+                $('#page-loader').removeClass('hide fade in');
+                $('#page-loader').addClass('hide');
+                if (response && response.Message === "200") {
+                    // Update original values with current values after successful save
+                    $("#tableforupdation tbody tr").each(function () {
+                        let row = $(this);
+                        row.data("original-values", {
+                            ABC_ID: row.find("td:eq(3) input").val(),
+                            EMIS_NO: row.find("td:eq(4) input").val(),
+                            UMIS_NO: row.find("td:eq(5) input").val(),
+                            AADHAR_NUMBER: row.find("td:eq(6) input").val()
+                        });
+                    });
+
+                    
+                    alert("Data successfully saved!");
+                    fetchdataback();
+s
+
+                } else {
+                    alert("Failed to save records.");
+                }
+            },
+            error: function () {
+                $('#page-loader').removeClass('hide fade in');
+                $('#page-loader').addClass('hide');
+                alert("Error in saving data.");
+            }
+        });
+    });
+
+
+
+
+</script>

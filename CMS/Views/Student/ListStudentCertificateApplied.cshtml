@@ -1,0 +1,279 @@
+﻿@model CMS.ViewModel.ViewModel.StudentViewModel
+@{
+    ViewBag.Title = "ListStudentCertificateApplied";
+    //Layout = "~/Views/Shared/_AdminLayoutPage.cshtml";
+    Layout = null;
+}
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+
+<div class="content" id="content">
+    <ol class="breadcrumb pull-right">
+        <li><a href="javascript:;">Home</a></li>
+        <li class="active">List Certificate Applied</li>
+    </ol>
+    <h1 class="page-header">List Certificate Applied</h1>
+
+    <div class="panel">
+        <div class="panel-heading bg-primary">
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+            <h4 class="panel-title">List Certificate Applied</h4>
+        </div>
+        <div class="panel-body noPadding">
+            @Html.Hidden("sOption", @Model.sOption)
+            <div class="form-group col-md-12">
+                <a class="btn btn-success pull-right form-group m-b-5" href="#applycertificate" data-toggle="modal" id="Add"><i class="fa fa-plus" title="Add">Apply</i></a>
+            </div>
+
+            <div class="form-group col-md-12 table-responsive">
+                <table class="table table-hover table-bordered" id="tblapply">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Roll No</th>
+                            <th>Certificate</th>
+                            <th>Applied Date</th>
+                            <th>Is Paid</th>
+                            <th>Status</th>
+                            <th>Approved Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @if (Model.licertificateapply != null && Model.licertificateapply.Count > 0)
+                        {
+                            var count = 0;
+                            foreach (var item in Model.licertificateapply)
+                            {
+                                count = count + 1;
+
+                                <tr>
+                                    <td>@count</td>
+
+                                    <td>@item.ROLL_NO</td>
+                                    <td>@item.HEAD</td>
+                                    <td>@item.APPLY_DATE</td>
+                                    <td>@item.IS_PAID</td>
+
+
+                                    @if (item.DEBIT != "0" && Convert.ToInt32(item.DEBIT)>0)
+                                    {
+                                        <td>Paid</td>
+                                        
+                                    }
+                                    else
+                                    {
+                                        <td>Not Paid</td>
+                                       
+                                    }
+
+                                    <td>@item.STATUS_NAME</td>
+                                    <td>@item.APPROVED_DATE</td>
+                                   
+                                   
+                                    <td>
+                                        @if (item.DEBIT != "0" && Convert.ToInt32(item.DEBIT) > 0)
+                                        {
+                                            <a href="javascrip:;" onclick="GetCertificate(@item.APPLY_ID)" class="text-capitalize"><i class="fa fa-expand"></i></a>
+                                        }
+                                        <a href="javascrip:;" onclick="GetConfirm(@item.APPLY_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="col-md-12" id="dvBind">
+                
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="applycertificate">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Apply Certificate</h4>
+            </div>
+            <div class="modal-body" data-parsley-validate="true" id="pBody">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-horizontal">
+                                <div class="col-md-12 form-horizontal">
+                                    <input type="text" id="applyid" class="hidden">
+                                    <div class="col-md-12 form-group">
+                                        @Html.Label("Certificate", htmlAttributes: new { @class = "col-md-4 control-label " })
+                                        <div class="col-md-8">
+                                            @Html.DropDownListFor(m => m.Certificates, (Model.Certificates != null) ? Model.Certificates : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "selectpicker show-menu-arrow show-tick drop-down form-control  input-sm", @data_live_search = "true" })
+                                            @Html.ValidationMessageFor(m => m.Certificates, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                
+                                    @*<div class="col-md-12 form-group">
+                                            <label class="col-md-4 control-label">To Date</label>
+
+                                            <div class="col-md-8">
+                                                <input type="text" id="todate" class="form-control" data-parsley-required="true">
+                                            </div>
+                                        </div>*@
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary" data-dismiss="modal">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+<script>
+    function ContentLoad()
+    {
+        var options = $('#sOption').val();
+      
+        $('#Certificates').empty();
+        $('#Certificates').append(options);
+        $('.selectpicker').selectpicker('refresh');
+        // Document Ready Function .
+    }
+    $('.selectpicker').selectpicker({
+        size: 6
+    });
+    $('.selectpicker').selectpicker('Refresh');
+    var tbl = $('#tblapply').DataTable();
+    $('#tblapply').DataTable();
+
+    $('#btnSubmit').click(function ()
+    {
+        var JsonData = null;
+        var ceritifcate = $('#Certificates').val();
+        if ($('#Certificates').val())
+        {
+            var mainheadid = $('#Certificates').find('option:selected').attr("mainheadid");
+          
+            JsonData = '{"APPLY_ID":"' + $('#applyid').val() + '","HEAD_ID":"' + ceritifcate.toString() + '","FEE_MAINHEAD_ID":"' + mainheadid.toString() + '"}';
+            var req = $.ajax({
+                url: "@Url.Action("SaveorUpdateCertificateApply", "Student")",
+                type: "post",
+                data: { sJsonData: JsonData },
+                success: function (data)
+                {             
+                    swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                    loadContent('/Student/ListStudentCertificateApplied');
+                },
+                error: function (ex) {
+                    swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+                }
+            });
+        }
+        else
+        {
+            alert('Select the Certificate ...!')
+        }
+    });
+
+    GetConfirm = function (ID) {
+        swal({
+            title: "Are you sure want to Delete?",
+            text: "",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, I agree!",
+            closeOnConfirm: false
+        },
+
+
+function () {
+    $.ajax({
+        url: "@Url.Action("DeleteAppliedLeave", "Student")",
+        type: "post",
+        data: { sleaveid: ID },
+        success: function (data) {
+            if (data.Message != null && data.Message != "") {
+                swal({ title: "Success !", text: data.Message, showConfirmButton: false, timer: 1800, type: 'success', animation: true });
+                loadContent('/Student/ListStudentCertificateApplied');
+            }
+        },
+        error: function (ex) {
+            swal({ title: "Error !", text: ex.Message, showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+
+        }
+
+
+    });
+});
+
+    }
+
+
+    function GetCertificate(sApplyId)
+    {
+        if (sApplyId!=null)
+        {
+            
+            $.ajax({
+                url: "@Url.Action("StudentCertificateDownload", "Student")",
+                type: "post",
+                data: { sApplyId: sApplyId.toString() },
+            success: function (data) {
+               
+                $('#dvBind').empty();
+                $('#dvBind').append(data);
+               
+                printDiv();
+            },
+            error: function (ex) {
+                swal({ title: "Error..!!", text: "Internal Server Error..!!", showConfirmButton: false, timer: 1800, type: 'error', animation: true });
+            }
+        });
+        }
+       
+    }
+
+
+    function printDiv() {
+        var printContents = document.getElementById('dvBind').innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        loadContent('/Student/ListStudentCertificateApplied');
+    }
+</script>
+
+

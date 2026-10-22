@@ -1,0 +1,106 @@
+@model CMS.ViewModel.ViewModel.FeedbackViewModel
+@{
+    var completedCount = 0;
+    var totalCount = 0;
+    if (Model.LiEvaluation != null && Model.LiEvaluation.Count > 0)
+    {
+        completedCount = Model.LiEvaluation.Count(x => x.IS_ATTENDED == "1");
+        totalCount = Model.LiEvaluation.Count;
+    }
+    var progressPercentage = totalCount > 0 ? (completedCount * 100 / totalCount) : 0;
+    var selectedSupFeedBackRoleId = ViewBag.SelectedSupFeedBackRoleId as string;
+    var selectedFeedBackId = ViewBag.SelectedFeedBackId as string;
+    var isDirectLoad = ViewBag.DirectLoad != null && (bool)ViewBag.DirectLoad;
+}
+
+<!-- State signals for AJAX -->
+<input type="hidden" id="hdnSelectedSupFeedBackRoleId" value="@selectedSupFeedBackRoleId" />
+<input type="hidden" id="hdnDirectLoad" value="@isDirectLoad.ToString()" />
+<input type="hidden" id="hdnIsAttended" value="@(ViewBag.IsAttended ?? "0")" />
+
+<div class="header-section">
+    <h2 style="margin:0; font-weight: 800;">Student Feedback Portal</h2>
+    <p style="opacity: 0.8; margin-top:5px;">Help us grow by sharing your learning experience.</p>
+    
+    <div class="progress-wrapper">
+        <div class="progress-bar-fill" style="width: @progressPercentage%;"></div>
+    </div>
+    <div class="stats-text" id="statsContainer">
+        <span>@progressPercentage% Completed</span>
+        <span>@completedCount out of @totalCount Feedbacks</span>
+    </div>
+</div>
+
+<div class="selector-pane">
+    <div class="dropdown-group">
+        <label>Evaluation Type</label>
+        @Html.DropDownList("FeedBackSettingList", (IEnumerable<SelectListItem>)ViewBag.FeedBackSettingList, "-- Select Feedback --", new { @class = "modern-select", onchange = "changeFeedbackType()" })
+    </div>
+    
+    @{
+        var roleSettings = ViewData["FeedbackRoleSettings"] as List<CMS.ViewModel.Model.FBFEEDBACK_ROLE_SETTINGS>;
+        if (roleSettings != null && roleSettings.Count > 1) 
+        {
+            <div class="dropdown-group">
+                <label>Role Scope</label>
+                <select id="FeedBackRoleList" class="modern-select" onchange="changeFeedbackType()">
+                    @foreach (var item in roleSettings)
+                    {
+                        <option value="@item.SUP_FEEDBACK_ROLE_ID" @(item.SUP_FEEDBACK_ROLE_ID == selectedSupFeedBackRoleId ? "selected" : "")>
+                            @item.FEEDBACK_ROLE_NAME
+                        </option>
+                    }
+                </select>
+            </div>
+        }
+    }
+</div>
+
+<div class="card-grid" id="mainGrid">
+    @if (selectedSupFeedBackRoleId == CMS.Utility.Common.FBFEEDBACK_ROLE.STAFF_BY_STUDENT)
+    {
+        if (Model.LiEvaluation != null && Model.LiEvaluation.Count > 0)
+        {
+            foreach (var item in Model.LiEvaluation)
+            {
+                <div class="modern-card @(item.IS_ATTENDED == "1" ? "item-completed" : "")" 
+                     onclick="loadQuestions('@item.COURSE_ID', '@item.STAFF_CODE', '@item.IS_ATTENDED')">
+                    <div class="card-header">
+                        <div style="font-weight:700; color:var(--text-dark); font-size: 0.95em;">@item.COURSE_TITLE</div>
+                    </div>
+                    <div class="card-body">
+                        <img src="@(string.IsNullOrEmpty(item.STAFF_PHOTO) ? "/Content/images/user.png" : item.STAFF_PHOTO)" class="staff-img" alt="Staff" />
+                        <div class="staff-info">
+                            <div class="staff-name">@item.FIRST_NAME</div>
+                            <div class="course-label">@item.STAFF_CODE</div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        @if (item.IS_ATTENDED == "1")
+                        {
+                            <span class="completion-badge badge-completed"><i class="fa fa-check-circle"></i> Completed</span>
+                        }
+                        else
+                        {
+                            <span class="completion-badge badge-pending">Pending</span>
+                        }
+                        <i class="fa fa-chevron-right" style="color:#eee; font-size: 0.8em;"></i>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div style="grid-column: 1/-1; padding: 40px; text-align:center; color: var(--text-muted);">
+                <i class="fa fa-info-circle fa-2x" style="margin-bottom:10px; opacity:0.3;"></i>
+                <p>No evaluations active for the selected setting.</p>
+            </div>
+        }
+    }
+    else if (!string.IsNullOrEmpty(selectedSupFeedBackRoleId))
+    {
+         <div style="grid-column: 1/-1; padding: 40px; text-align:center; color: var(--text-muted);">
+            <p>Direct question loading initiated...</p>
+        </div>
+    }
+</div>

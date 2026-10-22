@@ -1,0 +1,80 @@
+﻿@model CMS.ViewModel.ViewModel.PayrollViewModel
+@{
+    Layout = null;
+    int count = 0;
+}
+<div class="col-md-12">
+
+    <br><br><br>
+    <table class="table table-bordered" id="tblstaffattendance">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Staff Code</th>
+                <th>Staff Name</th>
+                <th>Date</th>
+                <th>Time In& Time Out</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.listaffattendance != null && Model.listaffattendance.Count > 0)
+            {
+                foreach (var item in Model.listaffattendance)
+                {
+                    count++;
+                    <tr>
+                        <td>@count</td>
+                        <td>@item.STAFF_CODE</td>
+                        <td>@item.FIRST_NAME</td>
+                        <td>@item.DATE</td>
+                        <td>@(item.TIME_IN + "" + item.IN_TIME + "&" + item.TIME_OUT + "" + item.OUT_TIME)</td>
+                        <td>@item.STATUS_NAME</td>
+                        <td><a href="#faildlogoutmodal" onclick="FetchStaffAttendanceDetails(@item.STF_ATT_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a></td>
+
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+    $('#intime').timepicki();
+    $('#outtime').timepicki();
+    function FetchStaffAttendanceDetails(ID)
+    {
+        if (ID!=null)
+        {
+            $.ajax({
+             url: "@Url.Action("FetchStaffAttendanceDetails", "Payroll")",
+            type: "post",
+            data: { sStaffAttendanceId:ID },
+            success: function (data)
+            {
+                $('#stfattid').val(data.STF_ATT_ID);
+                $('#indate').val(data.TIME_IN);
+                $('#intime').val(data.IN_TIME);
+                $('#outdate').val(data.TIME_OUT);
+                $('#outtime').val(data.OUT_TIME);
+                $('#ddlstatus').val(data.STATUS_ID);
+                $('.selectpicker').selectpicker('refresh');
+
+            },
+            error: function (ex)
+            {
+                swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+            }
+        });
+    }
+    else
+    {
+            swal({ title: "Internal Server Error!", text: "Sorry for the inconvenience", showConfirmButton: false, timer: 1500, type: 'error', animation: true });
+    }
+    }
+
+    
+
+</script>

@@ -1,0 +1,468 @@
+﻿@model CMS.ViewModel.ViewModel.ExaminationViewModel
+
+
+<link href="~/Content/assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/assets/plugins/parsley/src/parsley.css" rel="stylesheet" />
+
+
+
+<div class="col-md-12 form-horizontal">
+    <div class="table-responsive">
+        <div class="form-group col-md-12">
+            <a href="#QuizSetting-dialog" class="btn btn-success pull-right" data-toggle="modal"><i class="fa fa-plus"> Add</i></a>
+        </div>
+        <br /><br />
+        @{int No = 0;}
+        <table class="col-md-12 table table-hover table-bordered" id="tblQuizSetting">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Setting Name</th>
+                    @*<th>No Of Questions</th>
+                    <th>Mark Per Question</th>
+                    <th>Total</th>*@
+                    <th>Class</th>
+                    <th>Course</th>
+                    <th>Time</th>
+                    <th>Start Date</th>
+                    @*<th>End Date</th>*@
+                    <th>Active</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.liQuizSetting != null)
+                {
+                    foreach (var item in Model.liQuizSetting)
+                    {
+                        <tr>
+                            <td>@{No++; } @No</td>
+                            <td>@item.SETTING_NAME</td>
+                            @*<td>@item.NO_OF_QUESTIONS</td>
+                            <td>@item.EACH_QUESTION_MARKS</td>
+                            <td>@item.TOTAL_MARK</td>*@
+                            <td>@item.CLASS_NAME</td>
+                            <td>@item.COURSE</td>
+                            <td>@item.TIME</td>
+                            <td>@item.START_DATE</td>
+                            @*<td>@item.END_DATE</td>*@
+                            <td>
+                                @if (item.IS_ACTIVE == "1")
+                                {
+                                    <a href="javascrip:;" onclick="SetDeActive(@item.SETTING_ID)" class="text-success"><i class="fa fa-check"></i></a>             }
+                                else
+                                {
+                                    <a href="javascrip:;" onclick="SetActive(@item.SETTING_ID)" class="text-danger"><i class="fa fa-times"></i></a>
+                                }
+                            </td>
+                            <td>
+                                <a href="#QuizSetting-dialog" onclick="FetchSettingInfo(@item.SETTING_ID)" data-toggle="modal" class="text-primary"><i class="fa fa-edit"></i></a>
+                                @if (item.IS_ACTIVE == "0")
+                                {
+                                    <a href="javascrip:;" onclick="GetConfirm(@item.SETTING_ID)" class="text-danger"><i class="fa fa-trash"></i></a>
+                                }
+
+                            </td>
+                        </tr>
+                                    }
+                                }
+                                
+            </tbody>
+        </table>
+        <br />
+    </div>
+</div>
+
+<!-- Begin Modal -->
+
+<div class="modal" id="QuizSetting-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Add / Edit Quiz Setting</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="form-horizontal">
+                            <div class="col-md-12" id="dvValidate" data-parsley-validate="true">
+
+                                <!-- Exam Type -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Exam Type</label>
+                                    <div class="col-md-9">
+                                        @Html.DropDownListFor(m => m.ExamType, (Model.ExamType != null) ? Model.ExamType : Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "form-control    selectpicker show-menu-arrow show-tick", @data_live_search = "true", @data_parsley_required = "true" })
+                                        @Html.ValidationMessageFor(m => m.ExamType, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <!-- Setting Name-->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Setting Name</label>
+                                    <div class="col-md-9">
+                                        <input type="text" id="txtSettingName" class="form-control" placeholder="Enter Setting Name"  data-parsley-required = "true">
+                                    </div>
+                                </div>
+
+                                <!-- No Of Questions -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label"> No Of Questions</label>
+                                    <div class="col-md-9">
+                                        <input type="number" id="txtNoOfQuestions" class="form-control" placeholder="Enter No Of Questions" data-parsley-required = "true">
+                                    </div>
+                                </div>
+
+                                <!-- Mark Per Question -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Mark Per Question</label>
+                                    <div class="col-md-9">
+                                        <input type="number" id="txtMarkPerQuestion" class="form-control" placeholder="Enter Mark Per Question" data-parsley-required = "true">
+                                    </div>
+                                </div>
+
+                                <!-- Total Mark -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Total Mark</label>
+                                    <div class="col-md-9">
+                                        <input type="text" id="txtTotalMark" class="form-control" disabled placeholder="Total Mark" >
+                                    </div>
+                                </div>
+
+                                <!-- Time -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Time (Minutes)</label>
+                                    <div class="col-md-9">
+                                        <input type="number" id="txtTime" class="form-control"  placeholder="Enter Time" data-parsley-required = "true">
+                                    </div>
+                                </div>
+
+                                <!-- Start Date -->
+                                <div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">Start Date</label>
+                                    <div class="col-md-9">
+                                        <div class="input-group date" id="datetimepicker1">
+                                            <input type="text" id="txtStartDate" class="form-control input-sm" placeholder="Select Date" data-parsley-required = "true"/>
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- End Date -->
+                                @*<div class="col-md-12 form-group">
+                                    <label class="col-md-3 control-label">End Date</label>
+                                    <div class="col-md-9">
+                                        <div class="input-group date" id="datetimepicker2">
+                                            <input type="text" id="txtEndDate" class="form-control input-sm" placeholder="Select Date" />
+                                            <span class="input-group-addon bg-purple"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>*@
+
+
+                                <div class="col-md-12 form-group">
+                                    <label  class="col-md-3 col-form-label">After The Attempt</label>
+                                    <div class="col-md-9">
+                                        
+                                        <div class="checkbox checkbox-css">
+                                            <input type="checkbox" id="chCorrect" value=""  />
+                                            <label for="chCorrect">Evaluate Questions</label>
+                                        </div>
+                                        <div class="checkbox checkbox-css">
+                                            <input type="checkbox" id="chMarks" value=""  />
+                                            <label for="chMarks">Show Marks</label>
+                                        </div>
+                                        <div class="checkbox checkbox-css">
+                                            <input type="checkbox" id="chRightAnswer" value="" />
+                                            <label for="chRightAnswer">Show Correct Answers</label>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id="btnSubmit" class="btn btn-sm btn-primary">Submit</a>
+                <a href="javascript:;" class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- End Modal -->
+<!-- Hidden Filed -->
+
+<input type="text" id="hdSettingId" class="hidden" />
+
+<!-- Hidden Filed -->
+
+
+<script src="~/Content/assets/plugins/DataTables/media/js/jquery.dataTables.js"></script>
+<script src="~/Content/assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Content/assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script>
+<script src="~/Content/assets/plugins/gritter/js/jquery.gritter.js"></script>
+<script src="~/Content/assets/plugins/bootstrap-sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/assets/js/ui-modal-notification.demo.min.js"></script>
+<script src="~/Content/assets/plugins/parsley/dist/parsley.js"></script>
+
+<script>
+
+   
+        // Document Ready Function .
+        handleDatepicker = function ()
+        {
+            "use strict";
+            
+
+            $("#txtEndDate,#txtStartDate").datepicker({
+                todayHighlight: true,
+                autoclose: true,
+                startDate:new Date(),
+                format: "dd/mm/yyyy",
+                orientation: "right bottom"
+            });
+        }
+        handleDatepicker();
+    
+
+
+
+    $('#tblQuizSetting').DataTable();
+
+
+    $('#txtMarkPerQuestion').on('focusout', function ()
+    {
+        
+        var vTotalmark = $('#txtNoOfQuestions').val() * $('#txtMarkPerQuestion').val();
+        $('#txtTotalMark').val(vTotalmark)
+    });
+
+    // On Submit Setting ...
+    $('#btnSubmit').on('click', function ()
+    {
+        var isValid = true;
+        if ($('#dvValidate').parsley().validate() !== true) isValid = false;
+        if (!isValid)
+        {
+            //gritter-info,danger,success,warning,default
+            myAlert('Something went wrong ! Please check your inputs !', 'gritter-warning', '');
+            return false;
+        }
+        var IsCorrect = 0;
+        var IsRightAnswer = 0;
+        var IsMarkShow = 0;
+        if ($('#chCorrect').is(':checked'))
+        {
+            IsCorrect = 1;
+        }
+
+        if ($('#chMarks').is(':checked')) {
+            IsMarkShow = 1;
+        }
+
+        if ($('#chRightAnswer').is(':checked')) {
+            IsRightAnswer = 1;
+        }
+        
+        
+            var JsonData = null;
+            JsonData = '{"SETTING_ID":"' + $('#hdSettingId').val() + '",\
+                         "SETTING_NAME":"' + $('#txtSettingName').val() + '",\
+                         "QUIZ_TYPE_ID":"' + $('#ExamType').val() + '",\
+                         "NO_OF_QUESTIONS":"' + $('#txtNoOfQuestions').val() + '",\
+                         "EACH_QUESTION_MARKS":"' + $('#txtMarkPerQuestion').val() + '",\
+                         "TOTAL_MARK":"' + $('#txtTotalMark').val() + '",\
+                         "START_DATE":"' + $('#txtStartDate').val() + '",\
+                         "TIME":"' + $('#txtTime').val() + '",\
+                         "CLASS_ID":"' + $('#ClassList').val() + '",\
+                         "COURSE_ID":"' + $('#CourseList').val() + '",\
+                         "IS_CORRECT":"' + IsCorrect + '",\
+                         "IS_SHOW_MARKS":"' + IsMarkShow + '",\
+                         "IS_SHOW_RIGHT_ANSWER":"' + IsRightAnswer + '"\}';
+            $.ajax({
+                url:'@Url.Action("SaveQuizSetting", "Examination")',
+                method:'POST',
+                datatype:'json',
+                data: { sSaveQuizSetting:JsonData },
+                success: function (data)
+                {
+                    alert(data.Message);
+                    //loadContent('/Examination/QuizSetting');
+                    //$('#btnGet').click();
+                    $('#QuizSetting-dialog').modal('hide')
+                    GetQuizSettingList();
+                }, error: function (error)
+                {
+                    alert('Internal Server Error !');
+                }
+            });
+        
+    });
+</script>
+
+<script>
+    // Activate Setting ...
+    function SetActive(ID)
+    {
+        if (!confirm('Are you sure to Activate ?'))
+        {
+            return false;
+        } else {
+            $.ajax({
+                url:"@Url.Action("UpdateActiveQuizSetting", "Examination")",
+                method: "POST",
+                datatype:"json",
+                data: { sQuizSettingId: ID, sActive: '1', sClassId: $('#ClassList').val(), sCourseId: $('#CourseList').val() },
+                success:function(data)
+                {
+                    alert(data.Message);
+                    //loadContent('/Examination/QuizSetting');
+                    //$('#btnGet').click();
+                    GetQuizSettingList();
+                },error:function(error)
+                {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+
+    }
+
+    // De - Activate Setting ...
+    function SetDeActive(ID)
+    {
+        if (!confirm('Are you sure to De - Activate ?'))
+        {
+            return false;
+        }
+        $.ajax({
+            url:"@Url.Action("UpdateActiveQuizSetting", "Examination")",
+            method: "POST",
+            datatype:"json",
+            data: { sQuizSettingId: ID, sActive: '0', sClassId: $('#ClassList').val(), sCourseId: $('#CourseList').val() },
+            success:function(data)
+            {
+                alert(data.Message);
+                //loadContent('/Examination/QuizSetting');
+                //$('#btnGet').click();
+                GetQuizSettingList();
+            },error:function(error)
+            {
+                alert('Internal Server Error ! ');
+            }
+        });
+    }
+
+    // Delete Setting ...
+    function GetConfirm(ID)
+    {
+        if (!confirm('Are you sure to delete ?'))
+        {
+            return false;
+        }
+        else
+        {
+            $.ajax({
+                url:"@Url.Action("DeleteQuizSetting", "Examination")",
+                method: "POST",
+                datatype:"json",
+                data: { sSettingId: ID },
+                success:function(data)
+                {
+                    alert(data.Message);
+                  //  loadContent('/Examination/QuizSetting');
+                    //$('#btnGet').click();
+                    GetQuizSettingList();
+                },error:function(error)
+                {
+                    alert('Internal Server Error ! ');
+                }
+            });
+        }
+    }
+
+    // Fetch Settin Info ...
+    function FetchSettingInfo(ID)
+    {
+        $.ajax({
+            url:"@Url.Action("FetchQuizSetting", "Examination")",
+            method: "POST",
+            datatype:"json",
+            data: { sSettingId: ID },
+            success:function(data)
+            {
+                if (data.Message != null && data.Message != '')
+                {
+                    alert(data.Message);
+                } else
+                {
+                    $('#txtSettingName').val(data[0].SETTING_NAME);
+                    $('#ExamType').val(data[0].QUIZ_TYPE_ID);
+                    $('#txtNoOfQuestions').val(data[0].NO_OF_QUESTIONS);
+                    $('#txtMarkPerQuestion').val(data[0].EACH_QUESTION_MARKS);
+                    $('#txtTotalMark').val(data[0].TOTAL_MARK);
+                    $('#txtStartDate').val(data[0].START_DATE);
+                    $('#txtEndDate').val(data[0].END_DATE);
+                    $('#txtTime').val(data[0].TIME);
+                    $('#hdSettingId').val(data[0].SETTING_ID);
+
+                    if (data[0].IS_CORRECT=="1")
+                    {
+                        $('#chCorrect').click();
+                    }
+
+                    if (data[0].IS_SHOW_MARKS=="1")
+                    {
+                        $('#chMarks').click();
+                    }
+
+                    if (data[0].IS_SHOW_RIGHT_ANSWER=="1")
+                    {
+                        $('#chRightAnswer').click();
+                    }
+                }
+            },error:function(error)
+            {
+                alert('Internal Server Error ! ');
+            }
+        });
+    }
+</script>
+
+<script>
+    $("#QuizSetting-dialog").on("hidden.bs.modal", function () {
+        $('#txtSettingName').val('');
+        $('#txtNoOfQuestions').val('');
+        $('#txtMarkPerQuestion').val('');
+        $('#txtTotalMark').val('');
+        $('#txtTime').val('');
+        $('#txtStartDate').val('');
+        $('#hdSettingId').val('');
+        if($('#chCorrect').is(':checked'))
+        {
+            $('#chCorrect').click();
+        }
+
+        if ($('#chMarks').is(':checked'))
+        {
+            $('#chMarks').click();
+        }
+
+        if ($('#chRightAnswer').is(':checked'))
+        {
+            $('#chRightAnswer').click();
+        }
+    });
+</script>
